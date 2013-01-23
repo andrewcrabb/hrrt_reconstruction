@@ -1,0 +1,11 @@
+HKCR
+{
+	NoRemove AppID
+	{
+		{E8FA9A98-20C5-4173-A6F0-A9A5840463B1} = s 'DSCom'
+		'DSCom.EXE'
+		{
+			val AppID = s {E8FA9A98-20C5-4173-A6F0-A9A5840463B1}
+		}
+	}
+}

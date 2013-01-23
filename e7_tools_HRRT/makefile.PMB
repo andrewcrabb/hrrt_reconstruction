@@ -1,0 +1,63 @@
+###################################################
+# Makefile
+#	- Build libraries for e7 utilities
+###################################################
+
+# Libraries
+LIBATTENDIR = libatten
+LIBCOMMONDIR = libcommon
+LIBCONVERTDIR = libconvert
+LIBECAT7DIR = libecat7
+LIBEXCEPTIONDIR = libexception
+LIBFFTDIR = libfft
+LIBFILTERDIR = libfilter
+LIBIMAGEDIR = libimage
+LIBINTERFILEDIR = libinterfile
+LIBIPCDIR = libipc
+LIBPARSERDIR = libparser
+LIBSINOGRAMDIR = libsinogram
+SUBDIRS = $(LIBATTENDIR) $(LIBCOMMONDIR) $(LIBCONVERTDIR) $(LIBECAT7DIR) $(LIBEXCEPTIONDIR) $(LIBFFTDIR) $(LIBFILTERDIR) $(LIBIMAGEDIR) $(LIBINTERFILEDIR) $(LIBIPCDIR) $(LIBPARSERDIR) $(LIBSINOGRAMDIR)
+
+# E7 Tools
+E7_FWD_PRJ_DIR = e7_fwd_prj
+E7_SINO_PRJ_DIR = e7_sino_prj
+E7_ATTEN_PRJ_DIR = e7_atten_prj
+EXEDIRS = $(E7_FWD_PRJ_DIR) $(E7_SINO_PRJ_DIR) $(E7_ATTEN_PRJ_DIR)
+
+# Libraries only
+libs:
+	for i in $(SUBDIRS) ; do \
+		( cd $$i ; make ) ; \
+	done
+
+# Install libraries
+install_libs:
+	for i in $(SUBDIRS) ; do \
+		( cd $$i ; make install ) ; \
+	done
+
+# E7_tools only
+e7:
+	for i in $(EXEDIRS) ; do \
+		( cd $$i ; make ) ; \
+	done
+
+# Install e7_tools
+install_e7:
+	for i in $(EXEDIRS) ; do \
+		( cd $$i ; make install ) ; \
+	done
+
+# Rules to delete *.o & *~
+clean:
+	rm -f *.o *~
+	for i in $(SUBDIRS) $(EXEDIRS) ; do \
+		( cd $$i ; make clean) ; \
+	done
+
+# Rules to delete *.a, *.so, *.o & *~
+clean_all:
+	rm -f *.o *~
+	for i in $(SUBDIRS) $(EXEDIRS) ; do \
+		( cd $$i ; make clean_all) ; \
+	done

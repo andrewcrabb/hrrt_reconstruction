@@ -1,0 +1,53 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "air_ecat", "air_ecat.vcproj", "{AB72DCE0-ACB3-4F33-984F-FE15C3E9DFF6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ecat_make_air", "make_air.vcproj", "{21164A6E-13D8-495D-A454-E4754B3F6C87}"
+	ProjectSection(ProjectDependencies) = postProject
+		{AB72DCE0-ACB3-4F33-984F-FE15C3E9DFF6} = {AB72DCE0-ACB3-4F33-984F-FE15C3E9DFF6}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ecat_alignlinear", "ecat_alignlinear.vcproj", "{14E480A1-8819-4D64-B5E8-4B4FF21909FE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{AB72DCE0-ACB3-4F33-984F-FE15C3E9DFF6} = {AB72DCE0-ACB3-4F33-984F-FE15C3E9DFF6}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ecat_reslice", "ecat_reslice.vcproj", "{7BF925AF-7E1B-439C-B800-9E6CB4369ACC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{AB72DCE0-ACB3-4F33-984F-FE15C3E9DFF6} = {AB72DCE0-ACB3-4F33-984F-FE15C3E9DFF6}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "invert_air", "invert_air.vcproj", "{EB721166-1B08-442C-9D23-022C84D818E0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AB72DCE0-ACB3-4F33-984F-FE15C3E9DFF6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AB72DCE0-ACB3-4F33-984F-FE15C3E9DFF6}.Debug|Win32.Build.0 = Debug|Win32
+		{AB72DCE0-ACB3-4F33-984F-FE15C3E9DFF6}.Release|Win32.ActiveCfg = Release|Win32
+		{AB72DCE0-ACB3-4F33-984F-FE15C3E9DFF6}.Release|Win32.Build.0 = Release|Win32
+		{21164A6E-13D8-495D-A454-E4754B3F6C87}.Debug|Win32.ActiveCfg = Debug|Win32
+		{21164A6E-13D8-495D-A454-E4754B3F6C87}.Debug|Win32.Build.0 = Debug|Win32
+		{21164A6E-13D8-495D-A454-E4754B3F6C87}.Release|Win32.ActiveCfg = Release|Win32
+		{21164A6E-13D8-495D-A454-E4754B3F6C87}.Release|Win32.Build.0 = Release|Win32
+		{14E480A1-8819-4D64-B5E8-4B4FF21909FE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{14E480A1-8819-4D64-B5E8-4B4FF21909FE}.Debug|Win32.Build.0 = Debug|Win32
+		{14E480A1-8819-4D64-B5E8-4B4FF21909FE}.Release|Win32.ActiveCfg = Release|Win32
+		{14E480A1-8819-4D64-B5E8-4B4FF21909FE}.Release|Win32.Build.0 = Release|Win32
+		{7BF925AF-7E1B-439C-B800-9E6CB4369ACC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7BF925AF-7E1B-439C-B800-9E6CB4369ACC}.Debug|Win32.Build.0 = Debug|Win32
+		{7BF925AF-7E1B-439C-B800-9E6CB4369ACC}.Release|Win32.ActiveCfg = Release|Win32
+		{7BF925AF-7E1B-439C-B800-9E6CB4369ACC}.Release|Win32.Build.0 = Release|Win32
+		{EB721166-1B08-442C-9D23-022C84D818E0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{EB721166-1B08-442C-9D23-022C84D818E0}.Debug|Win32.Build.0 = Debug|Win32
+		{EB721166-1B08-442C-9D23-022C84D818E0}.Release|Win32.ActiveCfg = Release|Win32
+		{EB721166-1B08-442C-9D23-022C84D818E0}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

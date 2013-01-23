@@ -1,0 +1,49 @@
+ 
+// Commands (ID_* and IDM_*) 
+HID_EDIT_SCANTIME                       0x10085
+HID_EDIT_SOURCE                         0x10086
+HID_VIEW_SUMMARY                        0x1008A
+HID_VIEW_CRYSTALBITMAP                  0x1008B
+HID_VIEW_STATISTICS                     0x1008C
+HID_FILE_EXPORTTEXTFILE                 0x1008D
+HID_VIEW_FONT                           0x1008E
+HID_VIEW_BLOCKHISTOGRAM                 0x1008F
+HID_VIEW_DECAYCOMPENSATION              0x10090
+HID_VIEW_BLOCKMAP                       0x10091
+HID_VIEW_COMPARISON                     0x10094
+HID_FILE_COMPAREWITH                    0x10095
+HID_FILE_CLEARCOMPARISON                0x10096
+HID_VIEW_FRONTLAYER                     0x18003
+HID_VIEW_BACKLAYER                      0x18004
+HID_VIEW_BOTHLAYERS                     0x18005
+HID_FILE_COMPAREALL                     0x1800B
+HID_VIEW_GANTRYCOMPARE                  0x1800C
+HID_BLOCKMAP_FRONTLAYER                 0x1800D
+HID_BLOCKMAP_BACKLAYER                  0x1800E
+HID_BLOCKMAP_BOTHLAYERS                 0x1800F
+HID_CRYSTALBITMAP_CRYSTALINABLOCK       0x18010
+HID_COMPARISON_GANTRY                   0x1801D
+HID_COMPARISON_HEADS                    0x1801E
+HID_COMPARISON_BLOCKS                   0x1801F
+HID_FILE_ADDCOMPARISON                  0x18032
+ 
+// Prompts (IDP_*) 
+HIDP_OLE_INIT_FAILED                    0x30064
+HIDP_SOCKETS_INIT_FAILED                0x30068
+ 
+// Resources (IDR_*) 
+HIDR_MANIFEST                           0x20001
+HIDR_HTML_PROGRESSDIAG                  0x20067
+HIDR_MAINFRAME                          0x20080
+HIDR_DailyQCTYPE                        0x20081
+ 
+// Dialogs (IDD_*) 
+HIDD_ABOUTBOX                           0x20064
+HIDD_DIALOG1                            0x20084
+HIDD_PROGRESS                           0x20084
+HIDD_PHANTOM                            0x20087
+HIDD_SCANTIME                           0x20089
+HIDD_CRYSTAL                            0x20093
+HIDD_MRQC                               0x20097
+ 
+// Frame Controls (IDW_*) 

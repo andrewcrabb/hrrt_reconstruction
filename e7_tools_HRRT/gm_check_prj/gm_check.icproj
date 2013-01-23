@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="windows-1252"?>
+<VisualStudioProject 
+	ProjectType="Intel C++ Project"
+	Version="7.1"
+	Name="gm_check"
+	VCNestedProjectGUID="{C0B0F6F5-AB43-4237-9FAC-363F7743CA86}"
+	VCNestedProjectFileName="gm_check.vcproj">
+	<Configurations>
+		<Configuration 
+			Name="Debug|Win32">
+			<Tool 
+				Name="VCCLCompilerTool">
+				<IntelOptions 
+					Optimization="0"
+					MinimalRebuild="1"
+					BasicRuntimeChecks="3"
+					RuntimeLibrary="5"/>
+			</Tool>
+		</Configuration>
+		<Configuration 
+			Name="Release|Win32">
+			<Tool 
+				Name="VCCLCompilerTool">
+				<IntelOptions 
+					Optimization="1000"
+					GlobalOptimizations="1"
+					InlineFunctionExpansion="2"
+					EnableIntrinsicFunctions="1"
+					FavorSizeOrSpeed="1"
+					OptimizeForProcessor="3"
+					OptimizeForWindowsApplication="1"
+					UseProcExt="4"
+					Parallelization="1"
+					RuntimeLibrary="0"/>
+			</Tool>
+		</Configuration>
+	</Configurations>
+	<Files>
+		<File 
+			RelativePath="..\gm_check.cpp">
+			<FileConfiguration 
+				Name="Debug|Win32"/>
+			<FileConfiguration 
+				Name="Release|Win32"/>
+		</File>
+	</Files>
+</VisualStudioProject>
+

@@ -1,0 +1,27 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: hrrt_sinocor - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\Merence\LOCALS~1\Temp\RSP9.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/hrrt_sinocor.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"C:\svn_koln\hrrt_open\hrrt_osem3d\hrrt_sinocor.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\Merence\LOCALS~1\Temp\RSP9.tmp" 
+<h3>Output Window</h3>
+Compiling...
+hrrt_sinocor.cpp
+c:\svn_koln\hrrt_open\hrrt_osem3d\hrrt_sinocor.cpp(147) : fatal error C1083: Cannot open include file: 'xmmintrin.h': No such file or directory
+Error executing cl.exe.
+
+
+
+<h3>Results</h3>
+hrrt_sinocor.obj - 1 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

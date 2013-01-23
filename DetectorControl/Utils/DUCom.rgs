@@ -1,0 +1,11 @@
+HKCR
+{
+	NoRemove AppID
+	{
+		{B3BC0669-A06B-4C73-9BAC-9B29D1A1F727} = s 'DUCom'
+		'DUCom.EXE'
+		{
+			val AppID = s {B3BC0669-A06B-4C73-9BAC-9B29D1A1F727}
+		}
+	}
+}

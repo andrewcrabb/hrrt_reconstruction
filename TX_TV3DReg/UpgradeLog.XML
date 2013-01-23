@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="TX_TV3DReg">
+</Property><Property Name="Solution File" Value="Z:\BIN\src\HRRT\hrrt_open_2011\TX_TV3DReg\TX_TV3DReg.sln">
+</Property><Property Name="Date" Value="Thursday, March 31, 2011">
+</Property><Property Name="Time" Value="16:03 PM">
+</Property></Properties><Event ErrorLevel="0" Project="" Source="TX_TV3DReg.sln" Description="File successfully backed up as Z:\BIN\src\HRRT\hrrt_open_2011\TX_TV3DReg\TX_TV3DReg.sln.old">
+</Event><Event ErrorLevel="0" Project="TX_TV3DReg" Source="TX_TV3DReg.vcproj" Description="Converting project file 'Z:\BIN\src\HRRT\hrrt_open_2011\TX_TV3DReg\TX_TV3DReg.vcproj'.">
+</Event><Event ErrorLevel="1" Project="TX_TV3DReg" Source="TX_TV3DReg.vcproj" Description="This application has been updated to include settings related to the User Account Control (UAC) feature of Windows Vista. By default, when run on Windows Vista with UAC enabled, this application is marked to run with the same privileges as the process that launched it. This marking also disables the application from running with virtualization. You can change UAC related settings from the Property Pages of the project.">
+</Event><Event ErrorLevel="1" Project="TX_TV3DReg" Source="TX_TV3DReg.vcproj" Description="VCWebServiceProxyGeneratorTool is no longer supported. The tool has been removed from your project settings.">
+</Event><Event ErrorLevel="1" Project="TX_TV3DReg" Source="TX_TV3DReg.vcproj" Description="Attribute 'Detect64BitPortabilityProblems' of 'VCCLCompilerTool' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="0" Project="TX_TV3DReg" Source="TX_TV3DReg.vcproj" Description="Web deployment to the local IIS server is no longer supported. The Web Deployment build tool has been removed from your project settings.">
+</Event><Event ErrorLevel="1" Project="TX_TV3DReg" Source="TX_TV3DReg.vcproj" Description="Attribute 'Detect64BitPortabilityProblems' of 'VCCLCompilerTool' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="TX_TV3DReg" Source="TX_TV3DReg.vcproj" Description="MSB8012: $(TargetPath) ('Z:\BIN\src\HRRT\hrrt_open_2011\TX_TV3DReg\.\Debug\TX_TV3DReg.exe') does not match the Linker's OutputFile property value '.\Debug\TX_TV3DReg.exe' ('Z:\BIN\src\HRRT\hrrt_open_2011\TX_TV3DReg\Debug\TX_TV3DReg.exe') in project configuration 'Debug|Win32'. This may cause your project to build incorrectly. To correct this, please make sure that $(TargetPath) property value matches the value specified in %(Link.OutputFile).">
+</Event><Event ErrorLevel="1" Project="TX_TV3DReg" Source="TX_TV3DReg.vcproj" Description="MSB8012: $(TargetPath) ('Z:\BIN\src\HRRT\hrrt_open_2011\TX_TV3DReg\.\Release\TX_TV3DReg.exe') does not match the Linker's OutputFile property value '.\Release\TX_TV3DReg.exe' ('Z:\BIN\src\HRRT\hrrt_open_2011\TX_TV3DReg\Release\TX_TV3DReg.exe') in project configuration 'Release|Win32'. This may cause your project to build incorrectly. To correct this, please make sure that $(TargetPath) property value matches the value specified in %(Link.OutputFile).">
+</Event><Event ErrorLevel="0" Project="TX_TV3DReg" Source="TX_TV3DReg.vcproj" Description="Done converting to new project file 'Z:\BIN\src\HRRT\hrrt_open_2011\TX_TV3DReg\TX_TV3DReg.vcxproj'.">
+</Event><Event ErrorLevel="3" Project="TX_TV3DReg" Source="TX_TV3DReg.vcproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="TX_TV3DReg.sln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="TX_TV3DReg.sln" Description="Converted">
+</Event></UpgradeLog>

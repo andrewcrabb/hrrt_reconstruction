@@ -1,0 +1,45 @@
+// DSCom.idl : IDL source for DSCom.dll
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (DSCom.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+	[
+		object,
+		uuid(3179ED9A-BDE8-4BBA-9FF6-D222FD35EDEF),
+	
+		helpstring("IDSMain Interface"),
+		pointer_default(unique)
+	]
+	interface IDSMain : IUnknown
+	{
+		[helpstring("method Abort")] HRESULT Abort();
+		[helpstring("method Setup")] HRESULT Setup([in] long Type, [in] long Configuration, [in] long BlockSelect[2048], [out] long *pStatus);
+		[helpstring("method Error_Lookup")] HRESULT Error_Lookup([in] long Code, [out] unsigned char ErrorStr[2048]);
+		[helpstring("method Setup_Progress")] HRESULT Setup_Progress([out] unsigned char Stage[2048], [out] long *pStagePercent, [out] long *pTotalPercent);
+		[helpstring("method Setup_Finished")] HRESULT Setup_Finished([out] long BlockStatus[2048]);
+		[helpstring("method Time_Alignment")] HRESULT Time_Alignment([in] long Type, [in] long ModulePair, [out] long *pStatus);
+		[helpstring("method KillSelf")] HRESULT KillSelf();
+	};
+
+[
+	uuid(E87B8048-CCDF-4BD5-828C-8B0F169D2AFB),
+	version(1.0),
+	helpstring("DSCom 1.0 Type Library")
+]
+library DSCOMLib
+{
+	importlib("stdole32.tlb");
+	importlib("stdole2.tlb");
+
+	[
+		uuid(E0F5B940-9FDA-4273-BA79-B55501521E97),
+		helpstring("DSMain Class")
+	]
+	coclass DSMain
+	{
+		[default] interface IDSMain;
+	};
+};

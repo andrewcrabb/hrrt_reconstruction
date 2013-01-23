@@ -1,0 +1,50 @@
+gcc -Wall -pedantic -c     analyze.c
+analyze.c:343:2: warning: C++ style comments are not allowed in ISO C90
+analyze.c:343:2: warning: (this will be reported only once per input file)
+analyze.c: In function ‘analyze_read’:
+analyze.c:289: warning: unused variable ‘group’
+analyze.c:287: warning: unused variable ‘sp’
+analyze.c:282: warning: unused variable ‘image_max’
+analyze.c:282: warning: unused variable ‘image_min’
+gcc -Wall -pedantic -c     machine_indep.c
+gcc -Wall -pedantic -c     interfile.c
+interfile.c:53: warning: missing braces around initializer
+interfile.c:53: warning: (near initialization for ‘used_keys[0]’)
+interfile.c: In function ‘if_multiplicity’:
+interfile.c:166: warning: unused variable ‘num_z’
+interfile.c:166: warning: unused variable ‘i’
+interfile.c: In function ‘interfile_open’:
+interfile.c:658: warning: unused variable ‘data_offset’
+interfile.c:656: warning: unused variable ‘block_singles’
+interfile.c: In function ‘interfile_read’:
+interfile.c:883: warning: format ‘%d’ expects type ‘int *’, but argument 3 has type ‘unsigned int *’
+interfile.c:914: warning: format ‘%d’ expects type ‘int *’, but argument 3 has type ‘unsigned int *’
+interfile.c:1086:31: warning: "/*" within comment
+interfile.c: In function ‘interfile_read_slice’:
+interfile.c:1032: warning: unused variable ‘sp’
+interfile.c:1031: warning: unused variable ‘up’
+interfile.c:1201:31: warning: "/*" within comment
+gcc -Wall -pedantic -c     matrix.c
+matrix.c: In function ‘mat_numdoc’:
+matrix.c:172: warning: suggest parentheses around arithmetic in operand of |
+matrix.c: In function ‘mat_enter’:
+matrix.c:644: warning: unused variable ‘sw_version’
+gcc -Wall -pedantic -c     matrix_slice.c
+matrix_slice.c: In function ‘matrix_read_slice’:
+matrix_slice.c:85: warning: unused variable ‘slice_count’
+gcc -Wall -pedantic -c     DICOM.c
+DICOM.c:110: warning: ‘B2S2’ defined but not used
+gcc -Wall -pedantic -c     matrix_extra.c
+matrix_extra.c:120: warning: return type defaults to ‘int’
+matrix_extra.c: In function ‘mh_update’:
+matrix_extra.c:944: warning: unused variable ‘dir_list’
+matrix_extra.c: In function ‘matrix_open’:
+matrix_extra.c:1092: warning: unused variable ‘status’
+matrix_extra.c: At top level:
+matrix_extra.c:171: warning: ‘matrix_write_slice’ defined but not used
+gcc -Wall -pedantic -c     matpkg.c
+matpkg.c:39:1: warning: "M_PI" redefined
+In file included from /usr/include/math.h:28,
+                 from matpkg.c:32:
+/usr/include/architecture/i386/math.h:536:1: warning: this is the location of the previous definition
+libtool -o ./libecatx.a analyze.o machine_indep.o plandefs.o crash.o interfile.o matrix.o matrix_slice.o scanner_model.o DICOM.o isotope_info.o matrix_extra.o num_sort.o matpkg.o

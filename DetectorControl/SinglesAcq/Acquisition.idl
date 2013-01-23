@@ -1,0 +1,44 @@
+// Acquisition.idl : IDL source for Acquisition.dll
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (Acquisition.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+	[
+		object,
+		uuid(28874B6F-9FFA-4898-95EA-823F1EE11A3F),
+	
+		helpstring("IACQMain Interface"),
+		pointer_default(unique)
+	]
+	interface IACQMain : IUnknown
+	{
+		[helpstring("method Acquire_Singles")] HRESULT Acquire_Singles([in] long Mode, [in] long AcquireSelect[16], [in] long Type, [in] long Amount, [out] long *pStatus);
+		[helpstring("method Progress")] HRESULT Progress([out] long *pPercent, [out] long *pStatus);
+		[helpstring("method Retrieve_Singles")] HRESULT Retrieve_Singles([in] long Head, [out] long *pDataSize, [out, size_is(1, *pDataSize)] long** buffer, [out] long *pStatus);
+		[helpstring("method Abort")] HRESULT Abort();
+		[helpstring("method KillSelf")] HRESULT KillSelf();
+		[helpstring("method Statistics")] HRESULT Statistics([out] unsigned long *pNumKEvents, [out] unsigned long *pBadAddress, [out] unsigned long *pSyncProb);
+	};
+
+[
+	uuid(98E8B06F-561D-48DA-9A94-6A321F3B53D8),
+	version(1.0),
+	helpstring("Acquisition 1.0 Type Library")
+]
+library ACQUISITIONLib
+{
+	importlib("stdole32.tlb");
+	importlib("stdole2.tlb");
+
+	[
+		uuid(E8A509A4-3C3F-4348-8EF3-084992DDDC78),
+		helpstring("ACQMain Class")
+	]
+	coclass ACQMain
+	{
+		[default] interface IACQMain;
+	};
+};

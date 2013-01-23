@@ -1,0 +1,733 @@
+#
+# Makefile for CARS queue and reconstruction
+#
+# Author: Frank Kehren
+#
+#
+
+.SUFFIXES: .cpp .d .o .a .so
+
+#
+# Linux/Intel PIII,P4,Xeon
+#
+
+# C++-Compiler
+CXX=g++
+# Compiler-Flags
+CXXFLAGS_SPEC=-O3 -Wall -s -fPIC -pipe 
+
+#-funroll-loops -fstrict-aliasing\
+#	-fsched-interblock -falign-loops=16 -falign-jumps=16\
+#	-falign-functions=16 -mieee-fp -mfpmath=sse,387 -msse2 -m64 -m3dnow\
+#	-march=k8
+# -mtune=opteron
+
+LINK=$(CXX)
+
+# Linker-Flags (shared Libraries)
+LINKIDL=
+#-lMesaGLU -lMesaGL -lOSMesa -lXm -lXt -lX11 -lXp -lXext -lXpm -lSM\
+#	-lICE -ldl -ltermcap -lrt -Wl,-rpath,. 
+
+LDFLAG_RED_SPEC=-lcommon -lexception -lipc -lbaseModel -lgantryModel -lpthread
+LDFLAG_PSF_SPEC=-lecat7 -linterfile -lcommon -lexception -lipc -lbaseModel\
+	-lgantryModel -lfft -lsinogram -lpthread
+#--- E7-Tools
+LDFLAG_E7_CT2UMAP_SPEC=-lcommon -lecat7 -lexception -lfft -lfilter -limage\
+	-linterfile -lipc -lparser -lbaseModel -lgantryModel -lpthread
+LDFLAG_E7_ATTEN_SPEC=-latten -lcommon -lconvert -lecat7 -lexception -lfft\
+	-lfilter -limage -linterfile -lipc -lparser -lsinogram\
+	-lbaseModel -lgantryModel -lpthread $(LINKIDL)
+LDFLAG_E7_FILEFIX_SPEC=-lcommon -lecat7 -lexception -lfft -lfilter -limage\
+	-linterfile -lipc -lsinogram -lbaseModel -lgantryModel -lpthread
+LDFLAG_E7_FWD_SPEC=-latten -lcommon -lconvert -lecat7 -lexception -lfft\
+	-lfilter -limage -linterfile -lipc -lparser -lsinogram\
+	-lbaseModel -lgantryModel -lpthread $(LINKIDL)
+LDFLAG_E7_HEADER_SPEC=-lcommon -lecat7 -lexception -lfft -lfilter -limage\
+	-linterfile -lipc -lparser -lsinogram -lbaseModel -lgantryModel\
+	-lpthread
+LDFLAG_E7_RECON_SPEC=-latten -lcommon -lconvert -lecat7 -lexception -lfft\
+	-lfilter -limage -linterfile -lipc -lparser -lsinogram\
+	-lgantryModel -lpthread $(LINKIDL)
+LDFLAG_E7_SINO_SPEC=-latten -lcommon -lconvert -lecat7 -lexception -lfft\
+	-lfilter -limage -linterfile -lipc -lparser -lsinogram\
+	-lbaseModel -lgantryModel -lpthread $(LINKIDL)
+LDFLAG_E7_PET2UMAP_SPEC=-lcommon -lecat7 -lexception -lfft -lfilter -limage\
+	-linterfile -lipc -lparser -lsinogram -lbaseModel -lgantryModel\
+	-lpthread $(LINKIDL)
+LDFLAG_RECO_SERVER_SPEC=-lcommon -lecat7 -lexception -lfft -lfilter -limage\
+	-linterfile -lipc -lsinogram -lbaseModel -lgantryModel -lpthread
+LDFLAG_QUEUE_SPEC=-lcommon -lecat7 -lexception -lfft -lfilter -limage\
+	-linterfile -lipc -lsinogram -lbaseModel -lgantryModel -lpthread
+LDFLAG_QRS_TERM_SPEC=-lcommon -lecat7 -lexception -lfft -lfilter -limage\
+	-linterfile -lipc -lqueueinterface -lsinogram -lbaseModel\
+	-lgantryModel -lpthread
+LDFLAG_QRS_HC_SPEC=-lcommon -lecat7 -lexception -lfft -lfilter -limage\
+	-linterfile -lipc -lqueueinterface -lsinogram -lbaseModel\
+	-lgantryModel -lpthread
+LDFLAG_QRS_ADDJOB_SPEC=-lcommon -lecat7 -lexception -lfft -lfilter -limage\
+	-linterfile -lipc -lparser -lsinogram -lqueueinterface -lbaseModel\
+	-lgantryModel -lpthread
+LDFLAG_QRS_SHOW_SPEC=-lcommon -lecat7 -lexception -lfft -lfilter -limage\
+	-linterfile -lipc -lqueueinterface -lsinogram -lbaseModel\
+	-lgantryModel -lpthread
+LDFLAG_QRS_SET_PRIO_SPEC=-lcommon -lecat7 -lexception -lfft -lfilter -limage\
+	-linterfile -lipc -lqueueinterface -lsinogram -lbaseModel\
+	-lgantryModel -lpthread
+LDFLAG_QRS_DELJOB_SPEC=-lcommon -lecat7 -lexception -lfft -lfilter -limage\
+	-linterfile -lipc -lqueueinterface -lsinogram -lbaseModel\
+	-lgantryModel -lpthread
+LDFLAG_QRS_STATUS_SPEC=-lcommon -lecat7 -lexception -lfft -lfilter -limage\
+	-linterfile -lipc -lqueueinterface -lsinogram -lbaseModel\
+	-lgantryModel -lpthread
+LDFLAG_INTF_SPEC=-lcommon -lecat7 -lexception -lfft -lfilter -limage\
+	-linterfile -lipc -lparser -lsinogram -lbaseModel -lgantryModel\
+	-lpthread
+LDFLAG_INTF2INTF_SPEC=-lcommon -lecat7 -lexception -lfft -lfilter -limage\
+	-linterfile -lipc -lparser -lsinogram -lbaseModel -lgantryModel\
+	-lpthread
+LDFLAG_GM_CHECK_SPEC=-lcommon -lecat7 -lexception -lfft -lfilter -limage\
+	-linterfile -lipc -lsinogram -lbaseModel -lgantryModel -lpthread
+LDFLAG_GETREV_SPEC=
+
+# Include-Verzeichnisse
+INCLUDE_SPEC=-I . -I v -I om/include -I $(IDL_DIR)/external\
+	-I $(QTDIR)/include
+# Library-Verzeichnisse
+LIBDIR_RED_SPEC=-Lom
+LIBDIR_PSF_SPEC=-Lom
+#--- E7-Tools
+LIBDIR_E7_CT2UMAP_SPEC=-Lom
+LIBDIR_E7_ATTEN_SPEC=-Lv -Lom -L$(IDL_DIR)/bin/bin.linux.x86\
+	-L/usr/X11R6/lib -L/usr/lib/termcap
+LIBDIR_E7_FILEFIX_SPEC=-Lom
+LIBDIR_E7_FWD_SPEC=-Lv -Lom -L$(IDL_DIR)/bin/bin.linux.x86\
+	-L/usr/X11R6/lib -L/usr/lib/termcap
+LIBDIR_E7_HEADER_SPEC=-Lom
+LIBDIR_E7_RECON_SPEC=-Lv -Lom -L$(IDL_DIR)/bin/bin.linux.x86\
+	-L/usr/X11R6/lib -L/usr/lib/termcap
+LIBDIR_E7_SINO_SPEC=-Lv -Lom -L$(IDL_DIR)/bin/bin.linux.x86\
+	-L/usr/X11R6/lib -L/usr/lib/termcap
+LIBDIR_E7_PET2UMAP_SPEC=-Lom -L$(IDL_DIR)/bin/bin.linux.x86 -L/usr/X11R6/lib\
+	-L/usr/lib/termcap
+LIBDIR_RECO_SERVER_SPEC=-Lom
+LIBDIR_QUEUE_SPEC=-Lom
+LIBDIR_QRS_TERM_SPEC=-Lom
+LIBDIR_QRS_HC_SPEC=-Lom
+LIBDIR_QRS_ADDJOB_SPEC=-Lom
+LIBDIR_QRS_SHOW_SPEC=-Lom
+LIBDIR_QRS_SET_PRIO_SPEC=-Lom
+LIBDIR_QRS_DELJOB_SPEC=-Lom
+LIBDIR_QRS_STATUS_SPEC=-Lom
+LIBDIR_INTF_SPEC=-Lom
+LIBDIR_INTF2INTF_SPEC=-Lom
+LIBDIR_GM_CHECK_SPEC=-Lom
+LIBDIR_GETREV_SPEC=
+# static Libraries
+LIBRARIES_RED=
+LIBRARIES_PSF=
+# E7-Tools
+LIBRARIES_E7_CT2UMAP=
+LIBRARIES_E7_ATTEN=
+LIBRARIES_E7_FILEFIX=
+LIBRARIES_E7_FWD=
+LIBRARIES_E7_HEADER=
+LIBRARIES_E7_RECON=
+LIBRARIES_E7_SINO=
+LIBRARIES_E7_PET2UMAP=
+LIBRARIES_RECO_SERVER=
+LIBRARIES_QUEUE=
+LIBRARIES_QRS_TERM=
+LIBRARIES_QRS_HC=
+LIBRARIES_QRS_ADDJOB=
+LIBRARIES_QRS_SHOW=
+LIBRARIES_QRS_SET_PRIO=
+LIBRARIES_QRS_DELJOB=
+LIBRARIES_QRS_STATUS=
+LIBRARIES_INTF=
+LIBRARIES_INTF2INTF=
+LIBRARIES_GM_CHECK=
+LIBRARIES_GETREV=
+# Defines
+DEFINE_SPEC=-D__LINUX__ -D_SVID_SOURCE -D_LEGACY_IO -DXEON_HYPERTHREADING_BUG\
+	-D_FILE_OFFSET_BITS=64 -DCPU64BIT
+# -DBENCHMARK
+
+# Dependency-Informationen für Makefile erzeugen
+DEP_INFOS=-MM
+# zu erzeugende Programme
+all: 	e7tools
+
+doc: doxygen e7tools.doxy
+
+e7tools: cfile  libatten.a libcommon.a\
+	libconvert.a libecat7.a libexception.a libfft.a libfilter.a\
+	libgantryModel.a libimage.a libinterfile.a libipc.a libparser.a\
+	libsinogram.a e7_atten\
+	e7_ct2umap e7_filefix e7_fwd e7_header e7_recon e7_sino\
+	intf2ecat7 intf2intf gm_check 
+
+#
+# Meta Object Compiler
+#
+MOC=moc
+
+#
+# AR-Optionen
+#
+AR_FLAGS=rc
+
+#
+# Ranlib
+#
+RANLIB=ranlib
+
+#
+# Compiler-Optionen
+#
+CXXFLAGS=$(CXXFLAGS_SPEC)
+
+#
+# Linker-Flags
+#
+LDFLAG_RED=$(LDFLAG_RED_SPEC) -lm
+# E7-Tools
+LDFLAG_E7_CT2UMAP=$(LDFLAG_E7_CT2UMAP_SPEC) -lm
+LDFLAG_E7_ATTEN=$(LDFLAG_E7_ATTEN_SPEC) -lm
+LDFLAG_E7_FILEFIX=$(LDFLAG_E7_FILEFIX_SPEC) -lm
+LDFLAG_E7_FWD=$(LDFLAG_E7_FWD_SPEC) -lm
+LDFLAG_E7_HEADER=$(LDFLAG_E7_HEADER_SPEC) -lm
+LDFLAG_E7_RECON=$(LDFLAG_E7_RECON_SPEC) -lm
+LDFLAG_E7_SINO=$(LDFLAG_E7_SINO_SPEC) -lm
+LDFLAG_E7_PET2UMAP=$(LDFLAG_E7_PET2UMAP_SPEC) -lm
+LDFLAG_RECO_SERVER=$(LDFLAG_RECO_SERVER_SPEC) -lm
+LDFLAG_QUEUE=$(LDFLAG_QUEUE_SPEC) -lm
+LDFLAG_QRS_TERM=$(LDFLAG_QRS_TERM_SPEC) -lm
+LDFLAG_QRS_HC=$(LDFLAG_QRS_HC_SPEC) -lm
+LDFLAG_QRS_ADDJOB=$(LDFLAG_QRS_ADDJOB_SPEC) -lm
+LDFLAG_QRS_SHOW=$(LDFLAG_QRS_SHOW_SPEC) -lm
+LDFLAG_QRS_SET_PRIO=$(LDFLAG_QRS_SET_PRIO_SPEC) -lm
+LDFLAG_QRS_DELJOB=$(LDFLAG_QRS_DELJOB_SPEC) -lm
+LDFLAG_QRS_STATUS=$(LDFLAG_QRS_STATUS_SPEC) -lm
+LDFLAG_INTF=$(LDFLAG_INTF_SPEC) -lm
+LDFLAG_INTF2INTF=$(LDFLAG_INTF2INTF_SPEC) -lm
+LDFLAG_GM_CHECK=$(LDFLAG_GM_CHECK_SPEC) -lm
+LDFLAG_GETREV=$(LDFLAG_GETREV_SPEC)
+
+#
+# Library-Verzeichnisse
+#
+LIBDIR_RED=$(LIBDIR_RED_SPEC) -L.
+# E7-Tools
+LIBDIR_E7_CT2UMAP=$(LIBDIR_E7_CT2UMAP_SPEC) -L.
+LIBDIR_E7_ATTEN=$(LIBDIR_E7_ATTEN_SPEC) -L.
+LIBDIR_E7_FILEFIX=$(LIBDIR_E7_FILEFIX_SPEC) -L.
+LIBDIR_E7_FWD=$(LIBDIR_E7_FWD_SPEC) -L.
+LIBDIR_E7_HEADER=$(LIBDIR_E7_HEADER_SPEC) -L.
+LIBDIR_E7_RECON=$(LIBDIR_E7_RECON_SPEC) -L.
+LIBDIR_E7_SINO=$(LIBDIR_E7_SINO_SPEC) -L.
+LIBDIR_E7_PET2UMAP=$(LIBDIR_E7_PET2UMAP_SPEC) -L .
+LIBDIR_RECO_SERVER=$(LIBDIR_RECO_SERVER_SPEC) -L.
+LIBDIR_QUEUE=$(LIBDIR_QUEUE_SPEC) -L.
+LIBDIR_QRS_TERM=$(LIBDIR_QRS_TERM_SPEC) -L.
+LIBDIR_QRS_HC=$(LIBDIR_QRS_HC_SPEC) -L.
+LIBDIR_QRS_ADDJOB=$(LIBDIR_QRS_ADDJOB_SPEC) -L.
+LIBDIR_QRS_SHOW=$(LIBDIR_QRS_SHOW_SPEC) -L.
+LIBDIR_QRS_SET_PRIO=$(LIBDIR_QRS_SET_PRIO_SPEC) -L.
+LIBDIR_QRS_DELJOB=$(LIBDIR_QRS_DELJOB_SPEC) -L.
+LIBDIR_QRS_STATUS=$(LIBDIR_QRS_STATUS_SPEC) -L.
+LIBDIR_INTF=$(LIBDIR_INTF_SPEC) -L.
+LIBDIR_INTF2INTF=$(LIBDIR_INTF2INTF_SPEC) -L.
+LIBDIR_GM_CHECK=$(LIBDIR_GM_CHECK_SPEC) -L.
+LIBDIR_GETREV=$(LIBDIR_GETREV_SPEC)
+
+#
+# Include-Verzeichnisse
+#
+INCLUDE=$(INCLUDE_SPEC)
+
+#
+# Defines
+#
+DEFINE=$(DEFINE_SPEC)
+
+#
+# Compiler-Aufruf
+#
+CXX_PARAM=$(CXX) $(CXXFLAGS) -c $(DEFINE) $(INCLUDE)
+
+#
+# implizite Regeln
+#
+.cpp.o:
+	@./cfile 0 $<
+	@$(CXX_PARAM) $<
+
+.cpp.d:
+	@echo "-" $(HOST)": Generating dependencies for" $@ "-"
+	@$(SHELL) -ec 'gcc $(DEP_INFOS) $(DEFINE) $(INCLUDE) \
+		$< | sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' > $@; \
+		[ -s $@ ] || $(RM) $@'
+
+%.moc.cpp: %.h
+	@$(MOC) $< -o $@
+
+#
+# Objekt-Dateien
+#
+
+#--- E7-Tools
+ATTEN_SOURCES=pb_tv_3d.cpp projected_image_3d.cpp tv_3d.cpp tx_pb_3d.cpp\
+	tx_pb_gauss_3d.cpp tx_pb_gm_3d.cpp
+ATTEN_ARCHIVE=pb_tv_3d.o projected_image_3d.o tv_3d.o tx_pb_3d.o\
+	tx_pb_gauss_3d.o tx_pb_gm_3d.o
+
+COMMON_SOURCES=e7_common.cpp global_tmpl.cpp gm.cpp hwinfo.cpp mem_ctrl.cpp\
+	raw_io.cpp rng.cpp stopwatch.cpp str_tmpl.cpp swap_tmpl.cpp\
+	thread_wrapper.cpp unique_name.cpp
+COMMON_ARCHIVE=e7_common.o global_tmpl.o gm.o hwinfo.o mem_ctrl.o raw_io.o\
+	rng.o stopwatch.o str_tmpl.o swap_tmpl.o thread_wrapper.o\
+	unique_name.o
+
+CONVERT_SOURCES=atten_reco.cpp bckprj3d.cpp convert.cpp dift.cpp fbp.cpp\
+	fwdprj3d.cpp osem3d.cpp \
+	scatter.cpp scatter_sim.cpp tof_lut.cpp
+CONVERT_ARCHIVE=atten_reco.o bckprj3d.o convert.o dift.o fbp.o fwdprj3d.o\
+	osem3d.o scatter.o\
+	scatter_sim.o tof_lut.o
+
+#DICOM_SOURCES=dicom.cpp
+#DICOM_ARCHIVE=dicom.o
+
+EXCEPTION_SOURCES=exception.cpp logging.cpp progress.cpp semaphore_al.cpp\
+	timedate.cpp
+EXCEPTION_ARCHIVE=exception.o logging.o progress.o semaphore_al.o timedate.o
+
+ECAT7_SOURCES=data_changer.cpp ecat7.cpp ecat7_attenuation.cpp\
+	ecat7_directory.cpp ecat7_image.cpp ecat7_mainheader.cpp\
+	ecat7_matrix_abc.cpp ecat7_norm.cpp ecat7_norm3d.cpp ecat7_polar.cpp\
+	ecat7_scan.cpp ecat7_scan3d.cpp ecat7_utils.cpp
+ECAT7_ARCHIVE=data_changer.o ecat7.o ecat7_attenuation.o ecat7_directory.o\
+	ecat7_image.o ecat7_mainheader.o ecat7_matrix_abc.o ecat7_norm.o\
+	ecat7_norm3d.o ecat7_polar.o ecat7_scan.o ecat7_scan3d.o ecat7_utils.o
+
+FFT_SOURCES=fft.cpp
+FFT_ARCHIVE=fft.o
+
+FILTER_SOURCES=image_filter.cpp
+FILTER_ARCHIVE=image_filter.o
+
+IMAGE_SOURCES=image_io.cpp image_conversion.cpp rebin_xy.cpp wholebody.cpp
+IMAGE_ARCHIVE=image_io.o image_conversion.o rebin_xy.o wholebody.o
+
+INTERFILE_SOURCES=kv.cpp interfile.cpp
+INTERFILE_ARCHIVE=kv.o interfile.o
+
+IPC_SOURCES=comm_socket.cpp sockets.cpp stream_buffer.cpp
+IPC_ARCHIVE=comm_socket.o sockets.o stream_buffer.o
+
+PARSER_SOURCES=getopt_wrapper.cpp parser.cpp
+PARSER_ARCHIVE=getopt_wrapper.o parser.o
+
+SINOGRAM_SOURCES=fore.cpp fore_fft.cpp gapfill.cpp norm_ecat.cpp\
+	randoms_smoothing.cpp rebin_sinogram.cpp rebin_x.cpp sino2d_3d.cpp\
+	sinogram_conversion.cpp sinogram_io.cpp ssr.cpp
+SINOGRAM_ARCHIVE=fore.o fore_fft.o gapfill.o norm_ecat.o randoms_smoothing.o\
+	rebin_sinogram.o rebin_x.o sino2d_3d.o sinogram_conversion.o\
+	sinogram_io.o ssr.o
+
+E7_CT2UMAP_SOURCES=e7_ct2umap.cpp
+LINK_E7_CT2UMAP_INCLUDE=e7_ct2umap.o
+
+E7_ATTEN_SOURCES=e7_atten.cpp 
+LINK_E7_ATTEN_INCLUDE=e7_atten.o
+
+E7_FILEFIX_SOURCES=e7_filefix.cpp
+LINK_E7_FILEFIX_INCLUDE=e7_filefix.o
+
+E7_FWD_SOURCES=e7_fwd.cpp
+LINK_E7_FWD_INCLUDE=e7_fwd.o
+
+E7_HEADER_SOURCES=e7_header.cpp
+LINK_E7_HEADER_INCLUDE=e7_header.o
+
+E7_RECON_SOURCES=e7_recon.cpp
+LINK_E7_RECON_INCLUDE=e7_recon.o
+
+E7_SINO_SOURCES=e7_sino.cpp
+LINK_E7_SINO_INCLUDE=e7_sino.o
+
+SOURCES_INTF=intf2ecat7.cpp
+LINK_INTF_INCLUDE=intf2ecat7.o
+
+SOURCES_INTF2INTF=intf2intf.cpp
+LINK_INTF2INTF_INCLUDE=intf2intf.o
+
+SOURCES_GM_CHECK=gm_check.cpp
+LINK_GM_CHECK_INCLUDE=gm_check.o
+
+SOURCES_GETREV=getrev.cpp
+LINK_GETREV_INCLUDE=getrev.o
+
+#
+# explizite Regeln
+#
+cfile.o: cfile.cpp
+	@echo "-" $(HOST)": compiling cfile.cpp -"
+	@$(CXX_PARAM) cfile.cpp
+
+cfile: cfile.o
+	@echo "-" $(HOST)": linking cfile     -"
+	@$(LINK) cfile.o -o $@
+	@-strip $@
+#	@gzexe $@
+	@echo "=" $(HOST)": cfile linked      ="
+	@echo
+	@./cfile 4 makefile
+	@./cfile 4 commands.h
+	@./cfile 4 const.h
+	@./cfile 4 dynamic_link.cpp
+	@./cfile 4 dynamic_link.h
+	@./cfile 4 ecat_tmpl.cpp
+	@./cfile 4 ecat_tmpl.h
+	@./cfile 4 ecat7_global.h
+	@./cfile 4 fastmath.h
+	@./cfile 4 global_tmpl.cpp
+	@./cfile 4 global_tmpl.h
+	@./cfile 4 matrix.cpp
+	@./cfile 4 matrix.h
+	@./cfile 4 rebin_x.cpp
+	@./cfile 4 rebin_x.h
+	@./cfile 4 reconbe_wrapper.cpp
+	@./cfile 4 reconbe_wrapper.h
+	@./cfile 4 red_const.h
+	@./cfile 4 registry.h
+	@./cfile 4 setup.cpp
+	@./cfile 4 timestamp.h
+	@./cfile 4 types.h
+	@./cfile 4 vecmath.h
+	@./cfile 4 vecmath.cpp
+
+#include $(RED_SOURCES:.cpp=.d)
+#--- E7-Tools
+include $(ATTEN_SOURCES:.cpp=.d)
+include $(COMMON_SOURCES:.cpp=.d)
+include $(CONVERT_SOURCES:.cpp=.d)
+#include $(DICOM_SOURCES:.cpp=.d)
+include $(EXCEPTION_SOURCES:.cpp=.d)
+include $(ECAT7_SOURCES:.cpp=.d)
+include $(FFT_SOURCES:.cpp=.d)
+include $(FILTER_SOURCES:.cpp=.d)
+include $(IMAGE_SOURCES:.cpp=.d)
+include $(INTERFILE_SOURCES:.cpp=.d)
+include $(IPC_SOURCES:.cpp=.d)
+include $(PARSER_SOURCES:.cpp=.d)
+include $(SINOGRAM_SOURCES:.cpp=.d)
+include $(E7_ATTEN_SOURCES:.cpp=.d)
+include $(E7_FILEFIX_SOURCES:.cpp=.d)
+include $(E7_FWD_SOURCES:.cpp=.d)
+include $(E7_HEADER_SOURCES:.cpp=.d)
+include $(E7_RECON_SOURCES:.cpp=.d)
+include $(E7_SINO_SOURCES:.cpp=.d)
+include $(SOURCES_INTF:.cpp=.d)
+include $(SOURCES_INTF2INTF:.cpp=.d)
+include $(SOURCES_GM_CHECK:.cpp=.d)
+
+#
+# Archive
+#
+
+#--- E7-Tools
+libgantryModel.so:
+	@make -j 1 -C om -s -f makefile.gcc
+
+libatten.a: $(ATTEN_ARCHIVE)
+	@$(RM) libatten.a
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(AR) $(AR_FLAGS) libatten.a $(ATTEN_ARCHIVE)
+	@-$(RANLIB) libatten.a
+#	@-strip libatten.a
+
+libatten.so: $(ATTEN_ARCHIVE)
+	@$(RM) libatten.so
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(LINK) -shared -o libatten.so $(ATTEN_ARCHIVE)
+#	@-strip libatten.so
+
+libpsf.so:
+	@make -j 1 -C psf -s -f makefile.gcc libpsf.so
+
+libcommon.a: $(COMMON_ARCHIVE)
+	@$(RM) libcommon.a
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(AR) $(AR_FLAGS) libcommon.a $(COMMON_ARCHIVE)
+	@-$(RANLIB) libcommon.a
+#	@-strip libcommon.a
+
+libcommon.so: $(COMMON_ARCHIVE)
+	@$(RM) libcommon.so
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(LINK) -shared -o libcommon.so $(COMMON_ARCHIVE)
+#	@-strip libcommon.so
+
+libconvert.a: $(CONVERT_ARCHIVE)
+	@$(RM) libconvert.a
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(AR) $(AR_FLAGS) libconvert.a $(CONVERT_ARCHIVE)
+	@-$(RANLIB) libconvert.a
+#	@-strip libconvert.a
+
+libconvert.so: $(CONVERT_ARCHIVE)
+	@$(RM) libconvert.so
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(LINK) -shared -o libconvert.so $(CONVERT_ARCHIVE)
+#	@-strip libconvert.so
+
+#libdicom.a: $(DICOM_ARCHIVE)
+#	@$(RM) libdicom.a
+#	@echo "-" $(HOST)": Creating Library" $@ "-"
+#	@$(AR) $(AR_FLAGS) libdicom.a $(DICOM_ARCHIVE)
+#	@-$(RANLIB) libdicom.a
+
+#libdicom.so: $(DICOM_ARCHIVE)
+#	@$(RM) libdicom.so
+#	@echo "-" $(HOST)": Creating Library" $@ "-"
+#	@$(LINK) -shared -o libdicom.so $(DICOM_ARCHIVE) $(LIBDIR_DICOM)\
+#	         $(LDFLAG_DICOM)
+
+libecat7.a: $(ECAT7_ARCHIVE)
+	@$(RM) libecat7.a
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(AR) $(AR_FLAGS) libecat7.a $(ECAT7_ARCHIVE)
+	@-$(RANLIB) libecat7.a
+#	@-strip libecat7.a
+
+libecat7.so: $(ECAT7_ARCHIVE)
+	@$(RM) libecat7.so
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(LINK) -shared -o libecat7.so $(ECAT7_ARCHIVE)
+#	@-strip libecat7.so
+
+libexception.a: $(EXCEPTION_ARCHIVE)
+	@$(RM) libexception.a
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(AR) $(AR_FLAGS) libexception.a $(EXCEPTION_ARCHIVE)
+	@-$(RANLIB) libexception.a
+#	@-strip libexception.a
+
+libexception.so: $(EXCEPTION_ARCHIVE)
+	@$(RM) libexception.so
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(LINK) -shared -o libexception.so $(EXCEPTION_ARCHIVE)
+#	@-strip libexception.so
+
+libfft.a: $(FFT_ARCHIVE)
+	@$(RM) libfft.a
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(AR) $(AR_FLAGS) libfft.a $(FFT_ARCHIVE)
+	@-$(RANLIB) libfft.a
+#	@-strip libfft.a
+
+libfft.so: $(FFT_ARCHIVE)
+	@$(RM) libfft.so
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(LINK) -shared -o libfft.so $(FFT_ARCHIVE)
+#	@-strip libfft.so
+
+libfilter.a: $(FILTER_ARCHIVE)
+	@$(RM) libfilter.a
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(AR) $(AR_FLAGS) libfilter.a $(FILTER_ARCHIVE)
+	@-$(RANLIB) libfilter.a
+#	@-strip libfilter.a
+
+libfilter.so: $(FILTER_ARCHIVE)
+	@$(RM) libfilter.so
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(LINK) -shared -o libfilter.so $(FILTER_ARCHIVE)
+#	@-strip libfilter.so
+
+libimage.a: $(IMAGE_ARCHIVE)
+	@$(RM) libimage.a
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(AR) $(AR_FLAGS) libimage.a $(IMAGE_ARCHIVE)
+	@-$(RANLIB) libimage.a
+
+libimage.so: $(IMAGE_ARCHIVE)
+	@$(RM) libimage.so
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(LINK) -shared -o libimage.so $(IMAGE_ARCHIVE) $(LIBDIR_IMAGE)\
+	 $(LDFLAG_IMAGE)
+
+libinterfile.a: $(INTERFILE_ARCHIVE)
+	@$(RM) libinterfile.a
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(AR) $(AR_FLAGS) libinterfile.a $(INTERFILE_ARCHIVE)
+	@-$(RANLIB) libinterfile.a
+
+libinterfile.so: $(INTERFILE_ARCHIVE)
+	@$(RM) libinterfile.so
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(LINK) -shared -o libinterfile.so $(INTERFILE_ARCHIVE)\
+	         $(LIBDIR_INTERFILE) $(LDFLAG_INTERFILE)
+
+libipc.a: $(IPC_ARCHIVE)
+	@$(RM) libipc.a
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(AR) $(AR_FLAGS) libipc.a $(IPC_ARCHIVE)
+	@-$(RANLIB) libipc.a
+#	@-strip libipc.a
+
+libipc.so: $(IPC_ARCHIVE)
+	@$(RM) libipc.so
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(LINK) -shared -o libipc.so $(IPC_ARCHIVE)
+#	@-strip libipc.so
+
+libparser.a: $(PARSER_ARCHIVE)
+	@$(RM) libparser.a
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(AR) $(AR_FLAGS) libparser.a $(PARSER_ARCHIVE)
+	@-$(RANLIB) libparser.a
+
+libparser.so: $(PARSER_ARCHIVE)
+	@$(RM) libparser.so
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(LINK) -shared -o libparser.so $(PARSER_ARCHIVE) $(LIBDIR_PARSER)\
+	 $(LDFLAG_PARSER)
+
+libsinogram.a: $(SINOGRAM_ARCHIVE)
+	@$(RM) libsinogram.a
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(AR) $(AR_FLAGS) libsinogram.a $(SINOGRAM_ARCHIVE)
+	@-$(RANLIB) libsinogram.a
+
+libsinogram.so: $(SINOGRAM_ARCHIVE)
+	@$(RM) libsinogram.so
+	@echo "-" $(HOST)": Creating Library" $@ "-"
+	@$(LINK) -shared -o libsinogram.so $(SINOGRAM_ARCHIVE)\
+	 $(LIBDIR_SINOGRAM) $(LDFLAG_SINOGRAM)
+
+#
+# Linken von Queue und Reco-Server
+#
+
+#--- E7-Tools
+e7_ct2umap: $(LINK_E7_CT2UMAP_INCLUDE) $(LIBRARIES_E7_CT2UMAP)
+	@./cfile 3 $@
+	@./cfile 1 $@
+	@$(LINK) $(LINK_E7_CT2UMAP_INCLUDE) $(LIBRARIES_E7_CT2UMAP) -o $@\
+		 $(LIBDIR_E7_CT2UMAP) $(LDFLAG_E7_CT2UMAP)
+	@-strip $@
+#	@gzexe $@
+	@./cfile 2 $@
+
+e7_atten: $(LINK_E7_ATTEN_INCLUDE) $(LIBRARIES_E7_ATTEN)
+	@./cfile 3 $@
+	@./cfile 1 $@
+	@$(LINK) $(LINK_E7_ATTEN_INCLUDE) $(LIBRARIES_E7_ATTEN) -o $@\
+		 $(LIBDIR_E7_ATTEN) $(LDFLAG_E7_ATTEN)
+	@-strip $@
+#	@gzexe $@
+	@./cfile 2 $@
+
+e7_filefix: $(LINK_E7_FILEFIX_INCLUDE) $(LIBRARIES_E7_FILEFIX)
+	@./cfile 3 $@
+	@./cfile 1 $@
+	@$(LINK) $(LINK_E7_FILEFIX_INCLUDE) $(LIBRARIES_E7_FILEFIX) -o $@\
+		 $(LIBDIR_E7_FILEFIX) $(LDFLAG_E7_FILEFIX)
+	@-strip $@
+#	@gzexe $@
+	@./cfile 2 $@
+
+e7_fwd: $(LINK_E7_FWD_INCLUDE) $(LIBRARIES_E7_FWD)
+	@./cfile 3 $@
+	@./cfile 1 $@
+	@$(LINK) $(LINK_E7_FWD_INCLUDE) $(LIBRARIES_E7_FWD) -o $@\
+		 $(LIBDIR_E7_FWD) $(LDFLAG_E7_FWD)
+	@-strip $@
+#	@gzexe $@
+	@./cfile 2 $@
+
+e7_header: $(LINK_E7_HEADER_INCLUDE) $(LIBRARIES_E7_HEADER)
+	@./cfile 3 $@
+	@./cfile 1 $@
+	@$(LINK) $(LINK_E7_HEADER_INCLUDE) $(LIBRARIES_E7_HEADER) -o $@\
+		 $(LIBDIR_E7_HEADER) $(LDFLAG_E7_HEADER)
+	@-strip $@
+#	@gzexe $@
+	@./cfile 2 $@
+
+e7_recon: $(LINK_E7_RECON_INCLUDE) $(LIBRARIES_E7_RECON)
+	@./cfile 3 $@
+	@./cfile 1 $@
+	@$(LINK) $(LINK_E7_RECON_INCLUDE) $(LIBRARIES_E7_RECON) -o $@\
+		 $(LIBDIR_E7_RECON) $(LDFLAG_E7_RECON)
+	@-strip $@
+#	@gzexe $@
+	@./cfile 2 $@
+
+e7_sino: $(LINK_E7_SINO_INCLUDE) $(LIBRARIES_E7_SINO)
+	@./cfile 3 $@
+	@./cfile 1 $@
+	@$(LINK) $(LINK_E7_SINO_INCLUDE) $(LIBRARIES_E7_SINO) -o $@\
+		 $(LIBDIR_E7_SINO) $(LDFLAG_E7_SINO)
+	@-strip $@
+#	@gzexe $@
+	@./cfile 2 $@
+
+intf2ecat7: $(LINK_INTF_INCLUDE) $(LIBRARIES_INTF)
+	@./cfile 3 $@
+	@./cfile 1 $@
+	@$(LINK) $(LINK_INTF_INCLUDE) $(LIBRARIES_INTF) -o $@ $(LIBDIR_INTF)\
+	         $(LDFLAG_INTF)
+	@-strip $@
+#	@gzexe $@
+	@./cfile 2 $@
+
+intf2intf: $(LINK_INTF2INTF_INCLUDE) $(LIBRARIES_INTF2INTF)
+	@./cfile 3 $@
+	@./cfile 1 $@
+	@$(LINK) $(LINK_INTF2INTF_INCLUDE) $(LIBRARIES_INTF2INTF) -o $@\
+		 $(LIBDIR_INTF2INTF) $(LDFLAG_INTF2INTF)
+	@-strip $@
+#	@gzexe $@
+	@./cfile 2 $@
+
+gm_check: $(LINK_GM_CHECK_INCLUDE) $(LIBRARIES_GM_CHECK)
+	@./cfile 3 $@
+	@./cfile 1 $@
+	@$(LINK) $(LINK_GM_CHECK_INCLUDE) $(LIBRARIES_GM_CHECK) -o $@\
+	         $(LIBDIR_GM_CHECK) $(LDFLAG_GM_CHECK)
+	@-strip $@
+#	@gzexe $@
+	@./cfile 2 $@
+
+#
+# Löschen der Objekt-Dateien und Executables
+#
+clean:
+	@$(RM) $(LINK_RED_INCLUDE) red $(LINK_PSF_INLUDE) psf_test
+	@$(RM) $(COMMON_ARCHIVE) $(CONVERT_ARCHIVE) $(ECAT7_ARCHIVE)\
+	       $(EXCEPTION_ARCHIVE) $(FFT_ARCHIVE) $(FILTER_ARCHIVE)\
+	       $(IPC_ARCHIVE) $(IMAGE_ARCHIVE) $(INTERFILE_ARCHIVE)\
+	       $(PARSER_ARCHIVE) $(SINOGRAM_ARCHIVE) $(LINK_E7_ATTEN_INCLUDE)\
+	       $(LINK_E7_FILEFIX_INCLUDE) $(LINK_E7_FWD_INCLUDE)\
+	       $(LINK_E7_HEADER_INCLUDE) $(LINK_E7_SINO_INCLUDE)\
+	       $(LINK_E7_RECON_INCLUDE) $(LINK_RECO_SERVER_INCLUDE)\
+	       $(LINK_QUEUE_INCLUDE) $(QIF_ARCHIVE) $(LINK_QRS_TERM_INCLUDE)\
+	       $(LINK_QRS_HC_INCLUDE) $(LINK_QRS_ADDJOB_INCLUDE)\
+	       $(LINK_INTF_INCLUDE) $(LINK_QRS_SHOW_INCLUDE)\
+	       $(LINK_QRS_SET_PRIO_INCLUDE) $(LINK_QRS_DELJOB_INCLUDE)\
+	       $(LINK_QRS_STATUS_INCLUDE) $(LINK_GM_CHECK_INCLUDE)\
+	       $(LINK_E7_PET2UMAP_INCLUDE) $(LINK_GETREV_INCLUDE)\
+	       $(LINK_E7_CT2UMAP_INCLUDE)\
+	       $(LINK_INTF2INTF_INCLUDE) e7_pet2umap e7_atten\
+	       e7_ct2umap e7_filefix e7_fwd e7_header e7_recon e7_sino\
+	       reco_server queue qrs_addjob qrs_deljob qrs_health_check\
+	       qrs_set_prio qrs_show qrs_status qrs_terminate intf2ecat7\
+	       intf2intf gm_check getrev *~ *.d *.a *.so\
+	       *.flc cfile.dat cfile.o cfile
+	@make -C v -s -f makefile.gcc clean
+	@make -C om -s -f makefile.gcc clean
+	@make -C psf -s -f makefile.gcc clean
