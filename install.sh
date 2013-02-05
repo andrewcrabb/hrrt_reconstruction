@@ -12,3 +12,5 @@ fi
 
 rsync -tiv bin/* ${HRRT_HOME}/bin
 chmod +x ${HRRT_HOME}/bin/*
+
+rsync -tiv etc/* ${HRRT_HOME}/etc
