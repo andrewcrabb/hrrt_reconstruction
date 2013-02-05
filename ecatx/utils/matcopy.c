@@ -5,7 +5,7 @@ static char sccsid[]="(#)matcopy.c 1.4 7/10/92 Copyright 1990 CTI Pet Systems, I
 
 /* 09-Nov-1995 : modified by sibomana@topo.ucl.ac.be */
 
-#include <sys/malloc.h>
+#include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
 #include "matrix.h"

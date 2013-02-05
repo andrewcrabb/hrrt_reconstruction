@@ -16,6 +16,7 @@ CFLAGS		= $(DEBUG)
 LDLIBS		= ../ecatx/libecatx.a -lm 
 INCLUDES	= -I ../
 MACRO		= -D_LINUX
+INSTALLDIR      = ../bin
 
 # ------
 .SUFFIXES: .o .cpp .h
@@ -31,7 +32,7 @@ volume_reslice:	volume_reslice.o load_volume_v2.o Volume.o matpkg.o matrix_resiz
 			$(CC) -o $@  volume_reslice.o load_volume_v2.o Volume.o matpkg.o matrix_resize.o ${LDLIBS}
 
 install:
-			mv volume_reslice $(EXEPATH)
+			cp volume_reslice $(INSTALLDIR)
 
 clean:
 			$(RM) *.o *~

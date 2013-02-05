@@ -30,7 +30,7 @@
  */
 
 #include <math.h>
-#include <sys/malloc.h>
+#include <malloc.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "matpkg.h"

@@ -17,6 +17,7 @@ CFLAGS		= $(DEBUG)
 LDLIBS		= ../ecatx/libecatx.a -lm
 INCLUDES	= -I../include
 MACRO		=  -D_FILE_OFFSET_BITS=64 -D_LINUX
+INSTALLDIR      = ../bin
 
 # ------
 .SUFFIXES: .o .cpp .h
@@ -35,7 +36,7 @@ gsmooth.o:	image_filter.h
 image_filter.o:	image_filter.h global_tmpl.h global_tmpl.cpp
 
 install:
-		mv gsmooth_ps $(EXECPATH)
+		cp gsmooth_ps $(INSTALLDIR)
 
 clean:
 		$(RM) *.o *~

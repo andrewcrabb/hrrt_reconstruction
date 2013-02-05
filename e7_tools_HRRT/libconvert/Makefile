@@ -35,12 +35,12 @@ SOURCES.cpp =	dift.cpp \
 
 OBJECTS =	${SOURCES.cpp:.cpp=.o}
 
-# all:		${LIBRARY} ${STATICLIB}
+all:		${LIBRARY} ${STATICLIB}
 default:	${STATICLIB}
-all:	install
+# all:	install
 
-# ${LIBRARY}:	${OBJECTS}
-# 		${CC} --shared -Wl,-soname,${LIBRARY} -o ${LIBRARY} ${SOURCES.cpp:.cpp=.o}
+${LIBRARY}:	${OBJECTS}
+		${CC} --shared -Wl,-soname,${LIBRARY} -o ${LIBRARY} ${SOURCES.cpp:.cpp=.o}
 
 ${STATICLIB}:	${OBJECTS}
 		${AR} r ${STATICLIB} ${SOURCES.cpp:.cpp=.o}

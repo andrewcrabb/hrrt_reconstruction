@@ -14,6 +14,7 @@ INCLUDE_DIR = ..
 CFLAGS = $(DEBUG) -c -I$(INCLUDE_DIR)
 PROGRAMS = cti2analyze matcopy fix_mh matlist show_header sum_frames
 LIBS = ../libecatx.a -lm
+INSTALLDIR      = ../../bin
 
 all : $(PROGRAMS)
 cti2analyze  : cti2analyze.o 
@@ -30,7 +31,7 @@ sum_frames  : sum_frames.o
 clean:
 	$(RM) *.o $(PROGRAMS)
 install:	$(PROGRAMS)
-	mv $(PROGRAMS) $(BIN_DIR)
+	mv $(PROGRAMS) $(INSTALLDIR)
 depend:
 	makedepend $(DEP_FLAGS) $(SRCDIR)/*.c 
 # DO NOT DELETE

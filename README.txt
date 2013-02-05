@@ -1,5 +1,11 @@
+My notes ahc
+------------
 
+1. Preprocessor flags:
 
+MYCPPFLAGS="-D_LINUX -D__LINUX__ -L${mypwd}/AIR5.3.0/src"
+
+2. 
 
 1) Update name of directory in the path in .cshrc:
 

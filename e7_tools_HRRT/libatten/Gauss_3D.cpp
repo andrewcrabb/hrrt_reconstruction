@@ -29,7 +29,8 @@ float Gauss_3D::der_U(const int index, const float * const img) const
                  (i == size_i ? *img : *(img+1)));
  }
 
-float Gauss_3D::der_der_U(const int index, const float * const)
+/* My change ahc the following function was not declared const */
+float Gauss_3D::der_der_U(const int index, const float * const) const
  { int i, j, k;
 
    i=(index % isize) % size_z;

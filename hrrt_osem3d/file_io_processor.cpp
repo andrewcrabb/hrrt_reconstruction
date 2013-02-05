@@ -16,7 +16,7 @@ For commercial use, please contact zcho@gachon.ac.kr or isslhong@kpu.ac.kr
   09-DEC-2009: Restore -X 128 option (MS)
 */
 
-#include <sys/malloc.h>
+#include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>

@@ -16,6 +16,7 @@ CFLAGS          = $(DEBUG)
 LDLIBS          = $(LIBPATH)/gen_delays_lib.a -lm -lpthread  -lstdc++
 INCLUDES        = -I../gen_delays_lib
 MACRO           = -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LINUX
+INSTALLDIR      = ../bin
 
 # ------
 .SUFFIXES:
@@ -34,7 +35,7 @@ gen_delays:	main.o
 main.o:		main.cpp
 
 install: 	gen_delays
-		mv gen_delays $(EXECPATH)
+		cp gen_delays $(INSTALLDIR)
 
 clean:
 		$(RM) *~ *.o

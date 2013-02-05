@@ -33,7 +33,7 @@ ${LIBRARY}:	${OBJECTS}
 		ranlib ${LIBRARY}
 
 install: ${LIBRARY}
-	mv  ${LIBRARY} ${INSTALL_DIR}
+	cp  ${LIBRARY} ${INSTALL_DIR}
 clean:
 		rm -f *.o *~
 

@@ -18,6 +18,7 @@ CFLAGS          = $(DEBUG)
 LDLIBS          = $(LIBPATH)/interfile_lib.a -lm -lstdc++
 INCLUDES        = -I../interfile_lib
 MACRO           = -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LINUX
+INSTALLDIR      = ../bin
 
 # ------
 .SUFFIXES:
@@ -36,7 +37,7 @@ calcRingRoiRatio:	calcRingRoiRatio.o
 calcRingRoiRatio.o:	calcRingRoiRatio.cpp
 
 install:
-			mv calcRingRoiRatio $(EXECPATH)
+			cp calcRingRoiRatio $(INSTALLDIR)
 
 clean:
 			$(RM) *.o *~

@@ -16,7 +16,7 @@
 
 #include <iostream>
 #ifndef __MACOSX__
-#include <sys/malloc.h>
+#include <malloc.h>
 #endif
 #ifndef _STREAM_BUFFER_CPP
 #define _STREAM_BUFFER_CPP

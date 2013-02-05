@@ -18,6 +18,7 @@ CFLAGS          = $(DEBUG)
 LDLIBS          = ../gen_delays_lib/gen_delays_lib.a ../ecatx/libecatx.a -lm -lpthread
 INCLUDES        = -I../ -I../gen_delays_lib
 MACRO           = -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE
+INSTALLDIR      = ../bin
 
 # ------
 .SUFFIXES:
@@ -54,7 +55,7 @@ write_ecat_image.o:		write_ecat_image.cpp
 interfile_reader.o:		interfile_reader.cpp
 
 install:
-				mv hrrt_osem3d $(EXECPATH)
+				cp hrrt_osem3d $(INSTALLDIR)
 
 clean:
 				$(RM) *~ *.o

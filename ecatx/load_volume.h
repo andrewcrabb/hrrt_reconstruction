@@ -47,7 +47,7 @@
  *
  */
 #include <stdlib.h>
-#include <sys/malloc.h>
+#include <malloc.h>
 #include <string.h>
 
 #include "matrix.h"

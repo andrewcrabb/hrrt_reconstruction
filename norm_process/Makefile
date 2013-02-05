@@ -19,6 +19,7 @@ INCLUDES	= -I .. -I/usr/include
 MACRO		=  -D_FILE_OFFSET_BITS=64 -D_LINUX
 # If want to report timing of the normalisation calculation threads
 # -D_THREADTIME
+INSTALLDIR      = ../bin
 
 # ------
 .SUFFIXES: .o .cpp .h
@@ -52,7 +53,7 @@ rod_dwell.o:	rod_dwell.cpp inter.h rod_dwell.h scanner_params.h
 rotation_dwell_sino.o:	rotation_dwell_sino.cpp rotation_dwell_sino.h
 
 install:
-		mv norm_process $(EXECPATH)
+		cp norm_process $(INSTALLDIR)
 
 clean:
 		$(RM) *.o *~

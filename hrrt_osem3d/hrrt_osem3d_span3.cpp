@@ -156,15 +156,16 @@ For commercial use, please contact zcho@gachon.ac.kr or isslhong@kpu.ac.kr
 
 #include <ctype.h>
 #include <stdio.h>
-#include <sys/malloc.h>
+#include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
 #include <xmmintrin.h>
 #include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+/* ahc */
+#include <linux/types.h>
+#include <linux/stat.h>
 #ifdef IS_WIN32
 #include <windows.h>
 #include <process.h>
@@ -179,8 +180,8 @@ For commercial use, please contact zcho@gachon.ac.kr or isslhong@kpu.ac.kr
 #include <pmmintrin.h>
 /* ahc */
 /* Not available on Mac - host_info has some similar features. */
-/* #include <sys/sysinfo.h> */
-#include <sys/fcntl.h>
+/* #include <sysinfo.h> */
+#include <fcntl.h>
 #include <stdarg.h>
 #include <unistd.h>
 // O_DIRECT defined here because not found otherwise CM + MS

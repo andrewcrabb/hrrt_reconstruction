@@ -17,6 +17,7 @@ CFLAGS		= $(DEBUG)
 LDLIBS		= ../ecatx/libecatx.a -lm
 INCLUDES	= -I../include
 MACRO		=  -D_FILE_OFFSET_BITS=64 -D_LINUX
+INSTALLDIR      = ../bin
 
 # ------
 .SUFFIXES: .o .c .h
@@ -32,7 +33,7 @@ if2e7:	if2e7.o splitpath.o interfile_reader.o calibration_table.o
 		$(CC) -o $@  if2e7.o splitpath.o interfile_reader.o calibration_table.o $(LDLIBS)
 
 install:
-		mv if2e7 $(EXECPATH)
+		cp if2e7 $(INSTALLDIR)
 
 clean:
 		$(RM) *.o *~

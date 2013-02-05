@@ -1,0 +1,4 @@
+Copied to bin/ dir:
+  Executables
+  hrrt_rebinner.lut   (lmhistogram)
+  GM328.INI   (e7_atten_u)

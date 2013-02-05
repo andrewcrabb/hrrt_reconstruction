@@ -19,7 +19,7 @@ CFLAGS          = $(DEBUG)
 LDLIBS          = ../gen_delays_lib/gen_delays_lib.a  -lm -lpthread
 INCLUDES        = -I../ -I../gen_delays_lib
 MACRO           = -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  -DFILENAME_MAX=1024 -DHRRT_REBINNER_LUT
-
+INSTALLDIR      = ../bin
 
 # ------
 .SUFFIXES:
@@ -36,7 +36,7 @@ lmhistogram_mp:	convert_span9.o dtc.o gantryinfo.o Header.o histogram_mp.o lmhis
 		$(CC) -o $@ convert_span9.o dtc.o gantryinfo.o Header.o histogram_mp.o lmhistogram_mp.o LM_Reader_mp.o LM_Rebinner_mp.o Flags.o ${LDLIBS}
 
 install:
-		install lmhistogram_mp $(EXECPATH)
+		cp lmhistogram_mp $(INSTALLDIR)
 
 clean:
 		$(RM) *~ *.o

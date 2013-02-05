@@ -53,7 +53,7 @@
 #include "polyfitw.h"
 #include "norm_globals.h"
 #include <math.h>
-#include <sys/malloc.h>
+#include <malloc.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

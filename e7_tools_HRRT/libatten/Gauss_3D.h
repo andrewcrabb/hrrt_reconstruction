@@ -17,7 +17,8 @@ class Gauss_3D
    public:
     Gauss_3D(const int, const int); 
     float der_U(const int, const float * const) const;
-    float der_der_U(const int, const float * const);
+    /* My change ahc the following function was not declared const */
+    float der_der_U(const int, const float * const) const;
     float term_U(const int, const float * const) const;
  };
 

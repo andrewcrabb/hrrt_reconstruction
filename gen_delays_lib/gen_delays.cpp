@@ -19,7 +19,7 @@
 #include <fcntl.h>
 #include <time.h>
 #include <math.h>
-#include <sys/malloc.h>
+#include <malloc.h>
 #include <string.h>
 #include <time.h>
 #include <xmmintrin.h>

@@ -36,7 +36,7 @@
 #include	"matrix.h"
 #include	"machine_indep.h"
 #include    <string.h>
-#include    <sys/malloc.h>
+#include    <malloc.h>
 
 #define TRUE 1
 #define FALSE 0

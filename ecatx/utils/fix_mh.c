@@ -29,7 +29,7 @@
    * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 #include <assert.h>
-#include <sys/malloc.h>
+#include <malloc.h>
 #include <time.h>
 #include <string.h>
 #include <stdlib.h>

@@ -37,7 +37,7 @@ from fan sums to avoid rod misalignments as suggested by R. Carson
 
 #include <ctype.h>
 #include <fcntl.h>
-#include <sys/malloc.h>
+#include <malloc.h>
 #include <math.h>
 #include <string.h>
 #include <stddef.h>

@@ -17,6 +17,7 @@ CFLAGS		= $(DEBUG)
 LDLIBS		= ../ecatx/libecatx.a -L/usr/local/lib -lRPW -lm
 INCLUDES	= -I../include
 MACRO		=  -D_FILE_OFFSET_BITS=64 -D_LINUX
+INSTALLDIR      = ../bin
 
 # ------
 .SUFFIXES: .o .cpp .h
@@ -29,11 +30,11 @@ MACRO		=  -D_FILE_OFFSET_BITS=64 -D_LINUX
 all:		motion_distance
 
 motion_distance:	motion_distance.o 
-		$(CC) -o $@  motion_distance.o $(LDLIBS)
+		$(CC) -o $@  motion_distance.o $(LDLIBS) $(MYCPPFLAGS)
 
 
 install:
-		mv motion_distance $(EXECPATH)
+		cp motion_distance $(INSTALLDIR)
 
 clean:
 		$(RM) *.o *~

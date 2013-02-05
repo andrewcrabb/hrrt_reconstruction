@@ -20,7 +20,7 @@ Modification History (HRRT User Community):
 #else
 #include <sys/time.h>
 #endif
-#include	<sys/malloc.h>
+#include	<malloc.h>
 
 // The Mark Structure
 

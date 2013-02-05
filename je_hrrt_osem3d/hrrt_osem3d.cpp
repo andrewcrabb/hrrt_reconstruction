@@ -174,15 +174,15 @@
 
 #include <ctype.h>
 #include <stdio.h>
-#include <sys/malloc.h>
+#include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
 #include <xmmintrin.h>
 #include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <types.h>
+#include <stat.h>
 
 #ifdef IS_WIN32
 #include <windows.h>
@@ -196,8 +196,8 @@
 #else
 #include <pthread.h>
 #include <pmmintrin.h>
-/* #include <sys/sysinfo.h> */
-#include <sys/fcntl.h>
+/* #include <sysinfo.h> */
+#include <fcntl.h>
 #include <stdarg.h>
 #include <unistd.h>
 // O_DIRECT defined here because not found otherwise CM + MS

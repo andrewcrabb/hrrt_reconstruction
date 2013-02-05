@@ -7,7 +7,7 @@ LDFLAGS = -I/usr/local/air/include -L/usr/local/air/lib
 RM = rm -f
 RANLIB  =
 # DEBUG = -g
-BIN_DIR = ${HOME}/bin
+BIN_DIR = ../bin
 SRCDIR = .
 INCLUDE_DIR = ../include
 LIB_DIR = ../lib
@@ -23,21 +23,23 @@ LIBS = ../ecatx/libecatx.a -lRPW -lm
 
 all : $(PROGRAMS)
 ecat_alignlinear : ecat_alignlinear.o $(LIB_OBJS)
-	$(CC) $(LDFLAGS) -o $@ ecat_alignlinear.o $(LIB_OBJS) $(LIBS)
+	$(CC) $(LDFLAGS) -o $@ ecat_alignlinear.o $(LIB_OBJS) $(LIBS) $(MYCPPFLAGS)
 
 ecat_make_air : ecat_make_air.o $(LIB_OBJS) 
-	$(CC) $(LDFLAGS) -o $@ ecat_make_air.o $(LIB_OBJS) $(LIBS)
+	$(CC) $(LDFLAGS) -o $@ ecat_make_air.o $(LIB_OBJS) $(LIBS) $(MYCPPFLAGS)
 
 ecat_reslice : ecat_reslice.o $(LIB_OBJS) 
-	$(CC) $(LDFLAGS) -o $@ $@.o $(LIB_OBJS) $(LIBS)
+	$(CC) $(LDFLAGS) -o $@ $@.o $(LIB_OBJS) $(LIBS) $(MYCPPFLAGS)
 
 $(LIB) : $(LIB_OBJS)
 	ar r $(LIB) $(LIB_OBJS)
 	ranlib $(LIB)
 clean:
 	$(RM) *.o $(PROGRAMS)
+
 install:	$(PROGRAMS)
-	mv $(PROGRAMS) $(BIN_DIR)
+	cp $(PROGRAMS) $(BIN_DIR)
+
 depend:
 	makedepend $(DEP_FLAGS) $(SRCDIR)/*.c 
 # DO NOT DELETE

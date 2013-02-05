@@ -13,6 +13,7 @@ CFLAGS		= $(DEBUG)
 LDLIBS		= 
 INCLUDES	= -I ..
 MACRO		= -D__LINUX__
+INSTALLDIR      = ../bin
 
 # ------
 .SUFFIXES: .o .cpp .h
@@ -30,7 +31,7 @@ compute_norm: compute_norm.o gantryinfo.o matrix.o self_norm.o det_to_ve.o gapfi
 
 
 install:
-		mv compute_norm $(EXECPATH)
+		cp compute_norm $(INSTALLDIR)
 
 clean:
 		$(RM) *.o *~

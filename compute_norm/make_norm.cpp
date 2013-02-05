@@ -82,7 +82,7 @@ if(qc) then plot,eff,xstyle=1,background=white,color=black
 /* make_norm C Implementation :  Merence Sibomana 09/03                 */
 /************************************************************************/
 #include "norm_globals.h"
-#include <sys/malloc.h>
+#include <malloc.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
