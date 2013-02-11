@@ -8,7 +8,7 @@
 # Definitions
 CC              = g++
 RM              = rm -f
-DEBUG           = -O2
+DEBUG           = 
 #DEBUG           = -g
 SRCPATH         = /home/peter/HRRT/HRRT_UG_SW/V_1.0.1/Src/HRRT_1_0_1_src/hrrt_osem3d
 BUILD_DIR       = $(SRCPATH)
@@ -26,7 +26,7 @@ MACRO           = -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  -DFILENAME_MAX=102
 .SUFFIXES: .o .cpp .h
 
 .cpp.o:
-				$(CC) -c $(CPPFLAGS) $(CFLAGS) $(MACRO) $(INCLUDES) $<
+				$(CC) -c $(CPPFLAGS) $(CFLAGS) ${MYCFLAGS} $(MACRO) $(INCLUDES) $<
 
 # ------
 

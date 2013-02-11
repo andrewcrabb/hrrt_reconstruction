@@ -13,39 +13,39 @@ hrrt_osem3d_span3 : scanner_model.o  hrrt_osem3dv_sbrt_span3.o nr_utils.o file_i
 
 
 hrrt_osem3d_span3.o : $(SRCDIR)/hrrt_osem3d_span3.cpp $(SRCDIR)/hrrt_osem3dv_sbrt_span3.cpp $(SRCDIR)/hrrt_osem3d.h
-	$(CC) $(CFLAGS) $(SRCDIR)/hrrt_osem3d_span3.cpp
+	$(CC) $(CFLAGS) ${MYCFLAGS} $(SRCDIR)/hrrt_osem3d_span3.cpp
 
 
 hrrt_osem3dv_sbrt_span3.o :   $(SRCDIR)/hrrt_osem3dv_sbrt_span3.cpp $(SRCDIR)/hrrt_osem3d.h
-	$(CC) $(CFLAGS) $(SRCDIR)/hrrt_osem3dv_sbrt_span3.cpp
+	$(CC) $(CFLAGS) ${MYCFLAGS} $(SRCDIR)/hrrt_osem3dv_sbrt_span3.cpp
 
 file_io_processor.o  :  $(SRCDIR)/file_io_processor.cpp
-	$(CC) $(CFLAGS) $(SRCDIR)/file_io_processor.cpp
+	$(CC) $(CFLAGS) ${MYCFLAGS} $(SRCDIR)/file_io_processor.cpp
 
 simd_operation.o  :  $(SRCDIR)/simd_operation.cpp
-	$(CC) $(CFLAGS) $(SRCDIR)/simd_operation.cpp
+	$(CC) $(CFLAGS) ${MYCFLAGS} $(SRCDIR)/simd_operation.cpp
 
 mm_malloc.o  :  $(SRCDIR)/mm_malloc.cpp
-	$(CC) $(CFLAGS) $(SRCDIR)/mm_malloc.cpp
+	$(CC) $(CFLAGS) ${MYCFLAGS} $(SRCDIR)/mm_malloc.cpp
 
 nr_utils.o  :  $(SRCDIR)/nr_utils.cpp
-	$(CC) $(CFLAGS) $(SRCDIR)/nr_utils.cpp
+	$(CC) $(CFLAGS) ${MYCFLAGS} $(SRCDIR)/nr_utils.cpp
 
 scanner_model.o : $(SRCDIR)/scanner_model.cpp
-	$(CC) $(CFLAGS) $(SRCDIR)/scanner_model.cpp
+	$(CC) $(CFLAGS) ${MYCFLAGS} $(SRCDIR)/scanner_model.cpp
 
 psf.o : $(SRCDIR)/psf.cpp
-	$(CC) $(CFLAGS) $(SRCDIR)/psf.cpp
+	$(CC) $(CFLAGS) ${MYCFLAGS} $(SRCDIR)/psf.cpp
 
 write_image_header.o : $(SRCDIR)/write_image_header.cpp
-	$(CC) $(CFLAGS) $(SRCDIR)/write_image_header.cpp
+	$(CC) $(CFLAGS) ${MYCFLAGS} $(SRCDIR)/write_image_header.cpp
 
 clean:
 	$(RM) hrrt_osem3d_span3 *.o 
 
 
 depend:
-	makedepend -Dunix $(CFLAGS) $(SRCDIR)/*.cpp
+	makedepend -Dunix $(CFLAGS) ${MYCFLAGS} $(SRCDIR)/*.cpp
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
 ./bmpi.o: /usr/include/stdio.h /usr/include/features.h

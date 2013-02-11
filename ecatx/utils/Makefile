@@ -3,7 +3,7 @@ CC = gcc
 .SUFFIXES: .o .c .h
 
 .c.o:
-		$(CC) -c $(CFLAGS)  $<
+		$(CC) -c $(CFLAGS) ${MYCFLAGS}  $<
 LDFLAGS = 
 RM = rm -f
 RANLIB  =

@@ -7,7 +7,8 @@
 # Definitions
 CC		= cc
 RM		= /bin/rm -f
-DEBUG		= -O2
+# DEBUG		= 
+DEBUG		= -g
 SRCPATH		= /home/peter/HRRT/HRRT_UG_SW/E7_Tools/18082009/le7_tools_inux/e7_atten_prj
 BUILD_DIR	= /home/peter/HRRT/HRRT_UG_SW/E7_Tools/18082009/le7_tools_inux/e7_atten_prj
 EXECPATH	= ../E7_Bin
@@ -23,7 +24,7 @@ INSTALLDIR      = ../../bin
 .SUFFIXES:	.o .cpp .h
 
 .cpp.o:
-		$(CC) -c $(CPPFLAGS) $(CFLAGS) $(MACRO) $(INCLUDES) $<
+		$(CC) -c $(CPPFLAGS) $(CFLAGS) ${MYCFLAGS} $(MACRO) $(INCLUDES) $<
 
 all:		e7_atten_u
 

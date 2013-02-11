@@ -868,9 +868,10 @@ int main(int argc, char **argv)
      return(EXIT_SUCCESS);
    }
    catch (const Exception r)                               // handle exceptions
-    { sw.stop();
+    { 
       std::cerr << "Error: " << r.errStr().c_str() << "\n" << std::endl;
                                  // send error message to reconstruction server
+      sw.stop();
       Progress::pro()->sendMsg(r.errCode(), 1, r.errStr());
                                                                      // cleanup
       if (cpar != NULL) delete cpar;

@@ -17,7 +17,7 @@ LIB_OBJS = ecat2air.o air2ecat.o ecat_map_value.o ecat_do_alignlinear.o \
 	ecat_do_reslice.o
 
 .c.o:
-		$(CC) $(CFLAGS)  $<
+		$(CC) $(CFLAGS) ${MYCFLAGS} $<
 
 LIBS = ../ecatx/libecatx.a -lRPW -lm
 

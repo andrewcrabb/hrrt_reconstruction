@@ -8,7 +8,7 @@
 
 CC              = g++
 RM              = rm -f
-DEBUG           = -O2
+DEBUG           = 
 SRCPATH         = /home/peter/HRRT/HRRT_UG_SW/V_1.0.1/Src/HRRT_1_0_1_src/calcRingRoiRatio
 BUILD_DIR       = $(SRCPATH)
 EXECPATH        = /home/peter/Src/Bin
@@ -25,7 +25,7 @@ INSTALLDIR      = ../bin
 .SUFFIXES: .o .cpp .h
 
 .cpp.o:
-			$(CC) -c $(CPPFLAGS) $(CFLAGS) $(MACRO) $(INCLUDES) $<
+			$(CC) -c $(CPPFLAGS) $(CFLAGS) ${MYCFLAGS} $(MACRO) $(INCLUDES) $<
 
 # ------
 

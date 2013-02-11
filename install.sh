@@ -14,3 +14,6 @@ rsync -tiv bin/* ${HRRT_HOME}/bin
 chmod +x ${HRRT_HOME}/bin/*
 
 rsync -tiv etc/* ${HRRT_HOME}/etc
+
+# Where is hrrt_rebinner.lut installed from and to?
+rsync -tiv lib/* ${HRRT_HOME}/lib

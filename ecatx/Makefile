@@ -11,7 +11,7 @@ CC=gcc -Wall -pedantic
 .SUFFIXES: .o .c .h
 
 .c.o:
-		$(CC) -c $(CPPFLAGS) $(CFLAGS) $(MACRO) $(INCLUDES) $<
+		$(CC) -c $(CPPFLAGS) $(CFLAGS) ${MYCFLAGS} $(MACRO) $(INCLUDES) $<
 
 CFLAGS =
 

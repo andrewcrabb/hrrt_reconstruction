@@ -1,5 +1,5 @@
 # Generated automatically from Makefile.in by configure.
-CFLAGS = -g -O2
+CFLAGS = -g 
 CC = gcc
 RANLIB = ranlib
 

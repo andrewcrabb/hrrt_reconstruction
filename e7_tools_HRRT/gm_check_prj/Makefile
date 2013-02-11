@@ -7,7 +7,7 @@
 # Definitions
 CC		= cc
 RM		= /bin/rm -f
-DEBUG		= -O2
+DEBUG		= 
 SRCPATH		= ../e7_tools_linux/gm_check_prj
 BUILD_DIR	= ../e7_tools_linux/gm_check_prj
 EXECPATH	= ../E7_Bin
@@ -22,7 +22,7 @@ MACRO		= -fPIC -D__LINUX__
 .SUFFIXES:	.o .cpp .h
 
 .cpp.o:
-		$(CC) -c $(CPPFLAGS) $(CFLAGS) $(MACRO) $(INCLUDES) $<
+		$(CC) -c $(CPPFLAGS) $(CFLAGS) ${MYCFLAGS} $(MACRO) $(INCLUDES) $<
 
 
 all:		gm_check

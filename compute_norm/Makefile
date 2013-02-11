@@ -7,7 +7,7 @@
 # Definitions
 CC		= g++
 RM		= /bin/rm -f
-DEBUG		= -O2
+DEBUG		= 
 CPPFLAGS        = -Wno-write-strings
 CFLAGS		= $(DEBUG)
 LDLIBS		= 
@@ -19,7 +19,7 @@ INSTALLDIR      = ../bin
 .SUFFIXES: .o .cpp .h
 
 .cpp.o:
-		$(CC) -c $(CPPFLAGS) $(CFLAGS) $(MACRO) $(INCLUDES) $<
+		$(CC) -c $(CPPFLAGS) $(CFLAGS) ${MYCFLAGS} $(MACRO) $(INCLUDES) $<
 
 # ------
 

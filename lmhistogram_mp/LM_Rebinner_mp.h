@@ -53,7 +53,9 @@ extern void lm64_rebinner(void *p);
  * Get span from configuration file (gm328.ini) for transmission mode (span=0)
  * and initialize the rebinner with the specified span and max_rd
  */
-int init_rebinner(int &span, int &max_rd);
+// ahc: lut file now passed rather than found in this fn
+// int init_rebinner(int &span, int &max_rd);
+int init_rebinner(int &span, int &max_rd, char *lut_file);
 
 extern int rebin_event(int mp, int alayer, int ax, int ay, int blayer, int bx, int by 
 							 /*,unsigned delayed_flag*/);

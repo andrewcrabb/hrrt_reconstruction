@@ -8,7 +8,7 @@
 # Definitions
 CC              = g++
 RM              = rm -f
-DEBUG           = -O2
+DEBUG           = 
 SRCPATH         = .
 BUILD_DIR       = $(SRCPATH)
 EXECPATH        = ${HOME}/bin
@@ -24,7 +24,7 @@ MACRO           = -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  -DHRRT -D_LUT_ -D_
 .SUFFIXES: .o .cpp .h
 
 .cpp.o:
-				$(CC) -c $(CPPFLAGS) $(CFLAGS) $(MACRO) $(INCLUDES) $<
+				$(CC) -c $(CPPFLAGS) $(CFLAGS) ${MYCFLAGS} $(MACRO) $(INCLUDES) $<
 
 # ------
 

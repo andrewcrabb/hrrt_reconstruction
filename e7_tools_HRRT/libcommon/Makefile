@@ -6,9 +6,9 @@
 .SUFFIXES:	.o .cpp .h
 
 .cpp.o:
-		$(CC) -c $(CPPFLAGS) $(CFLAGS) $(MACRO) $(INCLUDES) $<
+		$(CC) -c $(CPPFLAGS) $(CFLAGS) ${MYCFLAGS} $(MACRO) $(INCLUDES) $<
 
-CFLAGS =	-O2 -fPIC -D__LINUX__ -I ./ -I ./ -I ../libexception -I ../libcommon -I ../libecat7 -I ../libimage -I ../libparser -I ../libinterfile -I ../libsinogram
+CFLAGS =	 -fPIC -D__LINUX__ -I ./ -I ./ -I ../libexception -I ../libcommon -I ../libecat7 -I ../libimage -I ../libparser -I ../libinterfile -I ../libsinogram
 
 LIBPATH =	../LinkLibs
 

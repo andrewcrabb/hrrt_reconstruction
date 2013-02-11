@@ -45,7 +45,9 @@ StopWatch::~StopWatch()
  */
 /*---------------------------------------------------------------------------*/
 void StopWatch::start()
- { watches.push_back(time());
+ { 
+   std::cerr << "StopWatch::start(" << time() << ")\n";
+   watches.push_back(time());
  }
 
 /*---------------------------------------------------------------------------*/
@@ -58,15 +60,20 @@ void StopWatch::start()
  */
 /*---------------------------------------------------------------------------*/
 float StopWatch::stop()
- { if (watches.size() > 0)
-    { float t;
+ { 
+   std::cerr << "StopWatch::stop(" << time() << ")\n";
+   if (watches.size() > 0) {
+     float t;
 
-      t=time()-watches.back();
-      watches.pop_back();
-      if (t < -1.0f) return(t+86400.0f);
-       else if (t < 0.0f) return(0.0f);
-      return(t);
-    }
+     t=time()-watches.back();
+     watches.pop_back();
+     if (t < -1.0f) 
+       return(t+86400.0f);
+     else 
+       if (t < 0.0f) 
+	 return(0.0f);
+     return(t);
+   }
    throw Exception(REC_STOPWATCH_INIT, "Stop watch was not started.");
  }
 

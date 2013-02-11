@@ -7,7 +7,7 @@
 # Definitions
 CC		= g++
 RM		= /bin/rm -f
-DEBUG		= -O2
+DEBUG		= 
 DEBUG		= -g
 SRCPATH		= .
 EXEPATH		= ${HOME}/bin
@@ -22,7 +22,7 @@ INSTALLDIR      = ../bin
 .SUFFIXES: .o .cpp .h
 
 .cpp.o:
-			$(CC) -c $(CPPFLAGS) $(CFLAGS) $(MACRO) $(INCLUDES) $<
+			$(CC) -c $(CPPFLAGS) $(CFLAGS) ${MYCFLAGS} $(MACRO) $(INCLUDES) $<
 
 # ------
 

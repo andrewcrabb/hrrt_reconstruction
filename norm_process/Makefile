@@ -7,14 +7,16 @@
 # Definitions
 CC		= cc
 RM		= /bin/rm -f
-DEBUG		= -O2
+DEBUG		= 
 SRCPATH		= /home/peter/HRRT/HRRT_UG_SW/V1.1/Src/HRRT_U_1_1_src/norm_process
 BUILD_DIR	= /home/peter/HRRT/HRRT_UG_SW/V1.1/Src/HRRT_U_1_1_src/norm_process
 EXECPATH	= /home/peter/Src/Bin
 LIBPATH		=
 CPPFLAGS        = -Wno-write-strings
 CFLAGS		= $(DEBUG)
-LDLIBS		= ../gen_delays_lib/gen_delays_lib.a -lm -lpthread -lstdc++
+# ahc
+GEN_DELAYS      = ../gen_delays_lib/gen_delays_lib.a
+LDLIBS		= ${GEN_DELAYS} -lm -lpthread -lstdc++
 INCLUDES	= -I .. -I/usr/include 
 MACRO		=  -D_FILE_OFFSET_BITS=64 -D_LINUX
 # If want to report timing of the normalisation calculation threads
@@ -25,13 +27,13 @@ INSTALLDIR      = ../bin
 .SUFFIXES: .o .cpp .h
 
 .cpp.o:
-		$(CC) -c $(CPPFLAGS) $(CFLAGS) $(MACRO) $(INCLUDES) $<
+		$(CC) -c $(CPPFLAGS) $(CFLAGS) ${MYCFLAGS} $(MACRO) $(INCLUDES) $<
 
 # ------
 
 all:		norm_process
 
-norm_process:	norm_process.o cal_sen.o fan_sum.o get_gs.o Header.o inter.o MarkTime.o rod_dwell.o rotation_dwell_sino.o
+norm_process:	norm_process.o cal_sen.o fan_sum.o get_gs.o Header.o inter.o MarkTime.o rod_dwell.o rotation_dwell_sino.o ${GEN_DELAYS}
 		$(CC) -o $@ norm_process.o cal_sen.o fan_sum.o get_gs.o Header.o inter.o MarkTime.o rod_dwell.o rotation_dwell_sino.o ${LDLIBS}
 
 norm_process.o:	norm_process.cpp Header.h scanner_params.h rod_dwell.h fan_sum.h cal_sen.h get_gs.h
