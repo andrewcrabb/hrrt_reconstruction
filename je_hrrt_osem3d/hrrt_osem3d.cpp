@@ -166,7 +166,9 @@
 #ifdef IS_WIN32
 #else
 #define _REENTRANT
+#ifndef _POSIX_SOURCE
 #define _POSIX_SOURCE
+#endif
 #define _P __P
 #include <pthread.h>
 #include <pmmintrin.h>
@@ -181,8 +183,9 @@
 #include <time.h>
 #include <xmmintrin.h>
 #include <fcntl.h>
-#include <types.h>
-#include <stat.h>
+// ahc
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #ifdef IS_WIN32
 #include <windows.h>
@@ -304,6 +307,8 @@ char *out_scan_file=NULL,*out_scan3D_file, *out_img_file=NULL;
 char *in_img_file=NULL, *scat_scan_file=NULL,*atten_file=NULL, *norm_file=NULL;
 char ra_smo_file[_MAX_PATH];
 char *normfac_dir = NULL;
+// ahc
+char rebinner_lut_file[_MAX_PATH];
 
 int    weighting=2;
 int  iterations=1;
@@ -583,6 +588,8 @@ static void usage() {
   fprintf (stdout,"      1: Scanner info             4: Normalization info \n"); 
   fprintf (stdout,"      8: Reconstruction info     16: I/O info           \n");
   fprintf (stdout,"     32: Processing info         64: Memory allocation info\n");
+  fprintf (stdout,"* -r hrrt_rebinner.lut file (required)\n");
+  fprintf (stdout,"\n");
   //  fprintf (stdout,"   Version inki - April 5, 2006\n");
   //    fprintf (stdout,"   Version Inki (April 5, 2006) + SMS-MI modifs (CM+MS) - May 2006\n");
   fprintf (stdout,"   Version Inki (Aug. 30, 2006) + SMS-MI modifs (CM+MS) - May 2006\n");
@@ -1841,7 +1848,10 @@ void prepare_osem3dw3(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
     fprintf(stderr,"computing smooth randoms from %s to memory and scan duration %g\n", 
             delayed_file, scan_duration);
     gen_delays(0, NULL, 2, scan_duration, largeprj3, dsinofp, NULL,
-               osem3dpar->span, osem3dpar->maxdel);
+               osem3dpar->span, osem3dpar->maxdel,
+               // ahc rebinner_lut_file now a required argument.
+               rebinner_lut_file
+               );
   }
 
   //    d(t)*N(t) and apply norm mask to prompts
@@ -3336,7 +3346,8 @@ void GetParameter(int argc,char **argv)
   FILE *log_fp=NULL;
 	
   InitParameter();
-
+  memset(rebinner_lut_file, 0 ,sizeof(rebinner_lut_file));
+  
   for(i=0;i<argc;i++) {
 
     if(argv[i][0]!='-') continue;
@@ -3414,7 +3425,6 @@ void GetParameter(int argc,char **argv)
       if (sscanf(optarg,"%d",&osem3dpar->save_every_n_subsets) != 1)
         crash2("error decoding -q %s\n",optarg);
       //printf("\n saveFlag %d, %d", osem3dpar->saveFlag, osem3dpar->save_every_n_subsets);
-                                
       break;
     case 'A':   // input MRimage
       osem3dpar->MR_img_file = optarg;
@@ -3543,6 +3553,10 @@ void GetParameter(int argc,char **argv)
       if (sscanf(optarg,"%d",&x_pixels) != 1)
         crash2("error decoding -X %s\n",optarg);
       y_pixels = x_pixels;
+      break;
+    // ahc rebinner_lut_file now a required parameter
+    case 'r':
+      strcpy(rebinner_lut_file, optarg);
       break;
     default:
       printf("\n*****Unknown option '%c' *********\n\n", c);
@@ -4915,7 +4929,10 @@ int main(int argc, char* argv[])
 
         // provide program path for LUT location
         gen_delays(0,NULL,1, scan_duration, NULL, dsinofp, ra_smo_file,
-                   osem3dpar->span, osem3dpar->maxdel);
+                   osem3dpar->span, osem3dpar->maxdel,
+                   // ahc rebinner_lut_file now a required argument.
+                   rebinner_lut_file
+                   );
         // close ch file and open created smoothed random file
         fclose(dsinofp);
         dsinofp = file_open(ra_smo_file,"rb");

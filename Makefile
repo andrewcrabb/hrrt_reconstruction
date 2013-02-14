@@ -3,13 +3,14 @@
 #	- Build HRRT_U
 ###################################################
 
-BUILD_SUBDIRS = ecatx gen_delays_lib hrrt_osem3d norm_process air_ecat motion_distance gsmooth \
-	e7_tools_HRRT compute_norm interfile_lib calcRingRoiRatio if2e7 gen_delays_main motion_correction gsmooth lmhistogram_mp
+SUBDIRS = gen_delays_lib interfile_lib ecatx hrrt_osem3d je_hrrt_osem3d norm_process air_ecat \
+	motion_distance gsmooth e7_tools_HRRT compute_norm calcRingRoiRatio if2e7 \
+	gen_delays_main motion_correction gsmooth lmhistogram_mp TX_TV3DReg
 
 default: all
 
 all build clean install:
-	$(MAKE) 'TARGET=$@' 'SUBDIRS=$(BUILD_SUBDIRS)' subdirs
+	$(MAKE) 'TARGET=$@' 'SUBDIRS=$(SUBDIRS)' subdirs
 
 subdirs:
 	@echo "ruunning subdirs"

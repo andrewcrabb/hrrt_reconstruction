@@ -34,6 +34,9 @@ ${LIBRARY}:	${OBJECTS}
 		ar rv ${LIBRARY} ${SOURCES.cpp:.cpp=.o}
 		ranlib ${LIBRARY}
 
+install:
+	cp ${LIBRARY} ../lib
+
 clean:
 		rm -f *.o *~
 

@@ -6,6 +6,11 @@
 /tmp/
 *.bak
 
+# Directories to omit #
+#######################
+/lib/
+/bin/
+
 # Compiled Libraries #
 ######################
 *.a

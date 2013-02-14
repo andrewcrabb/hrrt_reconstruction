@@ -41,7 +41,7 @@
   20-MAY-2009: Use a single fast LUT rebinner
   ahc
   2/6/13 
-  Made hrrt_rebinner.lut a required cmd line arg
+  Made hrrt_rebinner.lut a required cmd line arg 'r'.
   Removed call to hrrt_rebinner_lut_path in LM_Rebinner_mp.cpp::init_rebinner()
 */
 
@@ -210,7 +210,7 @@ void lmhistogram_usage(char *pgm_name)
   cout << "    -model  328|2393|2395 (default=328) " << endl;
   cout << "    -EB - Exclude Border crystals (Included by default)" << endl;
   // ahc
-  cout << " *  -b <hrrt_rebinner.lut file>: (Required) full path to rebinner.lut file" << endl;
+  cout << " *  -r <hrrt_rebinner.lut file>: (Required) full path to rebinner.lut file" << endl;
   cout << endl;
   cout << "Note:  Multiple -d specifiers indicate dynamic sequencing and will generate multiple" << endl;
   cout << "       output sinograms and headers" << endl;
@@ -484,8 +484,8 @@ void parse_valid(int argc, char **argv)
       start_countrate = count;
     }
 
-  // ahc: hrrt_rebinner.lut is now required arg 'b'
-  if (flagval("-b",&argc,argv, buffer))
+  // ahc: hrrt_rebinner.lut is now required arg 'r'
+  if (flagval("-r",&argc,argv, buffer))
     lut_file = strdup(buffer);
 
   while (flagval("-d",&argc,argv,buffer)  && nframes<MAX_FRAMES)
@@ -528,7 +528,7 @@ void parse_valid(int argc, char **argv)
 
   // ahc
   if (lut_file == NULL) {
-    cerr << "hrrt_rebinner.lut must be specified as argument 'b'" << endl;
+    cerr << "hrrt_rebinner.lut must be specified as argument 'r'" << endl;
     exit( 1 );
   }
 

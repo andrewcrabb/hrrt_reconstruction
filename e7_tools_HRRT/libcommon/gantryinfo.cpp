@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <map>
+#include <iostream>
 
 #ifdef _WIN32
 #define strcasecmp _stricmp
@@ -45,53 +46,65 @@ bool GantryInfo::initialized() { return state == 1; }
  */
 int GantryInfo::load(int model_number)
 {
-	char filename[FILENAME_MAX];
-	char line[LINE_SIZE];
-	const char *gmini_dir=NULL;
-	FILE *fp=NULL;
-	if (state < 0) return state;
-	if (state>0) 
-	{
-		if (model_number == current_model) return gantry_info.size();
-		else gantry_info.clear();
-	}
-	if ((gmini_dir = getenv("GMINI")) != NULL)
-	{
+  char filename[FILENAME_MAX];
+  char line[LINE_SIZE];
+  const char *gmini_dir=NULL;
+  FILE *fp=NULL;
+  if (state < 0) 
+    return state;
+  if (state>0) {
+    if (model_number == current_model) 
+      return gantry_info.size();
+    else 
+      gantry_info.clear();
+  }
+  if ((gmini_dir = getenv("GMINI")) != NULL) {
 #ifdef unix
-		sprintf(filename, "%s/gm%d.ini", gmini_dir, model_number);
+    sprintf(filename, "%s/gm%d.ini", gmini_dir, model_number);
 #else
-		sprintf(filename, "%s\\gm%d.ini", gmini_dir, model_number);
+    sprintf(filename, "%s\\gm%d.ini", gmini_dir, model_number);
 #endif
-		fp = fopen(filename,"rb");
-	}
-	if (fp == NULL)
-	{
-		state = -1;
-		return state;
-	}
-	while (fgets(line,LINE_SIZE,fp) != NULL)
-	{
-			line[strlen(line)] = '\0'; //clear endl
-			char *end = line + strlen(line);
-			char *w1 = line;
-			char *sep = strchr(line,'=');
-			if (sep == NULL) continue;
-			while (isspace(*w1) && w1<sep) w1++;
-			if (w1==sep) continue;
-			char *p = sep-1;
-			while (isspace(*p)) *p-- = '\0';
-			*sep = '\0';
-			char *w2 = sep+1;
-			while (isspace(*w2) && w2<end) w2++;
-			if (w2==end) continue;
-			end--;
-			while (isspace(*end)) *end-- = '\0';
-			string key = w1, value = w2;
-			gantry_info.insert(make_pair(key,value));
-	}
-	fclose(fp);
-	state = 1;
-	return gantry_info.size();
+    fp = fopen(filename,"rb");
+  } else {
+    std::cerr << "ERROR: gantryinfo.cpp: GantryInfo::load(" << model_number << "): envt var GMINI is not set: Exiting" << std::endl;
+    state = -1;
+    return state;
+  }
+  if (fp == NULL) {
+    std::cerr << "ERROR: gantryinfo.cpp: GantryInfo::load(" << model_number << "): could not open GMINI file " << filename <<" : Exiting" << std::endl;   
+    state = -1;
+    return state;
+  }
+  while (fgets(line,LINE_SIZE,fp) != NULL)
+    {
+      line[strlen(line)] = '\0'; //clear endl
+      char *end = line + strlen(line);
+      char *w1 = line;
+      char *sep = strchr(line,'=');
+      if (sep == NULL) 
+	continue;
+      while (isspace(*w1) && w1<sep) 
+	w1++;
+      if (w1==sep) 
+	continue;
+      char *p = sep-1;
+      while (isspace(*p)) 
+	*p-- = '\0';
+      *sep = '\0';
+      char *w2 = sep+1;
+      while (isspace(*w2) && w2<end) 
+	w2++;
+      if (w2==end) 
+	continue;
+      end--;
+      while (isspace(*end)) 
+	*end-- = '\0';
+      string key = w1, value = w2;
+      gantry_info.insert(make_pair(key,value));
+    }
+  fclose(fp);
+  state = 1;
+  return gantry_info.size();
 }
 
 /**

@@ -14,7 +14,9 @@
                Took out awful code accepting any hrrt_rebinner found anywhere as the one to use.
 */
 #define _FILE_OFFSET_BITS 64
+#ifndef _LARGEFILE_SOURCE
 #define _LARGEFILE_SOURCE
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -75,58 +77,58 @@ static const char *exe_path[] = { "c:\\cps\\users_sw", "c:\\cps\\cluster_u", NUL
 float koln_lthick[8]   = {0.75f, 0.75f, 1.0f, 0.75f, 0.75f, 0.75f, 1.0f, 0.75f};
 
 // ahc
-/*
-const char *hrrt_rebinner_lut_path(int tx_flag)
-{
-  int i=0;
-  static char lut_path[_MAX_PATH];
 
-  const char *lut_dir=NULL;
-  // PMB Added
-  // Use GMINI environment variable as path for hrrt_rebinner.lut
-#ifdef _LINUX
-  char buf[_MAX_PATH];
-  exe_path[ 0 ] = getenv( "GMINI" ) ;
-#endif
-  for (i=0; exe_path[i]!=NULL; i++)
-    {
-      lut_dir = exe_path[i];
-      if (access(lut_dir,0) == 0) 
-	{  // found directory 
-#ifdef _LINUX
-	  if (!tx_flag) sprintf(lut_path,"%s/hrrt_rebinner.lut",lut_dir);
-	  else sprintf(lut_path,"%s/hrrt_rebinner_tx.lut",lut_dir);
-#else
-	  if (!tx_flag) sprintf(lut_path,"%s\\hrrt_rebinner.lut",lut_dir);
-	  else sprintf(lut_path,"%s\\hrrt_rebinner_tx.lut",lut_dir);
-#endif
-	  if (access(lut_path,0) == 0) return lut_path; //exising file
-	  // PMB Added
-	  //	IFF lut not found; try to locate it using 'which'
-#ifdef _LINUX
-	  sprintf( buf, "which hrrt_rebinner.lut"  ) ;
-	  FILE *in  = popen( buf, "r" ) ;
-	  fscanf( in, "%s", lut_path ) ;
-	  pclose( in ) ;
-	  // If 'hrrt_rebinner.lut' is not found via 'which'; return NULL and stop execution
-	  // If 'hrrt_rebinner.lut' is not found via 'which'; return full path and filename
-	  if (access(lut_path,0) != 0) 
-	    {
-	      printf( "\n\tError:\n\t\tCheck PATH environment variable and file access\n\n\n" ) ;
-	      return NULL ; 
-	    }
-	  else return lut_path ;
-#else
-	  printf( "\n\tError: file '%s' not found\n", lut_path) ;
-	  return NULL;
-#endif
-	}
-    }
-  return NULL;
-}
-*/
+// const char *hrrt_rebinner_lut_path(int tx_flag)
+// {
+//   int i=0;
+//   static char lut_path[_MAX_PATH];
 
-static void usage(char *prog)
+//   const char *lut_dir=NULL;
+//   // PMB Added
+//   // Use GMINI environment variable as path for hrrt_rebinner.lut
+// #ifdef _LINUX
+//   char buf[_MAX_PATH];
+//   exe_path[ 0 ] = getenv( "GMINI" ) ;
+// #endif
+//   for (i=0; exe_path[i]!=NULL; i++)
+//     {
+//       lut_dir = exe_path[i];
+//       if (access(lut_dir,0) == 0) 
+// 	{  // found directory 
+// #ifdef _LINUX
+// 	  if (!tx_flag) sprintf(lut_path,"%s/hrrt_rebinner.lut",lut_dir);
+// 	  else sprintf(lut_path,"%s/hrrt_rebinner_tx.lut",lut_dir);
+// #else
+// 	  if (!tx_flag) sprintf(lut_path,"%s\\hrrt_rebinner.lut",lut_dir);
+// 	  else sprintf(lut_path,"%s\\hrrt_rebinner_tx.lut",lut_dir);
+// #endif
+// 	  if (access(lut_path,0) == 0) return lut_path; //exising file
+// 	  // PMB Added
+// 	  //	IFF lut not found; try to locate it using 'which'
+// #ifdef _LINUX
+// 	  sprintf( buf, "which hrrt_rebinner.lut"  ) ;
+// 	  FILE *in  = popen( buf, "r" ) ;
+// 	  fscanf( in, "%s", lut_path ) ;
+// 	  pclose( in ) ;
+// 	  // If 'hrrt_rebinner.lut' is not found via 'which'; return NULL and stop execution
+// 	  // If 'hrrt_rebinner.lut' is not found via 'which'; return full path and filename
+// 	  if (access(lut_path,0) != 0) 
+// 	    {
+// 	      printf( "\n\tError:\n\t\tCheck PATH environment variable and file access\n\n\n" ) ;
+// 	      return NULL ; 
+// 	    }
+// 	  else return lut_path ;
+// #else
+// 	  printf( "\n\tError: file '%s' not found\n", lut_path) ;
+// 	  return NULL;
+// #endif
+// 	}
+//     }
+//   return NULL;
+// }
+
+
+static void usage(const char *prog)
 {
   printf("%s - generate delayed coincidence data from crystal singles\n", prog);
   printf("usage: gen_delays -h coincidence_histogram -O delayed_coincidence_file -t count_time <other switches>\n");
@@ -138,7 +140,7 @@ static void usage(char *prog)
   printf("    -k              : use Koln HRRT geometry (default to normal)\n");
   printf("    -T tau          : time window parameter [6.0 10-9 sec]\n");
   // ahc
-  printf("  * -b rebinner_file: Full path of 'hrrt_rebinner.lut' file (required)\n");
+  printf("  * -r rebinner_file: Full path of 'hrrt_rebinner.lut' file (required)\n");
   exit(1);
 }
 
@@ -366,7 +368,10 @@ void *pt_compute_delays(void *ptarg)
  */
 int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
                float ***result,FILE *p_coins_file,char *p_delays_file, 
-               int _span, int _maxrd) 
+               int _span, int _maxrd,
+               // My addition ahc: Rebinner LUT file now a required argument.
+               char *p_rebinner_lut_file
+               ) 
 {
   int i, n, mp,j;
 #ifdef _LINUX
@@ -377,7 +382,7 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
   int dtime1, dtime2, dtime3, dtime4;
   FILE *fptr;
   // ahc
-  char *rebinner_file = NULL;
+  char *rebinner_lut_file = NULL;
   char *csingles_file=NULL;
   char *delays_file=NULL;
   char *coins_file=NULL;
@@ -416,7 +421,7 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
   // 2  1  0  1  2   2   1   0   1   2		  // amount of load
   int mporder[2][10]={{1, 2, 3, 4, 5,  11, 12, 13, 14, 18}, // for the load balancing 
 		      {6, 7, 8, 9, 10, 15, 16, 17, 19, 20}};
-  const char *rebinner_lut_file=NULL;
+  // const char *rebinner_lut_file=NULL;
    
   delays_file = p_delays_file;
   if (scan_duration>0) ftime = scan_duration;
@@ -440,7 +445,7 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
 
       switch(c) {
 	// ahc
-      case 'b' : rebinner_file = optarg;	// hrrt_rebinner.lut
+      case 'r' : rebinner_lut_file = optarg;	// hrrt_rebinner.lut
       case 'v':   quiet = 0; break;   // -v don't be quiet any longer
       case 'h':   coins_file = optarg; break; // coincidence histogram (int 72,8,104,4)
       case 'p':   sscanf( optarg, "%d,%d", &nprojs, &nviews); break; // -p nprojs,nviews - set sinogram size
@@ -454,12 +459,19 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
       case 't':   sscanf( optarg, "%f", &ftime); break;
       }
     }
-    if ( coins_file == NULL || delays_file == NULL || rebinner_file == NULL ) 
+    if ( coins_file == NULL || delays_file == NULL || rebinner_lut_file == NULL ) 
       usage("gen_delays");		
   } else {
     // inline mode.
-    coins_file  = "memory_mode";
-  }	
+    coins_file  = (char *)"memory_mode";
+    // ahc this value is overridden by argv if called as main
+    if (strlen(p_rebinner_lut_file)) {
+      rebinner_lut_file = p_rebinner_lut_file;
+    } else {
+      fprintf(stderr, "gen_delays.cpp:main(): Rebinner file must be specified\n");
+      exit(1);
+    }
+  }
   if (is_inline < 2 && !delays_file) {
     fprintf(stdout,"Output File must be specified with -O <filename>\n");		
     exit(1);
@@ -490,8 +502,8 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
   //   }
   // fprintf(stdout,"Using Rebinner LUT file %s\n", rebinner_lut_file);
   // init_lut_sol(rebinner_lut_file, m_segzoffset);
-  fprintf(stderr,"Using Rebinner LUT file %s\n", rebinner_file);
-  init_lut_sol(rebinner_file, m_segzoffset);
+  fprintf(stderr,"Using Rebinner LUT file %s\n", rebinner_lut_file);
+  init_lut_sol(rebinner_lut_file, m_segzoffset);
 
   clean_segment_info();
 	
@@ -599,7 +611,10 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
   // check if the delay_file is writable.
   if (is_inline<2) {
     fptr = fopen( delays_file, "wb");
-    if (!fptr) fprintf(stdout,"Can't create delayed coincidence output file '%s'\n", delays_file);
+    if (!fptr) {
+      fprintf(stdout,"Can't create delayed coincidence output file '%s'\n", delays_file);
+      exit(1);
+    }
   }
 
   //-------------------------------------------------------

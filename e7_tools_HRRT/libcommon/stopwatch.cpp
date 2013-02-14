@@ -61,7 +61,7 @@ void StopWatch::start()
 /*---------------------------------------------------------------------------*/
 float StopWatch::stop()
  { 
-   std::cerr << "StopWatch::stop(" << time() << ")\n";
+   std::cerr << "StopWatch::stop(" << time() << "): " << watches.size() << " items\n";
    if (watches.size() > 0) {
      float t;
 

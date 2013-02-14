@@ -11,6 +11,7 @@
  */
 
 #include <cmath>
+#include <iostream>
 #ifndef _GM_CPP
 #define _GM_CPP
 #include "gm.h"
@@ -546,7 +547,8 @@ void GM::init(const std::string model_num)
 #else // USE_GANTRY_MODEL
 void GM::init(const std::string model_num)
 { 
-	if (GantryInfo::load(atoi(model_num.c_str())) == 0)
+  std::cerr << "GM::init(" << model_num << ")" << std::endl;
+  if (GantryInfo::load(atoi(model_num.c_str())) == 0)
     throw Exception(REC_GANTRY_MODEL,
                     "The gantry model '#1' is unknown.").arg(model_num);
    if (values_stored)

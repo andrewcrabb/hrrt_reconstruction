@@ -17,6 +17,7 @@
 #include <string>
 #include <limits>
 #include <vector>
+#include <iostream>
 #if defined(__LINUX__) || defined(__SOLARIS__)
 #include <new>
 #endif
@@ -851,8 +852,13 @@ int main(int argc, char **argv)
      Logging::flog()->logCmdLine(argc, argv); // print command line information
                                                 // initialize memory controller
      MemCtrl::mc()->setSwappingPath(cpar->params()->swap_path);
-     MemCtrl::mc()->searchForPattern(cpar->patternKey(), 0);
+     std::cout << "up to here 0" << std::endl;
+     std::string patternKey = cpar->patternKey();
+     std::cout << "cpar->patternKey = '" << patternKey << "'" << std::endl;
+     MemCtrl::mc()->searchForPattern(patternKey, 0);
+     std::cout << "up to here 1" << std::endl;
      MemCtrl::mc()->setMemLimit(cpar->params()->memory_limit);
+     std::cout << "up to here 2" << std::endl;
      sw.start();                                             // start stopwatch
      calculate3DAttenuation(cpar->params());         // calculate acf and u-map
                                                               // stop stopwatch

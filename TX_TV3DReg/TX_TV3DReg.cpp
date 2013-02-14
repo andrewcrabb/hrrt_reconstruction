@@ -11,7 +11,7 @@
   ------------------------------------------------------------------------------------------------*/
 
 #include <stdio.h>
-#include <CImg.h>
+#include "CImg.h"
 #define THRESHOLD 0.07f
 #define MU_TISSUE 0.099f
 

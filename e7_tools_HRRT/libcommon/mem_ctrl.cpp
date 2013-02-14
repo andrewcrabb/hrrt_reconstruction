@@ -1498,6 +1498,8 @@ void MemCtrl::searchForPattern(const std::string _pattern_key,
    pattern_key=_pattern_key;
    std::ifstream file;
 
+   std::cout << "mem_ctl.cpp:MemCtrl::searchForPattern(" << pattern_key << "): pattern_filename = '" << pattern_filename << "'" << std::endl;
+
    file.open(pattern_filename.c_str(), std::ios::in|std::ios::binary);
    if (!file)
     { lu_pattern.clear();
