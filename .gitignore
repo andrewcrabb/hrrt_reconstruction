@@ -14,6 +14,7 @@
 # Compiled Libraries #
 ######################
 *.a
+!e7_tools_HRRT/LinkLibsScatter/libscatter.a
 
 # Compiled source #
 ###################
