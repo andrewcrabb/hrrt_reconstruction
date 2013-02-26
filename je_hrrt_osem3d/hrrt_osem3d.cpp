@@ -186,6 +186,8 @@
 // ahc
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <iostream>
+#include <algorithm>
 
 #ifdef IS_WIN32
 #include <windows.h>
@@ -932,7 +934,7 @@ void norm_AW(float ***out,float ***atten,int theta) {
       atten1 = &atten[yr][v][0];
       est1   = &out[yr2][v][0];
       for( xr=0; xr<xr_pixels; xr++ ) {
-        if(norm1[xr] > 0.0f) est1[xr] = 1.0f/max(atten1[xr],1.0f);
+        if(norm1[xr] > 0.0f) est1[xr] = 1.0f/std::max(atten1[xr],1.0f);
         else  est1[xr] = 0.0f; // missing data
       }
     }
@@ -1123,11 +1125,11 @@ void prepare_norm(float ***out,int nFlag,int weighting,FILEPTR normfp,FILEPTR at
             for(xr=0;xr<xr_pixels;xr++){
               //v1 view  
               if (out[i1][v1][xr]>0) 
-                out[i1][v1][xr] /= max(mu_prj[i1][xr], 1.0f);
+                out[i1][v1][xr] /= std::max(mu_prj[i1][xr], 1.0f);
               else out[i1][v1][xr] = 0.0f; // missing data
               //v2 view (v1+views/2)
               if (out[i1][v2][xr]>0) 
-                out[i1][v2][xr] /= max(mu_prj[i2][xr], 1.0f);
+                out[i1][v2][xr] /= std::max(mu_prj[i2][xr], 1.0f);
               else out[i1][v2][xr] = 0.0f; // missing data
             }
           }
@@ -1191,11 +1193,11 @@ void prepare_norm(float ***out,int nFlag,int weighting,FILEPTR normfp,FILEPTR at
             for(xr=0;xr<xr_pixels;xr++){
               //v1 view  
               if (out[i1][v1][xr]>0) 
-                out[i1][v1][xr] /= max(mu_prj[i1][xr], 1.0f);
+                out[i1][v1][xr] /= std::max(mu_prj[i1][xr], 1.0f);
               else out[i1][v1][xr] = 0.0f; // missing data
               //v2 view (v1+views/2)
               if (out[i1][v2][xr]>0) 
-                out[i1][v2][xr] /= max(mu_prj[i2][xr], 1.0f);
+                out[i1][v2][xr] /= std::max(mu_prj[i2][xr], 1.0f);
               else out[i1][v2][xr] = 0.0f; // missing data
             }
           }
@@ -1997,6 +1999,7 @@ FUNCPTR pt_read_norm(void *ptarg)
         crash3("  Error occurs in read_norm at subset %d !\n", arg->isubset );
     }
   }
+  fprintf(stderr, "pt_read_norm() complete\n");
   return 0;
 }
 
@@ -4579,13 +4582,17 @@ void CalculateOsem3d(int frame)
       if(normfac_in_file_flag==-1 || normfac_in_file_flag==2){
         START_THREAD(threads[Rnormfact],pt_read_norm,normstructure,threadID);
       } 
+      std::cerr << "ahc up to here 0" << std::endl << std::flush;
       ClockNormfacTheta = clock ();                /* reuse previous timing variable */
 
       if(blur) convolve3d(image,image_psf,imagexyzf_thread[0]);
+      std::cerr << "ahc up to here 1" << std::endl;
 
       for(v=0;v<sviews/2-nthreads+1;v+=nthreads){
+        std::cerr << "ahc up to here 2" << std::endl;
         for(thr=0;thr<nthreads;thr++){
-					
+          std::cerr << "ahc up to here 3" << std::endl;
+
           view=vieworder[isubset][v+thr];
           bparg[thr].prj=estimate_thread[thr];
           if(blur) bparg[thr].ima=image_psf;
