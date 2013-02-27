@@ -1877,27 +1877,53 @@ int forward_proj3d_view1_thread(float ***image,float ***prj,int view,int theta2,
 
   for(x=xr_start;x<xr_end;x++){
 
-    if(x==0) continue;
+    if(x==0)
+      continue;
     pp1=(__m128 **)prj[x];
     pp2=(__m128 **)prj[xr_pixels/2+x];
 
-    if(cylwiny[x][0]==cylwiny[x][1]) continue;
+    if(cylwiny[x][0]==cylwiny[x][1])
+      continue;
 
     if(norm_zero_mask[view][x]==0){
       continue;
     }
 
     for(i=0;i<4;i++){
-      if(i==0){	xx=x;yy=img_center; rim=rim1;}
-      else if(i==1){		xx=x_pixels-x;yy=img_center;rim=rim2;}
-      else if(i==2){			xx=img_center;yy=x;rim=rim3;}
-      else {			xx=img_center;yy=x_pixels-x;rim=rim4;}
+      if(i==0){
+        xx=x;
+        yy=img_center;
+        rim=rim1;
+      } else if(i==1){
+		xx=x_pixels-x;
+        yy=img_center;
+        rim=rim2;
+      } else if(i==2){
+        xx=img_center;
+        yy=x;
+        rim=rim3;
+      } else {
+		xx=img_center;
+        yy=x_pixels-x;
+        rim=rim4;
+      }
 
-      xx0=(xx-img_center)*cosv*zoom-(yy-img_center)*sinv+img_center;		yy0=(xx-img_center)*sinv*zoom+(yy-img_center)*cosv+img_center;
-      if(xx0<0 || xx0>x_pixels-2 ||yy0<0 || xx0>x_pixels-2) continue;
-      xx=(int) xx0; yy=(int) yy0;		x1=xx0-xx;y1=yy0-yy;
-      r1=image_ptr[xx][yy];		r2=image_ptr[xx+1][yy];		r3=image_ptr[xx][yy+1];		r4=image_ptr[xx+1][yy+1];
-      rc1[0]=_mm_set1_ps((1-x1)*(1-y1));		rc1[1]=_mm_set1_ps(x1*(1-y1));		rc1[2]=_mm_set1_ps(y1*(1-x1));		rc1[3]=_mm_set1_ps(y1*x1);
+      xx0=(xx-img_center)*cosv*zoom-(yy-img_center)*sinv+img_center;
+      yy0=(xx-img_center)*sinv*zoom+(yy-img_center)*cosv+img_center;
+      if(xx0<0 || xx0>x_pixels-2 ||yy0<0 || xx0>x_pixels-2)
+        continue;
+      xx=(int) xx0;
+      yy=(int) yy0;
+      x1=xx0-xx;
+      y1=yy0-yy;
+      r1=image_ptr[xx][yy];
+      r2=image_ptr[xx+1][yy];
+      r3=image_ptr[xx][yy+1];
+      r4=image_ptr[xx+1][yy+1];
+      rc1[0]=_mm_set1_ps((1-x1)*(1-y1));
+      rc1[1]=_mm_set1_ps(x1*(1-y1));
+      rc1[2]=_mm_set1_ps(y1*(1-x1));
+      rc1[3]=_mm_set1_ps(y1*x1);
       for(z=0;z<z_pixels_simd;z++){
         rim[z]=_mm_add_ps(_mm_add_ps(_mm_mul_ps(r1[z],rc1[0]),_mm_mul_ps(r2[z],rc1[1])),_mm_add_ps(_mm_mul_ps(r3[z],rc1[2]),_mm_mul_ps(r4[z],rc1[3])));
       }

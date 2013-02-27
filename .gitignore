@@ -6,6 +6,10 @@
 /tmp/
 *.bak
 
+# Compiled Executables #
+######################
+je_hrrt_osem3d/je_hrrt_osem3d
+
 # Directories to omit #
 #######################
 /lib/

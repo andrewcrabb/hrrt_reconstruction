@@ -627,7 +627,10 @@ void normfac_path(const char *src_filename, char *dest_path)
 void normfac_path(const char *src_filename, char *dest_path)
 {
   //strcpy(dest_path,"normfac.i");
+  std::cerr << "ahc up to here 0" << std::endl;
+  std::cerr << "normfac_path(" << src_filename << ", " << dest_path << ")" << std::endl << std::flush;
   strcpy(dest_path,normfac_img);
+  std::cerr << "ahc up to here 1" << std::endl;
 }
 #endif
 
@@ -2080,8 +2083,11 @@ FUNCPTR pt_osem3d_proj_thread1(void *ptarg)
       update_estimate_w012(arg->prj,arg->volumeprj,segmentsize*2,xr_pixels,1);
     }	        
     if ((weighting == 3 || weighting==8)) {  
-      if(floatFlag==0) update_estimate_w3(arg->prj,arg->volumeprj,arg->volumeprjshort,arg->volumeprjfloat,segmentsize*2,xr_pixels,1);
-      if(floatFlag==1) update_estimate_w3(arg->prj,arg->volumeprj,NULL,arg->volumeprjfloat,segmentsize*2,xr_pixels,1);
+      fprintf(stderr, "*** ahc pt_osem3d_proj_thread1: weight '%d' prj '%x' prjshort '%x' prjfloat '%x'\n", weighting, arg->volumeprj, arg->volumeprjshort, arg->volumeprjfloat);
+    if(floatFlag==0)
+        update_estimate_w3(arg->prj,arg->volumeprj,arg->volumeprjshort,arg->volumeprjfloat,segmentsize*2,xr_pixels,1);
+      if(floatFlag==1)
+        update_estimate_w3(arg->prj,arg->volumeprj,NULL,arg->volumeprjfloat,segmentsize*2,xr_pixels,1);
     }
     back_proj3d_thread1(arg->prj,arg->ima, arg->view, 1,arg->imagebuf,arg->prjbuf); 
   } else {
@@ -2683,7 +2689,8 @@ FUNCPTR pt_update_est_w3(void *ptarg)
       ptr1 = est[i];
       ptr2 = prj[i];
       ptr3 = prjshort[i];
-      ptr4 = prjfloat[i];
+      // ahc this bug has been in here all along.
+      //       ptr4 = prjfloat[i];
       for( xr=0; xr<size; xr++ ) {
         den = ptr1[xr] + ptr2[xr];
         if(ptr3[xr]==0) ptr1[xr]=0;
@@ -2718,7 +2725,8 @@ void update_estimate_w3(float **estimate,float **prj,short **prjshort,float **pr
   unsigned int threadID;
 
   inc=nplanes/nthreads;
-  for(thr=0;thr<nthreads;thr++){
+  for (thr=0;thr<nthreads;thr++){
+    fprintf(stderr, "*** ahc update_estimate_w3: thr '%d', prj '%d' prjshort '%d' prjfloat '%d'\n", thr, prj, prjshort, prjfloat);
     updatestruct[thr].est=estimate;
     updatestruct[thr].prj=prj;
     updatestruct[thr].prjshort=prjshort;
@@ -2727,8 +2735,11 @@ void update_estimate_w3(float **estimate,float **prj,short **prjshort,float **pr
     updatestruct[thr].plane_start=thr*inc;
     updatestruct[thr].view=xr_pixel;
 
-    if(thr!=nthreads-1) updatestruct[thr].plane_end=(thr+1)*inc;
-    else updatestruct[thr].plane_end=nplanes;
+    if(thr!=nthreads-1) {
+      updatestruct[thr].plane_end=(thr+1)*inc;
+    } else {
+      updatestruct[thr].plane_end=nplanes;
+    }
     START_THREAD(threads[thr],pt_update_est_w3,updatestruct[thr],threadID);
   }
   for (thr = 0; thr < nthreads; thr++) {
@@ -3578,6 +3589,11 @@ void GetParameter(int argc,char **argv)
     num_em_frames = get_num_frames(osem3dpar->true_file);
   if (ecat_flag && num_em_frames>0) { // restore output file
     strcpy(out_img_file, osem3dpar->out_img_file);
+  }
+  if (!strlen(rebinner_lut_file)) {
+    fprintf(stderr, "Error: Rebinner LUT file required\n");
+    usage();
+    exit(1);
   }
 }
 
@@ -4582,36 +4598,42 @@ void CalculateOsem3d(int frame)
       if(normfac_in_file_flag==-1 || normfac_in_file_flag==2){
         START_THREAD(threads[Rnormfact],pt_read_norm,normstructure,threadID);
       } 
-      std::cerr << "ahc up to here 0" << std::endl << std::flush;
       ClockNormfacTheta = clock ();                /* reuse previous timing variable */
 
       if(blur) convolve3d(image,image_psf,imagexyzf_thread[0]);
-      std::cerr << "ahc up to here 1" << std::endl;
 
       for(v=0;v<sviews/2-nthreads+1;v+=nthreads){
-        std::cerr << "ahc up to here 2" << std::endl;
-        for(thr=0;thr<nthreads;thr++){
-          std::cerr << "ahc up to here 3" << std::endl;
+        for(thr=0;thr<nthreads;thr++) {
 
           view=vieworder[isubset][v+thr];
           bparg[thr].prj=estimate_thread[thr];
-          if(blur) bparg[thr].ima=image_psf;
-          else  bparg[thr].ima=image;
+          if (blur) {
+            bparg[thr].ima=image_psf;
+          } else {
+            bparg[thr].ima=image;
+          }
           bparg[thr].imagepack=imagepack;
           bparg[thr].view=view;
           bparg[thr].numthread=1;
           bparg[thr].imagebuf=imagexyzf_thread[thr];
           bparg[thr].prjbuf=prjxyf_thread[thr];
           bparg[thr].volumeprj=largeprj[view];
-					
-          if (pFlag && (weighting == 3 || weighting==8) && floatFlag==0){
+          fprintf(stderr, "*** ahc CalculateOsem3d: thr '%d', bparg[thr].volumeprj '%x'\n", thr, bparg[thr].volumeprj);
+            
+          if (pFlag && (weighting == 3 || weighting==8) && floatFlag==0) {
             bparg[thr].volumeprjshort=largeprjshort[view];
+            fprintf(stderr, "*** ahc CalculateOsem3d: thr '%d', bparg[thr].volumeprjshort '%x'\n", thr, bparg[thr].volumeprjshort);
+          } else if (pFlag && (weighting == 3 || weighting==8) && floatFlag==1) {
+            bparg[thr].volumeprjfloat=largeprjfloat[view];
+            fprintf(stderr, "*** ahc CalculateOsem3d: thr '%d', bparg[thr].volumeprjfloat '%x'\n", thr, bparg[thr].volumeprjfloat);
           }
-          else if (pFlag && (weighting == 3 || weighting==8) && floatFlag==1)	bparg[thr].volumeprjfloat=largeprjfloat[view];
           bparg[thr].weighting=weighting;
+          
           START_THREAD(threads[Cal1+thr],pt_osem3d_proj_thread1,bparg[thr],threadID);
         }
-        for(thr=0;thr<nthreads;thr++) Wait_thread( threads[Cal1+thr]);
+        for (thr=0; thr < nthreads; thr++) {
+          Wait_thread( threads[Cal1+thr]);
+        }
         rotate_image_buf(imagexyzf_thread,correction,nthreads,&vieworder[isubset][v]);
       } 		
       if(((sviews/2)%nthreads)!=0){
@@ -4628,8 +4650,11 @@ void CalculateOsem3d(int frame)
           if (weighting ==0 || weighting ==1 || weighting ==2 || weighting ==5 || weighting ==6 || weighting ==7 ) { 
             update_estimate_w012(estimate_thread[0],largeprj[view],segmentsize*2,xr_pixels,nthreads);
           }  else if (pFlag && (weighting == 3 || weighting==8)) {  
-            if(floatFlag==0) update_estimate_w3(estimate_thread[0],largeprj[view],largeprjshort[view],NULL,segmentsize*2,xr_pixels,nthreads);
-            else if(floatFlag==1) update_estimate_w3(estimate_thread[0],largeprj[view],NULL,largeprjfloat[view],segmentsize*2,xr_pixels,nthreads);
+            fprintf(stderr, "*** ahc CalculateOsem3d: weight '%d' prj '%d' prjshort '%d' prjfloat '%d'\n", weighting, largeprj[view],largeprjshort[view],NULL);
+      if(floatFlag==0)
+              update_estimate_w3(estimate_thread[0],largeprj[view],largeprjshort[view],NULL,segmentsize*2,xr_pixels,nthreads);
+            else if(floatFlag==1)
+              update_estimate_w3(estimate_thread[0],largeprj[view],NULL,largeprjfloat[view],segmentsize*2,xr_pixels,nthreads);
           }
           if( !back_proj3d2( estimate_thread[0], correction, view,verbose,imagexyzf_thread[0],prjxyf_thread[0])) 
             crash3("  Main(): error occurs in back_proj3d for subset %d \n ", isubset);
@@ -4827,13 +4852,9 @@ int main(int argc, char* argv[])
   InitParameter();
   GetParameter(argc,argv);
   if (log_file) LogMessage("hrrt_osem3d sw_version %s Build %s\n", sw_version, sw_build_id);
-
-  
   
   PutParameter();
   CheckParameterAndPrint();
-
-       
      
   if (osem3dpar->normfac_in_file_flag!=0 && iterations != 0) { // iterations == 0 as usually we don't input any other files, it does not know how to set directory of normfac_img, so it fails, thus we added above condition
    
@@ -4851,11 +4872,13 @@ int main(int argc, char* argv[])
     else { // normfac in patient directory
       //       printf("\n\n\n normfac_img:%s %d \n\n", normfac_img, save_every_n_subsets); fflush(stdout);
       // Below, they copy normfac.i to the directory
-      if (osem3dpar->atten_file!=NULL)
+      if (osem3dpar->atten_file!=NULL) {
         normfac_path(osem3dpar->atten_file,normfac_img);
-      else if (osem3dpar->prompt_file) 
+      } else if (osem3dpar->prompt_file) {
         normfac_path(osem3dpar->prompt_file,normfac_img);
-      else normfac_path(osem3dpar->true_file,normfac_img);
+      } else {
+        normfac_path(osem3dpar->true_file,normfac_img);
+      }
     }
   }
 
