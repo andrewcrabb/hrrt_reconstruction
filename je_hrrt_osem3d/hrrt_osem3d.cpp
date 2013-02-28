@@ -345,7 +345,10 @@ float bayesian_beta=0;
 char *MR_img_file=NULL;
 int MR_img_Flag=0;
 int save_every_n_subsets=16;
-char *normfac_img="normfac.i";
+// ahc normfac_img is written to in normfac_path();
+// char *normfac_img="normfac.i";
+const char *normfac_img_str = "normfac.i";
+char normfac_img[_MAX_PATH];
 //char *normfac_img2="normfac2.i";
 
 /*******************************************/
@@ -2083,7 +2086,7 @@ FUNCPTR pt_osem3d_proj_thread1(void *ptarg)
       update_estimate_w012(arg->prj,arg->volumeprj,segmentsize*2,xr_pixels,1);
     }	        
     if ((weighting == 3 || weighting==8)) {  
-      fprintf(stderr, "*** ahc pt_osem3d_proj_thread1: weight '%d' prj '%x' prjshort '%x' prjfloat '%x'\n", weighting, arg->volumeprj, arg->volumeprjshort, arg->volumeprjfloat);
+      // fprintf(stderr, "*** ahc pt_osem3d_proj_thread1: weight '%d' prj '%x' prjshort '%x' prjfloat '%x'\n", weighting, arg->volumeprj, arg->volumeprjshort, arg->volumeprjfloat);
     if(floatFlag==0)
         update_estimate_w3(arg->prj,arg->volumeprj,arg->volumeprjshort,arg->volumeprjfloat,segmentsize*2,xr_pixels,1);
       if(floatFlag==1)
@@ -2726,7 +2729,7 @@ void update_estimate_w3(float **estimate,float **prj,short **prjshort,float **pr
 
   inc=nplanes/nthreads;
   for (thr=0;thr<nthreads;thr++){
-    fprintf(stderr, "*** ahc update_estimate_w3: thr '%d', prj '%d' prjshort '%d' prjfloat '%d'\n", thr, prj, prjshort, prjfloat);
+    // fprintf(stderr, "*** ahc update_estimate_w3: thr '%d', prj '%d' prjshort '%d' prjfloat '%d'\n", thr, prj, prjshort, prjfloat);
     updatestruct[thr].est=estimate;
     updatestruct[thr].prj=prj;
     updatestruct[thr].prjshort=prjshort;
@@ -3348,7 +3351,9 @@ void PutParameter()
   MR_img_file=p->MR_img_file;
   MR_img_Flag=p->MR_img_Flag;
   save_every_n_subsets=p->save_every_n_subsets;
-  normfac_img=p->normfac_img;
+  // ahc I made this a char[]
+  // normfac_img=p->normfac_img;
+  strcpy(normfac_img, p->normfac_img);
 }
 
 void GetParameter(int argc,char **argv)
@@ -4618,14 +4623,14 @@ void CalculateOsem3d(int frame)
           bparg[thr].imagebuf=imagexyzf_thread[thr];
           bparg[thr].prjbuf=prjxyf_thread[thr];
           bparg[thr].volumeprj=largeprj[view];
-          fprintf(stderr, "*** ahc CalculateOsem3d: thr '%d', bparg[thr].volumeprj '%x'\n", thr, bparg[thr].volumeprj);
+          // fprintf(stderr, "*** ahc CalculateOsem3d: thr '%d', bparg[thr].volumeprj '%x'\n", thr, bparg[thr].volumeprj);
             
           if (pFlag && (weighting == 3 || weighting==8) && floatFlag==0) {
             bparg[thr].volumeprjshort=largeprjshort[view];
-            fprintf(stderr, "*** ahc CalculateOsem3d: thr '%d', bparg[thr].volumeprjshort '%x'\n", thr, bparg[thr].volumeprjshort);
+            // fprintf(stderr, "*** ahc CalculateOsem3d: thr '%d', bparg[thr].volumeprjshort '%x'\n", thr, bparg[thr].volumeprjshort);
           } else if (pFlag && (weighting == 3 || weighting==8) && floatFlag==1) {
             bparg[thr].volumeprjfloat=largeprjfloat[view];
-            fprintf(stderr, "*** ahc CalculateOsem3d: thr '%d', bparg[thr].volumeprjfloat '%x'\n", thr, bparg[thr].volumeprjfloat);
+            // fprintf(stderr, "*** ahc CalculateOsem3d: thr '%d', bparg[thr].volumeprjfloat '%x'\n", thr, bparg[thr].volumeprjfloat);
           }
           bparg[thr].weighting=weighting;
           
@@ -4650,7 +4655,7 @@ void CalculateOsem3d(int frame)
           if (weighting ==0 || weighting ==1 || weighting ==2 || weighting ==5 || weighting ==6 || weighting ==7 ) { 
             update_estimate_w012(estimate_thread[0],largeprj[view],segmentsize*2,xr_pixels,nthreads);
           }  else if (pFlag && (weighting == 3 || weighting==8)) {  
-            fprintf(stderr, "*** ahc CalculateOsem3d: weight '%d' prj '%d' prjshort '%d' prjfloat '%d'\n", weighting, largeprj[view],largeprjshort[view],NULL);
+            // fprintf(stderr, "*** ahc CalculateOsem3d: weight '%d' prj '%d' prjshort '%d' prjfloat '%d'\n", weighting, largeprj[view],largeprjshort[view],NULL);
       if(floatFlag==0)
               update_estimate_w3(estimate_thread[0],largeprj[view],largeprjshort[view],NULL,segmentsize*2,xr_pixels,nthreads);
             else if(floatFlag==1)
@@ -4838,6 +4843,9 @@ int main(int argc, char* argv[])
   //  char *normfac_img3="hey";
   // exit(0);
 
+  // ahc
+  strcpy(normfac_img, normfac_img_str);
+  
   sprintf(sw_build_id,"%s %s", __DATE__, __TIME__);
   printf("\nhrrt_osem3d sw_version %s Build %s\n\n", sw_version, sw_build_id);
   osem3dpar=(GLOBAL_OSEM3DPAR *) malloc(sizeof(GLOBAL_OSEM3DPAR));
