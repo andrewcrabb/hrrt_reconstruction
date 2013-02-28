@@ -19,6 +19,7 @@ INCLUDES	= -I../include
 # MACRO		=  -D_FILE_OFFSET_BITS=64 -D_LINUX
 MACRO		=  -D_FILE_OFFSET_BITS=64
 INSTALLDIR      = ../bin
+LIBDEPS     = ../ecatx/libecatx.a ../AIR5.3.0/src/libRPW.a
 
 # ------
 .SUFFIXES: .o .cpp .h
@@ -30,16 +31,16 @@ INSTALLDIR      = ../bin
 
 all:		motion_qc motion_correct_recon MAF_join
 
-motion_qc:	motion_qc.o 
+motion_qc:	motion_qc.o ${LIBDEPS}
 		$(CC) -o $@  motion_qc.o  $(LDLIBS) $(MYCPPFLAGS)
 
-motion_correct_recon:	motion_correct_recon.o qmatrix.o 
+motion_correct_recon:	motion_correct_recon.o qmatrix.o  ${LIBDEPS}
 		$(CC) -o $@  motion_correct_recon.o qmatrix.o  $(LDLIBS) $(MYCPPFLAGS)
 
-MAF_join:	MAF_join.o 
+MAF_join:	MAF_join.o  ${LIBDEPS}
 		$(CC) -o $@  MAF_join.o  $(LDLIBS) $(MYCPPFLAGS)
 
-sino_transform:	sino_transform.o matpkg.o mm_malloc.o nr_utils.o
+sino_transform:	sino_transform.o matpkg.o mm_malloc.o nr_utils.o ${LIBDEPS}
 		$(CC) -o $@  sino_transform.o matpkg.o mm_malloc.o nr_utils.o $(LDLIBS) $(MYCPPFLAGS)
 
 sino_transform.o:	matpkg.h
