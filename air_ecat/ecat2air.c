@@ -291,31 +291,36 @@ AIR_Pixels ***ecat2air(const char *specs, struct AIR_Key_info *stats,
   MatrixExtrema *extrema;
   
   *errcode = 0;
-  if (!matrix_exists(specs)) return NULL;
+  /* Fills in fname */
+  if (!matrix_exists(specs))
+    return NULL;
   file = matrix_open(fname, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
   mat_numdoc(matnum, &mat);
 
-  //  printf("\n air_ecat/ecat2air.c: fname:%s, matnum:%d \n", fname, matnum); fflush(stdout);
+  printf("air_ecat/ecat2air.c: fname:%s, matnum:%d \n", fname, matnum); fflush(stdout);
   if ( (volume = matrix_read(file,matnum, GENERIC)) != NULL) {
-  //if ( (volume = load_volume(file,mat.frame, /*cubic*/1, /*interp*/1)) != NULL) {
-	  if (matrix_extrema == NULL) {
-		  matrix_extrema = (MatrixExtrema*)calloc(1,sizeof(MatrixExtrema));
-		  extrema = matrix_extrema;
-	  } else {
-		  extrema = matrix_extrema;
-		  while (extrema->next) extrema = extrema->next;
-		  extrema->next = (MatrixExtrema*)calloc(1,sizeof(MatrixExtrema));
-		  extrema = extrema->next;
-	  }
-	  extrema->specs = strdup(specs);
-	  extrema->data_min = volume->data_min/volume->scale_factor;
-	  extrema->data_max = volume->data_max/volume->scale_factor;
-	  extrema->data_type = volume->data_type;
+    //if ( (volume = load_volume(file,mat.frame, /*cubic*/1, /*interp*/1)) != NULL) {
+    if (matrix_extrema == NULL) {
+      matrix_extrema = (MatrixExtrema*)calloc(1,sizeof(MatrixExtrema));
+      extrema = matrix_extrema;
+    } else {
+      extrema = matrix_extrema;
+      while (extrema->next) extrema = extrema->next;
+      extrema->next = (MatrixExtrema*)calloc(1,sizeof(MatrixExtrema));
+      extrema = extrema->next;
+    }
+    extrema->specs = strdup(specs);
+    extrema->data_min = volume->data_min/volume->scale_factor;
+    extrema->data_max = volume->data_max/volume->scale_factor;
+    extrema->data_type = volume->data_type;
     matrix_flip(volume,0,1,1); 		/* radiology convention */
     pixels = matrix2air(volume,stats);
     free_matrix_data(volume);
-  } else
+  } else {
     printf("air_ecat/ecat2air.c: volume %s,%d,*,*,*,* not found\n",fname,mat.frame);
+    /* ahc addition 3/4/13 */
+    *errcode = AIR_READ_IMAGE_FILE_ERROR;
+  }
 
   matrix_close(file);
   return pixels;

@@ -14,7 +14,7 @@ EXECPATH	= ${HOME}/bin
 LIBPATH		=
 CPPFLAGS        = -Wno-write-strings
 CFLAGS		= $(DEBUG)
-LDLIBS		= ../ecatx/libecatx.a -L/usr/local/lib -lRPW -lm
+LDLIBS		= ../ecatx/libecatx.a -L/usr/local/lib ../AIR5.3.0/src/libRPW.a -lm
 INCLUDES	= -I../include
 # MACRO		=  -D_FILE_OFFSET_BITS=64 -D_LINUX
 MACRO		=  -D_FILE_OFFSET_BITS=64
@@ -50,7 +50,7 @@ nr_utils.o:	nr_utils.h
 
 
 install:
-		cp motion_qc motion_correct_recon $(INSTALLDIR)
+		cp motion_qc motion_correct_recon MAF_join $(INSTALLDIR)
 
 clean:
 		$(RM) *.o *~

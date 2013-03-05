@@ -1283,7 +1283,7 @@ matrix_read(MatrixFile *mptr, int matnum, int dtype)
 	if (read_host_data(mptr, matnum, data, dtype) != ECATX_OK) {
 		free_matrix_data(data);
 		data = NULL;
-  } else if (data->data_ptr != NULL) {
+    } else if (data->data_ptr != NULL) {
     if (data->mat_type == PetVolume && data->data_type == IeeeFloat)
       matrix_convert_data(data, SunShort);
     if (dtype != NoData && data->data_type != dtype)

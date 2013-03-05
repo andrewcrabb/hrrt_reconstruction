@@ -9,6 +9,8 @@
 # Compiled Executables #
 ######################
 je_hrrt_osem3d/je_hrrt_osem3d
+air_ecat/ecat_alignlinear
+motion_correction/motion_qc
 
 # Directories to omit #
 #######################
