@@ -630,10 +630,8 @@ void normfac_path(const char *src_filename, char *dest_path)
 void normfac_path(const char *src_filename, char *dest_path)
 {
   //strcpy(dest_path,"normfac.i");
-  std::cerr << "ahc up to here 0" << std::endl;
   std::cerr << "normfac_path(" << src_filename << ", " << dest_path << ")" << std::endl << std::flush;
   strcpy(dest_path,normfac_img);
-  std::cerr << "ahc up to here 1" << std::endl;
 }
 #endif
 
@@ -2005,7 +2003,7 @@ FUNCPTR pt_read_norm(void *ptarg)
         crash3("  Error occurs in read_norm at subset %d !\n", arg->isubset );
     }
   }
-  fprintf(stderr, "pt_read_norm() complete\n");
+  // fprintf(stderr, "pt_read_norm() complete\n");
   return 0;
 }
 

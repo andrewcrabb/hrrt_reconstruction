@@ -5,7 +5,7 @@
 #
 
 # Definitions
-CC		= g++
+CC		?= g++
 RM		= /bin/rm -f
 DEBUG		= 
 DEBUG		= -g

@@ -38,7 +38,7 @@ install:
 	cp ${LIBRARY} ../lib
 
 clean:
-		rm -f *.o *~
+		rm -f *.o *~ ${LIBRARY}
 
 clean_all:
 		rm -f ${LIBRARY} *.o *~
