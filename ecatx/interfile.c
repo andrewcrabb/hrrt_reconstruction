@@ -50,82 +50,82 @@
 #define LINESIZE 512
 
 InterfileItem used_keys[] = {
-	VERSION_OF_KEYS, "version of keys",
-	IMAGE_MODALITY, "image modality",
+  {VERSION_OF_KEYS, "version of keys"},
+  {IMAGE_MODALITY, "image modality"},
 /*
  Main Header
 */
-	ORIGINAL_INSTITUTION, "original institution",
-	ORIGINATING_SYSTEM, "originating system",
-	NAME_OF_DATA_FILE, "name of data file",
-	DATA_STARTING_BLOCK, "data starting block",
-	DATA_OFFSET_IN_BYTES, "data offset in bytes",
-	PATIENT_NAME, "patient name",
-	PATIENT_ID, "patient id",
-	PATIENT_DOB, "patient dob",
-	PATIENT_SEX, "patient sex",
-	STUDY_ID, "study id",
-	EXAM_TYPE, "exam type",
-	DATA_COMPRESSION, "data compression",
-	DATA_ENCODE, "data encode",
-	DISPLAY_RANGE, "display range",
-	IMAGE_EXTREMA, "image extrema",
-	ATLAS_ORIGIN_1, "atlas origin [1]",
-	ATLAS_ORIGIN_2, "atlas origin [2]",
-	ATLAS_ORIGIN_3, "atlas origin [3]",
-	TYPE_OF_DATA, "type of data",
-	TOTAL_NUMBER_OF_IMAGES, "total number of images",
-	STUDY_DATE, "study date",
-	STUDY_TIME, "study time",
-	IMAGEDATA_BYTE_ORDER, "imagedata byte order",
-	NUMBER_OF_WINDOWS, "number of energy windows",
+  {ORIGINAL_INSTITUTION, "original institution"},
+  {ORIGINATING_SYSTEM, "originating system"},
+  {NAME_OF_DATA_FILE, "name of data file"},
+  {DATA_STARTING_BLOCK, "data starting block"},
+  {DATA_OFFSET_IN_BYTES, "data offset in bytes"},
+  {PATIENT_NAME, "patient name"},
+  {PATIENT_ID, "patient id"},
+  {PATIENT_DOB, "patient dob"},
+  {PATIENT_SEX, "patient sex"},
+  {STUDY_ID, "study id"},
+  {EXAM_TYPE, "exam type"},
+  {DATA_COMPRESSION, "data compression"},
+  {DATA_ENCODE, "data encode"},
+  {DISPLAY_RANGE, "display range"},
+  {IMAGE_EXTREMA, "image extrema"},
+  {ATLAS_ORIGIN_1, "atlas origin [1]"},
+  {ATLAS_ORIGIN_2, "atlas origin [2]"},
+  {ATLAS_ORIGIN_3, "atlas origin [3]"},
+  {TYPE_OF_DATA, "type of data"},
+  {TOTAL_NUMBER_OF_IMAGES, "total number of images"},
+  {STUDY_DATE, "study date"},
+  {STUDY_TIME, "study time"},
+  {IMAGEDATA_BYTE_ORDER, "imagedata byte order"},
+  {NUMBER_OF_WINDOWS, "number of energy windows"},
 
 /* static tomographic images */
-	NUMBER_OF_IMAGES, "number of images/energy window",
-	PROCESS_STATUS, "process status",
-	NUMBER_OF_DIMENSIONS, "number of dimensions",
-	MATRIX_SIZE_1, "matrix size [1]",
-	MATRIX_SIZE_2, "matrix size [2]",
-	MATRIX_SIZE_3, "matrix size [3]",
-	NUMBER_FORMAT, "number format",
-	NUMBER_OF_BYTES_PER_PIXEL, "number of bytes per pixel",
-	MAXIMUM_PIXEL_COUNT, "maximum pixel count",
-	MATRIX_INITIAL_ELEMENT_1, "matrix initial element [1]",
-	MATRIX_INITIAL_ELEMENT_2, "matrix initial element [2]",
-	MATRIX_INITIAL_ELEMENT_3, "matrix initial element [3]",
-	SCALE_FACTOR_1, "scaling factor (mm/pixel) [1]",
-	SCALE_FACTOR_2, "scaling factor (mm/pixel) [2]",
-	SCALE_FACTOR_3, "scaling factor (mm/pixel) [3]",
+  {NUMBER_OF_IMAGES, "number of images/energy window"},
+  {PROCESS_STATUS, "process status"},
+  {NUMBER_OF_DIMENSIONS, "number of dimensions"},
+  {MATRIX_SIZE_1, "matrix size [1]"},
+  {MATRIX_SIZE_2, "matrix size [2]"},
+  {MATRIX_SIZE_3, "matrix size [3]"},
+  {NUMBER_FORMAT, "number format"},
+  {NUMBER_OF_BYTES_PER_PIXEL, "number of bytes per pixel"},
+  {MAXIMUM_PIXEL_COUNT, "maximum pixel count"},
+  {MATRIX_INITIAL_ELEMENT_1, "matrix initial element [1]"},
+  {MATRIX_INITIAL_ELEMENT_2, "matrix initial element [2]"},
+  {MATRIX_INITIAL_ELEMENT_3, "matrix initial element [3]"},
+  {SCALE_FACTOR_1, "scaling factor (mm/pixel) [1]"},
+  {SCALE_FACTOR_2, "scaling factor (mm/pixel) [2]"},
+  {SCALE_FACTOR_3, "scaling factor (mm/pixel) [3]"},
 /* ECAT 8 Image Interfile */
-	SCALE_FACTOR_1, "scale factor (mm/pixel) [1]",
-	SCALE_FACTOR_2, "scale factor (mm/pixel) [2]",
-	SCALE_FACTOR_3, "scale factor (mm/pixel) [3]",
-/* ECAT 8 Sinogram Interfile */
-	SCALE_FACTOR_2, "scale factor [2]",
+  {SCALE_FACTOR_1, "scale factor (mm/pixel) [1]"},
+  {SCALE_FACTOR_2, "scale factor (mm/pixel) [2]"},
+  {SCALE_FACTOR_3, "scale factor (mm/pixel) [3]"},
+  /* ECAT 8 Sinogram Interfile */
+  {SCALE_FACTOR_2, "scale factor [2]"},
 
-	IMAGE_DURATION, "image duration",
-	IMAGE_START_TIME, "image start time",
-	IMAGE_NUMBER, "image number",
-	LABEL, "label",
+  {IMAGE_DURATION, "image duration"},
+  {IMAGE_START_TIME, "image start time"},
+  {IMAGE_NUMBER, "image number"},
+  {LABEL, "label"},
 /*
 not standard keys added by Sibomana@topo.ucl.ac.be : it is expressed as scale units;
 e.g 10e-6 counts/second
 */
-	QUANTIFICATION_UNITS, "quantification units",
+  {QUANTIFICATION_UNITS, "quantification units"},
 		/* scale_factor and units label */
-	REAL_EXTREMA, "real extrema",
-	INTERPOLABILITY, "interpolability",
-	TRANSFORMER, "transformer",
-	COLORTAB, "colortab",
+  {REAL_EXTREMA, "real extrema"},
+  {INTERPOLABILITY, "interpolability"},
+  {TRANSFORMER, "transformer"},
+  {COLORTAB, "colortab"},
 /*  Sinograms header support
 */
-	NUM_Z_ELEMENTS, "number of z elements",
-	STORAGE_ORDER, "storage order",
-	IMAGE_RELATIVE_START_TIME, "image relative start time",
-	TOTAL_PROMPTS, "total Prompts",
-	TOTAL_RANDOMS, "total Randoms",
-	END_OF_INTERFILE,"end of interfile",
-	END_OF_KEYS, 0
+  {NUM_Z_ELEMENTS, "number of z elements"},
+  {STORAGE_ORDER, "storage order"},
+  {IMAGE_RELATIVE_START_TIME, "image relative start time"},
+  {TOTAL_PROMPTS, "total Prompts"},
+  {TOTAL_RANDOMS, "total Randoms"},
+  {END_OF_INTERFILE,"end of interfile"},
+  {END_OF_KEYS, 0}
 };
 
 static char* magicNumber = "interfile";
@@ -163,7 +163,7 @@ static void byte_order(caddr_t data_ptr, int elem_size, int nblks,
 
 static int if_multiplicity(char **ifh, int **blk_offsets)
 {
-	int i=0, num_z=0, num_offset=0;
+	int num_offset=0;
 	char *word;
 	static int _offsets[MAX_MULTIPLICITY];
 	_offsets[0] = 0;
@@ -653,9 +653,9 @@ interfile_open(MatrixFile *mptr)
   struct tm tm;
   char *p, dup[80], data_dir[FILENAME_MAX], data_file[FILENAME_MAX];
   char *year, *month, *day, *hour, *minute, *second;
-  char *block_singles = NULL;
+  /* char *block_singles = NULL; */
   int this_year;
-  int i, elem_size=2, data_offset=0, data_size;
+  int i, elem_size=2, data_size;
   float scale_factor;
   int end_of_interfile=0;
   int nmats, nblks, *blk_offsets;
@@ -835,6 +835,8 @@ interfile_read(MatrixFile *mptr, int matnum, MatrixData *data, int dtype)
   int group = 0;
   int z_elements;
   int hour,min,sec;
+  int bytesread = 0;
+  int num_read;
 
   data->matnum = matnum;
   data->pixel_size=data->y_size=data->z_size=1.0;
@@ -880,7 +882,7 @@ interfile_read(MatrixFile *mptr, int matnum, MatrixData *data, int dtype)
 		sscanf(ifh[TOTAL_PROMPTS], "%d", &scan3Dsub->prompts);
 	if (ifh[TOTAL_RANDOMS])
 		sscanf(ifh[TOTAL_RANDOMS], "%d", &scan3Dsub->delayed);
-	if (ifh[IMAGE_DURATION] && sscanf(ifh[IMAGE_DURATION], "%d", &time_msec) == 1)
+	if (ifh[IMAGE_DURATION] && sscanf(ifh[IMAGE_DURATION], "%d", (int *)&time_msec) == 1)
       scan3Dsub->frame_duration = time_msec;
 	if (ifh[IMAGE_START_TIME] && 
       sscanf(ifh[IMAGE_START_TIME], "%d:%d:%d", &hour, &min, &sec) == 3)
@@ -911,7 +913,7 @@ interfile_read(MatrixFile *mptr, int matnum, MatrixData *data, int dtype)
     imagesub->y_dimension = data->ydim;
     imagesub->z_dimension = data->zdim;
     imagesub->data_type = data->data_type;
-	if (ifh[IMAGE_DURATION] && sscanf(ifh[IMAGE_DURATION], "%d", &time_msec) == 1)
+	if (ifh[IMAGE_DURATION] && sscanf(ifh[IMAGE_DURATION], "%d", (int *)&time_msec) == 1)
       imagesub->frame_duration = time_msec;
 	if (ifh[IMAGE_START_TIME] && 
       sscanf(ifh[IMAGE_START_TIME], "%d:%d:%d", &hour, &min, &sec) == 3)
@@ -980,8 +982,13 @@ interfile_read(MatrixFile *mptr, int matnum, MatrixData *data, int dtype)
   for (z = 0; z < data->zdim; z++) {
     if (z_flip) 
       plane = data->data_ptr + (data->zdim-z-1)*elem_size*npixels;
-    else plane = data->data_ptr + z*elem_size*npixels;
-    if (fread(plane,elem_size,npixels,mptr->fptr) < npixels) {
+    else
+      plane = data->data_ptr + z*elem_size*npixels;
+    num_read = fread(plane,elem_size,npixels,mptr->fptr);
+    bytesread += (elem_size * npixels);
+    if (num_read < npixels) {
+      int req_size = elem_size * npixels;
+      fprintf(stderr, "interfile_read ERROR reading z %3d of %3d, got %5d of %5d bytes in fread, total bytes read = %8d\n", z, data->zdim, num_read, req_size, bytesread);
       free(data->data_ptr);
       data->data_ptr = NULL;
       matrix_errno = MAT_READ_ERROR;
@@ -1028,8 +1035,8 @@ interfile_read_slice(FILE *fptr, char **ifh, MatrixData *volume,
 	int i, npixels, file_pos, data_size, nblks, elem_size = 2;
 	int  y, data_offset = 0;
 	int z_flip=0,y_flip=0, x_flip=0;
-	u_short *up=NULL;
-	short *sp=NULL;
+	/* u_short *up=NULL; */
+	/* short *sp=NULL; */
 	MatrixData *data;
 
 	if (ifh && ifh[MATRIX_INITIAL_ELEMENT_3] &&
@@ -1083,7 +1090,7 @@ interfile_read_slice(FILE *fptr, char **ifh, MatrixData *volume,
 		for (i=0; i<npixels; i++) *sp++ = (*up++)/2;
 		data->scale_factor *= 2;
 	}
-	find_data_extrema(data);	/*  /*don't trust in header extrema*/
+	find_data_extrema(data);	 /*don't trust in header extrema*/
 	return data;
 }
 int 
@@ -1117,7 +1124,7 @@ interfile_write_volume(MatrixFile *mptr, char *image_name, char *header_name,
 MatrixData*
 interfile_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment)
 {
-	int i, nprojs, view, nviews, nplanes, nvoxels;
+	int i, nprojs, view, nviews, nvoxels;
 	MatrixData *data;
 	struct MatDir matdir;
 	Scan3D_subheader *scan3Dsub;
@@ -1191,13 +1198,13 @@ interfile_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment)
 		data->y_size = data->pixel_size;
 		data->z_size = mptr->mhptr->plane_separation;
 		data->ydim = scan3Dsub->num_angles;
-		nplanes = z_elements;
+		/* nplanes = z_elements; */
 		data->zdim = scan3Dsub->num_z_elements[0];
 		data_pos = data->data_ptr+ (z_fill*plane_size)/2;
 		if (fread(data_pos, plane_size, z_elements, mptr->fptr) != z_elements)
 			error_flag++;
 	} 
     byte_order(data->data_ptr, elem_size, nblks, ifh[IMAGEDATA_BYTE_ORDER]);
-	find_data_extrema(data);	/*  /*don't trust in header extrema*/
+	find_data_extrema(data);	 /*don't trust in header extrema*/
 	return data;
 }

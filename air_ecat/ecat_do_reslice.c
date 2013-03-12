@@ -422,11 +422,17 @@ AIR_Error AIR_do_reslice(const char *program, const char *airfile, const char *o
 			{
 				AIR_Error errcode;
 				
-				if(reslicerN) dataout=(reslicerN)(datain,&air1.r,&air1.s,e,scale,&errcode);
-				else if(reslicerNW2) dataout=(reslicerNW2)(datain,&air1.r,&air1.s,e,scale,window[0],window[1],&errcode);
-				else if(reslicerNW3) dataout=(reslicerNW3)(datain,&air1.r,&air1.s,e,scale,window[0],window[1],window[2],&errcode);
+				if (reslicerN)
+                  dataout=(reslicerN)(datain,&air1.r,&air1.s,e,scale,&errcode);
+				else
+                  if (reslicerNW2)
+                    dataout=(reslicerNW2)(datain,&air1.r,&air1.s,e,scale,window[0],window[1],&errcode);
+                  else
+                    if (reslicerNW3)
+                      dataout=(reslicerNW3)(datain,&air1.r,&air1.s,e,scale,window[0],window[1],window[2],&errcode);
+
 				
-				if(!dataout){
+				if (!dataout) {
 					free_function(datain,dataout);
 					return(errcode);
 				}

@@ -10,6 +10,9 @@
  */
 /* Modification history: Merence Sibomana <sibomana@gmail.com> 
    11-DEC-2009: Port to 5.2 and replace XDR by XML 
+   01-DEC-2010: Change Return convention:
+              0 if save was successful
+              1 if save failed
 */
 
 #include "ecat2air.h"
@@ -23,6 +26,9 @@
 #else
 #include <unistd.h>
 #endif
+
+#define AIR_SAVE_ERROR 1
+#define AIR_SAVE_OK 0
 
 #ifndef FILENAME_MAX 			/* for Sun OS 4.1 */
 # define FILENAME_MAX 256
@@ -121,7 +127,7 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
 		if (file->dirlist->nmats) i_matnum = file->dirlist->first->matnum;
     else {
       printf("%s : no matrix found\n", orig_specs);
-      return 0;
+      return AIR_SAVE_ERROR;
     }
 	}
 	orig = matrix_read(file,i_matnum,MAT_SUB_HEADER);
@@ -133,7 +139,7 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
 	}
   if (orig == NULL) {
     printf("error reading matrix %s\n", orig_specs);
-    return 0;
+    return AIR_SAVE_ERROR;
   }
   if (orig->data_type == IeeeFloat) { // load matrix and convert to short
 		free_matrix_data(orig);
@@ -149,12 +155,12 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
 		
 	if (!permission && access(fname,F_OK)==0) {
 		printf("file %s exists, no permission to overwrite\n",fname);
-		return 0;
+		return AIR_SAVE_ERROR;
 	}
 	matrix = air2matrix(pixels, stats,orig);
   if (matrix == NULL) {
     printf("Error converting AIR pixel data to ECAT matrix\n");
-    return 0;
+    return AIR_SAVE_ERROR;
   }
 	matrix_flip(matrix,0,1,1);   /* radiolgy convention */
 	free_matrix_data(orig);
@@ -218,9 +224,9 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
     if (fp!=NULL && fdata!=NULL) 
     {
       fclose(fp);
-      return 1;
+      return AIR_SAVE_OK;
     }
-    return 0;
+    return AIR_SAVE_ERROR;
   }
   // else  write ECAT format
   mh.file_type = PetVolume;
@@ -229,14 +235,14 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
   if ((file=matrix_create(fname,MAT_OPEN_EXISTING, &mh)) == NULL) {
     matrix_perror(fname);
     free_matrix_data(matrix);
-    return 0;
+    return AIR_SAVE_ERROR;
   }
   imh = (Image_subheader*)matrix->shptr;
   strncpy(imh->annotation,comment,sizeof(imh->annotation)-1);
   matrix_write(file,o_matnum,matrix);
   free_matrix_data(matrix);
   matrix_close(file);
-  return 0;
+  return AIR_SAVE_OK;
 }
 
 

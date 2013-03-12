@@ -62,7 +62,7 @@ AIR_Error AIR_do_alignlinear(const char *program, const unsigned int model, cons
 				return AIR_CANT_CLOSE_READ_ERROR;
 			}
 			printf("%s: %d: ",__FILE__,__LINE__);
-			printf("\nWARNING: File '%s' will be overwritten by the output of this program\n",air_file);
+			printf("\nOverwriting file '%s'\n",air_file);
 		}
 	}
 	/* Look for fatal conflicts that should have been caught by the user interface */

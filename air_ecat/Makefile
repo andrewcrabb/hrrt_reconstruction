@@ -19,19 +19,20 @@ LIB_OBJS = ecat2air.o air2ecat.o ecat_map_value.o ecat_do_alignlinear.o \
 .c.o:
 		$(CC) $(CFLAGS) ${MYCFLAGS} $<
 
-LIBS = ../ecatx/libecatx.a -lRPW -lm
+LIBS = ../ecatx/libecatx.a ../AIR5.3.0/src/libRPW.a -lm
+LIBDEPS = ../ecatx/libecatx.a ../AIR5.3.0/src/libRPW.a
 
 all : $(PROGRAMS)
-ecat_alignlinear : ecat_alignlinear.o $(LIB_OBJS)
+ecat_alignlinear : ecat_alignlinear.o $(LIB_OBJS) ${LIBDEPS}
 	$(CC) $(LDFLAGS) -o $@ ecat_alignlinear.o $(LIB_OBJS) $(LIBS) $(MYCPPFLAGS)
 
-ecat_make_air : ecat_make_air.o $(LIB_OBJS) 
+ecat_make_air : ecat_make_air.o $(LIB_OBJS) ${LIBDEPS}
 	$(CC) $(LDFLAGS) -o $@ ecat_make_air.o $(LIB_OBJS) $(LIBS) $(MYCPPFLAGS)
 
-ecat_reslice : ecat_reslice.o $(LIB_OBJS) 
+ecat_reslice : ecat_reslice.o $(LIB_OBJS) ${LIBDEPS}
 	$(CC) $(LDFLAGS) -o $@ $@.o $(LIB_OBJS) $(LIBS) $(MYCPPFLAGS)
 
-$(LIB) : $(LIB_OBJS)
+$(LIB) : $(LIB_OBJS) ${LIBDEPS}
 	ar r $(LIB) $(LIB_OBJS)
 	ranlib $(LIB)
 clean:

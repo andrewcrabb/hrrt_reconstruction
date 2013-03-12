@@ -54,7 +54,7 @@ AIR_Error AIR_do_align_warp(const char *program, const unsigned int imodel, cons
 				return AIR_CANT_CLOSE_READ_ERROR;
 			}
 			printf("%s: %d: ",__FILE__,__LINE__);
-			printf("\nWARNING: File '%s' will be overwritten by the output of this program\n",warp_file);
+			printf("\nOverwriting file '%s'\n",warp_file);
 		}
 	}
 	/* Look for fatal conflicts that should have been caught by the user interface */

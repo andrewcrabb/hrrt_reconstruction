@@ -1,55 +1,55 @@
 /*
   Arman:
 
-    const char *recon_pgm = "je_hrrt_osem3d";
+  const char *recon_pgm = "je_hrrt_osem3d";
 
-    Added normfac_img input as 'K'
+  Added normfac_img input as 'K'
 
-    Used to be based on ref_frame_trues (but now is duration): see hold_motion_correct_recon.cpp for comparison
+  Used to be based on ref_frame_trues (but now is duration): see hold_motion_correct_recon.cpp for comparison
     
-======================
+  ======================
     
-File: motion_correct_recon.cpp
-Authors:
+  File: motion_correct_recon.cpp
+  Authors:
   Merence Sibomana
   Sune H. Keller
   Oline V. Olesen
 
-Purpose: Reconstruct HRRT multi-frame sinograms with motion corrected attenuation
-   Method A: Using AIR transformers from motion_qc
-   Method B: Using vicra trackfile
-     1- Create corrected frame mu-map using AIR transformers from motion_qc or trackfile
-     2- Create corrected frame attenuation
-     3- Compute scatter using corrected frame mu-map and attenuation
-     4- Reconstruct frames using corrected attenuation
- Method A Only:
-     5- Realign reconstructed frames using smoothed images
-     6- Optionally, specify frames to be realigned.
+  Purpose: Reconstruct HRRT multi-frame sinograms with motion corrected attenuation
+  Method A: Using AIR transformers from motion_qc
+  Method B: Using vicra trackfile
+  1- Create corrected frame mu-map using AIR transformers from motion_qc or trackfile
+  2- Create corrected frame attenuation
+  3- Compute scatter using corrected frame mu-map and attenuation
+  4- Reconstruct frames using corrected attenuation
+  Method A Only:
+  5- Realign reconstructed frames using smoothed images
+  6- Optionally, specify frames to be realigned.
 
-Method A usage:
-   motion_correct_recon -e em_dyn_file  -n norm [-u mu_map][-F start_frame[,end_frame]] [-O] [-t]              
-     - Default start_frame is first frame with NEC=0.5M, start_frame transformer used
-       for earlier frames
-     - Default end_frame is last frame with NEC=0.5M, end_frame transformer used for
-       remaining frames
-     -O: Overwrite existing images (default is reuse)
-     -t: test only
-Method B usage:
-    motion_correct_recon -e em_l64_file -u mu_map -n norm -Q vicra_frame_info
-                          [-c calibration_dir]
-     - Reference frame in vicra_frame_info file
-     - Default calibration directory c:\cps\calibration_files (win32),
-       $HOME/calibration_files (linux) 
+  Method A usage:
+  motion_correct_recon -e em_dyn_file  -n norm [-u mu_map][-F start_frame[,end_frame]] [-O] [-t]              
+  - Default start_frame is first frame with NEC=0.5M, start_frame transformer used
+  for earlier frames
+  - Default end_frame is last frame with NEC=0.5M, end_frame transformer used for
+  remaining frames
+  -O: Overwrite existing images (default is reuse)
+  -t: test only
+  Method B usage:
+  motion_correct_recon -e em_l64_file -u mu_map -n norm -Q vicra_frame_info
+  [-c calibration_dir]
+  - Reference frame in vicra_frame_info file
+  - Default calibration directory c:\cps\calibration_files (win32),
+  $HOME/calibration_files (linux) 
 
- NB : Frame numbers start from 1
+  NB : Frame numbers start from 1
 
-Creation date: 14-feb-2010
- Modification dates:
-      10-AUG-2010: Use 3D_ATX prefix for images reconstructed using aligned TX
-      11-AUG-2010: Bug fixes (default iterations=10, PSF=true)
-                   Use -E for Uncorrected_ecat_file
-                   Use 0 start for frame numbering everywhere for consistency
-      21-AUG-2010: Add -T option for AIR alignment threshold
+  Creation date: 14-feb-2010
+  Modification dates:
+  10-AUG-2010: Use 3D_ATX prefix for images reconstructed using aligned TX
+  11-AUG-2010: Bug fixes (default iterations=10, PSF=true)
+  Use -E for Uncorrected_ecat_file
+  Use 0 start for frame numbering everywhere for consistency
+  21-AUG-2010: Add -T option for AIR alignment threshold
 */
 
 #include <stdio.h>
@@ -59,28 +59,9 @@ Creation date: 14-feb-2010
 #include <sys/stat.h>
 #include <ecatx/matrix.h>
 #include <string>
-#ifdef WIN32
-#include <direct.h>
-#include <ecatx/getopt.h>
-#ifdef NEW_CODE
-#include <AIR/AIR.h>
-#endif
-#include <io.h>
-#define R_OK 4
-#define access _access
-#define chdir _chdir
-#define getcwd _getcwd
-#define mkdir _mkdir
-#define popen _popen
-#define pclose _pclose
-#define stat _stat
-#define		DIR_SEPARATOR '\\'
-#define strcasecmp _stricmp
-#else
 #include <dirent.h>
 #include <unistd.h>
 #define		DIR_SEPARATOR '/'
-#endif
 
 #define MAX_ITERATIONS 20
 #define PIXEL_SIZE 1.21875f
@@ -91,15 +72,89 @@ Creation date: 14-feb-2010
 #include "frame_info.h"
 #include "qmatrix.h"
 
-static char cmd_line[2048];
+// ahc
+#include <iostream>
+
+// Following 3 args sent to run_system_command()
+static char program_name[2048]; // Program to run
+static char cmd_line[2048];     // Args to program
+static char check_file[2048];   // Output file to check for existence
+
 const char *data_dir = "D:\\SCS_SCANS";
 static char em_dir[FILENAME_MAX], log_dir[FILENAME_MAX], qc_dir[FILENAME_MAX]; 
 static char reconjob_file[FILENAME_MAX], plt_fname[FILENAME_MAX];
 static char patient_dir[FILENAME_MAX];
 double max_trues=0;
+FILE *log_fp=NULL;
 
-static void usage(const char *pgm)
-{
+// ahc program_path now a required argument.
+char program_path[FILENAME_MAX];
+char prog_gnuplot[FILENAME_MAX];
+char rebinner_lut_file[FILENAME_MAX];
+char dir_log[FILENAME_MAX];
+
+// HRRT programs (all must be found in program_path)
+static const char *prog_alignlinear = "ecat_alignlinear";
+static const char *ecat_make_air    = "ecat_make_air";
+static const char *prog_e7_fwd      = "e7_fwd_u";
+static const char *prog_e7_sino     = "e7_sino_u";
+static const char *prog_gsmooth     = "gsmooth_ps";
+static const char *prog_if2e7       = "if2e7";
+static const char *prog_invert_air  = "invert_air";
+// static const char *prog_lmhistogram = "lmhistogram_u"; // Was originally in this prog.
+static const char *prog_lmhistogram = "lmhistogram_mp";
+static const char *prog_maf_join    = "MAF_join";
+static const char *prog_make_air    = "ecat_make_air";
+static const char *prog_matcopy     = "matcopy";
+static const char *prog_recon       = "je_hrrt_osem3d";
+static const char *prog_reslice     = "ecat_reslice";
+static const char *prog_volume_reslice   = "volume_reslice";
+static const char *prog_motion_distance = "motion_distance";
+
+// prog:    Program to run
+// args:    Argument string to program
+// outfile: Optional output file to check for
+// Check for existence of given program, then run with given args.
+// Returns: 0 on success, else 1
+
+int run_system_command( char *prog, char *args ) {
+  char command_line[4096];
+  int ret = 0;
+  char *ptr = NULL;
+  char ma_pattern_name[FILENAME_MAX];
+  
+  ma_pattern_name[0] = '\0';
+  if ((ptr=getenv("HOME")) != NULL) {
+    sprintf(ma_pattern_name, "%s/.ma_pattern.dat", ptr);
+    if (!access(ma_pattern_name, R_OK)) {
+      fprintf(stderr, "*** ma_pattern file exists: '%s'\n", ma_pattern_name);      
+      if (remove(ma_pattern_name) != 0) {
+        fprintf(stderr, "*** ERROR: Removing ma_pattern file: '%s'\n", ma_pattern_name);
+      } else {
+        fprintf(stderr, "*** Removed ma_pattern file OK: '%s'\n", ma_pattern_name);
+      }
+    } else {
+      fprintf(stderr, "*** ma_pattern file '%s' does not exist\n", ma_pattern_name);
+    }
+  } else {
+    fprintf(stderr, "*** Could not determine HOME envt var: Cannot remove ma_pattern.dat file\n");
+  }
+  fflush(stderr);
+       
+  ret = access(prog, X_OK);
+  if (ret) {
+    std::cerr << "Error: run_system_command(" << prog << "): File does not exist" << std::endl << std::flush;    
+  } else {
+    std::cerr << "*** run_system_command('" << prog << "', '" << args << "')" << std::endl << std::flush;
+    sprintf(command_line, "%s %s", prog, args);
+    fprintf(log_fp, "%s\n", command_line);
+    ret = system(command_line);
+  }
+  std::cerr << "run_system_command('" << prog << "', '" << args << "') returning " << ret << std::endl << std::flush;
+  return(ret);
+}
+
+static void usage(const char *pgm){
   printf("%s Build %s %s \n", pgm, __DATE__, __TIME__);
   printf("AIR usage: %s  em_dyn_file -u mu_map -n norm [-F start_frame[,end_frame]] \n"
          "       [-E uncorrected_ecat_file] [-r ref_frame] [options]\n",pgm);
@@ -119,21 +174,46 @@ static void usage(const char *pgm)
   printf("       -P Enable PSF (default yes)\n");
   printf("       -t test only, prints commands in motion_correct_pp.log\n");
   printf("       -v verbose (default off)\n");
-  printf("       \nNB:  FRAMES NUMBERS STARTS from 0 **********\n");
+  printf("    *   -p program_path: Path to HRRT executables (required)\n");
+  printf("    *   -z gnuplot: FQ path of gnuplot program (required)\n");
+  printf("    *   -b rebinner_lut_file: FQ path of rebinner LUT program (required)\n");
+  printf("        -l logdir: Directory for log file\n");
+  printf("       \nNB:  FRAME NUMBERS START from 0 **********\n");
   exit(1);
 }
 
+// Ensure directory is exists and can be written.
+// Creates directory if it does not exist.
+// Returns: 0 if exists on exit and can be written, else 1.
+// This is a good candidate for the Boost::Filesystem library.
+
+static int make_directory(char *path) {
+  int ret;
+  char buff[1000];
+  
+  // See if it exists.
+  ret = access(path, W_OK);
+  if (ret != 0)
+    ret = mkdir(path, 0755);
+  if (ret) {
+    sprintf(buff, "Error creating %s\n", path);
+    perror(buff);
+  }
+
+  std::cerr << "make_directory(" << path << ") returning " << ret << std::endl << std::flush;
+  return(ret);
+}
 
 static const char *my_current_time()
 {
-	static char time_str[20];
-	time_t now;
-	time(&now);
-	struct tm *ptm = localtime(&now);
-	sprintf(time_str,"%04d%02d%02d%02d%02d%02d", 
-    (1900+ptm->tm_year)%100, ptm->tm_mon+1, ptm->tm_mday, 
-    ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
-	return time_str;
+  static char time_str[20];
+  time_t now;
+  time(&now);
+  struct tm *ptm = localtime(&now);
+  sprintf(time_str,"%04d%02d%02d%02d%02d%02d", 
+          (1900+ptm->tm_year)%100, ptm->tm_mon+1, ptm->tm_mday, 
+          ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
+  return time_str;
 }
 
 static float motion_distance(Matrix m)
@@ -166,7 +246,7 @@ static void vicra_align_tx_frame(const float *tx_t, const float *em_t, char *out
   //mat_print(tmp);
   float *p = tmp->data;
   sprintf(out,"%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f",
-    p[0], p[1], p[2], p[3],p[4], p[5], p[6], p[7],p[8], p[9], p[10], p[11]);
+          p[0], p[1], p[2], p[3],p[4], p[5], p[6], p[7],p[8], p[9], p[10], p[11]);
   mat_free(tx_ref);
   mat_free(tmp);
   mat_free(em_inv);
@@ -178,30 +258,9 @@ static void vicra_align_txt(const VicraEntry &ref, const VicraEntry &in, char *o
   vicra_align(ref.q, ref.t, in.q, in.t, tmp);
   float *p = tmp->data;
   sprintf(out,"%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f",
-    p[0], p[1], p[2], p[3],p[4], p[5], p[6], p[7],p[8], p[9], p[10], p[11]);
+          p[0], p[1], p[2], p[3],p[4], p[5], p[6], p[7],p[8], p[9], p[10], p[11]);
   mat_free(tmp);
 }
-
-#ifdef NEW_CODE
-static void AIR_align_txt(struct AIR_Air16 &air_16, char *out)
-{
-  Matrix t_inv=NULL;
-  Matrix t = mat_alloc(4,4); // direct transformer
-  float *p=t->data;
-  for (int j=0;j<3;j++)
-  {
-    for (int i=0;i<4;i++)
-      t->data[i+j*4] = (float)air_16.e[i][j];
-  }
-  p[3] *= (float)air_16.r.x_size;
-  p[7] *= (float)air_16.r.x_size;
-  p[11] *= (float)air_16.r.z_size;
-  
-  sprintf(out,"%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f",
-    p[0], p[1], p[2], p[3],p[4], p[5], p[6], p[7],p[8], p[9], p[10], p[11]);
-  mat_free(t);
-}
-#endif
 
 static int add_frame_def(const char *vicra_file, char *out, FILE *log_fp)
 {
@@ -215,69 +274,17 @@ static int add_frame_def(const char *vicra_file, char *out, FILE *log_fp)
       duration = vicra_info.em[i].dt;
       repeat = 1;
       p += strlen(p);
-    } else repeat++;
-  }
-  // remaining  frames
-  if (repeat>1) sprintf(p," -d %d*%d", duration, repeat);
-  else sprintf(p," -d %d", duration);
-  return strlen(out);
-}
-#ifdef WIN32
-static char *em_histogram(const char *in_file, const char *vicra_file,
-                          FILE *log_fp, int overwrite, int exec_flag)
-{
-  // Histogram listmode in data directory
-  int n=0;
-  char out_file[FILENAME_MAX];
-	char drive[_MAX_DRIVE];
-	char in_dir[_MAX_DIR];
-	char fname[_MAX_FNAME];
-	char ext[_MAX_EXT];
-  char *p1=NULL, *p2=NULL;
-
-  // determine sinogram output directory
-	_splitpath(in_file, drive, in_dir, fname, ext);
-  if ((n=strlen(in_dir))>1) {
-    in_dir[n-1] = '\0'; // remove end DIR_SEPARATOR 
-    if ((p1=strrchr(in_dir, DIR_SEPARATOR)) != NULL)
-      sprintf(patient_dir, "%s%s", data_dir, p1); 
-    else
-      sprintf(patient_dir, "%s%c%s", data_dir, DIR_SEPARATOR, in_dir);
-  } else {
-    sprintf(patient_dir, "%s%c%s", data_dir, DIR_SEPARATOR, fname);
-  }
-
-    // create sinogram directory if not existing
-  if (access(patient_dir,R_OK) != 0) {
-#ifndef LINUX
-    mkdir(patient_dir);
-#else
-    sprintf(cmd_line, "mkdir %s", patient_dir);
-    fprintf(log_fp,"%s\n",cmd_line);
-    if (exec) system(cmd_line);
-#endif
-  }
-  // check existing dyn file and return if existing
-  sprintf(out_file, "%s%c%s.dyn", patient_dir, DIR_SEPARATOR, fname);
-  if (access(out_file,R_OK) == 0 && overwrite==0) {
-    fprintf(log_fp,"Reusing existing %s\n",out_file);
-    fflush(log_fp);
-  } else {
-    sprintf(cmd_line,"lmhistogram_u %s -o %s%c%s.s -PR", in_file,
-       patient_dir, DIR_SEPARATOR, fname);
-    add_frame_def(vicra_file, cmd_line+strlen(cmd_line), log_fp);
-    fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
-    if (exec_flag) {
-      system(cmd_line);
-      if (access(out_file,R_OK) != 0) { 
-        fprintf(log_fp,"Error creating file %s\n", out_file);  fflush(log_fp);
-        return NULL;
-      }
+    } else {
+      repeat++;
     }
   }
-  return strdup(out_file);
+  // remaining  frames
+  if (repeat>1)
+    sprintf(p," -d %d*%d", duration, repeat);
+  else
+    sprintf(p," -d %d", duration);
+  return strlen(out);
 }
-#endif
 
 static void update_frame_info(FILE *log_fp)
 {
@@ -292,11 +299,6 @@ static void update_frame_info(FILE *log_fp)
     q2matrix(er.q,er.t,mv_ref);
     printf("****** Reference matrix\n");
     mat_print(mv_ref);
-    /*
-    printf("%g,%g,%g,%g,%g,%g,%g\n",er.q[0],er.q[1],er.q[2],er.q[3],er.t[0],er.t[1],er.t[2]);
-    float *q =  vicra_info.tx.q, *t =  vicra_info.tx.t;
-    printf("%g,%g,%g,%g,%g,%g,%g\n",q[0],q[1],q[2],q[3],t[0],t[1],t[2]);
-    */
     for (unsigned i=0; i<vi; i++) {
       const VicraEntry &e = vicra_info.em[i];
       q2matrix(e.q,e.t,mv);
@@ -320,26 +322,19 @@ static void update_frame_info(FILE *log_fp)
     mat_free(mv);
     mat_free(ms);
   } else {
-   fprintf(log_fp,"Frame_info and vicra_info sizes not match = %d,%d\n", fi,vi);
+    fprintf(log_fp,"Frame_info and vicra_info sizes not match = %d,%d\n", fi,vi);
   }
 }
-#ifdef UNIT_TEST
-#include "unit_test.h"
-#endif
 int main(int argc, char **argv)
 {
-  const char *recon_pgm = "je_hrrt_osem3d";
+  // const char *recon_pgm = "je_hrrt_osem3d";
   const char *log_file = "motion_correct_recon.log";
   const char *units = "Bq/ml";
   const char *athr=NULL;
   char line[80];
   char *normfac_img="normfac.i";
   
-#ifdef WIN32
-  const char *calib_dir = "C:\\CPS\\calibration_files";
-#else
   const char *calib_dir = NULL;
-#endif
   const char *submit_dir="D:\\Recon-Jobs\\Jobs-Submitted";
   const char *calib_file=NULL;
   char *em_file=NULL, *mu_file=NULL, *norm_file=NULL, *vicra_file=NULL, *ext=NULL;
@@ -350,140 +345,145 @@ int main(int argc, char **argv)
   int ref_frame = -1;
   int frame=0, start_frame=-1, end_frame=-1, num_frames=0;
   float lber=-1.0f, user_time_constant = 0.0f;
-  FILE *fp=NULL, *pp=NULL, *log_fp=NULL;
+  FILE *fp=NULL, *pp=NULL;
   int c, exec=1, verbose = 0, overwrite=0, recon_flag=1;
-  int s=6; // default smoothing 6mm
+  int default_smoothing=6; // default smoothing 6mm
   int num_iterations=10, psf_flag=1;
   int ecat_reslice_flag = 1;
   int brand_new_final_align = 0;
   
-#ifdef NEW_CODE
-  char air_file[FILENAME_MAX];
-  struct AIR_Air16 air_16;
-#endif
   float AIR_threshold = 21.5f;
   int mu_width=128;
   struct stat mu_st;
+
+  // ahc additions
+  program_path[0] = '\0';
+  prog_gnuplot[0] = '\0';
+  rebinner_lut_file[0] = '\0';
+  dir_log[0] = '\0';
+  log_fp=NULL;  // Made global so run_system_command can log.
 
   if (argc<2) usage(argv[0]);
   em_file = argv[1];
   memset(em_na, 0, sizeof(em_na));
   
-  while ((c = getopt (argc-1, argv+1, "n:F:s:S:u:r:c:q:C:a:I:L:M:A:E:T:K:R:POtv")) != EOF) {
+  while ((c = getopt (argc-1, argv+1, "n:F:s:S:u:r:c:q:C:a:I:L:M:A:E:T:K:R:POtvp:z:l:b:")) != EOF) {
     switch (c) {
-      case 'u':
-        mu_file = optarg;
-        break;
-      case 'n':
-        norm_file = optarg;
-        break;
-      case 'A':
-        vicra2scanner = optarg;
-        break;
-      case 'M':
-        vicra_file = optarg;
-        ecat_reslice_flag = 0;
-        break;
-      case 'E':
-        ext = strrchr(optarg,'.');
-        if (ext != NULL && tolower(ext[1])=='v') 
-        { // ecat alignment file
-          strcpy(em_na, optarg);
-          ext = strrchr(em_na,'.');
-          if (ext != NULL) *ext = '\0';
-        }
-        else 
-        {
-          printf("Invalid uncorrected_ecat_file : %s\n", optarg);
-          usage(argv[0]);
-        }
-        break;
-      case 'T':
-        if (sscanf(optarg,"%g",&AIR_threshold) != 1) 
-        {
-          printf("Invalid AIR threshold : %s\n", optarg);
-          usage(argv[0]);
-        }
-        break;
-      case 'a':
-        athr = optarg;
-        break;
-      case 'r':
-        if (sscanf(optarg,"%d",&ref_frame) != 1) {
-          printf("Invalid reference frame number : %s\n", optarg);
-          usage(argv[0]);
-        }
-        break;
-      case 'R':
-        if (sscanf(optarg,"%d",&brand_new_final_align) != 1) {
-          printf("Invalid brand_new_final_align number : %s\n", optarg);
-          usage(argv[0]);
-        }
-        break;
-      case 'c' :
-        sscanf(optarg,"%g",&user_time_constant);
-        break;
-      case 'I' :
-        if (sscanf(optarg,"%d",&num_iterations) != 1 || 
+    case 'u':
+      mu_file = optarg;
+      break;
+    case 'n':
+      norm_file = optarg;
+      break;
+    case 'A':
+      vicra2scanner = optarg;
+      break;
+    case 'M':
+      vicra_file = optarg;
+      ecat_reslice_flag = 0;
+      break;
+    case 'E':
+      ext = strrchr(optarg,'.');
+      if (ext != NULL && tolower(ext[1])=='v') {
+        // ecat alignment file
+        strcpy(em_na, optarg);
+        ext = strrchr(em_na,'.');
+        if (ext != NULL)
+          *ext = '\0';
+      } else {
+        printf("Invalid uncorrected_ecat_file : %s\n", optarg);
+        usage(argv[0]);
+      }
+      break;
+    case 'T':
+      if (sscanf(optarg,"%g",&AIR_threshold) != 1) {
+        printf("Invalid AIR threshold : %s\n", optarg);
+        usage(argv[0]);
+      }
+      break;
+    case 'a':
+      athr = optarg;
+      break;
+    case 'r':
+      if (sscanf(optarg,"%d",&ref_frame) != 1) {
+        printf("Invalid reference frame number : %s\n", optarg);
+        usage(argv[0]);
+      }
+      break;
+    case 'R':
+      if (sscanf(optarg,"%d",&brand_new_final_align) != 1) {
+        printf("Invalid brand_new_final_align number : %s\n", optarg);
+        usage(argv[0]);
+      }
+      break;
+    case 'c' :
+      sscanf(optarg,"%g",&user_time_constant);
+      break;
+    case 'I' :
+      if (sscanf(optarg,"%d",&num_iterations) != 1 || 
           (num_iterations<0 || num_iterations>MAX_ITERATIONS))  {
-          printf("Invalid number of iterations : %s\n", optarg);
-          usage(argv[0]);
-        }
-        break;
-      case 'L' :
-        if (sscanf(optarg,"%g",&lber) != 1) {
-          printf("Invalid LBER value : %s\n", optarg);
-          usage(argv[0]);
-        }
-        printf("\n lber values is: %g \n", lber); fflush(stdout);
-        break;
-      case 'K': //Need to make changes later
-        normfac_img = optarg;   
-        break;
-      case 'q':
-        units = optarg;
-        break;
-      case 'O':
-        overwrite = 1;
-        break;
-      case 'P':
-        psf_flag = 1;
-        break;
-      case 'C':
-        calib_dir = optarg;
-        break;
-      case 'S':
-        submit_dir = optarg;
-        break;
-      case 's':
-        calib_file = optarg;
-        break;
-      case 'F':
-        if (sscanf(optarg,"%d,%d",&start_frame, &end_frame) < 1) {
-          printf("Invalid reference frame range : %s\n", optarg);
-          usage(argv[0]);
-        }
-        break;
-      case 't' :
-        exec = 0;
-        break;
-      case 'v' :
-        verbose = 1;
-        break;
-        
+        printf("Invalid number of iterations : %s\n", optarg);
+        usage(argv[0]);
+      }
+      break;
+    case 'L' :
+      if (sscanf(optarg,"%g",&lber) != 1) {
+        printf("Invalid LBER value : %s\n", optarg);
+        usage(argv[0]);
+      }
+      printf("\n lber values is: %g \n", lber); fflush(stdout);
+      break;
+    case 'K': //Need to make changes later
+      normfac_img = optarg;   
+      break;
+    case 'q':
+      units = optarg;
+      break;
+    case 'O':
+      overwrite = 1;
+      break;
+    case 'P':
+      psf_flag = 1;
+      break;
+    case 'C':
+      calib_dir = optarg;
+      break;
+    case 'S':
+      submit_dir = optarg;
+      break;
+    case 's':
+      calib_file = optarg;
+      break;
+    case 'F':
+      if (sscanf(optarg,"%d,%d",&start_frame, &end_frame) < 1) {
+        printf("Invalid reference frame range : %s\n", optarg);
+        usage(argv[0]);
+      }
+      break;
+    case 't' :
+      exec = 0;
+      break;
+    case 'v' :
+      verbose = 1;
+      break;
+    case 'p':
+      // ahc program_path now a required argument.
+      strcpy(program_path, optarg);
+      break;
+    case 'z':
+      // ahc fully qualified path to gnuplot now a required argument.
+      strcpy(prog_gnuplot, optarg);
+      break;
+    case 'l':
+      // ahc optional path for log file.
+      strcpy(dir_log, optarg);
+      break;
+    case 'b':
+      // ahc fully qualified path to rebinner lut file now a required argument.
+      strcpy(rebinner_lut_file, optarg);
+      break;
     }
   }
-#ifdef UNIT_TEST
-  if (/*vicra2scanner!=NULL && */vicra_file!=NULL)
-    unit_test(vicra2scanner,vicra_file, stdout);
-  return 0;
-#endif
-  /* Test remove_blanks 
-  strcpy(line, "   1,-0.003,-0.008,1.37,0.00316,   1,0.03,-4.42,0.008,-0.03,   1,1.59");
-  puts(line);
-  remove_blanks(line);
-  puts(line);
-  */
   if ((ext=strrchr(em_file,'.')) == NULL) {
     printf("%s unknown file type\n", em_file);
     return 1;
@@ -493,20 +493,30 @@ int main(int argc, char **argv)
     return 1;
   }
 
-#ifdef WIN32
-  if (strcasecmp(ext,".l64") && strcasecmp(ext,".v") && strcasecmp(ext,".dyn")) {
-    printf("Invalid em_file %s\n", em_file);
-    return 1;
-  }
-#else // 64bit rebinning only on WIN32
   if (strcasecmp(ext,".v") && strcasecmp(ext,".dyn")) {
     printf("Invalid em_file %s\n", em_file);
     return 1;
   }
-#endif
 
-  if (strcasecmp(ext,".v") ) { // mu_map and norm required for recon
-    if (norm_file==NULL) usage(argv[0]);
+
+  // ahc test required parameters.
+  if (!strlen(program_path)) {
+    fprintf(stderr, "Error: Missing required parameter 'p' (program path)\n");
+    usage(argv[0]);
+  }
+  if (!strlen(prog_gnuplot)) {
+    fprintf(stderr, "Error: Missing required parameter 'z' (FQ path of gnuplot program)\n");
+    usage(argv[0]);
+  }
+  if (!strlen(rebinner_lut_file)) {
+    fprintf(stderr, "Error: Missing required parameter 'b' (FQ path of hrrt_rebinner lut file)\n");
+    usage(argv[0]);
+  }
+
+  if (strcasecmp(ext,".v") ) {
+    // mu_map and norm required for recon
+    if (norm_file==NULL)
+      usage(argv[0]);
     if (mu_file != NULL) {
       if (stat(mu_file,&mu_st) != 0) {
         printf("%s file not found\n", mu_file);
@@ -537,21 +547,7 @@ int main(int argc, char **argv)
     if (vicra_get_info(vicra_file, log_fp) == 0) return 1;
     if (ref_frame < 0) ref_frame = vicra_info.ref_frame;
   }
-#ifdef WIN32
-  if (vicra_file && strcasecmp(ext,".l64") == 0) {
-   printf("em_histogram %s\n", em_file);
-    char *em_dyn_file = em_histogram(em_file, vicra_file, log_fp, overwrite, exec); 
-    if (em_dyn_file == NULL) {
-      fprintf(log_fp,"Error histogramming file %s\n", em_file);
-      return 1;
-    }
-   em_file = em_dyn_file;
-   strcpy(em_prefix, em_file);
-  }
-  else strcpy(em_prefix,em_file);
-#else
   strcpy(em_prefix,em_file);
-#endif
   ext=strrchr(em_prefix,'.');
   *ext++ = '\0';
   // Realign only option for ECAT files
@@ -565,9 +561,12 @@ int main(int argc, char **argv)
       return 1;
     }
     num_frames = mf->dirlist->nmats;
-    if (ref_frame<0) ref_frame = 1;
-    if (start_frame<0) start_frame = ref_frame;
-    if (end_frame<0) end_frame = num_frames-1;
+    if (ref_frame<0)
+      ref_frame = 1;
+    if (start_frame<0)
+      start_frame = ref_frame;
+    if (end_frame<0)
+      end_frame = num_frames-1;
     frame_info.resize(num_frames);
     node = mf->dirlist->first;
     for (frame=0; frame<num_frames && node!=NULL; frame++) {
@@ -581,15 +580,13 @@ int main(int argc, char **argv)
       frame_info[frame].randoms = imh->random_rate*frame_info[frame].duration;
       frame_info[frame].trues = (imh->prompt_rate-imh->random_rate)*frame_info[frame].duration;
       
-      
       frame_info[frame].MAF_frame = frame;
-      if (start_frame<0 && frame_info[frame].duration>=MIN_FRAME_DURATION)  start_frame = frame;
-      //      if (ref_frame<0 && frame_info[frame].duration>=DEF_REF_FRAME_DURATION) ref_frame = frame;
+      if (start_frame<0 && frame_info[frame].duration>=MIN_FRAME_DURATION)
+        start_frame = frame;
       if (frame_info[frame].trues>max_trues){
         max_trues=frame_info[frame].trues;
         ref_frame=frame;
       }
-      
       node = node->next;
       free_matrix_data(matdata);
     }
@@ -604,18 +601,21 @@ int main(int argc, char **argv)
         fprintf(log_fp,"Use -r to specify reference, no frame long enough for default\n");
         exit(1);
       }
-      if (end_frame<0) end_frame=num_frames-1;
+      if (end_frame<0)
+        end_frame=num_frames-1;
       for (frame=0; frame<num_frames; frame++) {
         if (frame >= start_frame && frame <= end_frame)
           frame_info[frame].em_align_flag = 1;
-        else frame_info[frame].em_align_flag = 0;
+        else
+          frame_info[frame].em_align_flag = 0;
       }
       frame_info[ref_frame].em_align_flag = 0;
     }
     goto ecat_ready;
-  }
+  }  // if ext = 'v'.
 
   // Reconstruction
+  // Seems to assume it's a dyn file from here on.
 
   if (lber<0) // i.e. if not already indicated by -L option as input, then it reads from the .n.hdr file
     get_lber(norm_file, lber);
@@ -632,19 +632,19 @@ int main(int argc, char **argv)
     fprintf(log_fp,"Error opening file %s\n", em_file);
     return 1;
   }
+  // dyn file line 0 holds frame count.
   fgets(line,sizeof(line), fp);
   sscanf(line,"%d", &num_frames);
   fclose(fp);
   for (frame=0; frame<num_frames; frame++) {
     sprintf(fname,"%s_frame%d.s.hdr",em_prefix,frame);
     get_frame_info(frame, fname, num_frames);
-    if (start_frame<0 && frame_info[frame].duration>=MIN_FRAME_DURATION)  start_frame = frame;
-    //if (ref_frame<0 && frame_info[frame].duration>= DEF_REF_FRAME_DURATION) ref_frame = frame;
+    if (start_frame<0 && frame_info[frame].duration>=MIN_FRAME_DURATION)
+      start_frame = frame;
     if (frame_info[frame].trues>max_trues && frame_info[frame].start_time>=600){
       max_trues=frame_info[frame].trues;
       ref_frame=frame;
     }
-    
   }
 
   if (vicra_file) {
@@ -668,15 +668,14 @@ int main(int argc, char **argv)
   }
 
   for (frame=0; frame<num_frames; frame++) {
-    printf("\n frame_info[%d].trues: %f", frame, frame_info[frame].trues); fflush(stdout);
-    if (frame_info[frame].trues<5000000)
-      printf(" Trues < 5M (Potential source of OSEM overestimation bias)"); fflush(stdout);
+    printf("frame_info[%d].trues: %10.1f", frame, frame_info[frame].trues);
+    if (frame_info[frame].trues < 5000000)
+      printf(" ( < 5M: Potential source of OSEM overestimation bias)");
+    printf("\n");
   }
   
-  printf("\n\n\n start_frame: %d, end_frame:%d, ref_frame:%d \n\n\n", start_frame, end_frame, ref_frame); fflush(stdout);
-  
-  //exit(0);
-  
+  printf("\n start_frame: %d, end_frame:%d, ref_frame:%d \n", start_frame, end_frame, ref_frame);
+  fflush(stdout);
   
   //Create log and qc dirs if not existing
   strcpy(em_dir,em_prefix);
@@ -690,366 +689,247 @@ int main(int argc, char **argv)
   else getcwd(em_dir,sizeof(em_dir));
   sprintf(log_dir,"%s%c%s",em_dir,DIR_SEPARATOR,"log");
   sprintf(qc_dir,"%s%c%s",em_dir,DIR_SEPARATOR,"qc");
-#ifdef WIN32
-  if (access(log_dir,R_OK) != 0) mkdir(log_dir);
-  if (access(qc_dir,R_OK) != 0) mkdir(qc_dir);
-#else
-  if (access(log_dir,R_OK) != 0) {
-    sprintf(cmd_line,"mkdir %s", log_dir);
-    fprintf(log_fp,"%s\n",cmd_line);
-    if (exec) system(cmd_line);
+
+  if (make_directory(log_dir) or make_directory(qc_dir)) {
+    std::cerr << "Error: make_directory(" << log_dir << ", " << qc_dir << ")" << std::endl << std::flush;
+    exit(1);
   }
-  if (access(qc_dir,R_OK) != 0) {
-    sprintf(cmd_line,"mkdir %s", qc_dir);
-    fprintf(log_fp,"%s\n",cmd_line);
-    if (exec) system(cmd_line);
-  }
-#endif
    
   fflush(log_fp);
   sprintf(fname,"%s_3D_ATX.v",em_prefix);
   if (access(fname,R_OK) == 0 && overwrite==0) {
-    fprintf(log_fp,"Reusing existing %s\n",fname);
+    fprintf(log_fp,"Reusing point 1: existing %s\n",fname);
   } else {
-    //if (strlen(em_na) == 0) sprintf(em_na,"%s_na", em_prefix);
-    if (strlen(em_na) == 0) sprintf(em_na,"%s", em_prefix);
-    //else sprintf(em_na,"%s_na", em_na);
-    
+    if (strlen(em_na) == 0)
+      sprintf(em_na,"%s", em_prefix);
 
     if (mu_file != NULL) {
       // Reconstruct frames using corrected mu_maps
-      //Create individual frame mu-maps
-      for (frame=0; frame<num_frames; frame++) 
-      {
-        if (!frame_info[frame].tx_align_flag)
-        {
+      // Create individual frame mu-maps
+      for (frame=0; frame<num_frames; frame++) {
+        if (!frame_info[frame].tx_align_flag) {
           fprintf(log_fp,"Using original %s\n",mu_file);
           fflush(log_fp);
           continue; 
         }
         sprintf(mu_rsl, "%s_fr%d.i", mu_prefix,frame);
         if (access(mu_rsl,R_OK) == 0 && overwrite==0) {
-          fprintf(log_fp,"Reusing existing %s\n",mu_rsl); fflush(log_fp);
-        } 
-        else
-        { 
-          if (vicra_file && frame_info[frame].tx_align_flag) 
-          {
-            sprintf(cmd_line,"volume_reslice -i %s -M ", mu_file);
+          fprintf(log_fp,"Reusing point 2: existing %s\n",mu_rsl); fflush(log_fp);
+        } else { 
+          if (vicra_file && frame_info[frame].tx_align_flag) {
+            sprintf(program_name, "%s/%s", program_path, prog_volume_reslice);
+            sprintf(cmd_line,"-i %s -M ", mu_file);
             vicra_align_txt(vicra_info.em[frame], vicra_info.tx,
-              &cmd_line[strlen(cmd_line)]);
+                            &cmd_line[strlen(cmd_line)]);
             sprintf(&cmd_line[strlen(cmd_line)]," -o %s", mu_rsl);
-            fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
-            if (exec) system(cmd_line);
-          }
-          else 
-          {
+            if (run_system_command(program_name, cmd_line)) {
+              exit(1);
+            }
+          } else {
             // Create mu-map frame transfromer by inverting transformer
             // that was computed using motion_qc program from uncorrected images 
             //Create transformed mu_map using inverse transfomer
-#ifndef NEW_CODE
 
-
-            sprintf(cmd_line,"invert_air %s_fr%d.air %s_fr%d.air y",
-              em_na,frame,mu_prefix,frame);
-            fprintf(log_fp,"%s\n",cmd_line);
-            if (exec) system(cmd_line);
+            sprintf(program_name, "%s/%s", program_path, prog_invert_air);
+            sprintf(cmd_line,"%s_fr%d.air %s_fr%d.air y",
+                    em_na, frame, mu_prefix, frame);
+            if (run_system_command(program_name, cmd_line)) {
+              exit(1);
+            }
             if (ecat_reslice_flag) {            
-              sprintf(cmd_line,"ecat_reslice %s_fr%d.air %s -a %s -o -k",
-                mu_prefix,frame,mu_rsl, mu_file);
-
+              sprintf(program_name, "%s/%s", program_path, prog_reslice);
+              sprintf(cmd_line,"%s_fr%d.air %s -a %s -o -k",
+                      mu_prefix, frame, mu_rsl, mu_file);
             } else {
-              sprintf(cmd_line,"volume_reslice -a %s_fr%d.air -o %s -i %s ",
-                mu_prefix,frame,mu_rsl, mu_file);
-              
+              sprintf(program_name, "%s/%s", program_path, prog_volume_reslice);
+              sprintf(cmd_line,"-a %s_fr%d.air -o %s -i %s ",
+                      mu_prefix, frame, mu_rsl, mu_file);
             }
-#else
-            
-            sprintf(air_file,"%s_fr%d.air",em_na,frame);
-            if (AIR_read_air16(air_file, &air_16)!= 0) {
-              fprintf(log_fp,"Error reading AIR file %s\n", air_file);
-              continue;
+            // fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
+            printf("\nFrame: %d \n ", frame); fflush(stdout);
+            printf("%s %s\n", program_name, cmd_line); fflush(stdout);
+            if (run_system_command(program_name, cmd_line)) {
+              exit(1);
             }
-            sprintf(cmd_line,"volume_reslice -i %s -r -M ", mu_file);
-            AIR_align_txt(air_16,  &cmd_line[strlen(cmd_line)]);
-            sprintf(&cmd_line[strlen(cmd_line)]," -R  -o %s", mu_rsl);
-#endif
-            fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
-
-            printf("\n frame: %d \n ", frame); fflush(stdout);
-            printf("%s\n",cmd_line); fflush(stdout);
-            
-            if (exec) system(cmd_line);
           }
         }
-
-        //if (frame==5)
-        // exit(0);
-
       }
     }
-
-
-
    
     // Reconstruct frames 
-    std::vector<std::string> cluster_images;
-    for (frame=0; frame<num_frames; frame++)
-    {
-      if (mu_file != NULL)
-      {
-        if (!frame_info[frame].tx_align_flag)
-        { // no correction
+    for (frame=0; frame<num_frames; frame++)    {
+      if (mu_file != NULL)      {
+        if (!frame_info[frame].tx_align_flag) {
+          // no correction
           strcpy(mu_rsl, mu_file);
-          sprintf(at_rsl, "%s.a", mu_prefix);
-          if (access(at_rsl,R_OK) == 0)  fprintf(log_fp,"Reusing existing %s\n",at_rsl);
-          else 
-          { 
-            sprintf(cmd_line, "e7_fwd_u --model 328 -u %s -w %d --oa %s --span 9 "
-            "--mrd 67 --prj ifore --force -l 53,%s", mu_rsl, mu_width, at_rsl, log_dir);
-            fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
-            if (exec) system(cmd_line);
-          }  
-        }
-        else
-        {
+          sprintf(at_rsl, "%s_temp_a.a", mu_prefix);
+        } else {
           sprintf(mu_rsl, "%s_fr%d.i", mu_prefix,frame);
-          sprintf(at_rsl, "%s_fr%d.a", mu_prefix,frame);
-          if (access(at_rsl,R_OK) == 0 && overwrite==0)
-          {
-            fprintf(log_fp,"Reusing existing %s\n",at_rsl);
-          }
-          else
-          { 
-            sprintf(cmd_line, "e7_fwd_u --model 328 -u %s -w %d --oa %s --span 9 "
-                "--mrd 67 --prj ifore --force -l 53,%s", mu_rsl, mu_width, at_rsl, log_dir);
-            fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
-            if (exec) system(cmd_line);
-          }
+          sprintf(at_rsl, "%s_fr%d_temp_a.a", mu_prefix,frame);
         }
+
+        if (access(at_rsl,R_OK) == 0 && overwrite==0) {
+          fprintf(log_fp,"Reusing point 3: existing %s\n",at_rsl);
+        } else { 
+          sprintf(program_name, "%s/%s", program_path, prog_e7_fwd);
+          sprintf(cmd_line, "--model 328 -u %s -w %d --oa %s --span 9 "
+                  "--mrd 67 --prj ifore --force -l 33,%s",
+                  mu_rsl, mu_width, at_rsl, log_dir);
+          if (run_system_command(program_name, cmd_line)) {
+            exit(1);
+          }
+        } // end attenuation
+
         // Compute scatter
         sprintf(fname, "%s_frame%d_sc_ATX.s ", em_prefix,frame);
         if (access(fname,R_OK) == 0 && overwrite==0) {
-          fprintf(log_fp,"Reusing existing %s\n",fname);
+          fprintf(log_fp,"Reusing point 4: existing %s\n",fname);
         } else {
-          sprintf(cmd_line, "e7_sino_u -e %s_frame%d.tr.s -u %s  -w %d "
-            "-a %s -n %s --force --os %s --os2d --gf --model 328 "
-            "--skip 2 --mrd 67 --span 9 --ssf 0.25,2 -l 73,%s -q %s",
-            em_prefix, frame, mu_rsl, mu_width, at_rsl, norm_file, fname, log_dir, qc_dir);
-          if (lber>0.0f) sprintf(&cmd_line[strlen(cmd_line)]," --lber %g",lber);
-          if (athr != NULL) sprintf(&cmd_line[strlen(cmd_line)]," --athr %s",athr);
+          sprintf(program_name, "%s/%s", program_path, prog_e7_sino);
+          sprintf(cmd_line, "-e %s_frame%d.tr.s -u %s  -w %d "
+                  "-a %s -n %s --force --os %s --os2d --gf --model 328 "
+                  "--skip 2 --mrd 67 --span 9 --ssf 0.25,2 -l 33,%s -q %s",
+                  em_prefix, frame, mu_rsl, mu_width, at_rsl, norm_file, fname, log_dir, qc_dir);
+          if (lber>0.0f)
+            sprintf(&cmd_line[strlen(cmd_line)]," --lber %g",lber);
+          if (athr != NULL)
+            sprintf(&cmd_line[strlen(cmd_line)]," --athr %s",athr);
+          if (run_system_command(program_name, cmd_line)) {
+            exit(1);
+          }
+
+          sprintf(cmd_line,"cd %s; %s %s/scatter_qc_00.plt", em_dir, prog_gnuplot, em_dir);
           fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
-          if (exec) system(cmd_line);
-        
-          //Scatter QC
-          sprintf(cmd_line, "cd %s", qc_dir);
+          if (exec)
+            system(cmd_line);
+          sprintf(cmd_line,"rename %s/scatter_qc_00.ps %s/%s_frame%d_sc_qc.ps ", em_dir, em_dir, em_prefix, frame);          
           fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
-          if (exec) chdir(qc_dir);
-          strcpy(cmd_line,"gnuplot scatter_qc_00.plt");
-          fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
-          if (exec) system(cmd_line);
-          sprintf(cmd_line,"rename scatter_qc_00.ps %s_frame%d_sc_ATX_qc.ps ",em_prefix,frame);
-          fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
-          if (exec) system(cmd_line);
+          if (exec)
+            system(cmd_line);
           sprintf(cmd_line, "cd %s", em_dir);
           fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
-          if (exec) chdir(em_dir);
-        }
-      }// end attenuation and scatter processing
+          if (exec)
+            chdir(em_dir);
+        } // end scatter
+      } // end attenuation and scatter processing
       
-      // hrrt_osem3d_v1.2_x64 -p %EMF%.s -n %no% -a %TXF%.a -s %EMF%_sc_ATX.s -o %EMF%.i -W 3 \
-      // -d %EMF%.ch -I 10 -S 16 -m 9,67 -B 0,0,0  
       sprintf(fname, "%s_frame%d_3D_ATX.i ", em_prefix,frame);
       if (access(fname,R_OK) == 0 && overwrite==0) {
-        fprintf(log_fp,"Reusing existing %s\n",fname); fflush(log_fp);
-      }
-      else 
-      {
-        if (access(submit_dir,R_OK) != 0) {   // host reconstruction
-          if (mu_file != NULL) {
-            sprintf(cmd_line, "%s -p %s_frame%d.s -d %s_frame%d.ch -s %s_frame%d_sc_ATX.s "
-              " -o %s -n %s -a %s -W 3 -I %d -S 16 -m 9,67 -T 4 -X 256 -K %s ",
-              recon_pgm, em_prefix, frame, em_prefix, frame, em_prefix, frame, fname,
-                    norm_file, at_rsl, num_iterations, normfac_img);
-          } else {
-            sprintf(cmd_line, "%s -p %s_frame%d.s -d %s_frame%d.ch -o %s -n %s "
-              "-W 3 -I %d -S 16 -m 9,67 -T 4 -X 256 -K %s ",
-              recon_pgm, em_prefix, frame, em_prefix, frame, fname,
-                    norm_file, num_iterations, normfac_img);
-          }
-          if (psf_flag) strcat(cmd_line, " -B 0,0,0");
-          fprintf(log_fp,"%s\n",cmd_line);  fflush(log_fp);
-          if (exec) system(cmd_line);
-        } // end host reconstruction
-        else
-        {  // cluster reconstruction
-          sprintf(reconjob_file,"%s\\recon_job_%s_frame%d.txt", submit_dir,
-            my_current_time(), frame);
-          if (exec) {
-            if ((fp=fopen(reconjob_file,"wt")) != NULL) {
-              fprintf(fp,"#!clcrecon\n\n");
-              fprintf(fp,"scanner_model          999\n");
-              fprintf(fp,"span                   9\n");
-              fprintf(fp,"resolution             256\n");
-              fprintf(fp,"outputimage            %s%c%s\n\n",
-                em_dir,DIR_SEPARATOR, fname);
-              fprintf(fp,"norm                   %s\n", norm_file);
-              if (mu_file != NULL) {
-                fprintf(fp,"atten                  %s%c%s\n",
-                  em_dir,DIR_SEPARATOR,at_rsl);
-                fprintf(fp,"scatter                %s%c%s_frame%d_sc_ATX.s\n\n",
-                  em_dir,DIR_SEPARATOR,em_prefix, frame);
-              }
-              fprintf(fp,"iterations             %d\n",num_iterations);
-              fprintf(fp,"subsets                16\n");
-              if (psf_flag) fprintf(fp,"psf\n");				// set PSF FLAG
-              fprintf(fp,"weighting              3\n");
-              fprintf(fp,"prompt                 %s%c%s_frame%d.s\n",
-                em_dir,DIR_SEPARATOR,em_prefix, frame);
-              fprintf(fp,"delayed                %s%c%s_frame%d.ch\n",
-                em_dir,DIR_SEPARATOR,em_prefix, frame);
-              fclose(fp);
-              fprintf(log_fp,"%s submitted to cluster\n",reconjob_file);
-              fflush(log_fp);
-              cluster_images.push_back(fname);
-            } else {
-              fprintf(log_fp,"Error creating %s cluster job file\n",reconjob_file);
-              fflush(log_fp);
-            }
-          } else {
-              fprintf(log_fp,"Submit %s cluster job file\n",reconjob_file);
-              fflush(log_fp);
-          }
-        } // end cluster submission reconstructrion
-      } // else
-   } // Frame processing
+        fprintf(log_fp,"Reusing point 5: existing %s\n",fname);
+        fflush(log_fp);
+      } else {
+        // host reconstruction
+        sprintf(program_name, "%s/%s", program_path, prog_recon);
+        cmd_line[0] = '\0';
+        if (mu_file != NULL) {
+          sprintf(cmd_line, "-s %s_frame%d_sc_ATX.s -a %s ", em_prefix, frame, at_rsl);
+        }
+        sprintf(cmd_line, "%s -p %s_frame%d.s -d %s_frame%d.ch  -o %s -n %s -W 3 -I %d -S 16 -m 9,67 -T 4 -X 256 -K %s -r %s", cmd_line, em_prefix, frame, em_prefix, frame, fname, norm_file, num_iterations, normfac_img, rebinner_lut_file);
+          
+        if (psf_flag)
+          strcat(cmd_line, " -B 0,0,0");
+        if (run_system_command(program_name, cmd_line)) {
+          exit(1);
+        }
+      } // end reconstruction
+    } // Frame processing
 
-   int wait_count = cluster_images.size();
-   while (wait_count>0)
-   { // wait 30sec
-#ifdef WIN32
-     Sleep(30000);
-#else
-     sleep(30);
-#endif
-     wait_count=0;
-     for (size_t ci=0; ci<cluster_images.size(); ci++)
-     {
-       if (access(cluster_images[ci].c_str(),R_OK) != 0) wait_count++;
-       if (wait_count==1) 
-       {
-         fprintf(log_fp,"%s waiting %s\n", my_current_time(),
-           cluster_images[ci].c_str());
-         fflush(log_fp);
-       }
-     }
-   }
+    // Conversion to ECAT
+    if (user_time_constant <= 0.0f)
+      user_time_constant = deadtime_constant;
+    sprintf(program_name, "%s/%s", program_path, prog_if2e7);
+    sprintf(cmd_line,"-g 0 -u %s -v -e %g -s %s %s_frame0_3D_ATX.i",
+            units, user_time_constant, calib_file, em_prefix);
+    printf("%s %s\n", program_name, cmd_line); fflush(stdout);
+    if (run_system_command(program_name, cmd_line)) {
+      exit(1);
+    }
+  } 
+  sprintf(fname,"%s_3D_ATX.v",em_prefix);
+  sprintf(im_prefix,"%s_3D_ATX", em_prefix);
 
-   // Conversion to ECAT
-   if (user_time_constant <= 0.0f) user_time_constant = deadtime_constant;
-#ifdef WIN32
-   sprintf(cmd_line,"if2e7 -v -e %g ",  user_time_constant);
-   if (access(calib_dir, R_OK) == 0)
-     sprintf(cmd_line+strlen(cmd_line)," -u %s -S %s", units, calib_dir);
-   sprintf(cmd_line+strlen(cmd_line)," %s_frame0_3D_ATX.i", em_prefix);
-#else
-   sprintf(cmd_line,"if2e7 -g 0 -u %s -v -e %g -s %s %s_frame0_3D_ATX.i", units, user_time_constant, calib_file, em_prefix);
-#endif
-   printf("%s\n",cmd_line); fflush(stdout);
-   fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
-   if (exec) system(cmd_line); 
- } 
- sprintf(fname,"%s_3D_ATX.v",em_prefix);
- sprintf(im_prefix,"%s_3D_ATX", em_prefix);
-
-ecat_ready:
-    // Smooth images for AIR alignment
-#ifndef NEW_CODE
+ ecat_ready:
+  // Smooth images for AIR alignment
   if (!vicra_file) {
-    sprintf(cmd_line, "gsmooth_ps %s.v %d", im_prefix, s);
-    sprintf(fname,"%s_%dmm.v",im_prefix,s);
+    sprintf(fname,"%s_%dmm.v",im_prefix,default_smoothing);
     if (access(fname,R_OK) == 0 && overwrite==0) {
-      fprintf(log_fp,"Reusing existing %s\n",fname); fflush(log_fp);
+      fprintf(log_fp,"Reusing point 6: existing %s\n",fname); fflush(log_fp);
     } else {
-      if (brand_new_final_align){ // Blurring here before motion vector calculation below
-        fprintf(log_fp,"%s\n",cmd_line);  fflush(log_fp);
-        if (exec) system(cmd_line);
+      if (brand_new_final_align) {
+        // Blurring here before motion vector calculation below
+        sprintf(program_name, "%s/%s", program_path, prog_gsmooth);
+        sprintf(cmd_line, "%s.v %d",
+                im_prefix, default_smoothing);
+        if (run_system_command(program_name, cmd_line)) {
+          exit(1);
+        }
       }
     }
   }
-#endif
-
+  
   // Create Realigned images
-  if (vicra_file) 
-  {
-    if (vicra_info.maf_flag)  sprintf(fname,"%s_MAF_rsl.v", im_prefix);
-    else sprintf(fname,"%s_rsl.v", im_prefix);
-  } else sprintf(fname,"%s_rsl.v", im_prefix);
-  if (access(fname,R_OK) == 0 && overwrite==0) {
-    fprintf(log_fp,"Reusing existing %s\n",fname);
+  if (vicra_file)   {
+    if (vicra_info.maf_flag)
+      sprintf(fname,"%s_MAF_rsl.v", im_prefix);
+    else
+      sprintf(fname,"%s_rsl.v", im_prefix);
+  } else {
+    sprintf(fname,"%s_rsl.v", im_prefix);
   }
-  else 
-  {
-    for (frame=0; frame<num_frames; frame++)  
-    {
+  if (access(fname,R_OK) == 0 && overwrite==0) {
+    fprintf(log_fp,"Reusing point 7: existing %s\n",fname);
+  }  else   {
+    for (frame=0; frame<num_frames; frame++)      {
       int frame1=frame+1;                  // ECAT 1-N counting
       if (frame_info[frame].em_align_flag==0) {
         // Copy frame
-        sprintf(cmd_line,"matcopy -i %s.v,%d,1,1 -o %s,%d,1,1",
-          im_prefix, frame1, fname, frame1); // ECAT 1-N counting
-        fprintf(log_fp,"%s\n",cmd_line);  fflush(log_fp);
-        if (exec) system(cmd_line);
+        sprintf(program_name, "%s/%s", program_path, prog_matcopy);
+        sprintf(cmd_line,"-i %s.v,%d,1,1 -o %s,%d,1,1",
+                im_prefix, frame1, fname, frame1); // ECAT 1-N counting
+        if (run_system_command(program_name, cmd_line)) {
+          exit(1);
+        }
         continue;
       }
 
       // Align frame
-      if (vicra_file)
-      {
-        sprintf(cmd_line,"volume_reslice -i %s.v,%d,1,1 -o %s,%d,1,1 -M %s",
-          im_prefix,  frame1, fname, frame1, transformer_txt(frame_info[frame].transformer));
-        fprintf(log_fp,"%s\n",cmd_line);  fflush(log_fp);
-        if (exec) system(cmd_line);
-      }
-      else
-      {
-#ifndef NEW_CODE
+      if (vicra_file)      {
+        sprintf(program_name, "%s/%s", program_path, prog_volume_reslice);
+        sprintf(cmd_line,"-i %s.v,%d,1,1 -o %s,%d,1,1 -M %s",
+                im_prefix,  frame1, fname, frame1, transformer_txt(frame_info[frame].transformer));
+        if (run_system_command(program_name, cmd_line)) {
+          exit(1);
+        }
+      } else {
         int thr = (int)(AIR_threshold*32767/100);
-
         // Unblock gsmooth_ps above if using ecat_alignlinear below
         if (brand_new_final_align){
-          sprintf(cmd_line,"ecat_alignlinear %s_%dmm.v,%d,1,1 %s_%dmm.v,%d,1,1 %s_fr%d.air -m 6 -t1 %d -t2 %d",
-                  im_prefix, s, ref_frame+1, im_prefix, s, frame1, im_prefix, frame, thr, thr);
-          fprintf(log_fp,"%s\n",cmd_line);  fflush(log_fp);
-        } else { // Using previously extracted motion from 128 NA files (more stable)
-          sprintf(cmd_line,"ecat_make_air -s %s.v,%d,1,1 -r %s.v,%d,1,1 -i %s_fr%d.air -o %s_fr%d.air",
+          sprintf(program_name, "%s/%s", program_path, prog_alignlinear);
+          sprintf(cmd_line,"%s_%dmm.v,%d,1,1 %s_%dmm.v,%d,1,1 %s_fr%d.air -m 6 -t1 %d -t2 %d",
+                  im_prefix, default_smoothing, ref_frame+1, im_prefix, default_smoothing, frame1, im_prefix, frame, thr, thr);
+          fprintf(log_fp,"%s\n",cmd_line);
+          fflush(log_fp);
+        } else {
+          // Using previously extracted motion from 128 NA files (more stable)
+          sprintf(program_name, "%s/%s", program_path, prog_make_air);
+          sprintf(cmd_line,"-s %s.v,%d,1,1 -r %s.v,%d,1,1 -i %s_fr%d.air -o %s_fr%d.air",
                   im_prefix, ref_frame+1, im_prefix, frame1, em_na, frame, im_prefix, frame);
-          
-          fprintf(log_fp,"%s\n",cmd_line);  fflush(log_fp);
         }
-
-        if (exec) system(cmd_line);
-        
-        sprintf(cmd_line,"ecat_reslice %s_fr%d.air %s,%d,1,1 -a %s.v,%d,1,1 -k -o",
-          im_prefix, frame, fname, frame1, im_prefix, frame1);
-#else
-        sprintf(air_file,"%s_fr%d.air",em_na,frame);
-        if (AIR_read_air16(air_file, &air_16)!= 0)  {
-          fprintf(log_fp,"Error reading AIR file %s\n", air_file);
-          continue;
+        if (run_system_command(program_name, cmd_line)) {
+          exit(1);
         }
-        sprintf(cmd_line,"volume_reslice -i %s.v,%d,1,1 -o %s,%d,1,1 -r -M ",
-          im_prefix,  frame1, fname, frame1);
-        AIR_align_txt(air_16, &cmd_line[strlen(cmd_line)]);
-#endif
-        fprintf(log_fp,"%s\n",cmd_line);  fflush(log_fp);
-        if (exec) system(cmd_line);
+        sprintf(program_name, "%s/%s", program_path, prog_reslice);
+        sprintf(cmd_line,"%s_fr%d.air %s,%d,1,1 -a %s.v,%d,1,1 -k -o",
+                im_prefix, frame, fname, frame1, im_prefix, frame1);
+        if (run_system_command(program_name, cmd_line)) {
+          exit(1);
+        }
       }
     }
   }
 
   //Create Motion QC plot
   if (!vicra_file) {
-#ifndef NEW_CODE
     sprintf(fname,"%s_motion_qc.dat", em_prefix);
     if ((fp=fopen(fname,"wt")) == NULL) {
       fprintf(log_fp,"Error opening file %s\n", fname);
@@ -1059,15 +939,16 @@ ecat_ready:
     for (frame=start_frame; frame<=end_frame; frame++) {
       int x0 = frame_info[frame].start_time;
       int x1 = x0+frame_info[frame].duration-1;
-      if (frame_info[frame].em_align_flag == 0)
-      {
-        fprintf(log_fp,"reference frame %d\n",frame);  fflush(log_fp);
-        fprintf(fp,"%d %d 0 0 0 0\n",x0,x0);
-        fprintf(fp,"%d %d 0 0 0 0\n",x1,x0);
-        continue;
-      }
+      if (frame_info[frame].em_align_flag == 0) {
+          fprintf(log_fp,"reference frame %d\n",frame);  fflush(log_fp);
+          fprintf(fp,"%d %d 0 0 0 0\n",x0,x0);
+          fprintf(fp,"%d %d 0 0 0 0\n",x1,x0);
+          continue;
+        }
       
-      sprintf(cmd_line,"motion_distance -a %s_fr%d.air", im_prefix, frame);
+      sprintf(cmd_line,"%s/%s -a %s_fr%d.air",
+              program_path, prog_motion_distance,
+              im_prefix, frame);
       fprintf(log_fp,"%s\n",cmd_line);  fflush(log_fp);
       if (exec) {
         if ((pp = popen(cmd_line,"r")) != NULL) {
@@ -1097,15 +978,23 @@ ecat_ready:
       fprintf(fp,"     '%s' using 1:6 title 'D' with lines\n", fname);
       fclose(fp);
     }
-    sprintf(cmd_line,"gnuplot %s", plt_fname);
-    fprintf(log_fp,"%s\n",cmd_line);  fflush(log_fp);
-    if (exec) system(cmd_line);
-#endif
-  }
-  else if (vicra_info.maf_flag) { // Join sub-frames
-    sprintf(cmd_line,"MAF_join %s -o %s_rsl.v -M %s", fname, im_prefix, vicra_file);
-    fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
-    if (exec) system(cmd_line);
+    sprintf(cmd_line,"cd %s; %s %s", em_dir, prog_gnuplot, plt_fname);
+    fprintf(log_fp,"%s\n",cmd_line);
+    fflush(log_fp);
+    if (exec)
+      system(cmd_line);
+  }  else if (vicra_info.maf_flag) {
+    // Join sub-frames
+    sprintf(program_name, "%s/%s", program_path, prog_maf_join);
+    sprintf(cmd_line,"%s -o %s_rsl.v -M %s",
+            fname, im_prefix, vicra_file);
+    /* fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
+       if (exec)
+       system(cmd_line); */
+    if (run_system_command(program_name, cmd_line)) {
+      exit(1);
+    }
+    
   }
   fclose(log_fp);
   return 0;

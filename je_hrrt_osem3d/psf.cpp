@@ -66,7 +66,8 @@ int make1d_psf_filter(Psf1D *psf)
       norm_psf += psf->kernel[bin];
     }  
     for (bin=0;bin<psf->kernel_size;bin++) psf->kernel[bin] /= norm_psf;
-    for (bin=0;bin<psf->kernel_size;bin++) printf("%d\t%f\n",bin,psf->kernel[bin]);
+    // for (bin=0;bin<psf->kernel_size;bin++)
+    // printf("%d\t%f\n",bin,psf->kernel[bin]);
 
     return 0;
   } else return -1;  

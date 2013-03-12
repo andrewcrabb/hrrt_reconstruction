@@ -6,6 +6,12 @@
 /tmp/
 *.bak
 
+# Compiled Executables #
+######################
+je_hrrt_osem3d/je_hrrt_osem3d
+air_ecat/ecat_alignlinear
+motion_correction/motion_qc
+
 # Directories to omit #
 #######################
 /lib/
@@ -14,6 +20,7 @@
 # Compiled Libraries #
 ######################
 *.a
+!e7_tools_HRRT/LinkLibsScatter/libscatter.a
 
 # Compiled source #
 ###################
