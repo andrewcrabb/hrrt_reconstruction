@@ -1,0 +1,11 @@
+HKCR
+{
+	NoRemove AppID
+	{
+		{F7A82CC9-5051-4CD5-970D-6914E3323DE0} = s 'DHICom'
+		'DHICom.EXE'
+		{
+			val AppID = s {F7A82CC9-5051-4CD5-970D-6914E3323DE0}
+		}
+	}
+}

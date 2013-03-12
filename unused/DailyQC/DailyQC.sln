@@ -1,0 +1,19 @@
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DailyQC", "DailyQC.vcproj", "{DCCB7926-2307-4002-8CF8-4B599516803D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DCCB7926-2307-4002-8CF8-4B599516803D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DCCB7926-2307-4002-8CF8-4B599516803D}.Debug|Win32.Build.0 = Debug|Win32
+		{DCCB7926-2307-4002-8CF8-4B599516803D}.Release|Win32.ActiveCfg = Release|Win32
+		{DCCB7926-2307-4002-8CF8-4B599516803D}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

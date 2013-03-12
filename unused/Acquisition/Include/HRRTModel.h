@@ -1,0 +1,279 @@
+//==========================================================================
+// File			:	HRRTModel.h
+//					Copyright 2002 by CTI
+// Description	:	Contains the function prototypes for the derived class
+//	
+// Author		:	Selene F. Tolbert
+//
+// Date			:	01 July 2002
+//
+// Author		Date			Update
+// S Tolbert	01 July 02		Created
+// S Tolbert	19 July 02		Changed return value for function headRotation
+//								from long to bool
+// S Tolbert	19 July 02		Changed long to long (32 bit signed longeger)
+// S Tolbert	08 August 02	Added INI file access
+// S Tolbert	15 August 02	Updated APIs.
+// S Tolbert	25 Nov 02		Added virtual to the destructor
+// S Tolbert	13 Jan 03		Added maxScattzfov() api
+// S Tolbert	16 Jan 03		Changed function headRotation() to return 0
+// S Tolbert	17 March 03		Added new panel apis
+//==========================================================================
+
+// Set guards to prevent multiple header file inclusion
+//
+#ifndef MODELHRRT_CLASS_H
+#define MODELHRRT_CLASS_H
+
+#ifdef WIN32
+#ifdef GM_EXPORTS
+#define MODELHRRT_API __declspec(dllexport)
+#else
+#define MODELHRRT_API __declspec(dllimport)
+#endif
+#endif
+
+#include "baseModelClass.h"	// base class and longerface class
+
+//
+// CHRRTModel derived class
+//
+
+class CHRRTModel : public CModel {
+public:
+	CHRRTModel();
+	virtual ~CHRRTModel();
+
+	// access functions
+	virtual long model() const { return 328; }
+	virtual char* mName();
+
+	// ini information
+	void getINIVals();
+	void initVals();
+
+	// Miscellaneous 
+	virtual char* logdir();
+	virtual char* setupdir();
+
+	virtual bool isHeadScanner() const { return 1; }
+
+	virtual long nBlocks() const { return (_nblocks != BADINIKEY) ? _nblocks : 117; }
+	virtual double blkDepth() const { return (_blkDepth != BADINIKEY) ? _blkDepth : 2.0f; }
+	virtual long defLLD() const { return (_LLD != BADINIKEY) ? _LLD : 350; }
+	virtual long defULD() const { return (_ULD != BADINIKEY) ? _ULD : 650; }
+	virtual long defAngles() const { return (_angles != BADINIKEY) ? _angles : 288; }
+	virtual long defElements() const { return (_elements != BADINIKEY) ? _elements : 256; }
+	virtual long totSinograms() const { return (_totSino != BADINIKEY) ? _totSino : 3935; }
+	virtual long transBlks() const { return (_tranBlk != BADINIKEY) ? _tranBlk : 9; }
+	virtual long axialBlks() const { return (_axialBlk != BADINIKEY) ? _axialBlk : 13; } 
+	virtual long angCrystals() const { return (_angCry != BADINIKEY) ? _angCry : 8; }
+	virtual long axialCryst() const { return (_axialCry != BADINIKEY) ? _axialCry : 8; }
+	virtual long nTubes() const { return (_ntbs != BADINIKEY) ? _ntbs : 4; }
+	virtual long isprt() const { return (_isPRT != BADINIKEY) ? _isPRT : 0; }
+	virtual long axTubes() const { return (_axTubes != BADINIKEY) ? _axTubes : 2; }
+	virtual long transTubes() const { return (_transTubes != BADINIKEY) ? _transTubes : 2; }
+	virtual long bktOutputChannels() const { return (_outchnl != BADINIKEY) ? _outchnl : 1; } // single channel=1, dual channel=2
+	virtual long timeCorrectionBits() const { return (_timecorbit != BADINIKEY) ? _timecorbit : 8; }
+	virtual double planeSeparation() const { return (_plnSep != BADINIKEY) ? _plnSep : 0.1188	; }
+	virtual long dPlanes() const { return (_dPlane != BADINIKEY) ? _dPlane : 104; }
+	virtual double binSz() const { return (_binSize != BADINIKEY) ? _binSize : -1; }
+	virtual long rEmLUTMode0Span() const { return (_EmMode0Span != BADINIKEY) ? _EmMode0Span : 3; }	
+	virtual long rEmLUTMode0RingDiff() const { return (_EmMode0RingDiff != BADINIKEY) ? _EmMode0RingDiff : 67; }
+	virtual long rEmLUTMode1Span() const { return (_EmMode1Span != BADINIKEY) ? _EmMode1Span : 9;  }		
+	virtual long rEmLUTMode1RingDiff() const { return (_EmMode1RingDiff != BADINIKEY) ? _EmMode1RingDiff : 67; }
+	virtual long rTxLUTMode0Span() const { return (_TxMode0Span != BADINIKEY) ? _TxMode0Span : 9; }	
+	virtual long rTxLUTMode0RingDiff() const { return (_TxMode0RingDiff != BADINIKEY) ? _TxMode0RingDiff : 67; }
+	virtual long rTxLUTMode1Span() const { return (_TxMode1Span != BADINIKEY) ? _TxMode1Span : 9; }			
+	virtual long rTxLUTMode1RingDiff() const { return (_TxMode1RingDiff != BADINIKEY) ? _TxMode1RingDiff : 67; }		
+	virtual long numberPolySides() const { return (_polySides != BADINIKEY) ? _polySides : 8; }
+	virtual long coincWindow() const { return (_coinWnd != BADINIKEY) ? _coinWnd : 6; }
+	virtual double maxScattzfov() const { return (_maxScatterZfov != BADINIKEY) ? _maxScatterZfov : 40.0; }	
+
+	virtual char* coincProcName();
+	virtual long numberPanels() const { return (_nheads != BADINIKEY) ? _nheads : 8; }
+	virtual long cpCommunications() const { return (_cpComm != BADINIKEY) ? _cpComm : 1; }
+	virtual char* cpCommTypeDesc();	
+	virtual long headRotation() const { return (_headRot != BADINIKEY) ? _headRot: 0; } 
+	virtual pPanel panels();
+	virtual long numberConfigs() const { return (_config != BADINIKEY) ? _config : 2; }
+	virtual pConf configurations();
+	virtual long numberAnalogSet() const { return (_analogSet != BADINIKEY) ? _analogSet : 11; }
+	virtual long LLDprof() const { return (_LLDprofile != BADINIKEY) ? _LLDprofile : 80; }
+	virtual long ULDprof() const { return (_ULDprofile != BADINIKEY) ? _ULDprofile : 255; }
+	virtual long LLDshp() const { return (_LLDshape != BADINIKEY) ? _LLDshape : 80; }
+	virtual long ULDshp() const { return (_ULDshape != BADINIKEY) ? _ULDshape : 255; }
+	virtual long LLDtubeEner() const { return (_LLDtubeEnergy != BADINIKEY) ? _LLDtubeEnergy : 80; }
+	virtual long ULDtubeEner() const { return (_ULDtubeEnergy != BADINIKEY) ? _ULDtubeEnergy : 255; }
+	virtual long LLDcrystalEner() const { return (_LLDcryEnergy != BADINIKEY) ? _LLDcryEnergy : 70; }
+	virtual long ULDcrystalEner() const { return (_ULDcryEnergy != BADINIKEY) ? _ULDcryEnergy : 255; }
+	virtual long pmtaSet() const { return (_pmta != BADINIKEY) ? _pmta : 0; }
+	virtual long pmtbSet() const { return (_pmtb != BADINIKEY) ? _pmtb : 1; }
+	virtual long pmtcSet() const { return (_pmtc != BADINIKEY) ? _pmtc : 2; }
+	virtual long pmtdSet() const { return (_pmtd != BADINIKEY) ? _pmtd : 3; }
+	virtual long cfdSet() const { return (_cfdsetting != BADINIKEY) ? _cfdsetting : 4; }
+	virtual long cfdDelaySet() const { return (_cfdsetdelay != BADINIKEY) ? _cfdsetdelay : 5; }
+	virtual long xOffsetSet() const { return (_xOffset != BADINIKEY) ? _xOffset : 6; }
+	virtual long yOffsetSet() const { return (_yOffset != BADINIKEY) ? _yOffset : 7; }
+	virtual long eOffsetSet() const { return (_eOffset != BADINIKEY) ? _eOffset : -1; }
+	virtual long dhiModeSet() const { return (_dhisetting != BADINIKEY) ? _dhisetting : 8; }
+	virtual long engSetupSet() const { return (_engsetup != BADINIKEY) ? _engsetup : 9; }
+	virtual long thresholdShapeSet() const { return (_thresholdshp != BADINIKEY) ? _thresholdshp : 10; }
+	virtual long slowLowSet() const { return (_slowlow != BADINIKEY) ? _slowlow : -1; }
+	virtual long slowHighSet() const { return (_slowhigh != BADINIKEY) ? _slowhigh : -1; }
+	virtual long fastLowSet() const { return (_fastlow != BADINIKEY) ? _fastlow : -1; }
+	virtual long fastHighSet() const { return (_fasthigh != BADINIKEY) ? _fasthigh : -1; }
+	virtual long fineGainIter() const { return (_fgainiter != BADINIKEY) ? _fgainiter : 30; }
+	virtual long tubeGainIter() const { return (_tgainiter != BADINIKEY) ? _tgainiter : 30; }
+	virtual long cfdIter() const { return (_cfditer != BADINIKEY) ? _cfditer : 6; }
+	virtual long offsetmin() const { return (_offsetmin != BADINIKEY) ? _offsetmin : 3; }
+	virtual long offsetmax() const { return (_offsetmax != BADINIKEY) ? _offsetmax : 253; }
+	virtual long mincfddelay() const { return (_minCFDDelay != BADINIKEY) ? _minCFDDelay : 3; }
+	virtual long maxcfddelay() const { return (_maxCFDDelay != BADINIKEY) ? _maxCFDDelay : 123; }
+	virtual long enerOffset() const { return (_eneroffset != BADINIKEY) ? _eneroffset : 30; }
+	virtual double interacDepth() const { return (_intDepth != BADINIKEY) ? _intDepth : 0.7; }
+	virtual double crystRad() const { return (_crystalRad != BADINIKEY) ? _crystalRad : 24.3; }
+	virtual char* layerMat(long);
+	virtual long numberCrystaLayers() const { return (_crystalLayer != BADINIKEY) ? _crystalLayer : 1; }
+	virtual long LayerBackErg(long);
+	virtual double LayerfwhmErgRes(long);
+	virtual double LayerCrystalDepth(long);	
+	virtual long numberPointSources(long);
+	virtual long ptSrcStart(long);
+	virtual long timBins() const { return (_timingBins != BADINIKEY) ? _timingBins : 256; }
+	virtual long minGain() const { return (_minCoarseGain != BADINIKEY) ? _minCoarseGain : 40; }
+	virtual long maxGain() const { return (_maxCoarseGain != BADINIKEY) ? _maxCoarseGain : 230; }
+	virtual long stepGain() const { return (_stepCoarseGain != BADINIKEY) ? _stepCoarseGain : 5; }
+	virtual long maxExp() const { return (_maxExpandCRM != BADINIKEY) ? _maxExpandCRM : 15; }
+	virtual double emissionCFDRatio() const { return (_emCFDRatio != BADINIKEY) ? _emCFDRatio : 0.0025; }
+	virtual long emissionTimeAlignDur() const { return (_emTimeAlignDuration != BADINIKEY) ? _emTimeAlignDuration : 300; }
+	virtual long timeAlignIter() const { return (_timeAlignIter != BADINIKEY) ? _timeAlignIter : 4; }
+
+	virtual long resetWaitDur() const { return (_resetWaitDuration != BADINIKEY) ? _resetWaitDuration : 30; }
+
+private:
+	bool	bFoundPointSourceInfo;
+	bool	bFoundPointSourceStartInfo;
+	bool	bFoundPanelInfo;
+	bool	bFoundConfigInfo;
+	long	numberOfPanels;
+	long	numberOfConfigs;
+	char*	pKey;
+	char	cKey[BSIZE];
+	char	Buffer[BUFSIZE];
+	long	pointSourceStart;
+	double	crystalDepth;
+	long	layerBackErg;
+	double	layerfwhmErgRes;
+	char*	layerMaterial;
+
+	// ini values
+	long	_resetWaitDuration;
+	long	_emtxModePair;
+	long	_txModePair;
+	long	_emModePair;
+	long	_txcfdstart;
+	long	_txcfditer;
+	long	_timingBins;
+	long	_minCoarseGain;
+	long	_maxCoarseGain;
+	long	_stepCoarseGain;
+	long	_maxExpandCRM;
+	double	_emCFDRatio;
+	double	_txCFDRatio;
+	long	_emTimeAlignDuration;
+	long	_txTimeAlignDuration;
+	long	_timeAlignIter;
+	long	_maxScatterZfov;
+	long	_coinWnd;
+	long	_polySides;
+	long	_EmMode0Span;
+	long	_EmMode0RingDiff;
+	long	_EmMode1Span;
+	long	_EmMode1RingDiff;
+	long	_TxMode0Span;
+	long	_TxMode0RingDiff;
+	long	_TxMode1Span;
+	long	_TxMode1RingDiff;
+	double	_blkDepth;
+	double	_binSize;
+	long	_dPlane;
+	double	_plnSep;
+	long	_defRingDiff;
+	long	_defTxRingDiff;
+	long	_ptSrcStart;
+	long	_nPointSources;
+	double	_layOneCrysDepth;
+	double	_layTwoCrysDepth;
+	double	_layOnefwhm;
+	double	_layTwofwhm;
+	long	_layTwoBackErg;
+	long	_layOneBackErg;
+	long	_crystalLayer;
+	char	_layOneMat[BSIZE];
+	char	_layTwoMat[BSIZE];
+	double	_crystalRad;
+	char	_logDir[BSIZE];
+	char	_setupDir[BSIZE];
+	char	_cpname[BSIZE];
+	char	_cpcommdesc[BSIZE];
+	double	_intDepth;
+	long	_eneroffset;
+	long	_outchnl;
+	long	_timecorbit;
+	long	_minCFDDelay;
+	long	_maxCFDDelay;
+	long	_fgainiter;
+	long	_tgainiter;
+	long	_cfditer;
+	long	_offsetmin;
+	long	_offsetmax;
+	long	_axTubes;
+	long	_transTubes;
+	long	_ntbs;
+	long	_isPRT;
+	long	_nblocks;
+	long	_nheads;
+	long	_config;
+	long	_cpComm;
+	long	_headRot;
+	long	_LLD;
+	long	_ULD;
+	long	_angles;
+	long	_elements;
+	long	_totSino;
+	long	_analogSet;
+	long	_tranBlk;
+	long	_axialBlk;
+	long	_angCry;
+	long	_axialCry;
+	long	_LLDprofile;
+	long	_ULDprofile;
+	long	_LLDshape;
+	long	_ULDshape;
+	long	_LLDtubeEnergy;
+	long	_ULDtubeEnergy;
+	long	_LLDcryEnergy;
+	long	_ULDcryEnergy;
+	long	_pmta;
+	long	_pmtb;
+	long	_pmtc;
+	long	_pmtd;
+	long	_cfdsetting;
+	long	_cfdsetdelay;
+	long	_xOffset;
+	long	_yOffset;
+	long	_eOffset;
+	long	_dhisetting;
+	long	_engsetup;
+	long	_thresholdshp;
+	long	_slowlow;
+	long	_slowhigh;
+	long	_fastlow;
+	long	_fasthigh;
+	pPanel	installedPanel;
+	pConf	installedConfig;
+
+};
+
+#endif

@@ -1,0 +1,57 @@
+CC = gcc  
+DEBUG = -O3
+RM = rm
+CP = cp
+SRCDIR = .
+CFLAGS =  $(DEBUG) -c -D IS_LINUX -U IS_WIN32
+LDFLAGS = $(DEBUG)
+
+ALL : hrrt_osem3d_span3
+
+hrrt_osem3d_span3 : scanner_model.o  hrrt_osem3dv_sbrt_span3.o nr_utils.o file_io_processor.o simd_operation.o hrrt_osem3d_span3.o mm_malloc.o
+	$(CC) $(LDFLAGS) $(LIB) hrrt_osem3d_span3.o nr_utils.o file_io_processor.o simd_operation.o 	hrrt_osem3dv_sbrt_span3.o scanner_model.o mm_malloc.o -lm -lpthread -o hrrt_osem3d_span3
+
+
+hrrt_osem3d_span3.o : $(SRCDIR)/hrrt_osem3d_span3.c $(SRCDIR)/hrrt_osem3dv_sbrt_span3.c $(SRCDIR)/hrrt_osem3d.h
+	$(CC) $(CFLAGS) $(SRCDIR)/hrrt_osem3d_span3.c
+
+
+hrrt_osem3dv_sbrt_span3.o :   $(SRCDIR)/hrrt_osem3dv_sbrt_span3.c $(SRCDIR)/hrrt_osem3d.h
+	$(CC) $(CFLAGS) $(SRCDIR)/hrrt_osem3dv_sbrt_span3.c
+
+file_io_processor.o  :  $(SRCDIR)/file_io_processor.c
+	$(CC) $(CFLAGS) $(SRCDIR)/file_io_processor.c
+
+simd_operation.o  :  $(SRCDIR)/simd_operation.c
+	$(CC) $(CFLAGS) $(SRCDIR)/simd_operation.c
+
+mm_malloc.o  :  $(SRCDIR)/mm_malloc.c
+	$(CC) $(CFLAGS) $(SRCDIR)/mm_malloc.c
+
+nr_utils.o  :  $(SRCDIR)/nr_utils.c
+	$(CC) $(CFLAGS) $(SRCDIR)/nr_utils.c
+
+scanner_model.o : $(SRCDIR)/scanner_model.c
+	$(CC) $(CFLAGS) $(SRCDIR)/scanner_model.c
+
+clean:
+	$(RM) hrrt_osem3d_span3 *.o 
+
+
+depend:
+	makedepend -Dunix $(CFLAGS) $(SRCDIR)/*.c
+# DO NOT DELETE THIS LINE -- make depend depends on it.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
