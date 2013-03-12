@@ -683,7 +683,7 @@ int main(int argc, char **argv)
     frame_info[ref_frame].em_align_flag = 0;
     
   } else {
-    // v
+    // Extension is not 'v'
     if (strcasecmp(ext,"dyn") == 0) { 
       // Create log_file in patient dir 
       sprintf(log_file, "%s_motion_qc.log", em_prefix);
@@ -707,27 +707,15 @@ int main(int argc, char **argv)
         }
         if (p1!= NULL) {
           sprintf(patient_dir, "%s%c%s", data_dir, DIR_SEPARATOR, p1+1);
-        }
-        else
+        } else {
           strcpy(patient_dir,data_dir);
+        }
         
         // create patient directory
         if (access(patient_dir,R_OK) != 0) {
-
-	  if (make_directory(patient_dir)) {
-	    return(1);
-	  }
-	    
-	  /*
-#ifdef WIN32
-          mkdir(patient_dir);
-#else
-          sprintf(cmd_line, "mkdir %s", patient_dir);
-          if (exec)
-            system(cmd_line);
-#endif
-	  */
-
+          if (make_directory(patient_dir)) {
+            return(1);
+          }
         }
         if (p2 != NULL)
           sprintf(em_prefix, "%s%c%s", patient_dir, DIR_SEPARATOR, p2+1);
@@ -769,7 +757,6 @@ int main(int argc, char **argv)
       }
     } // else dyn
   } // else v
-
 
   // Reconstruct ecat images if l64 or dyn input
   if (em_ecat_file[0] == '\0') {
@@ -823,8 +810,7 @@ int main(int argc, char **argv)
       // can't create image files, create scatter QC
       em_ecat_file[0] = '\0';
     }
-  }
-
+  }  // if (not em_ecat_file)
     
   printf("\n start_frame: %d, end_frame:%d, ref_frame:%d \n", start_frame, end_frame, ref_frame);
   fflush(stdout);

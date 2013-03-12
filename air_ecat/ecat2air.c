@@ -297,7 +297,7 @@ AIR_Pixels ***ecat2air(const char *specs, struct AIR_Key_info *stats,
   file = matrix_open(fname, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
   mat_numdoc(matnum, &mat);
 
-  printf("air_ecat/ecat2air.c: fname:%s, matnum:%d \n", fname, matnum); fflush(stdout);
+  // printf("air_ecat/ecat2air.c: fname:%s, matnum:%d \n", fname, matnum); fflush(stdout);
   if ( (volume = matrix_read(file,matnum, GENERIC)) != NULL) {
     //if ( (volume = load_volume(file,mat.frame, /*cubic*/1, /*interp*/1)) != NULL) {
     if (matrix_extrema == NULL) {
