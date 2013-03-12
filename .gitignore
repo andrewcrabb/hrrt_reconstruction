@@ -18,8 +18,8 @@ motion_distance/motion_distance
 
 # Directories to omit #
 #######################
-/lib/
-/bin/
+lib/
+bin/
 
 # Compiled Libraries #
 ######################
@@ -61,3 +61,48 @@ motion_distance/motion_distance
 Icon?
 ehthumbs.db
 Thumbs.db
+
+# Executables
+
+AIR5.3.0/align_warp
+AIR5.3.0/alignlinear
+AIR5.3.0/src/Makefile
+TX_TV3DReg/TX_TV3DReg
+air_ecat/ecat_make_air
+air_ecat/ecat_reslice
+bin/calcRingRoiRatio
+bin/compute_norm
+bin/e7_atten_u
+bin/e7_sino_u
+bin/ecat_alignlinear
+bin/ecat_make_air
+bin/ecat_reslice
+bin/gen_delays
+bin/gsmooth_ps
+bin/hrrt_osem3d
+bin/if2e7
+bin/lmhistogram_mp
+bin/motion_correct_recon
+bin/motion_distance
+bin/motion_qc
+bin/norm_process
+compute_norm/compute_norm
+e7_tools_HRRT/E7_Bin/gm_check
+e7_tools_HRRT/e7_atten_prj/e7_atten_u
+e7_tools_HRRT/e7_fwd_prj/e7_fwd_u
+e7_tools_HRRT/e7_sino_prj/e7_sino_u
+ecatx/utils/cti2analyze
+ecatx/utils/fix_mh
+ecatx/utils/matcopy
+ecatx/utils/matlist
+ecatx/utils/show_header
+ecatx/utils/sum_frames
+gen_delays_main/gen_delays
+gsmooth/gsmooth_ps
+hrrt_osem3d/hrrt_osem3d
+if2e7/if2e7
+lmhistogram_mp/lmhistogram_mp
+motion_correction/MAF_join
+motion_correction/motion_correct_recon
+norm_process/norm_process
+e7_tools_HRRT/gm_check_prj/gm_check
