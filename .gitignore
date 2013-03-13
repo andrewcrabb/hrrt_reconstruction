@@ -20,6 +20,7 @@ motion_distance/motion_distance
 #######################
 lib/
 bin/
+/bin/
 
 # Compiled Libraries #
 ######################

@@ -405,50 +405,49 @@ std::string Logging::loggingPath() const
 /*---------------------------------------------------------------------------*/
 Logging *Logging::logMsg(const std::string msgstr,
                          const unsigned short int _level)
- { if (SyngoCancel())
+{
+  if (SyngoCancel())
     throw Exception(REC_SYNGO_CANCEL, "processing canceled");
-   if ((file == NULL) && !(log_destination & LOG_SCREEN)) return(this);
-   if (!logging_on) return(this);
-   lock->wait();
-                                           // create data structure for message
-   msg.level=_level;
-   msg.log_str=std::string();
-   for (unsigned short int i=0; i < msg.level; i++)
+  if ((file == NULL) && !(log_destination & LOG_SCREEN))
+    return(this);
+  if (!logging_on)
+    return(this);
+  lock->wait();
+  // create data structure for message
+  msg.level=_level;
+  msg.log_str=std::string();
+  for (unsigned short int i=0; i < msg.level; i++)
     msg.log_str+=" ";
-   msg.log_str+=msgstr;
-   msg.available=true;
-                       // write message to file if it doesn't contain arguments
-   if (msg.log_str.find("#") == std::string::npos)
-    { std::string tstr;
-      unsigned short int day;
-                                               // don't write in this log level
-      if (msg.level > loglevel) { msg.available=false;
-                                  lock->signal();
-                                  return(this);
-                                }
-                                                           // write log message
-      tstr=timeStr(&day);
-      if (day != creation_day)                       // create file for new day
-       init(fname, loglevel, path, log_destination);
-                                                               // write to file
-      if ((file != NULL) && (log_destination & LOG_FILE))
-       *file << tstr << msg.log_str << std::endl;
-                                                             // write to screen
-      if (log_destination & LOG_SCREEN)
-/*     { std::string str;
+  msg.log_str+=msgstr;
+  msg.available=true;
+  // write message to file if it doesn't contain arguments
+  if (msg.log_str.find("#") == std::string::npos) {
+    std::string tstr;
+    unsigned short int day;
 
-         str=tstr+msg.log_str;
-         IDL_Message(IDL_M_GENERIC, IDL_MSG_INFO, str.c_str());
-       }
- */
-       std::clog << tstr << msg.log_str << std::endl;
-#ifdef MEMLOG
-      saveMemUsage();
-#endif
+    // don't write in this log level
+    if (msg.level > loglevel) {
+      msg.available=false;
       lock->signal();
+      return(this);
     }
-   return(this);
- }
+    // write log message
+    tstr=timeStr(&day);
+    if (day != creation_day)                       // create file for new day
+      init(fname, loglevel, path, log_destination);
+    // write to file
+    if ((file != NULL) && (log_destination & LOG_FILE))
+      *file << tstr << msg.log_str << std::endl;
+    // write to screen
+    if (log_destination & LOG_SCREEN)
+      std::clog << tstr << msg.log_str << std::endl;
+#ifdef MEMLOG
+    saveMemUsage();
+#endif
+    lock->signal();
+  }
+  return(this);
+}
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Request maximum logging level.
@@ -523,7 +522,8 @@ void Logging::saveMemUsage()
  */
 /*---------------------------------------------------------------------------*/
 std::string Logging::timeStr(unsigned short int * const day) const
- { TIMEDATE::ttime ti;
+ {
+   TIMEDATE::ttime ti;
    TIMEDATE::tdate dt;
    unsigned short int msec;
 
@@ -532,8 +532,10 @@ std::string Logging::timeStr(unsigned short int * const day) const
    *day=dt.day;
 #if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
                                              // create string with current time
-   return(toStringZero(ti.hour, 2)+":"+toStringZero(ti.minute, 2)+":"+
-          toStringZero(ti.second, 2)+"."+toStringZero(msec, 6)+" ");
+   return(toStringZero(ti.hour, 2) + ":" + toStringZero(ti.minute, 2) + ":" +
+          // toStringZero(ti.second, 2) + "." + toStringZero(msec, 6) + " ");
+          // ahc: Took out useless 6-digit fraction.
+          toStringZero(ti.second, 2) + " ");
 #endif
 #ifdef WIN32
    std::string vz;
