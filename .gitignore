@@ -86,3 +86,4 @@ lmhistogram_mp/lmhistogram_mp
 motion_correction/MAF_join
 motion_correction/motion_correct_recon
 norm_process/norm_process
+motion_distance/motion_distance
