@@ -1,0 +1,8 @@
+To compile without LUT
+ cc -c -Wno-write-strings -D_FILE_OFFSET_BITS=64 -DHRRT SortHrrtLM-64bit_mod.c
+ cc -O2 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -DHRRT -o SortHrrtLM-64bit_mod SortHrrtLM-64bit_mod.o -lm
+
+To compile using LUT
+ cc -c -Wno-write-strings -D_FILE_OFFSET_BITS=64 -DHRRT -D_LUT_ -I/home/peter/HRRT/HRRT_UG_SW/V1.1/Current/gen_delays_lib SortHrrtLM-64bit_mod.c
+ cc -o SortHrrtLM-64bit_mod SortHrrtLM-64bit_mod.o /home/peter/HRRT/HRRT_UG_SW/V1.1/Current/gen_delays_lib/gen_delays_lib.a -lm -lstdc++
+

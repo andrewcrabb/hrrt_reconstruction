@@ -1,0 +1,11 @@
+HKCR
+{
+	NoRemove AppID
+	{
+		{DC055B4C-F005-4F62-AEB3-1294CAE99AC0} = s 'Acquisition'
+		'Acquisition.EXE'
+		{
+			val AppID = s {DC055B4C-F005-4F62-AEB3-1294CAE99AC0}
+		}
+	}
+}

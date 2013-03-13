@@ -1,0 +1,139 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define COPYRIGHTDATETAG "Copyright (C) 2006\0"
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "winres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""winres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "1 TYPELIB ""DSCom.tlb""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION 1,1,0,0501
+PRODUCTVERSION 1,1,0,0501
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName","CPS Innovations\0"
+            VALUE "FileDescription","HRRT\0"
+            VALUE "FileVersion", "1.1.0.0501\0"
+            VALUE "InternalName", "DSCom\0"
+            VALUE "LegalCopyright", "Copyright (C) 2005\0"
+            VALUE "OriginalFilename", "DSCom.EXE\0"
+            VALUE "ProductName", "DSCom Module\0"
+            VALUE "ProductVersion", "1.1.0.0501\0"
+            VALUE "OLESelfRegister", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// REGISTRY
+//
+
+IDR_DSCom               REGISTRY MOVEABLE PURE  "DSCom.rgs"
+IDR_DSMAIN              REGISTRY DISCARDABLE    "DSMain.rgs"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_BITMAP1             BITMAP  DISCARDABLE     "bitmap1.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_PROJNAME            "DSCom"
+    IDS_STAGE_FINE_GAIN     "PMT Fine Gain Adjustments"
+    IDS_STAGE_IDLE          "Setup Idle"
+    IDS_STAGE_COARSE_GAIN   "PMT Coarse Gain Adjustments"
+    IDS_STAGE_TUNE_GAIN     "PMT Tune Gain Adjustments"
+    IDS_STAGE_FIRMWARE_ADJUSTMENTS "Adjusting Firmware Settings"
+    IDS_STAGE_CRYSTAL_ENERGY_PEAKS "Determining Crystal Energy Peaks"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+1 TYPELIB "DSCom.tlb"
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

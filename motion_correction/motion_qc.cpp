@@ -60,24 +60,9 @@ Purpose B usage:
 #include <string.h>
 #include "frame_info.h"
 #include <ecatx/matrix.h>
-#ifdef WIN32
-#include <ecatx/getopt.h>
-#include <io.h>
-#include <direct.h>
-#define R_OK 4
-#define access _access
-#define popen _popen
-#define pclose _pclose
-/* #define mkdir _mkdir */
-#define getcwd _getcwd
-#define chdir _chdir
-#define strcasecmp _stricmp
-#define strncasecmp _strnicmp
-#define		DIR_SEPARATOR '\\'
-#else
 #include <unistd.h>
 #define		DIR_SEPARATOR '/'
-#endif
+
 #include <vector>
 // ahc
 #include <iostream>
@@ -180,28 +165,6 @@ static int compute_scatter()
     return(1);
   }
   
-  /*
-#ifdef WIN32
-  if (access(log_dir,R_OK) != 0)
-    mkdir(log_dir);
-  if (access(qc_dir,R_OK) != 0)
-    mkdir(qc_dir);
-#else
-  if (access(log_dir,R_OK) != 0) {
-    sprintf(cmd_line,"mkdir %s", log_dir);
-    fprintf(log_fp,"%s\n",cmd_line);
-    if (exec)
-      system(cmd_line);
-  }
-  if (access(qc_dir,R_OK) != 0) {
-    sprintf(cmd_line,"mkdir %s", qc_dir);
-    fprintf(log_fp,"%s\n",cmd_line);
-    if (exec)
-      system(cmd_line);
-  }
-#endif
-  */
-
   strcpy(at_file,mu_file);
   if ((ext=strrchr(at_file,'.')) != NULL)
     if (strcasecmp(ext,".i") == 0)
@@ -792,13 +755,8 @@ int main(int argc, char **argv)
     if (recon_pgm != NULL) {
       //sprintf(em_ecat_file,"%s_na.v", em_prefix);
       sprintf(em_ecat_file,"%s.v", em_prefix);
-#ifdef WIN32
-      sprintf(cmd_line,"%s -t %s -n %s -X 128 -o %s -W 2 -I 4 -S 8 -N", 
-        recon_pgm, em_dyn_file, norm_file, em_ecat_file);
-#else // multithread bug on linux, use 1 thread 
       sprintf(cmd_line,"%s -t %s -n %s -X 128 -o %s -W 2 -I 4 -S 8 -N -T 1",
         recon_pgm, em_dyn_file, norm_file, em_ecat_file);
-#endif
       if (access(em_ecat_file,R_OK) == 0 && overwrite==0) {
         fprintf(log_fp,"Reusing existing %s\n",em_ecat_file);
       } else {

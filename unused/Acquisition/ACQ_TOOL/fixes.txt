@@ -1,0 +1,13 @@
+0.63
+change default on TX scan to stop after 20000 sec instead of 5000
+added log file on startup for communication and errors
+traped the errors back from the CC
+Replaced ping with 64Q command
+On file open, query the user to setup scanner
+Disabled Open, save, System setup, communication, config scan, patient info menu while the scan is running
+
+0.62
+Added defualt file for default configuration
+
+0.61
+changed the LLD and the ULD to go from 250 to 800.

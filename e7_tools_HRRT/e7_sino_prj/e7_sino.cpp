@@ -185,7 +185,8 @@ void calculateSinogram(Parser::tparam * const v)
                                                           // process all frames
      if (matrices.size() == 1)
       Logging::flog()->logMsg("calculate sinogram for 1 matrix", 0);
-      else Logging::flog()->logMsg("calculate sinogram for #3 matrices", 0)->
+     else
+       Logging::flog()->logMsg("calculate sinogram for #3 matrices", 0)->
             arg(matrices.size());
      for (unsigned short int num=mat_offset; num < matrices.size(); num++)
       { std::string nr;

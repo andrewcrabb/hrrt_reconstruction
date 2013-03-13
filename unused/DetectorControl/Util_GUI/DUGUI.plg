@@ -1,0 +1,84 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: DUGUI - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating command line "rc.exe /l 0x409 /fo"Release/DUGUI.res" /d "NDEBUG" /d "_AFXDLL" "C:\PVCSWORK\DetectorControl\Util_GUI\DUGUI.rc"" 
+Creating temporary file "C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP195.tmp" with contents
+[
+/nologo /MD /W3 /GR /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "INCLUDE_DUCOM_I" /Fo"Release/" /Fd"Release/" /FD /c 
+"C:\PVCSWORK\DetectorControl\Util_GUI\CRMEdit.cpp"
+"C:\PVCSWORK\DetectorControl\Util_GUI\CrystalPeaks.cpp"
+"C:\PVCSWORK\DetectorControl\Util_GUI\CrystalTime.cpp"
+"C:\PVCSWORK\DetectorControl\Util_GUI\DesignatePeaks.cpp"
+"C:\PVCSWORK\DetectorControl\Util_GUI\DUGUI.cpp"
+"C:\PVCSWORK\DetectorControl\Util_GUI\DUGUIDlg.cpp"
+"C:\PVCSWORK\DetectorControl\Util_GUI\EnergyRange.cpp"
+"C:\PVCSWORK\DetectorControl\Setup\find_peak_1d.cpp"
+"C:\PVCSWORK\DetectorControl\Util_GUI\HeadSelection.cpp"
+"C:\PVCSWORK\DetectorControl\Util_GUI\InfoDialog.cpp"
+"C:\PVCSWORK\DetectorControl\Util_GUI\LoadDlg.cpp"
+"C:\PVCSWORK\DetectorControl\Setup\position_profile_tools.cpp"
+"C:\PVCSWORK\DetectorControl\Util_GUI\remove_dnl.cpp"
+"C:\PVCSWORK\DetectorControl\Util_GUI\Validate.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP195.tmp" 
+Creating temporary file "C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP196.tmp" with contents
+[
+/nologo /MD /W3 /GR /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "INCLUDE_DUCOM_I" /Fp"Release/DUGUI.pch" /Yc"stdafx.h" /Fo"Release/" /Fd"Release/" /FD /c 
+"C:\PVCSWORK\DetectorControl\Util_GUI\StdAfx.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP196.tmp" 
+Creating temporary file "C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP197.tmp" with contents
+[
+gantryModel.lib ErrorEventSupport.lib /nologo /stack:0xa00000 /subsystem:windows /incremental:no /pdb:"Release/DUGUI.pdb" /debug /debugtype:coff /machine:I386 /out:"Release/DUGUI.exe" 
+.\Release\CRMEdit.obj
+.\Release\CrystalPeaks.obj
+.\Release\CrystalTime.obj
+.\Release\DesignatePeaks.obj
+.\Release\DUGUI.obj
+.\Release\DUGUIDlg.obj
+.\Release\EnergyRange.obj
+.\Release\find_peak_1d.obj
+.\Release\HeadSelection.obj
+.\Release\InfoDialog.obj
+.\Release\LoadDlg.obj
+.\Release\position_profile_tools.obj
+.\Release\remove_dnl.obj
+.\Release\StdAfx.obj
+.\Release\Validate.obj
+.\Release\DUGUI.res
+]
+Creating command line "link.exe @C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP197.tmp"
+<h3>Output Window</h3>
+Compiling resources...
+Compiling...
+StdAfx.cpp
+Compiling...
+CRMEdit.cpp
+CrystalPeaks.cpp
+CrystalTime.cpp
+DesignatePeaks.cpp
+DUGUI.cpp
+DUGUIDlg.cpp
+EnergyRange.cpp
+find_peak_1d.cpp
+HeadSelection.cpp
+InfoDialog.cpp
+LoadDlg.cpp
+position_profile_tools.cpp
+remove_dnl.cpp
+Validate.cpp
+Generating Code...
+Linking...
+
+
+
+<h3>Results</h3>
+DUGUI.exe - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

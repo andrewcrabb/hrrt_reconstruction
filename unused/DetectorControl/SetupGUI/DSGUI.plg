@@ -1,0 +1,63 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: DSGUI - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating command line "rc.exe /l 0x409 /fo"Release/DSGUI.res" /d "NDEBUG" /d "_AFXDLL" "C:\PVCSWORK\DetectorControl\SetupGUI\DSGUI.rc"" 
+Creating temporary file "C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP190.tmp" with contents
+[
+/nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Fp"Release/DSGUI.pch" /Yu"stdafx.h" /Fo"Release/" /Fd"Release/" /FD /c 
+"C:\PVCSWORK\DetectorControl\SetupGUI\DSGUI.cpp"
+"C:\PVCSWORK\DetectorControl\SetupGUI\DSGUIDlg.cpp"
+"C:\PVCSWORK\DetectorControl\SetupGUI\font.cpp"
+"C:\PVCSWORK\DetectorControl\SetupGUI\LoadDlg.cpp"
+"C:\PVCSWORK\DetectorControl\SetupGUI\msflexgrid.cpp"
+"C:\PVCSWORK\DetectorControl\SetupGUI\picture.cpp"
+"C:\PVCSWORK\DetectorControl\SetupGUI\rowcursor.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP190.tmp" 
+Creating temporary file "C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP191.tmp" with contents
+[
+/nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Fp"Release/DSGUI.pch" /Yc"stdafx.h" /Fo"Release/" /Fd"Release/" /FD /c 
+"C:\PVCSWORK\DetectorControl\SetupGUI\StdAfx.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP191.tmp" 
+Creating temporary file "C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP192.tmp" with contents
+[
+gantryModel.lib isotopeInfo.lib ErrorEventSupport.lib /nologo /subsystem:windows /incremental:no /pdb:"Release/DSGUI.pdb" /machine:I386 /out:"Release/DSGUI.exe" 
+.\Release\DSGUI.obj
+.\Release\DSGUIDlg.obj
+.\Release\font.obj
+.\Release\LoadDlg.obj
+.\Release\msflexgrid.obj
+.\Release\picture.obj
+.\Release\rowcursor.obj
+.\Release\StdAfx.obj
+.\Release\DSGUI.res
+]
+Creating command line "link.exe @C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP192.tmp"
+<h3>Output Window</h3>
+Compiling resources...
+Compiling...
+StdAfx.cpp
+Compiling...
+DSGUI.cpp
+DSGUIDlg.cpp
+font.cpp
+LoadDlg.cpp
+msflexgrid.cpp
+picture.cpp
+rowcursor.cpp
+Generating Code...
+Linking...
+
+
+
+<h3>Results</h3>
+DSGUI.exe - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

@@ -1,0 +1,23 @@
+HKCR
+{
+	DSCom.DSMain.1 = s 'DSMain Class'
+	{
+		CLSID = s '{E0F5B940-9FDA-4273-BA79-B55501521E97}'
+	}
+	DSCom.DSMain = s 'DSMain Class'
+	{
+		CLSID = s '{E0F5B940-9FDA-4273-BA79-B55501521E97}'
+		CurVer = s 'DSCom.DSMain.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {E0F5B940-9FDA-4273-BA79-B55501521E97} = s 'DSMain Class'
+		{
+			ProgID = s 'DSCom.DSMain.1'
+			VersionIndependentProgID = s 'DSCom.DSMain'
+			LocalServer32 = s '%MODULE%'
+			val AppID = s '{E8FA9A98-20C5-4173-A6F0-A9A5840463B1}'
+			'TypeLib' = s '{E87B8048-CCDF-4BD5-828C-8B0F169D2AFB}'
+		}
+	}
+}

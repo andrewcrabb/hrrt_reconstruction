@@ -1,0 +1,112 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: DUCom - Win32 Unicode Release MinDependency--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating command line "midl.exe /tlb ".\DUCom.tlb" /h "DUCom.h" /iid "DUCom_i.c" /Oicf "C:\PVCSWORK\DetectorControl\Utils\DUCom.idl""
+Creating command line "rc.exe /l 0x409 /fo"ReleaseUMinDependency/DUCom.res" /d "NDEBUG" "C:\PVCSWORK\DetectorControl\Utils\DUCom.rc"" 
+Creating temporary file "C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP165.tmp" with contents
+[
+/nologo /MT /W3 /O1 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_UNICODE" /D "_ATL_STATIC_REGISTRY" /Fo"ReleaseUMinDependency/" /Fd"ReleaseUMinDependency/" /FD /c 
+"C:\PVCSWORK\DetectorControl\Utils\DUCom.cpp"
+"C:\PVCSWORK\DetectorControl\Utils\DUMain.cpp"
+"C:\PVCSWORK\DetectorControl\Setup\find_peak_1d.cpp"
+"C:\PVCSWORK\DetectorControl\Setup\position_profile_tools.cpp"
+"C:\PVCSWORK\DetectorControl\Util_GUI\remove_dnl.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP165.tmp" 
+Creating temporary file "C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP166.tmp" with contents
+[
+/nologo /MT /W3 /O1 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_UNICODE" /D "_ATL_STATIC_REGISTRY" /Fp"ReleaseUMinDependency/DUCom.pch" /Yc"stdafx.h" /Fo"ReleaseUMinDependency/" /Fd"ReleaseUMinDependency/" /FD /c 
+"C:\PVCSWORK\DetectorControl\Utils\StdAfx.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP166.tmp" 
+Creating temporary file "C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP167.tmp" with contents
+[
+gantryModel.lib isotopeInfo.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib ErrorEventSupport.lib /nologo /subsystem:windows /incremental:no /pdb:"ReleaseUMinDependency/DUCom.pdb" /machine:I386 /out:"ReleaseUMinDependency/DUCom.exe" 
+.\ReleaseUMinDependency\DUCom.obj
+.\ReleaseUMinDependency\DUMain.obj
+.\ReleaseUMinDependency\find_peak_1d.obj
+.\ReleaseUMinDependency\position_profile_tools.obj
+.\ReleaseUMinDependency\remove_dnl.obj
+.\ReleaseUMinDependency\StdAfx.obj
+.\ReleaseUMinDependency\DUCom.res
+]
+Creating command line "link.exe @C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP167.tmp"
+<h3>Output Window</h3>
+Creating Type Library...
+Microsoft (R) MIDL Compiler Version 5.01.0164  
+Copyright (c) Microsoft Corp 1991-1997. All rights reserved.
+Processing C:\PVCSWORK\DetectorControl\Utils\DUCom.idl
+DUCom.idl
+Processing C:\program files\Microsoft Visual Studio\vc98\include\oaidl.idl
+oaidl.idl
+Processing C:\program files\Microsoft Visual Studio\vc98\include\objidl.idl
+objidl.idl
+Processing C:\program files\Microsoft Visual Studio\vc98\include\unknwn.idl
+unknwn.idl
+Processing C:\program files\Microsoft Visual Studio\vc98\include\wtypes.idl
+wtypes.idl
+Processing C:\program files\Microsoft Visual Studio\vc98\include\ocidl.idl
+ocidl.idl
+Processing C:\program files\Microsoft Visual Studio\vc98\include\oleidl.idl
+oleidl.idl
+Processing C:\program files\Microsoft Visual Studio\vc98\include\servprov.idl
+servprov.idl
+Processing C:\program files\Microsoft Visual Studio\vc98\include\urlmon.idl
+urlmon.idl
+Processing C:\program files\Microsoft Visual Studio\vc98\include\msxml.idl
+msxml.idl
+Compiling resources...
+Compiling...
+StdAfx.cpp
+Compiling...
+DUCom.cpp
+DUMain.cpp
+find_peak_1d.cpp
+position_profile_tools.cpp
+remove_dnl.cpp
+Generating Code...
+Linking...
+Creating temporary file "C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP173.bat" with contents
+[
+@echo off
+nmake DUComps.mk
+]
+Creating command line "C:\DOCUME~1\DWEISG~1\LOCALS~1\Temp\RSP173.bat"
+build and register proxy / stub
+
+Microsoft (R) Program Maintenance Utility   Version 6.00.8168.0
+Copyright (C) Microsoft Corp 1988-1998. All rights reserved.
+
+ cl /c /Ox /DWIN32 /D_WIN32_WINNT=0x0400 /DREGISTER_PROXY_DLL  dlldata.c
+Microsoft (R) 32-bit C/C++ Optimizing Compiler Version 12.00.8168 for 80x86
+Copyright (C) Microsoft Corp 1984-1998. All rights reserved.
+
+dlldata.c
+ cl /c /Ox /DWIN32 /D_WIN32_WINNT=0x0400 /DREGISTER_PROXY_DLL  DUCom_p.c
+Microsoft (R) 32-bit C/C++ Optimizing Compiler Version 12.00.8168 for 80x86
+Copyright (C) Microsoft Corp 1984-1998. All rights reserved.
+
+DUCom_p.c
+ cl /c /Ox /DWIN32 /D_WIN32_WINNT=0x0400 /DREGISTER_PROXY_DLL  DUCom_i.c
+Microsoft (R) 32-bit C/C++ Optimizing Compiler Version 12.00.8168 for 80x86
+Copyright (C) Microsoft Corp 1984-1998. All rights reserved.
+
+DUCom_i.c
+ link /dll /out:DUComps.dll /def:DUComps.def /entry:DllMain dlldata.obj DUCom_p.obj DUCom_i.obj  kernel32.lib rpcndr.lib rpcns4.lib rpcrt4.lib oleaut32.lib uuid.lib
+Microsoft (R) Incremental Linker Version 6.00.8168
+Copyright (C) Microsoft Corp 1992-1998. All rights reserved.
+
+   Creating library DUComps.lib and object DUComps.exp
+
+
+
+<h3>Results</h3>
+DUCom.exe - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>
