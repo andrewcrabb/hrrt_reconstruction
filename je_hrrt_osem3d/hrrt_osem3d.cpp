@@ -1993,7 +1993,6 @@ FUNCPTR pt_read_norm(void *ptarg)
   File_structure *arg = (File_structure *) ptarg;
   if(normfac_in_file_flag==1){
     ;
-    //	memcpy(&(arg->normfac[0][0][0]),&(normfac_infile[arg->isubset][0][0][0]),x_pixels*y_pixels*z_pixels_simd*sizeof(__m128));
   } else	{
     if(normfac_in_file_flag==2){
       if(!read_norm(normfac_infile[arg->isubset], arg->normfac_img, arg->isubset,arg->verbose) )
@@ -2003,7 +2002,6 @@ FUNCPTR pt_read_norm(void *ptarg)
         crash3("  Error occurs in read_norm at subset %d !\n", arg->isubset );
     }
   }
-  // fprintf(stderr, "pt_read_norm() complete\n");
   return 0;
 }
 

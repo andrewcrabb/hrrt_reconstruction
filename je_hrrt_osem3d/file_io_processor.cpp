@@ -398,33 +398,34 @@ int    write_norm(float ***norm,char *filename,int isubset,int verbose ) {
 
 /**************************************************************************************************************/
 int    read_norm(float ***norm,char * filename,int isubset,int verbose) {
-	FILE    *f;
-	int    offset;
-	int i;
-	int curptr;
+  FILE    *f;
+  int    offset;
+  int i;
+  int curptr;
 
-	offset = isubset * x_pixels*y_pixels*(z_pixels_simd*4);
-	if(verbose & 0x0010) fprintf(stdout,"  ... reading norm from file %s for subset %d at offset %d \n", filename, isubset, offset );
-	f = fopen(filename,"rb");
-	if( f == NULL ) { 
-		fprintf(stdout,"  read_norm(): can't open file %s !\n",filename ); 
-		return 0; 
-	}
-	if( fseek( f,  offset*sizeof(float),  SEEK_SET ) !=0 ) {    
-		fprintf(stdout,"  read_norm(): fseek error at isubset=%d \n", isubset)  ;
-		fclose(f);
-		return 0;
-	}
-	curptr=0;
-	for(i=0;i<x_pixels;i++){
-		if( fread( &norm[i][0][0],sizeof(float)*(z_pixels_simd)*4,y_pixels, f) != y_pixels ){    
-			fprintf(stdout,"  read_norm(): read error at  isubset=%d \n",  isubset );
-			fclose(f);
-			return  0;    
-		}
-	}
-	fclose(f);
-	return 1;
+  offset = isubset * x_pixels*y_pixels*(z_pixels_simd*4);
+  if(verbose & 0x0010)
+    fprintf(stdout,"  ... reading norm from file %s for subset %d at offset %d \n", filename, isubset, offset );
+  f = fopen(filename,"rb");
+  if( f == NULL ) { 
+    fprintf(stdout,"  read_norm(): can't open file %s !\n",filename ); 
+    return 0; 
+  }
+  if( fseek( f,  offset*sizeof(float),  SEEK_SET ) !=0 ) {    
+    fprintf(stdout,"  read_norm(): fseek error at isubset=%d \n", isubset)  ;
+    fclose(f);
+    return 0;
+  }
+  curptr=0;
+  for(i=0;i<x_pixels;i++){
+    if( fread( &norm[i][0][0],sizeof(float)*(z_pixels_simd)*4,y_pixels, f) != y_pixels ){    
+      fprintf(stdout,"  read_norm(): read error at  isubset=%d \n",  isubset );
+      fclose(f);
+      return  0;    
+    }
+  }
+  fclose(f);
+  return 1;
 }
 
 int write_flat_3dscan(float ***scan,char *filename,int theta,int verbose) {
