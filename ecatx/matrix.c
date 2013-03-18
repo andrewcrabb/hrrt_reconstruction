@@ -286,9 +286,9 @@ unmap_main_header( char *bufr, Main_header *header)
 	bufRead_u(&header->dose_start_time, bufr, &i);
 	if (header->dose_start_time<one_week)
 	{	/* assume 7.0 encoding */
-		fprintf(stderr,"converting V7.0 dose start time encoding\n");
-		header->dose_start_time = header->scan_start_time -
-			header->dose_start_time;
+      // fprintf(stderr,"converting V7.0 dose start time encoding\n");
+      header->dose_start_time = header->scan_start_time -
+        header->dose_start_time;
 	}
 	bufRead_f(&header->dosage, bufr, &i);
 	bufRead_f(&header->well_counter_factor, bufr, &i);

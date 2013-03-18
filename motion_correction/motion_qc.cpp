@@ -644,7 +644,6 @@ int main(int argc, char **argv)
         frame_info[frame].em_align_flag = 0;
     }
     frame_info[ref_frame].em_align_flag = 0;
-    
   } else {
     // Extension is not 'v'
     if (strcasecmp(ext,"dyn") == 0) { 

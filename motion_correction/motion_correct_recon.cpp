@@ -355,6 +355,7 @@ int main(int argc, char **argv)
   float AIR_threshold = 21.5f;
   int mu_width=128;
   struct stat mu_st;
+  char alignchar;
 
   // ahc additions
   program_path[0] = '\0';
@@ -636,12 +637,14 @@ int main(int argc, char **argv)
   fgets(line,sizeof(line), fp);
   sscanf(line,"%d", &num_frames);
   fclose(fp);
+
+  // Reference frame is the frame with the most counts starting after 600 seconds.
   for (frame=0; frame<num_frames; frame++) {
     sprintf(fname,"%s_frame%d.s.hdr",em_prefix,frame);
     get_frame_info(frame, fname, num_frames);
     if (start_frame<0 && frame_info[frame].duration>=MIN_FRAME_DURATION)
       start_frame = frame;
-    if (frame_info[frame].trues>max_trues && frame_info[frame].start_time>=600){
+    if ((frame_info[frame].trues > max_trues) && (frame_info[frame].start_time >= 600)){
       max_trues=frame_info[frame].trues;
       ref_frame=frame;
     }
@@ -656,7 +659,8 @@ int main(int argc, char **argv)
       fprintf(log_fp,"Use -r to specify reference, no frame long enough for default\n");
       exit(1);
     }
-    if (end_frame<0) end_frame=num_frames-1;
+    if (end_frame<0)
+      end_frame=num_frames-1;
     for (frame=0; frame<num_frames; frame++) {
       if (frame >= start_frame && frame <= end_frame)
         frame_info[frame].em_align_flag = frame_info[frame].tx_align_flag = 1;
@@ -667,16 +671,20 @@ int main(int argc, char **argv)
     frame_info[ref_frame].em_align_flag = frame_info[ref_frame].tx_align_flag = 0;
   }
 
+  // Print summary
+  printf("%6s %8s %10s %8s\n", "Frame", "Start", "Trues", "Align");
   for (frame=0; frame<num_frames; frame++) {
-    printf("frame_info[%d].trues: %10.1f", frame, frame_info[frame].trues);
-    if (frame_info[frame].trues < 5000000)
-      printf(" ( < 5M: Potential source of OSEM overestimation bias)");
-    printf("\n");
+    // printf("frame_info[%d].trues: %10.1f", frame, frame_info[frame].trues);
+    alignchar = (frame == ref_frame) ? 'R' : (frame >= start_frame && frame <= end_frame) ? 'Y' : 'N';
+    printf("%6d %8d %8.1f M %8c\n", frame, frame_info[frame].start_time, frame_info[frame].trues / 1000000, alignchar);
+    // if (frame_info[frame].trues < 5000000)
+    // printf(" ( < 5M: Potential source of OSEM overestimation bias)");
+    // printf("\n");
   }
   
   printf("\n start_frame: %d, end_frame:%d, ref_frame:%d \n", start_frame, end_frame, ref_frame);
   fflush(stdout);
-  
+  exit;
   //Create log and qc dirs if not existing
   strcpy(em_dir,em_prefix);
   if ((ext=strrchr(em_dir,DIR_SEPARATOR)) != NULL) {

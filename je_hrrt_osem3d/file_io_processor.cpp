@@ -359,41 +359,31 @@ int    read_flat_image(float ***image,char * filename,int index,int verbose)
 
 /**************************************************************************************************************/
 int    write_norm(float ***norm,char *filename,int isubset,int verbose ) {
-	FILE    *f;
-	int    offset;
-	int i;
-//	int x,y;
-//	float a[256][256];
+  FILE    *f;
+  int    offset;
+  int i;
 
-	//	data are now aligned with multiple 4 pixels in z (e.g. 207-> 208 ; 153->156)
-	offset =  isubset * x_pixels*y_pixels*(z_pixels_simd*4);
-	if (verbose & 0x0010) fprintf(stdout,"  ... writing norm subset %d at offset %d \n", isubset, offset*4 );
-	if( isubset==0 ) 
-		f = fopen(filename,"wb"); 
-	else 
-		f = fopen(filename,"ab+");
-	if( f==NULL ) { 
-		fprintf(stderr,"  write_norm(): can't open file %s \n", filename);  return 0; 
-	}
-	for(i=0;i<x_pixels;i++){
-		if( fwrite( &norm[i][0][0],sizeof(float)*(z_pixels_simd)*4,y_pixels, f) != y_pixels){
-			fprintf(stderr,"  write_norm(): write error at  isubset=%d  \n",  isubset );
-			fclose(f);
-			return  0;    
-		}
-	}
-	fclose(f);
-/*	f=fopen("normflip.i","ab");
-	for(i=0;i<z_pixels;i++){
-		for(y=0;y<x_pixels;y++){
-			for(x=0;x<x_pixels;x++){
-				a[y][x]=norm[y][x][i];
-			}
-		}
-		fwrite(a,4,256*256,f);
-	}
-	fclose(f);
-*/	return 1;
+  //	data are now aligned with multiple 4 pixels in z (e.g. 207-> 208 ; 153->156)
+  offset =  isubset * x_pixels*y_pixels*(z_pixels_simd*4);
+  if (verbose & 0x0010)
+    fprintf(stdout,"  ... writing norm subset %d at offset %d \n", isubset, offset*4 );
+  if ( isubset==0 ) 
+    f = fopen(filename,"wb"); 
+  else 
+    f = fopen(filename,"ab+");
+  if ( f==NULL ) { 
+    fprintf(stderr,"  write_norm(): can't open file %s \n", filename);
+    return 0; 
+  }
+  for (i = 0; i < x_pixels; i++) {
+    if ( fwrite( &norm[i][0][0],sizeof(float)*(z_pixels_simd)*4,y_pixels, f) != y_pixels) {
+      fprintf(stderr,"  write_norm(): write error at  isubset=%d  \n",  isubset );
+      fclose(f);
+      return  0;    
+    }
+  }
+  fclose(f);
+  return 1;
 }
 
 /**************************************************************************************************************/
