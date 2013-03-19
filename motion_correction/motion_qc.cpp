@@ -565,7 +565,7 @@ int main(int argc, char **argv)
   memset(em_ecat_file,0,sizeof(em_ecat_file));
   memset(em_dyn_file,0,sizeof(em_dyn_file));
     
-  if (strcasecmp(ext,"v") == 0) {
+  if (strcasecmp(ext,"v") == 0) {  // ahc yes
     // ecat reconstructed images file
     MatrixFile *mf=NULL;
     MatrixData *matdata;
@@ -722,6 +722,7 @@ int main(int argc, char **argv)
 
   // Reconstruct ecat images if l64 or dyn input
   if (em_ecat_file[0] == '\0') {
+    // ahc no.
     if ((fp=fopen(em_dyn_file,"rt")) == NULL) {
       fprintf(log_fp,"Error opening file %s\n", em_dyn_file);
      exit(1);

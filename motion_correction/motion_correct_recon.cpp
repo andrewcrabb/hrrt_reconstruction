@@ -707,7 +707,7 @@ int main(int argc, char **argv)
   sprintf(fname,"%s_3D_ATX.v",em_prefix);
   if (access(fname,R_OK) == 0 && overwrite==0) {
     fprintf(log_fp,"Reusing point 1: existing %s\n",fname);
-  } else {
+  } else { // Not reusing 3D_ATX.v
     if (strlen(em_na) == 0)
       sprintf(em_na,"%s", em_prefix);
 
@@ -832,7 +832,7 @@ int main(int argc, char **argv)
         if (mu_file != NULL) {
           sprintf(cmd_line, "-s %s_frame%d_sc_ATX.s -a %s ", em_prefix, frame, at_rsl);
         }
-        sprintf(cmd_line, "%s -p %s_frame%d.s -d %s_frame%d.ch  -o %s -n %s -W 3 -I %d -S 16 -m 9,67 -T 4 -X 256 -K %s -r %s", cmd_line, em_prefix, frame, em_prefix, frame, fname, norm_file, num_iterations, normfac_img, rebinner_lut_file);
+        sprintf(cmd_line, "%s -p %s_frame%d.s -d %s_frame%d.ch  -o %s -n %s -W 3 -I %d -S 16 -m 9,67 -T 2 -X 256 -K %s -r %s", cmd_line, em_prefix, frame, em_prefix, frame, fname, norm_file, num_iterations, normfac_img, rebinner_lut_file);
           
         if (psf_flag)
           strcat(cmd_line, " -B 0,0,0");
