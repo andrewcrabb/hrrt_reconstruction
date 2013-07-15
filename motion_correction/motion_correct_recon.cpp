@@ -864,6 +864,7 @@ int main(int argc, char **argv)
       fprintf(log_fp,"Reusing point 6: existing %s\n",fname); fflush(log_fp);
     } else {
       if (brand_new_final_align) {
+        // ahc no
         // Blurring here before motion vector calculation below
         sprintf(program_name, "%s/%s", program_path, prog_gsmooth);
         sprintf(cmd_line, "%s.v %d",
@@ -912,12 +913,14 @@ int main(int argc, char **argv)
         int thr = (int)(AIR_threshold*32767/100);
         // Unblock gsmooth_ps above if using ecat_alignlinear below
         if (brand_new_final_align){
+          // ahc no
           sprintf(program_name, "%s/%s", program_path, prog_alignlinear);
           sprintf(cmd_line,"%s_%dmm.v,%d,1,1 %s_%dmm.v,%d,1,1 %s_fr%d.air -m 6 -t1 %d -t2 %d",
                   im_prefix, default_smoothing, ref_frame+1, im_prefix, default_smoothing, frame1, im_prefix, frame, thr, thr);
           fprintf(log_fp,"%s\n",cmd_line);
           fflush(log_fp);
         } else {
+          // ahc yes
           // Using previously extracted motion from 128 NA files (more stable)
           sprintf(program_name, "%s/%s", program_path, prog_make_air);
           sprintf(cmd_line,"-s %s.v,%d,1,1 -r %s.v,%d,1,1 -i %s_fr%d.air -o %s_fr%d.air",

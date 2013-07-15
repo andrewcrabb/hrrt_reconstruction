@@ -192,8 +192,8 @@ static int compute_scatter()
       fprintf(log_fp,"Reusing existing %s\n",sc_file);
     } else {
       sprintf(cmd_line, "%s/%s -e %s_frame%d.tr.s -u %s  -w 128 "
-        "-a %s -n %s --force --os %s --os2d --gf --model 328 "
-        "--skip 2 --mrd 67 --span 9 --ssf 0.25,2 -l 73,%s -q %s",
+              "-a %s -n %s --force --os %s --os2d --gf --model 328 "
+              "--skip 2 --mrd 67 --span 9 --ssf 0.25,2 -l 73,%s -q %s",
               program_path, prog_e7_sino, em_prefix, frame, mu_file, at_file, norm_file, sc_file, log_dir, qc_dir);
       if (lber>0.0f)
         sprintf(&cmd_line[strlen(cmd_line)]," --lber %g",lber);
@@ -249,7 +249,7 @@ static void AIR_motion_qc(const char *ecat_file, float threshold)
   for (frame=0; frame<num_frames; frame++) {
       int frame1=frame+1;
 
-      if (ecat_reslice_flag) {
+      if (ecat_reslice_flag) {  // ahc no
         if (frame_info[frame].em_align_flag==0) {
           // Copy frame
           sprintf(cmd_line,"%s/%s -i %s.v,%d,1,1 -o %s_rsl.v,%d,1,1",
@@ -309,8 +309,8 @@ static void AIR_motion_qc(const char *ecat_file, float threshold)
       }
     } else {
       if (exec) {
-          fprintf(qc_dat_file,"%d %d 0 0 0 0\n",x0, x0);
-          fprintf(qc_dat_file,"%d %d 0 0 0 0\n",x1, x0);
+        fprintf(qc_dat_file,"%d %d 0 0 0 0\n",x0, x0);
+        fprintf(qc_dat_file,"%d %d 0 0 0 0\n",x1, x0);
       }
     }
   }
@@ -565,7 +565,7 @@ int main(int argc, char **argv)
   memset(em_ecat_file,0,sizeof(em_ecat_file));
   memset(em_dyn_file,0,sizeof(em_dyn_file));
     
-  if (strcasecmp(ext,"v") == 0) {  // ahc yes
+  if (strcasecmp(ext,"v") == 0) {
     // ecat reconstructed images file
     MatrixFile *mf=NULL;
     MatrixData *matdata;
@@ -722,7 +722,6 @@ int main(int argc, char **argv)
 
   // Reconstruct ecat images if l64 or dyn input
   if (em_ecat_file[0] == '\0') {
-    // ahc no.
     if ((fp=fopen(em_dyn_file,"rt")) == NULL) {
       fprintf(log_fp,"Error opening file %s\n", em_dyn_file);
      exit(1);
