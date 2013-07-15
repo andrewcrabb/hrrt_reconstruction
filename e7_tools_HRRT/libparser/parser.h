@@ -57,6 +57,7 @@ class Parser {
   } tcoord3d;
   
   // command line parameters
+  typedef struct {            /*! FWHM of gaussian for x/y-smoothing in mm */
 
   float gauss_fwhm_xy,              // FWHM of gaussian for x/y-smoothing in mm
     gauss_fwhm_z,                   // FWHM of gaussian for z-smoothing in mm
@@ -202,14 +203,19 @@ class Parser {
   SinogramConversion::tscaninfo si;                 // information about scan
 } tparam;
 private:
+
 // rule for legal and illegal switch combinations
-typedef struct { std::string cmd_switch,                                           //< switch
+typedef struct { 
+  std::string cmd_switch,                                           //< switch
     rule;                                      //< rule for switch
 } truleset;
+
 // rules for legal and illegal switch combinations
 static const truleset rules[];
+
 // length of line for usage information
 static const unsigned short int LINE_LEN;
+
 // help strings
 static const std::string a_str[2], aarc_str[2], algo_str[2], app_str[2],
   asv_str[2], athr_str[2], athrm_str[2], aus_str[2], b_str[2],
