@@ -69,13 +69,13 @@ compute_norm/compute_norm
 e7_tools_HRRT/e7_atten_prj/e7_atten_u
 e7_tools_HRRT/e7_fwd_prj/e7_fwd_u
 e7_tools_HRRT/e7_sino_prj/e7_sino_u
+e7_tools_HRRT/E7_Bin/gm_check
 ecatx/utils/matlist
 gen_delays_main/gen_delays
 gsmooth/gsmooth_ps
 hrrt_osem3d/hrrt_osem3d
 if2e7/if2e7
 je_hrrt_osem3d/je_hrrt_osem3d
-libraries/hrrt_rebinner.lut
 lmhistogram_mp/lmhistogram_mp
 motion_correction/MAF_join
 motion_correction/motion_correct_recon
@@ -89,6 +89,7 @@ norm_process/norm_process
 lib/
 bin/
 /bin/
+!/lib/hrrt_rebinner.lut
 
 # Compiled Libraries #
 ######################
