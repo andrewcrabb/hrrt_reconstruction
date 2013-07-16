@@ -1888,7 +1888,9 @@ int main(int argc, char *argv[])
       {
         if (birthYear < 1902)
         {
-          return 0;
+	  // My change ahc 7/16/13 for phantoms etc given birth year 1900.
+          // return 0;
+	  birthYear = 1970;
         }
         else if (birthYear < 1952)
         {
