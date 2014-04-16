@@ -720,11 +720,13 @@ int main(int argc, char **argv)
           fflush(log_fp);
           continue; 
         }
+        // Not reference frame: Create resliced mu file.
         sprintf(mu_rsl, "%s_fr%d.i", mu_prefix,frame);
         if (access(mu_rsl,R_OK) == 0 && overwrite==0) {
           fprintf(log_fp,"Reusing point 2: existing %s\n",mu_rsl); fflush(log_fp);
         } else { 
           if (vicra_file && frame_info[frame].tx_align_flag) {
+            /*
             sprintf(program_name, "%s/%s", program_path, prog_volume_reslice);
             sprintf(cmd_line,"-i %s -M ", mu_file);
             vicra_align_txt(vicra_info.em[frame], vicra_info.tx,
@@ -733,6 +735,7 @@ int main(int argc, char **argv)
             if (run_system_command(program_name, cmd_line)) {
               exit(1);
             }
+            */
           } else {
             // Create mu-map frame transfromer by inverting transformer
             // that was computed using motion_qc program from uncorrected images 
@@ -744,14 +747,17 @@ int main(int argc, char **argv)
             if (run_system_command(program_name, cmd_line)) {
               exit(1);
             }
-            if (ecat_reslice_flag) {            
+            if (ecat_reslice_flag) {
+              // ahc yes.  e_r_f = 0 if using vicra.
               sprintf(program_name, "%s/%s", program_path, prog_reslice);
               sprintf(cmd_line,"%s_fr%d.air %s -a %s -o -k",
                       mu_prefix, frame, mu_rsl, mu_file);
             } else {
+              /*
               sprintf(program_name, "%s/%s", program_path, prog_volume_reslice);
               sprintf(cmd_line,"-a %s_fr%d.air -o %s -i %s ",
                       mu_prefix, frame, mu_rsl, mu_file);
+              */
             }
             // fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
             printf("\nFrame: %d \n ", frame); fflush(stdout);
@@ -767,6 +773,7 @@ int main(int argc, char **argv)
     // Reconstruct frames 
     for (frame=0; frame<num_frames; frame++)    {
       if (mu_file != NULL)      {
+        // ahc yes
         if (!frame_info[frame].tx_align_flag) {
           // no correction
           strcpy(mu_rsl, mu_file);
@@ -799,8 +806,10 @@ int main(int argc, char **argv)
                   "--skip 2 --mrd 67 --span 9 --ssf 0.25,2 -l 33,%s -q %s",
                   em_prefix, frame, mu_rsl, mu_width, at_rsl, norm_file, fname, log_dir, qc_dir);
           if (lber>0.0f)
+            // ahc yes.  Option 'L' to motion_correct_recon
             sprintf(&cmd_line[strlen(cmd_line)]," --lber %g",lber);
           if (athr != NULL)
+            // ahc yes.  Option 'a' to motion_correct_recon
             sprintf(&cmd_line[strlen(cmd_line)]," --athr %s",athr);
           if (run_system_command(program_name, cmd_line)) {
             exit(1);
@@ -832,7 +841,8 @@ int main(int argc, char **argv)
         if (mu_file != NULL) {
           sprintf(cmd_line, "-s %s_frame%d_sc_ATX.s -a %s ", em_prefix, frame, at_rsl);
         }
-        sprintf(cmd_line, "%s -p %s_frame%d.s -d %s_frame%d.ch  -o %s -n %s -W 3 -I %d -S 16 -m 9,67 -T 2 -X 256 -K %s -r %s", cmd_line, em_prefix, frame, em_prefix, frame, fname, norm_file, num_iterations, normfac_img, rebinner_lut_file);
+        sprintf(cmd_line, "%s -p %s_frame%d.s -d %s_frame%d.ch  -o %s -n %s -W 3 -I %d -S 16 -m 9,67 -T 2 -X 256 -K %s -r %s",
+         cmd_line, em_prefix, frame, em_prefix, frame, fname, norm_file, num_iterations, normfac_img, rebinner_lut_file);
           
         if (psf_flag)
           strcat(cmd_line, " -B 0,0,0");
