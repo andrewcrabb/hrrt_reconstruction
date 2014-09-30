@@ -1391,14 +1391,15 @@ int main(int argc, char* argv[])
       strcpy(outfname_hc,in_fname);
       // Replace extension by "_lm.hc"
       char *ext = strrchr(outfname_hc,'.');
-      if (ext != NULL) strcpy(ext, "_lm.hc");
-      else strcat(outfname_hc,"_lm.hc");
+      if (ext != NULL) 
+	strcpy(ext, "_lm.hc");
+      else 
+	strcat(outfname_hc,"_lm.hc");
       FILE *out_hc = fopen(outfname_hc,"w");
-      if (out_hc == NULL)
-	{
-	  perror(outfname_hc);
-	  exit(1);
-	}
+      if (out_hc == NULL) {
+	perror(outfname_hc);
+	exit(1);
+      }
       memset(duration,0,sizeof(duration));
       start_reader_thread();
       lmscan(out_hc,&scan_duration);
