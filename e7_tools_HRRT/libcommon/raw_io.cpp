@@ -273,13 +273,18 @@ RawIO <T>::RawIO(const std::string _filename, const bool _write,
    swap_data=(big_endian ^ BigEndianMachine());
    write_object=_write;
                                                                    // open file
-   if (_write) file=fopen(filename.c_str(), "wb");
-    else file=fopen(filename.c_str(), "rb");
-   if (file == NULL)
-    if (_write) throw Exception(REC_FILE_CREATE,
-                                "Can't create the file '#1'.").arg(filename);
-     else throw Exception(REC_FILE_DOESNT_EXIST,
-                          "The file '#1' doesn't exist.").arg(filename);
+   if (_write) {
+     file=fopen(filename.c_str(), "wb");
+   } else {
+      file=fopen(filename.c_str(), "rb");
+   }
+   if (file == NULL) {
+     if (_write) {
+       throw Exception(REC_FILE_CREATE, "Can't create the file '#1'.").arg(filename);
+     } else {
+       throw Exception(REC_FILE_DOESNT_EXIST, "The file '#1' doesn't exist.").arg(filename);
+     }
+   }
  }
 
 /*---------------------------------------------------------------------------*/
@@ -626,7 +631,9 @@ void RawIO <T>::readPar(const uint64 offset, const bool use_offset,
        tp.thread_number=0;
 #endif
        thread_running=true;
-       ThreadCreate(&tid, executeThread_ReadFileOffs, &tp);
+       // ahc kind of a guess 11/20/14
+       // ThreadCreate(&tid, executeThread_ReadFileOffs, &tp);
+       ThreadCreate(&tid, executeThread_ReadFileOffs(), &tp);
      }
      catch (...)
       { thread_result=NULL;
@@ -897,7 +904,9 @@ void RawIO <T>::writePar(T * const data, const uint64 _size,
        tp.thread_number=0;
 #endif
        thread_running=true;
-       ThreadCreate(&tid, executeThread_WriteFile, &tp);
+       // ahc
+       // ThreadCreate(&tid, executeThread_WriteFile, &tp);
+       ThreadCreate(&tid, executeThread_WriteFile(), &tp);
      }
      catch (...)
       { thread_result=NULL;

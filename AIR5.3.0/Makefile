@@ -1,7 +1,7 @@
 # Generated automatically from Makefile.in by configure.
 
 
-CFLAGS =
+CFLAGS = -g -O2
 CC = gcc
 LIBS = -lm 
 

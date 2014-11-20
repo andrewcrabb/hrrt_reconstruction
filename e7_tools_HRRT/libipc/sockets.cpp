@@ -172,15 +172,16 @@ Socket::Socket(unsigned short int * const port_number)
 #endif
                                                 // request the used port number
      length=sizeof(server);
-     if (getsockname(sock, (struct sockaddr *)&server,
-                     &length) == SOCKET_ERROR)
-      { closesocket(sock);
+     // ahc
+     // if (getsockname(sock, (struct sockaddr *)&server, &length) == SOCKET_ERROR) { 
+     if (getsockname(sock, (struct sockaddr *)&server, (unsigned int *)&length) == SOCKET_ERROR) { 
+       closesocket(sock);
 #ifdef WIN32
         WSACleanup();
 #endif
         throw Exception(REC_SOCKET_ERROR_GETPORT,
-                     "Server can't determine port assigned to TCP/IP socket.");
-      }
+			"Server can't determine port assigned to TCP/IP socket.");
+     }
      *port_number=ntohs(server.sin_port);            // return used port number
    }
                                         // listen on port for connecting client
