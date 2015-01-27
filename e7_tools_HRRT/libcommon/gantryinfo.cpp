@@ -249,7 +249,12 @@ float GantryInfo::crystalLayerBackgroundErgRatio(int layer)
 
 float GantryInfo::crystalLayerDepth(int layer)
 {
-    return 1.0;
+    float depth=0.0;
+    if (layer<crystalLayers())
+        get("crystalLayerDepth[%d]", layer, depth);
+    return depth;
+
+   // return 1.0;
 }
 
 float GantryInfo::ringRadius()

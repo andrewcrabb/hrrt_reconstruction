@@ -31,12 +31,13 @@ SOURCES.cpp =	Gauss_3D.cpp \
 
 OBJECTS =	${SOURCES.cpp:.cpp=.o}
 
-# all:		${LIBRARY} ${STATICLIB}
+all:		${LIBRARY} ${STATICLIB}
 default:	${LIBRARY}
-all:		install
+staticlib:      ${STATICLIB}
+# all:		install
 
-# ${LIBRARY}:	${OBJECTS}
-#		${CC} --shared -Wl,-soname,${LIBRARY} -o ${LIBRARY} ${SOURCES.cpp:.cpp=.o}
+${LIBRARY}:	${OBJECTS}
+	${CC} --shared -Wl,-soname,${LIBRARY} -o ${LIBRARY} ${SOURCES.cpp:.cpp=.o}
 
 ${STATICLIB}:	${OBJECTS}
 		${AR} r ${STATICLIB} ${SOURCES.cpp:.cpp=.o}

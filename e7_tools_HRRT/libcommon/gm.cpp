@@ -177,8 +177,10 @@ float GM::crystalLayerBackgroundErgRatio(const unsigned short int layer) const
  */
 /*---------------------------------------------------------------------------*/
 float GM::crystalLayerDepth(const unsigned short int layer) const
- { if (values_stored && (crystal_layer_depth.size() > layer))
-    return(crystal_layer_depth[layer]*10.0f);
+ { 
+   std::cout << "XXX yes I am in GM::crystalLayerDepth" << std::endl;
+   if (values_stored && (crystal_layer_depth.size() > layer))
+     return(crystal_layer_depth[layer]*10.0f);
    throw Exception(REC_GANTRY_MODEL_UNKNOWN_VALUE,
                    "Access to an unknown gantry model value.");
  }
@@ -536,6 +538,9 @@ void GM::init(const std::string model_num)
                                     "Material of crystal layer unknown.");
               crystal_layer_material[i]=mat;
               crystal_layer_depth[i]=model.crystalLayerDepth(i);
+
+	      std::cout << "ahc crystal_layer_depth[" << i << "] is now " crystal_layer_depth[i] << std::endl;
+
               crystal_layer_fwhm_ergres[i]=model.crystalLayerFWHMErgRes(i);
               crystal_layer_background_ergratio[i]=
                model.crystalLayerBackgroundErgRatio(i);
@@ -547,7 +552,7 @@ void GM::init(const std::string model_num)
 #else // USE_GANTRY_MODEL
 void GM::init(const std::string model_num)
 { 
-  std::cerr << "GM::init(" << model_num << ")" << std::endl;
+  std::cerr << "GM::init XXX (" << model_num << ")" << std::endl;
   if (GantryInfo::load(atoi(model_num.c_str())) == 0)
     throw Exception(REC_GANTRY_MODEL,
                     "The gantry model '#1' is unknown.").arg(model_num);
@@ -634,7 +639,14 @@ void GM::init(const std::string model_num)
                                     "Material of crystal layer unknown.");
               }
               crystal_layer_material[i]=mat;
+
+	      std::cerr << "ahc yes I am here in the else" << std::endl;
+
               crystal_layer_depth[i]=GantryInfo::crystalLayerDepth(i);
+
+	      std::cerr << "ahc crystal_layer_depth[" << i << "] is now " << crystal_layer_depth[i] << std::endl;
+
+
               crystal_layer_fwhm_ergres[i]=GantryInfo::crystalLayerFWHMErgRes(i);
               crystal_layer_background_ergratio[i]=
                GantryInfo::crystalLayerBackgroundErgRatio(i);
@@ -1042,6 +1054,10 @@ void GM::printUsedGMvalues()
        arg(i)->arg(def(crystalLayerBackgroundErgRatio(i)));
       fl->logMsg("crystalLayerFWHMErgRes(#1)=#2%", 2)->arg(i)->
        arg(def(crystalLayerFWHMErgRes(i)));
+
+      fl->logMsg("XXX hello from GM::printUsedGMvalues", 2);
+
+
       fl->logMsg("crystalLayerDepth(#1)=#2cm", 2)->arg(i)->
        arg(crystalLayerDepth(i)/10.0f);
     }

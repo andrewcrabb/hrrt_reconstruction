@@ -9,7 +9,7 @@
 CC              = g++
 RM              = rm -f
 DEBUG           = 
-#DEBUG           = -g
+DEBUG           = -g
 SRCPATH         = /home/peter/HRRT/HRRT_UG_SW/V_1.0.1/Src/HRRT_1_0_1_src/hrrt_osem3d
 BUILD_DIR       = $(SRCPATH)
 EXECPATH        = $(HOME)/bin

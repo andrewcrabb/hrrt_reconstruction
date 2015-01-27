@@ -263,7 +263,8 @@ L64EventPacket *load_buffer_64()
 L32EventPacket *load_buffer_32()
 {
   L64EventPacket *l64;
-  if ((l64 = load_buffer_64()) == NULL) return NULL;
+  if ((l64 = load_buffer_64()) == NULL) 
+  	return NULL;
 	rebin_packet(*l64, *l32_container);
   l64->status = L64EventPacket::empty;
   return l32_container->num_events>0 ? l32_container : NULL;

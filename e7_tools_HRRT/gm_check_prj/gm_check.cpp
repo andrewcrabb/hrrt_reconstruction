@@ -7,7 +7,7 @@
     used by any of the E7-Tools.
  */
 
-#include <iostream>
+#include <stdio.h>
 #include "e7_common.h"
 #include "getopt_wrapper.h"
 #include "gm.h"
