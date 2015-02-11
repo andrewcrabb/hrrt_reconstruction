@@ -2,33 +2,33 @@
 /*
 ------------------------------------------------
 
-   Component       : HRRT
+     Component       : HRRT
 
-   Authors         : Mark Lenox, Merence Sibomana
-   Language        : C++
-   Platform        : Microsoft Windows.
+     Authors         : Mark Lenox, Merence Sibomana
+     Language        : C++
+     Platform        : Microsoft Windows.
 
-   Creation Date   : 04/02/2003
-   Modification history:
-                    02/09/2005 : Remove time_sequence constraint
-                    05/17/2005 : Add reset_coinc_map function to reset the coincidence map counters.
-                    11/30/2005 : Add HRRT low Resolution and P39 support
-                                 Add nodoi support
-                    02/09/2006:  Exclude border crystals by default and provide an option to keep them (-ib)
-                    03/13/2006: In span3, use span9 for delayed
-                    03/13/2006: Bug fix in rebin_packet: use signed int for crystal position.
-                                Comparing unsigned position to signed fan limits give unexpected results.
-                    04/12/2006: Bug fix in lmscan_64
-                                Missing Head line restored in lmscan_64
-                    04/18/2006: Changes WRT code review 04/13/06
-                                Restore motion correction test in process_tagword
-                                use "unsigned int ax,ay,bx,by" instead of "int" in rebin_packet
-                    04/26/2006: keep tx_source.z_low and tx_mock.z_low positive to allow comparison with unsigned.
-                    10/28/2007: Added check_start_of_frame
-                    01/09/2009: Display seconds in check_start_of_frame() skipping mode
-                      Replace check_start_countrate() by
-                      find_start_countrate() to locate histogramming start time
-          20-MAY-2009: Use a single fast LUT rebinner
+     Creation Date   : 04/02/2003
+     Modification history:
+                                        02/09/2005 : Remove time_sequence constraint
+                                        05/17/2005 : Add reset_coinc_map function to reset the coincidence map counters.
+                                        11/30/2005 : Add HRRT low Resolution and P39 support
+                                                                 Add nodoi support
+                                        02/09/2006:  Exclude border crystals by default and provide an option to keep them (-ib)
+                                        03/13/2006: In span3, use span9 for delayed
+                                        03/13/2006: Bug fix in rebin_packet: use signed int for crystal position.
+                                                                Comparing unsigned position to signed fan limits give unexpected results.
+                                        04/12/2006: Bug fix in lmscan_64
+                                                                Missing Head line restored in lmscan_64
+                                        04/18/2006: Changes WRT code review 04/13/06
+                                                                Restore motion correction test in process_tagword
+                                                                use "unsigned int ax,ay,bx,by" instead of "int" in rebin_packet
+                                        04/26/2006: keep tx_source.z_low and tx_mock.z_low positive to allow comparison with unsigned.
+                                        10/28/2007: Added check_start_of_frame
+                                        01/09/2009: Display seconds in check_start_of_frame() skipping mode
+                                            Replace check_start_countrate() by
+                                            find_start_countrate() to locate histogramming start time
+                    20-MAY-2009: Use a single fast LUT rebinner
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -268,7 +268,7 @@ long process_tagword(long tagword, long duration, FILE *out_hc)
 
 
 
-inline void load_buffer_32(unsigned*&buf, int &nevents)
+inline void load_buffer_32(unsigned *&buf, int &nevents)
 {
     static L32EventPacket *current = NULL;
     if (current != NULL) {
@@ -393,13 +393,13 @@ static int goto_event_32(int target)
 
 static unsigned int ewtypes[16] = {3, 3, 1, 0, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3};
 
-inline void load_buffer_64(unsigned*&buf, int &nevents, int &nsync)
+inline void load_buffer_64(unsigned *&buf, int &nevents, int &nsync)
 {
     /*
-        DWORD bytes_to_read=2*sizeof(unsigned)*MAX_EVENTS, bytes_read=0;
-        ReadFile(in->handle, buf, bytes_to_read, &bytes_read, NULL);
-        nevents = bytes_read/(2*sizeof(unsigned));
-        nsync = 0;
+            DWORD bytes_to_read=2*sizeof(unsigned)*MAX_EVENTS, bytes_read=0;
+            ReadFile(in->handle, buf, bytes_to_read, &bytes_read, NULL);
+            nevents = bytes_read/(2*sizeof(unsigned));
+            nsync = 0;
     */
     static L64EventPacket *current = NULL;
     if (current != NULL) current->status = L64EventPacket::empty;
@@ -583,9 +583,9 @@ int goto_event(int target)
 /*
 static double total(unsigned *v, int count)
 {
-    double sum = 0;
-    for (int i=0; i<count; i++) sum += v[i];
-    return sum;
+        double sum = 0;
+        for (int i=0; i<count; i++) sum += v[i];
+        return sum;
 }
 */
 
@@ -631,8 +631,8 @@ void write_coin_map(const char *datafile)
     fclose(fp);
 
     /*
-        cout << "Total Prompt CH " << total(coinh_p, ncrystals/2) << ", " << total(coinh_p+(ncrystals/2), ncrystals/2) << endl;
-        cout << "Total Delayed CH " << total(coinh_d, ncrystals/2) << ", " << total(coinh_d+(ncrystals/2), ncrystals/2) << endl;
+            cout << "Total Prompt CH " << total(coinh_p, ncrystals/2) << ", " << total(coinh_p+(ncrystals/2), ncrystals/2) << endl;
+            cout << "Total Delayed CH " << total(coinh_d, ncrystals/2) << ", " << total(coinh_d+(ncrystals/2), ncrystals/2) << endl;
      */
 
 #ifdef CREATE_SNG
@@ -930,7 +930,8 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
         case 2: // tag word
             src_pos += 2;
             tag = (ew1 & 0xffff) | ((ew2 & 0xffff) << 16);
-            if (hist_mode == 7) { // transmission mode
+            if (hist_mode == 7) {
+                // transmission mode
                 if ((tag & 0xE0000000) == 0x80000000) {
                     // timetag
                     tx_source.timer++;
@@ -941,7 +942,7 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
                     int head = (tag & 0x000f0000) >> 16;
                     int tx_y = (tag & 0x0000ff00) >> 8;
                     int tx_x = tag & 0x000000ff;
-                    //                  cout << "TX pos: " << tx_source.head << "," << tx_source.x << "," << tx_source.y << ": " << tx_mock.timer << "msec" << endl;
+                    //   cout << "TX pos: " << tx_source.head << "," << tx_source.x << "," << tx_source.y << ": " << tx_mock.timer << "msec" << endl;
                     tx_source.head = (tag & 0x000f0000) >> 16;
                     tx_source.y = (tag & 0x0000ff00) >> 8;
                     tx_source.x = tag & 0x000000ff;
@@ -954,8 +955,10 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
                     tx_mock.z_low = tx_mock.y - (tx_span / 2);
                     tx_mock.z_high = tx_mock.y + (tx_span / 2);
                     // keep tx_low positive to allow comparison with unsigned
-                    if (tx_source.z_low < 0) tx_source.z_low = 0;
-                    if (tx_mock.z_low < 0) tx_mock.z_low = 0;
+                    if (tx_source.z_low < 0)
+                        tx_source.z_low = 0;
+                    if (tx_mock.z_low < 0)
+                        tx_mock.z_low = 0;
                 } else {
                     // other timetag
                     out_buf[dst_pos] = tag;
@@ -966,7 +969,8 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
                 dst_pos++;
             }
             break;
-        default: // event: 0=prompt, 1=delayed
+        default:
+            // event: 0=prompt, 1=delayed
             src_pos += 2;
             error_flag = 0;
             mpe = ((ew1 & 0x00070000) >> 16) | ((ew2 & 0x00070000) >> 13);
@@ -994,33 +998,44 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
                 error_flag++;
             }
 
-            if (error_flag) continue;
+            if (error_flag)
+                continue;
             address = -1;
             if (doia == 7) {
                 // Transmission : b is the single event
                 // Ignore extra time per crystal due to accelaration/decceleration
-                if (!doi_processing) doib = 1;
+                if (!doi_processing)
+                    doib = 1;
                 if (tx_source.timer < tx_source_speed + 1) {
                     if (by >= tx_source.z_low && by <= tx_source.z_high) {
                         address = rebin_event_tx(mpe, doia, ax, ay, doib, bx, by);
-                        if (address >= 0)  address |=  0x20000000; // Transmission, , mock otherwise
+                        if (address >= 0) {
+                            address |=  0x20000000; // Transmission, , mock otherwise
+                        }
                     } else if (by >= tx_mock.z_low && by <= tx_mock.z_high) {
                         address = rebin_event_tx(mpe, doia,  tx_mock.x, tx_mock.y, doib, bx, by);
                     }
-                    if (address >= 0)  address |= 0x40000000; // set prompt flag
+                    if (address >= 0) {
+                        address |= 0x40000000; // set prompt flag
+                    }
                 }
             } else if (doib == 7) {
                 // Transmission: a is the single event
                 // Ignore extra time per crystal due to accelaration/decceleration
-                if (!doi_processing) doia = 1;
+                if (!doi_processing)
+                    doia = 1;
                 if (tx_source.timer < tx_source_speed + 1) {
                     if ( ay >= tx_source.z_low && ay <= tx_source.z_high) {
                         address = rebin_event_tx(mpe, doia, ax, ay, doib, bx, by);
-                        if (address >= 0) address |=  0x20000000; // Transmission, mock otherwise
+                        if (address >= 0) {
+                            address |=  0x20000000; // Transmission, mock otherwise
+                        }
                     } else if (ay >= tx_mock.z_low && ay <= tx_mock.z_high) {
                         address = rebin_event_tx(mpe, doia, ax, ay, doib, tx_mock.x, tx_mock.y);
                     }
-                    if (address >= 0) address |= 0x40000000; // set prompt flag
+                    if (address >= 0) {
+                        address |= 0x40000000; // set prompt flag
+                    }
                 }
             } else {
                 // Emission
@@ -1036,14 +1051,18 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
                             if (type == 0) {
                                 // prompt
                                 address = rebin_event( mpe, doia, ax, ay, doib, bx, by /*, type*/);
-                                if (address >= 0) address |= 0x40000000; // set prompt flag
+                                if (address >= 0) {
+                                    address |= 0x40000000; // set prompt flag
+                                }
                             } else {
                                 // delayed: ignore by setting address to -1
                                 address = -1;
                             }
                         } else {
                             address = rebin_event( mpe, doia, ax, ay, doib, bx, by /*, type*/);
-                            if (address >= 0 && type == 0) address |= 0x40000000; // set prompt flag
+                            if (address >= 0 && type == 0) {
+                                address |= 0x40000000; // set prompt flag
+                            }
                         }
                     }
                     //
@@ -1080,10 +1099,13 @@ void process_tagword(const L32EventPacket &src, FILE *out_hc)
     unsigned *buf = src.events;
     int nevents = src.num_events;
     for (int i = 0; i < nevents; i++, buf++) {
-        if (((*buf) & 0x80000000) != 0) process_tagword(*buf, -1, out_hc);
-        else {
-            if (((*buf) & 0x40000000) != 0) prompts++;
-            else randoms++;
+        if (((*buf) & 0x80000000) != 0) {
+            process_tagword(*buf, -1, out_hc);
+        } else {
+            if (((*buf) & 0x40000000) != 0)
+                prompts++;
+            else
+                randoms++;
         }
     }
     L32EventPacket::current_time = current_time;
@@ -1109,12 +1131,15 @@ void process_tagword(const L64EventPacket &src, FILE *out_hc)
         case 2: // tag word
             i += 2;
             tag = (ew1 & 0xffff) | ((ew2 & 0xffff) << 16);
-            if ((tag & 0x80000000) != 0) process_tagword(tag, -1, out_hc);
+            if ((tag & 0x80000000) != 0) 
+            	process_tagword(tag, -1, out_hc);
             break;
         default: // event
             i += 2;
-            if (type == 0) prompts++;
-            else randoms++;
+            if (type == 0) 
+            	prompts++;
+            else 
+            	randoms++;
         }
     }
 }
@@ -1155,13 +1180,16 @@ template <class T> int histogram(T *sino, char *delayed,
                 process_tagword(cew.value, duration, out_hc);
             } else {
                 if (cew.value >= 0 && cew.value < sino_size) {
-                    if (cew.type == Event_32::PROMPT) sino[cew.value]++;
-                    else sino[cew.value]--;
+                    if (cew.type == Event_32::PROMPT) 
+                    	sino[cew.value]++;
+                    else 
+                    	sino[cew.value]--;
                     //if (sinogram[cew.address] > overflow_size)
                     //  cout << "Warning:  overflow sinogram, address=" << cew.address << endl;
                 }
             }
-            if (stop_count > 0 && event_counter >= stop_count) break;
+            if (stop_count > 0 && event_counter >= stop_count) 
+            	break;
         }
         break;
 
@@ -1364,33 +1392,33 @@ void lmscan(FILE *out, long *duration)
 head_curve *lmsplit(FILE *out, long *duration)
 {
     /* REDESIGN NEEDED (MS 01-APR-04
-        int ev_filter = 0;
+            int ev_filter = 0;
 
-        *duration = 0;
+            *duration = 0;
 
-        Event_32 cew;
+            Event_32 cew;
 
-        while (!next_event(in,cew,0))
-        {
-            if (cew.type == Event_32::TAG)
+            while (!next_event(in,cew,0))
             {
-                fwrite((void*)&cew.type,1,sizeof(long),out);
-                //cout << "tag: " << hex << cew.tag << endl;
-            }
-            else
-            {
-                // write one in 3 event words
-                if (!(ev_filter % 3))
-                {
-                   //cout << "event: " << hex << cew.event << endl;
-                   fwrite((void*)&cew.value,1,sizeof(long),out);
-                }
-                //else
-                    //cout << "skip: " << hex << cew.event << endl;
+                    if (cew.type == Event_32::TAG)
+                    {
+                            fwrite((void*)&cew.type,1,sizeof(long),out);
+                            //cout << "tag: " << hex << cew.tag << endl;
+                    }
+                    else
+                    {
+                            // write one in 3 event words
+                            if (!(ev_filter % 3))
+                            {
+                                 //cout << "event: " << hex << cew.event << endl;
+                                 fwrite((void*)&cew.value,1,sizeof(long),out);
+                            }
+                            //else
+                                    //cout << "skip: " << hex << cew.event << endl;
 
-                ev_filter++;
+                            ev_filter++;
+                    }
             }
-        }
     */
     return 0;
 }
