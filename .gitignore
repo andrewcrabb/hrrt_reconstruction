@@ -5,6 +5,7 @@
 /temp/
 /tmp/
 *.bak
+*.sublime*
 
 # Project Files #
 ######################
