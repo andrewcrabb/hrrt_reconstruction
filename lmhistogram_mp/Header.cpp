@@ -166,7 +166,11 @@ int CHeader::CloseFile()
 	if ((m_FileOpen != 0)&& (hdr_file != NULL))
 	{
 		fclose(hdr_file);
-		*m_FileName = NULL;
+		// ahc this was set to NULL
+		*m_FileName = '\0';
+		// ahc my addition 1/27/15
+		// They forgot to set this flag?  Seems odd.
+		m_FileOpen = 0;
 	}
 	return OK;
 }
