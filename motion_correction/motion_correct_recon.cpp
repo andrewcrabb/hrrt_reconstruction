@@ -599,7 +599,7 @@ int main(int argc, char **argv)
       end_frame = num_frames-1;
     } else {
       if (ref_frame<0) {
-        fprintf(log_fp,"Use -r to specify reference, no frame long enough for default\n");
+        fprintf(log_fp,"Use -r to specify reference, reference frame not found\n");
         exit(1);
       }
       if (end_frame<0)
@@ -656,7 +656,7 @@ int main(int argc, char **argv)
     end_frame = num_frames-1;
   } else {
     if (ref_frame<0) {
-      fprintf(log_fp,"Use -r to specify reference, no frame long enough for default\n");
+      fprintf(log_fp,"Use -r to specify reference, reference frame not found\n");
       exit(1);
     }
     if (end_frame<0)
