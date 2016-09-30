@@ -167,7 +167,7 @@ static void usage(const char *pgm){
   printf("                  suggested values: FDG=36\n");
   //printf("       -c time_constant (default from image header, 9.34e-6 if not in header]\n");
   printf("       -c time_constant (default from image header, 6.67e-6 (for Hopkins HRRT) )\n");
-  printf("       -d post_injection_delay (Time from injection to start of scan (seconds))\n");
+  printf("       -D no_ref_frame_delay (Do not delay 600 seconds before looking for reference frame)\n");
   printf("       -q units (default Bq/ml)\n");
   printf("       -C calibration_dir (default C:\\CPS\\calibration_files)\n");
   printf("       -S cluster_submit_dir (default D:\\Recon-Jobs\\Jobs-Submitted)\n");
@@ -367,7 +367,7 @@ int main(int argc, char **argv)
   dir_log[0] = '\0';
   log_fp=NULL;  // Made global so run_system_command can log.
   // Global parameters
-  int g_post_injection_delay = 0;
+  int g_no_ref_frame_delay = 0;   // Injection was some time before scan: don't wait 600 seconds to look for reference frame.
 
   if (argc<2) usage(argv[0]);
   em_file = argv[1];
@@ -410,12 +410,9 @@ int main(int argc, char **argv)
       case 'a':
       athr = optarg;
       break;
-      case 'd':
-      // post injection delay
-      if (sscanf(optarg, "%d", &g_post_injection_delay) != 1) {
-        printf("Invalid post_injection_delay: %s\n", optarg);
-        usage(argv[0]);
-      }
+      case 'D':
+      // No delay to look for reference frame, as scan was delayed after injection
+      g_no_ref_frame_delay = 1;
       break;
       case 'r':
       if (sscanf(optarg,"%d",&ref_frame) != 1) {
@@ -656,7 +653,7 @@ if (*ext == 'v') {
     get_frame_info(frame, fname, num_frames);
     if (start_frame<0 && frame_info[frame].duration>=MIN_FRAME_DURATION)
       start_frame = frame;
-    if ((frame_info[frame].trues > max_trues) && ((frame_info[frame].start_time + g_post_injection_delay) >=  POST_INJECTION_THRESHOLD)){
+    if ((frame_info[frame].trues > max_trues) && (g_no_ref_frame_delay || (frame_info[frame].start_time >= POST_INJECTION_THRESHOLD ))){
       max_trues=frame_info[frame].trues;
       ref_frame=frame;
     }
