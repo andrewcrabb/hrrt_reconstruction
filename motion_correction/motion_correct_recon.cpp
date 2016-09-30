@@ -348,7 +348,8 @@ int main(int argc, char **argv)
   FILE *fp=NULL, *pp=NULL;
   int c, exec=1, verbose = 0, overwrite=0, recon_flag=1;
   int default_smoothing=6; // default smoothing 6mm
-  int num_iterations=10, psf_flag=1;
+  // ahc 9/8/16 psf_flag was set to 1
+  int num_iterations=10, psf_flag=0;
   int ecat_reslice_flag = 1;
   int brand_new_final_align = 0;
   
