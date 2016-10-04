@@ -100,11 +100,12 @@ static void usage(const char *pgm)
 {
   printf("%s Build %s %s \n", pgm, __DATE__, __TIME__);
   printf("usage: %s em_file  -n norm [-u mu-map] [-F start_frame[,end_frame]]"
-         "      [-r ref_frame  [-x recon_pgm] [options]\n", pgm);
+   "      [-r ref_frame  [-x recon_pgm] [options]\n", pgm);
   printf("       em_file.[l64|dyn|.v]: histogram if .l64, reconstruction 128x128 if .dyn \n");
   printf("Options: \n");
   printf("        -a e7_sino athr argument (default blank )\n");
   printf("        -O Overwrite exiting images (reuse images by default)\n");
+  printf("       -d no_ref_frame_delay (Do not delay 600 seconds before looking for reference frame)\n");
   printf("        -g fwhm : FWHM in mm used for gaussian smoothing of alignment images\n");
   printf("        -T AIR_threshold (percent of max pixel) (default= 21.5)\n");
   printf("                  suggested values: FDG=36\n");
@@ -169,40 +170,40 @@ static int compute_scatter()
   if ((ext=strrchr(at_file,'.')) != NULL)
     if (strcasecmp(ext,".i") == 0)
       *ext = '\0';
-  strcat(at_file,".a");
-  if (access(at_file,R_OK) == 0  && overwrite==0) {
-    fprintf(log_fp,"Reusing existing %s\n",at_file);
-  } else {
-    sprintf(cmd_line, "%s/%s --model 328 -u %s -w 128 --oa %s --span 9 --mrd 67 --prj ifore --force -l 53,%s", \
-            program_path, prog_e7_fwd, mu_file, at_file, log_dir);
-    fprintf(log_fp,"%s\n",cmd_line);
-    fflush(log_fp);
-    if (exec)
-      system(cmd_line);
-  }
-    // Compute scatter
-
-  if (lber<0)
-    // i.e. if not already indicated by -L option as input, then it reads from the .n.hdr file
-    get_lber(norm_file, lber);
-
-  for (int frame=0; frame<num_frames; frame++) {
-    sprintf(sc_file, "%s_frame%d_sc.s ", em_prefix,frame);
-    if (access(sc_file,R_OK) == 0 && overwrite==0) {
-      fprintf(log_fp,"Reusing existing %s\n",sc_file);
+    strcat(at_file,".a");
+    if (access(at_file,R_OK) == 0  && overwrite==0) {
+      fprintf(log_fp,"Reusing existing %s\n",at_file);
     } else {
-      sprintf(cmd_line, "%s/%s -e %s_frame%d.tr.s -u %s  -w 128 "
-              "-a %s -n %s --force --os %s --os2d --gf --model 328 "
-              "--skip 2 --mrd 67 --span 9 --ssf 0.25,2 -l 73,%s -q %s",
-              program_path, prog_e7_sino, em_prefix, frame, mu_file, at_file, norm_file, sc_file, log_dir, qc_dir);
-      if (lber>0.0f)
-        sprintf(&cmd_line[strlen(cmd_line)]," --lber %g",lber);
-      if (athr != NULL)
-        sprintf(&cmd_line[strlen(cmd_line)]," --athr %s",athr);
+      sprintf(cmd_line, "%s/%s --model 328 -u %s -w 128 --oa %s --span 9 --mrd 67 --prj ifore --force -l 53,%s", \
+        program_path, prog_e7_fwd, mu_file, at_file, log_dir);
       fprintf(log_fp,"%s\n",cmd_line);
       fflush(log_fp);
       if (exec)
         system(cmd_line);
+    }
+    // Compute scatter
+
+    if (lber<0)
+    // i.e. if not already indicated by -L option as input, then it reads from the .n.hdr file
+      get_lber(norm_file, lber);
+
+    for (int frame=0; frame<num_frames; frame++) {
+      sprintf(sc_file, "%s_frame%d_sc.s ", em_prefix,frame);
+      if (access(sc_file,R_OK) == 0 && overwrite==0) {
+        fprintf(log_fp,"Reusing existing %s\n",sc_file);
+      } else {
+        sprintf(cmd_line, "%s/%s -e %s_frame%d.tr.s -u %s  -w 128 "
+          "-a %s -n %s --force --os %s --os2d --gf --model 328 "
+          "--skip 2 --mrd 67 --span 9 --ssf 0.25,2 -l 73,%s -q %s",
+          program_path, prog_e7_sino, em_prefix, frame, mu_file, at_file, norm_file, sc_file, log_dir, qc_dir);
+        if (lber>0.0f)
+          sprintf(&cmd_line[strlen(cmd_line)]," --lber %g",lber);
+        if (athr != NULL)
+          sprintf(&cmd_line[strlen(cmd_line)]," --athr %s",athr);
+        fprintf(log_fp,"%s\n",cmd_line);
+        fflush(log_fp);
+        if (exec)
+          system(cmd_line);
 
       //Scatter QC
       /*
@@ -213,17 +214,17 @@ static int compute_scatter()
         chdir(qc_dir);
       */
 
-      sprintf(cmd_line,"cd %s; %s %s/scatter_qc_00.plt", em_dir, prog_gnuplot, em_dir);
-      fprintf(log_fp,"%s\n",cmd_line);
-      fflush(log_fp);
-      if (exec)
-        system(cmd_line);
+        sprintf(cmd_line,"cd %s; %s %s/scatter_qc_00.plt", em_dir, prog_gnuplot, em_dir);
+        fprintf(log_fp,"%s\n",cmd_line);
+        fflush(log_fp);
+        if (exec)
+          system(cmd_line);
 
-      sprintf(cmd_line,"rename %s/scatter_qc_00.ps %s/%s_frame%d_sc_qc.ps ", em_dir, em_dir, em_prefix, frame);
-      fprintf(log_fp,"%s\n",cmd_line);
-      fflush(log_fp);
-      if (exec)
-        system(cmd_line);
+        sprintf(cmd_line,"rename %s/scatter_qc_00.ps %s/%s_frame%d_sc_qc.ps ", em_dir, em_dir, em_prefix, frame);
+        fprintf(log_fp,"%s\n",cmd_line);
+        fflush(log_fp);
+        if (exec)
+          system(cmd_line);
 
       /*
       sprintf(cmd_line, "cd %s", em_dir);
@@ -232,28 +233,28 @@ static int compute_scatter()
       if (exec)
         chdir(em_dir);
       */
+      }
     }
+    return(0);
   }
-  return(0);
-}
 
-static void AIR_motion_qc(const char *ecat_file, float threshold)
-{
-  char plt_fname[FILENAME_MAX], dat_fname[FILENAME_MAX];
-  int frame = 0;
-  char line[40];
-  FILE *qc_dat_file=NULL, *qc_plt_file=NULL, *pp=NULL;
+  static void AIR_motion_qc(const char *ecat_file, float threshold)
+  {
+    char plt_fname[FILENAME_MAX], dat_fname[FILENAME_MAX];
+    int frame = 0;
+    char line[40];
+    FILE *qc_dat_file=NULL, *qc_plt_file=NULL, *pp=NULL;
 
-  int thr = (int)(threshold*32767/100);
+    int thr = (int)(threshold*32767/100);
 
-  for (frame=0; frame<num_frames; frame++) {
+    for (frame=0; frame<num_frames; frame++) {
       int frame1=frame+1;
 
       if (ecat_reslice_flag) {  // ahc no
         if (frame_info[frame].em_align_flag==0) {
           // Copy frame
           sprintf(cmd_line,"%s/%s -i %s.v,%d,1,1 -o %s_rsl.v,%d,1,1",
-		  program_path, prog_matcopy, \
+            program_path, prog_matcopy, \
                   im_prefix, frame1, im_prefix, frame1); // ECAT 1-N counting
           fprintf(log_fp,"%s\n",cmd_line);  fflush(log_fp);
           if (exec)
@@ -263,7 +264,7 @@ static void AIR_motion_qc(const char *ecat_file, float threshold)
       }
       
       sprintf(cmd_line,"%s/%s %s,%d,1,1 %s,%d,1,1 %s_fr%d.air -m 6 -t1 %d -t2 %d",
-	      program_path, prog_alignlinear, \
+       program_path, prog_alignlinear, \
               ecat_file, ref_frame+1, ecat_file, frame+1, // ECAT 1-N counting
               em_prefix, frame,                           // Standardized 0-N counting
               thr, thr);
@@ -273,48 +274,48 @@ static void AIR_motion_qc(const char *ecat_file, float threshold)
       
       if (ecat_reslice_flag) {
         sprintf(cmd_line,"%s/%s %s_fr%d.air %s_rsl.v,%d,1,1 -a %s.v,%d,1,1 -k -o",
-		program_path, prog_reslice, \
-                im_prefix, frame, im_prefix, frame1, im_prefix, frame1);
+          program_path, prog_reslice, \
+          im_prefix, frame, im_prefix, frame1, im_prefix, frame1);
         fprintf(log_fp,"%s\n",cmd_line);
         if (exec)
           system(cmd_line);
       }
     }
   //Create Motion QC plot
-  if (exec) {
-    sprintf(dat_fname,"%s_motion_qc.dat", em_prefix);
-    if ((qc_dat_file=fopen(dat_fname,"wt")) == NULL) {
-      fprintf(log_fp,"Error opening file %s\n", dat_fname);
-      exit(1);
+    if (exec) {
+      sprintf(dat_fname,"%s_motion_qc.dat", em_prefix);
+      if ((qc_dat_file=fopen(dat_fname,"wt")) == NULL) {
+        fprintf(log_fp,"Error opening file %s\n", dat_fname);
+        exit(1);
+      }
     }
-  }
-  
-  for (frame=0; frame<num_frames; frame++) {
-    int x0 = frame_info[frame].start_time;
-    int x1 = x0+frame_info[frame].duration-1;
-    if (frame>=start_frame && frame<num_frames && frame != ref_frame) {
+
+    for (frame=0; frame<num_frames; frame++) {
+      int x0 = frame_info[frame].start_time;
+      int x1 = x0+frame_info[frame].duration-1;
+      if (frame>=start_frame && frame<num_frames && frame != ref_frame) {
       // motion_distance output is like '0 0.694 0.733 -0.224 1.03'
-      sprintf(cmd_line,"motion_distance -a %s_fr%d.air", em_prefix, frame);
-      fprintf(log_fp,"%s\n",cmd_line);
-      if (exec) {
-        if ((pp = popen(cmd_line,"r")) != NULL) {
-          fgets(line, sizeof(line),pp);
-          fprintf(qc_dat_file,"%d %s",x0, line);
-          fprintf(qc_dat_file,"%d %s",x1, line);
-          pclose(pp);
-        } else {
-          fprintf(log_fp,"Error opening pipe %s\n", cmd_line);
-          exit(1);
+        sprintf(cmd_line,"motion_distance -a %s_fr%d.air", em_prefix, frame);
+        fprintf(log_fp,"%s\n",cmd_line);
+        if (exec) {
+          if ((pp = popen(cmd_line,"r")) != NULL) {
+            fgets(line, sizeof(line),pp);
+            fprintf(qc_dat_file,"%d %s",x0, line);
+            fprintf(qc_dat_file,"%d %s",x1, line);
+            pclose(pp);
+          } else {
+            fprintf(log_fp,"Error opening pipe %s\n", cmd_line);
+            exit(1);
+          }
+        }
+      } else {
+        if (exec) {
+          fprintf(qc_dat_file,"%d %d 0 0 0 0\n",x0, x0);
+          fprintf(qc_dat_file,"%d %d 0 0 0 0\n",x1, x0);
         }
       }
-    } else {
-      if (exec) {
-        fprintf(qc_dat_file,"%d %d 0 0 0 0\n",x0, x0);
-        fprintf(qc_dat_file,"%d %d 0 0 0 0\n",x1, x0);
-      }
     }
-  }
-  if (exec)
+    if (exec)
     fclose(qc_dat_file); // close .dat file
   sprintf(plt_fname,"%s_motion_qc.plt", em_prefix);
   if (exec) {
@@ -353,7 +354,7 @@ static int sc_motion_qc()
   int len = strlen(sc_prefix);
   while (len>2 && strncasecmp(&sc_prefix[len-2],"EM", 2)!=0)
     sc_prefix[--len] = '\0';
- 
+
   size_t sino_size = nprojs*nviews*nplanes*sizeof(float);
   for (frame=0; frame<num_frames; frame++) {
     sprintf(fname, "%s_frame%d_sc.s ", sc_prefix,frame);
@@ -388,7 +389,7 @@ static int sc_motion_qc()
       }
       fclose(fp);
     } else
-      fprintf(log_fp,"Create %s failed\n", fname);
+    fprintf(log_fp,"Create %s failed\n", fname);
   }
   sprintf(plt_fname,"%s_sc_qc.plt", sc_prefix);
   fprintf(log_fp,"Create %s\n", plt_fname);
@@ -454,6 +455,11 @@ int main(int argc, char **argv)
   char *p1=NULL, *p2=NULL;
   float AIR_threshold=21.5f;
 
+  // ahc additions (see also motion_correct_recon.cpp)
+  // Global parameters
+  int g_no_ref_frame_delay = 0;   // Injection was some time before scan: don't wait 600 seconds to look for reference frame.
+
+
   program_path[0] = '\0';
   prog_gnuplot[0] = '\0';
   dir_log[0] = '\0';
@@ -461,77 +467,81 @@ int main(int argc, char **argv)
   if (argc<2) usage(argv[0]);
   em_file = argv[1];
   mu_file[0] = '\0';
-  while ((c = getopt (argc-1, argv+1, "n:r:F:x:D:u:a:L:g:T:R:Otvp:z:l:")) != EOF) {
+  while ((c = getopt (argc-1, argv+1, "n:r:F:x:D:u:a:L:g:T:R:Odtvp:z:l:")) != EOF) {
     switch (c) {
+      case 'd':
+      // No delay to look for reference frame, as scan was delayed after injection
+      g_no_ref_frame_delay = 1;
+      break;
       case 'n':
-        norm_file = optarg;
-        break;
+      norm_file = optarg;
+      break;
       case 'u':
-        strcpy(mu_file, optarg);
-        break;
+      strcpy(mu_file, optarg);
+      break;
       case 'a':
-        athr = optarg;
-        break;
+      athr = optarg;
+      break;
       case 'L' :
-        if (sscanf(optarg,"%g",&lber) != 1) {
-          printf("Invalid LBER value : %s\n", optarg);
-          usage(argv[0]);
-        } 
-        break;
+      if (sscanf(optarg,"%g",&lber) != 1) {
+        printf("Invalid LBER value : %s\n", optarg);
+        usage(argv[0]);
+      } 
+      break;
       case 'x':
-        recon_pgm = optarg;
-        break;
+      recon_pgm = optarg;
+      break;
       case 'D':
-        data_dir = optarg;
-        break;
+      data_dir = optarg;
+      break;
       case 'O':
-        overwrite = 1;
-        break;
+      overwrite = 1;
+      break;
       case 'R':
-        if (sscanf(optarg,"%d",&ecat_reslice_flag) != 1) {
-          printf("Invalid ecat_reslice_flag : %s, should be integer number\n", optarg);
-          usage(argv[0]);
-        }
-        break;
+      if (sscanf(optarg,"%d",&ecat_reslice_flag) != 1) {
+        printf("Invalid ecat_reslice_flag : %s, should be integer number\n", optarg);
+        usage(argv[0]);
+      }
+      break;
       case 'g':
-        if (sscanf(optarg,"%d",&fwhm) != 1) {
-          printf("Invalid FWHM : %s, should be integer number\n", optarg);
-          usage(argv[0]);
-        }
-        break;
+      if (sscanf(optarg,"%d",&fwhm) != 1) {
+        printf("Invalid FWHM : %s, should be integer number\n", optarg);
+        usage(argv[0]);
+      }
+      break;
       case 'r':
-        if (sscanf(optarg,"%d",&ref_frame) != 1) {
-          printf("Invalid reference frame number : %s\n", optarg);
-          usage(argv[0]);
-        }
-        break;
+      if (sscanf(optarg,"%d",&ref_frame) != 1) {
+        printf("Invalid reference frame number : %s\n", optarg);
+        usage(argv[0]);
+      }
+      break;
       case 'F':
-        if (sscanf(optarg,"%d,%d",&start_frame, &end_frame) < 1) {
-          printf("Invalid reference frame range : %s\n", optarg);
-          usage(argv[0]);
-        }
-        break;
+      if (sscanf(optarg,"%d,%d",&start_frame, &end_frame) < 1) {
+        printf("Invalid reference frame range : %s\n", optarg);
+        usage(argv[0]);
+      }
+      break;
       case 't' :
-        exec = 0;
-        break;
+      exec = 0;
+      break;
       case 'v' :
-        verbose = 1;
-        break;
+      verbose = 1;
+      break;
       case 'T':
-        if (sscanf(optarg,"%g",&AIR_threshold) != 1) {
-          printf("Invalid AIR threshold : %s\n", optarg);
-          usage(argv[0]);
-        }
-        break;
-    case 'p':
+      if (sscanf(optarg,"%g",&AIR_threshold) != 1) {
+        printf("Invalid AIR threshold : %s\n", optarg);
+        usage(argv[0]);
+      }
+      break;
+      case 'p':
       // ahc program_path now a required argument.
       strcpy(program_path, optarg);
       break;
-    case 'z':
+      case 'z':
       // ahc fully qualified path to gnuplot now a required argument.
       strcpy(prog_gnuplot, optarg);
       break;
-    case 'l':
+      case 'l':
       // ahc optional path for log file.
       strcpy(dir_log, optarg);
       break;
@@ -564,7 +574,7 @@ int main(int argc, char **argv)
   fflush(stdout);
   memset(em_ecat_file,0,sizeof(em_ecat_file));
   memset(em_dyn_file,0,sizeof(em_dyn_file));
-    
+
   if (strcasecmp(ext,"v") == 0) {
     // ecat reconstructed images file
     MatrixFile *mf=NULL;
@@ -601,25 +611,46 @@ int main(int argc, char **argv)
         exit(1);
       }
       imh = (Image_subheader*)matdata->shptr;
-      frame_info[frame].start_time = imh->frame_start_time/1000;
-      frame_info[frame].duration = imh->frame_duration/1000;
-      frame_info[frame].randoms = imh->random_rate*frame_info[frame].duration;
-      frame_info[frame].trues = (imh->prompt_rate-imh->random_rate)*frame_info[frame].duration;
+      frame_info[frame].start_time = imh->frame_start_time / 1000;
+      frame_info[frame].duration   = imh->frame_duration / 1000;
+      frame_info[frame].randoms    = imh->random_rate * frame_info[frame].duration;
+      // This was giving overflow and negative numbers.
+      // frame_info[frame].trues      = (imh->prompt_rate - imh->random_rate) * frame_info[frame].duration;
+      float delta = imh->prompt_rate - imh->random_rate;
+       frame_info[frame].trues      = delta * frame_info[frame].duration;
 
-      printf("\n frame_info[%d].trues: %f (start_time: %d)", frame, frame_info[frame].trues,frame_info[frame].start_time);
+//      float f = (imh->prompt_rate - imh->random_rate);
+//      int i = frame_info[frame].duration;
+//      double trues = f * frame_info[frame].duration;
+//      double truesb = (imh->prompt_rate - imh->random_rate) * frame_info[frame].duration;
+//      printf("\nf %4.1f M i %d trues a %4.1f M, trues b %4.1f", f / 1000000.0, i, trues / 1000000.0, truesb / 1000000.0);
+
+//      printf("\n%s trues %4.1f M, prompt_rate %4.1f M random_rate %4.1f M, delta %4.1f M, product %4.1f M, duration %d",
+//         frame_info[frame].trues < 0.0 ? "Negative" : "Positive", \
+//         frame_info[frame].trues / 1000000.0, \
+//         imh->prompt_rate / 1000000.0, \
+//         imh->random_rate / 1000000.0, \
+//         (imh->prompt_rate - imh->random_rate) / 1000000.0, \
+//         frame_info[frame].duration, \
+//         (imh->prompt_rate - imh->random_rate) * frame_info[frame].duration / 1000000.0
+//         );
+
+
+      printf("\n frame_info[%d].trues: %4.1f M (start_time: %d)", frame, frame_info[frame].trues / 1000000.0, frame_info[frame].start_time);
       fflush(stdout);
 
-      if (frame_info[frame].trues<5000000)
-          printf(" Trues < 5M (Potential source of OSEM overestimation bias)");
+      if (frame_info[frame].trues < 5000000)
+        printf(" Trues < 5M (Potential source of OSEM overestimation bias)");
       fflush(stdout);
-                     
+
       frame_info[frame].MAF_frame = frame;
-      if (start_frame<0 && frame_info[frame].duration>=MIN_FRAME_DURATION)
+      if ((start_frame < 0) && (frame_info[frame].duration >= MIN_FRAME_DURATION))
         start_frame = frame;
 
-      if (frame_info[frame].trues>max_trues && frame_info[frame].start_time>=600) {
-        max_trues=frame_info[frame].trues;
-        ref_frame=frame;
+//      if ((frame_info[frame].trues > max_trues) && (frame_info[frame].start_time >= 600)) {
+      if ((frame_info[frame].trues > max_trues) && (g_no_ref_frame_delay || (frame_info[frame].start_time >= 600))) {
+        max_trues = frame_info[frame].trues;
+        ref_frame = frame;
       }
       
       node = node->next;
@@ -699,8 +730,8 @@ int main(int argc, char **argv)
         }
         sprintf(em_dyn_file,"%s.dyn", em_prefix);
         sprintf(cmd_line,"%s/%s %s -o %s.s -PR", \
-		program_path, prog_lmhistogram, \
-		em_file, em_prefix);
+          program_path, prog_lmhistogram, \
+          em_file, em_prefix);
         printf("%s\n",cmd_line);
         if (access(em_dyn_file,R_OK) == 0 && overwrite==0) {
           fprintf(log_fp,"Reusing existing %s\n",em_dyn_file);
@@ -724,7 +755,7 @@ int main(int argc, char **argv)
   if (em_ecat_file[0] == '\0') {
     if ((fp=fopen(em_dyn_file,"rt")) == NULL) {
       fprintf(log_fp,"Error opening file %s\n", em_dyn_file);
-     exit(1);
+      exit(1);
     }
     // read number from .dyn file
     fgets(line,sizeof(line), fp);
@@ -744,7 +775,7 @@ int main(int argc, char **argv)
         start_frame = frame; // standardized 0-N counting
     // Set reference frame if not specified
 
-      if (frame_info[frame].trues>max_trues && frame_info[frame].start_time>=600) {
+      if (frame_info[frame].trues>max_trues && (g_no_ref_frame_delay || (frame_info[frame].start_time >= 600))) {
         max_trues=frame_info[frame].trues;
         ref_frame=frame;
       }
@@ -761,14 +792,14 @@ int main(int argc, char **argv)
       } else {
         fprintf(log_fp,"%s\n",cmd_line);
         if (exec) 
-	  system(cmd_line);
-      }
-    } else {
+         system(cmd_line);
+     }
+   } else {
       // can't create image files, create scatter QC
-      em_ecat_file[0] = '\0';
-    }
+    em_ecat_file[0] = '\0';
+  }
   }  // if (not em_ecat_file)
-    
+
   printf("\n start_frame: %d, end_frame:%d, ref_frame:%d \n", start_frame, end_frame, ref_frame);
   fflush(stdout);
   

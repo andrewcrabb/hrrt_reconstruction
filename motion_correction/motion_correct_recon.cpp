@@ -373,7 +373,7 @@ int main(int argc, char **argv)
   em_file = argv[1];
   memset(em_na, 0, sizeof(em_na));
   
-  while ((c = getopt (argc-1, argv+1, "n:F:s:S:u:r:c:q:C:a:I:L:M:A:E:T:K:R:POtvp:z:l:b:")) != EOF) {
+  while ((c = getopt (argc-1, argv+1, "n:F:s:S:u:r:c:q:C:a:I:L:M:A:E:T:K:R:PDOtvp:z:l:b:")) != EOF) {
     switch (c) {
       case 'u':
       mu_file = optarg;
@@ -651,9 +651,10 @@ if (*ext == 'v') {
   for (frame=0; frame<num_frames; frame++) {
     sprintf(fname,"%s_frame%d.s.hdr",em_prefix,frame);
     get_frame_info(frame, fname, num_frames);
-    if (start_frame<0 && frame_info[frame].duration>=MIN_FRAME_DURATION)
+    if ((start_frame < 0) && (frame_info[frame].duration >= MIN_FRAME_DURATION))
       start_frame = frame;
-    if ((frame_info[frame].trues > max_trues) && (g_no_ref_frame_delay || (frame_info[frame].start_time >= POST_INJECTION_THRESHOLD ))){
+    // ahc Added g_no_ref_frame_delay to skip the 600 second delay.
+    if ((frame_info[frame].trues > max_trues) && (g_no_ref_frame_delay || (frame_info[frame].start_time >= POST_INJECTION_THRESHOLD ))) {
       max_trues=frame_info[frame].trues;
       ref_frame=frame;
     }
