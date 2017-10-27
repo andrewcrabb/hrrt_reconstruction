@@ -351,11 +351,12 @@ static int goto_event_32(int target)
     int tmp_time = 0, prev_time = 0;
     int terminate = 0;
 
-    printf("Skipping to %d secs (goto_event_32)...\n", target);
+    printf("Skipping to %d secs (goto_event_32, nevent %d)...\n", target, nevents); fflush(stdout);
     while (!terminate) {
         if (!nevents) {
+	  printf("load buffer\n"); fflush(stdout);
             load_buffer_32(listbuf, nevents);
-            printf("nevents now %ld\n", nevents);
+            printf("nevents now %ld\n", nevents); fflush(stdout);
             if (nevents <= 0) {
                 printf("\nend of file\n"); fflush(stdout);
                 return 0;
@@ -539,11 +540,16 @@ static int next_event_64(Event_32 &cew, int scan_flag)
                 doib = (ew2 & 0x01C00000) >> 22;
             }
             if (mpe < 1 || mpe > nmpairs) {
-                if (verbose) cerr << current_time << ": Invalid head pair " << mpe << endl;
+	      //	      if (verbose && (! error_flag % 10) )
+	      //		cerr << current_time << ": Invalid head pair " << mpe << endl;
                 error_flag++;
             }
-            if (ax < 0 || ax >= NXCRYS || ay < 0 || ay >= NYCRYS || bx < 0 || bx >= NXCRYS || by < 0 || by >= NYCRYS) {
-                if (verbose) cerr <<  current_time << ": Invalid crystal pair (" << ax << "," << ay << ") (" << bx << "," << by << ")" << endl;
+            if (ax < 0 || ax >= NXCRYS || ay < 0 || ay >= NYCRYS) {
+                if (verbose) cerr <<  current_time << ": next_event_64: Invalid crystal pair A: (" << ax << "," << ay << ") (NXCRYS " << NXCRYS << ", NYCRYS " << NYCRYS << ")" << endl;
+                error_flag++;
+            }
+            if (bx < 0 || bx >= NXCRYS || by < 0 || by >= NYCRYS) {
+                if (verbose) cerr <<  current_time << ": next_event_64: Invalid crystal pair B: (" << bx << "," << by << ") (NXCRYS " << NXCRYS << ", NYCRYS " << NYCRYS << ")" << endl;
                 error_flag++;
             }
             if ((doia != 1 && doia != 0 && doia != 7) || (doib != 1 && doib != 0 && doib != 7)) {
@@ -784,7 +790,7 @@ static int find_start_countrate_lm(const char *fname)
                             free(buf);
                             return L64EventPacket::current_time; //first_tag_pos;
                         } else { //reset counter
-                            printf("%d %d %d %d %d\n", current_time, prompt, delayed, current_countrate, first_tag_pos);
+			                              printf("xxx %d %d %d %d %d\n", current_time, prompt, delayed, current_countrate, first_tag_pos);
                             L64EventPacket::current_time = current_time;   //msec
                             current_countrate = 0;
                             delayed = prompt = 0;
@@ -920,6 +926,8 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
     }
 
     while ((src_pos + 1) < count && dst_pos < L32EventPacket::packet_size) {
+      if (! src_pos % 10000)
+	//	cerr << "xxx src_pos " << src_pos << endl;
         ew1 = in_buf[src_pos];
         ew2 = in_buf[src_pos + 1];
         type = ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
@@ -942,7 +950,7 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
                     int head = (tag & 0x000f0000) >> 16;
                     int tx_y = (tag & 0x0000ff00) >> 8;
                     int tx_x = tag & 0x000000ff;
-                    //   cout << "TX pos: " << tx_source.head << "," << tx_source.x << "," << tx_source.y << ": " << tx_mock.timer << "msec" << endl;
+		    //  cerr << "xxx TX pos: " << tx_source.head << "," << tx_source.x << "," << tx_source.y << ": " << tx_mock.timer << "msec" << endl;
                     tx_source.head = (tag & 0x000f0000) >> 16;
                     tx_source.y = (tag & 0x0000ff00) >> 8;
                     tx_source.x = tag & 0x000000ff;
@@ -990,13 +998,22 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
                     }
             }
             if (mpe < 1 || mpe > nmpairs) {
-                if (verbose) cerr << current_time << ": Invalid head pair " << mpe << endl;
+	      if (verbose)
+		//		cerr << "current_time " << current_time << ": Invalid head pair " << mpe << ", error_flag " << error_flag << endl;
                 error_flag++;
             }
-            if (ax >= NXCRYS ||  ay >= NYCRYS || bx >= NXCRYS || by >= NYCRYS) {
-                if (verbose) cerr <<  current_time << ": Invalid crystal pair (" << ax << "," << ay << ") (" << bx << "," << by << ")" << endl;
+            if (ax < 0 || ax >= NXCRYS || ay < 0 || ay >= NYCRYS) {
+                if (verbose) cerr <<  current_time << ": rebin_packet Invalid crystal pair A: (" << ax << "," << ay << ") (NXCRYS " << NXCRYS << ", NYCRYS " << NYCRYS << ")" << endl;
                 error_flag++;
             }
+            if (bx < 0 || bx >= NXCRYS || by < 0 || by >= NYCRYS) {
+                if (verbose) cerr <<  current_time << ": rebin_packet Invalid crystal pair B: (" << bx << "," << by << ") (NXCRYS " << NXCRYS << ", NYCRYS " << NYCRYS << ")" << endl;
+                error_flag++;
+            }
+            // if (ax >= NXCRYS ||  ay >= NYCRYS || bx >= NXCRYS || by >= NYCRYS) {
+            //     if (verbose) cerr <<  current_time << ": Invalid crystal pair (" << ax << "," << ay << ") (" << bx << "," << by << ")" << endl;
+            //     error_flag++;
+            // }
 
             if (error_flag)
                 continue;

@@ -1,21 +1,23 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ecatx", "ecatx.vcproj", "{55B6B971-D31F-47F2-97A0-CA71AF815D45}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ecatx", "ecatx.vcxproj", "{55B6B971-D31F-47F2-97A0-CA71AF815D45}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "matcopy", "utils\matcopy.vcproj", "{BAE4B6F6-E92E-4C15-9E41-96C717A79F10}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "matcopy", "utils\matcopy.vcxproj", "{BAE4B6F6-E92E-4C15-9E41-96C717A79F10}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sum_frames", "utils\sum_frames.vcproj", "{D68A5522-1D08-46E8-9E94-9622137E4460}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sum_frames", "utils\sum_frames.vcxproj", "{D68A5522-1D08-46E8-9E94-9622137E4460}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cti2analyze", "utils\cti2analyze.vcproj", "{31905C0C-E991-48B8-8555-3E76A7B9048C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cti2analyze", "utils\cti2analyze.vcxproj", "{31905C0C-E991-48B8-8555-3E76A7B9048C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mat_rescale", "utils\mat_rescale.vcproj", "{C4A7B254-B7F0-4790-93F3-AB6B62859708}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mat_rescale", "utils\mat_rescale.vcxproj", "{C4A7B254-B7F0-4790-93F3-AB6B62859708}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fix_mh", "utils\fix_mh.vcproj", "{4D10B200-8764-494C-8A5B-8C26227EA2DF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fix_mh", "utils\fix_mh.vcxproj", "{4D10B200-8764-494C-8A5B-8C26227EA2DF}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imagemath", "utils\imagemath.vcproj", "{0EB33FE2-EF51-4343-B77F-E0AEB92C41C4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imagemath", "utils\imagemath.vcxproj", "{0EB33FE2-EF51-4343-B77F-E0AEB92C41C4}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "matinfo", "utils\matinfo.vcproj", "{57D53022-181F-400F-9D25-7D9C0E99712A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "matinfo", "utils\matinfo.vcxproj", "{57D53022-181F-400F-9D25-7D9C0E99712A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -63,6 +63,7 @@
 
 // ahc
 #include <unistd.h>
+#include <iostream>
 
 #define DEFAULT_LLD 400 // assume a value of 400 if not specified in listmode header
 #define RW_MODE "wb+"
@@ -182,30 +183,30 @@ void lmhistogram_usage(char *pgm_name)
 {
     cout << pgm_name << " " << pgm_id << " Build: " << sw_build_id << endl << endl;
     cout << "Usage : " << pgm_name << " fname.l32|fname.l64 " << endl;
-    cout << "    -o file    - output sinogram or 32-bit listmode file depending on file extension" << endl;
-    cout << "    -span X    - span size - valid values: 0(TX), 1,3,5,7,9" << endl;
-    cout << "               - emission default span is 9" << endl;
+    cout << "    -o file              - output sinogram or 32-bit listmode file depending on file extension" << endl;
+    cout << "    -span X              - span size - valid values: 0(TX), 1,3,5,7,9" << endl;
+    cout << "                         - emission default span is 9" << endl;
     //  cout << "    -T       - Transmission mode" << endl;
-    cout << "    -P - prompts only" << endl;
-    cout << "    -PR - separate prompts and randoms" << endl;
+    cout << "    -P                   - prompts only" << endl;
+    cout << "    -PR                  - separate prompts and randoms" << endl;
     //  cout << "    -byte      - 8-bit sinogram bins"  << endl;
-    cout << "    -d duration[,skip]    - frame duration in seconds, optionaly skip in specified seconds" << endl;
-    cout << "    -d duration[*repeat]    - frame duration in seconds, optionaly repeat specified duration" << endl;
-    cout << "    -scan    - scans file for prompts and randoms and prints headcurve to console" << endl;
-    cout << "    -count N   - stop after N events" << endl;
-    cout << "    -start N   - start histogramming when trues/sec is higher than N" << endl;
-    cout << "    -v - verbose mode: print warning messages" << endl;
-    cout << "    -q - quiet mode: don't print time messages" << endl;
-    cout << "    -add file  - Add to existing sinogram file" << endl;
-    cout << "    -mock mock_file  - Output shifted mock sinogram file (transmission only)" << endl;
-    cout << "    -ra   - Output randoms sinogram file (emission only)" << endl;
-    cout << "    -l log_file  - append logging to the file or create the file if not existing" << endl;
-    cout << "    -notimetag  - No timetag processing, use timetag count as time" << endl;
-    cout << "    -nodoi  - No DoI processing, back layer events processed as front layer" << endl;
-    cout << "    -L type  -low resolution mode (1:binsize 2mm, nbins=160, span 7, maxrd 38)" << endl;
-    cout << "                                   (2:binsize 2.4375mm, nbins= 128, span 7, maxrd 38)" << endl;
+    cout << "    -d duration[,skip]   - frame duration in seconds, optionaly skip in specified seconds" << endl;
+    cout << "    -d duration[*repeat] - frame duration in seconds, optionaly repeat specified duration" << endl;
+    cout << "    -scan                - scans file for prompts and randoms and prints headcurve to console" << endl;
+    cout << "    -count N             - stop after N events" << endl;
+    cout << "    -start N             - start histogramming when trues/sec is higher than N" << endl;
+    cout << "    -v                   - verbose mode: print warning messages" << endl;
+    cout << "    -q                   - quiet mode: don't print time messages" << endl;
+    cout << "    -add file            - Add to existing sinogram file" << endl;
+    cout << "    -mock mock_file      - Output shifted mock sinogram file (transmission only)" << endl;
+    cout << "    -ra                  - Output randoms sinogram file (emission only)" << endl;
+    cout << "    -l log_file          - append logging to the file or create the file if not existing" << endl;
+    cout << "    -notimetag           - No timetag processing, use timetag count as time" << endl;
+    cout << "    -nodoi               - No DoI processing, back layer events processed as front layer" << endl;
+    cout << "    -L type              -low resolution mode (1:binsize 2mm, nbins=160, span 7, maxrd 38)" << endl;
+    cout << "                                              (2:binsize 2.4375mm, nbins= 128, span 7, maxrd 38)" << endl;
     cout << "    -model  328|2393|2395 (default=328) " << endl;
-    cout << "    -EB - Exclude Border crystals (Included by default)" << endl;
+    cout << "    -EB                  - Exclude Border crystals (Included by default)" << endl;
     // ahc
     cout << " *  -r <hrrt_rebinner.lut file>: (Required) full path to rebinner.lut file" << endl;
     cout << endl;

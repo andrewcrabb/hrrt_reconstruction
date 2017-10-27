@@ -858,9 +858,9 @@ matrix_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment)
 #ifdef _WIN32
         fseek64(fileno(mptr->fptr),file_pos,0) == -1 ||
 #else
-        /* fseeko64(mptr->fptr,file_pos,0) == -1 || */
+        fseeko64(mptr->fptr,file_pos,0) == -1 ||
         /* ahc */
-        fseeko(mptr->fptr,file_pos,0) == -1 ||
+        /* fseeko(mptr->fptr,file_pos,0) == -1 || */
 #endif
         fread(data->data_ptr, plane_size, z_elements, mptr->fptr)
         != z_elements ||

@@ -67,13 +67,11 @@ int GantryInfo::load(int model_number)
     fp = fopen(filename,"rb");
   } else {
     std::cerr << "ERROR: gantryinfo.cpp: GantryInfo::load(" << model_number << "): envt var GMINI is not set: Exiting" << std::endl;
-    state = -1;
-    return state;
+    exit(-1);
   }
   if (fp == NULL) {
     std::cerr << "ERROR: gantryinfo.cpp: GantryInfo::load(" << model_number << "): could not open GMINI file " << filename <<" : Exiting" << std::endl;   
-    state = -1;
-    return state;
+    exit(-1);
   }
   while (fgets(line,LINE_SIZE,fp) != NULL)
     {

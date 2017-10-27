@@ -79,11 +79,11 @@ static void DICOM_data2host(void *buf, void *dest,
   switch(size)
     {
     case 2 :	/* short ==> swab */
-      swab((char*)buf,tmp ,num_items*2);
+      _swab((char*)buf,tmp ,num_items*2);
       memcpy((char*)dest, tmp, num_items*2);
       break;
     case 4 :
-      swab((char*)buf,tmp,num_items*4);
+      _swab((char*)buf,tmp,num_items*4);
       swaw((short*)tmp,(short*)dest,num_items*2);
       break;
     }
@@ -151,7 +151,8 @@ static int DICOM_scan_elem(u_char *buf, int count, unsigned offset,
  unsigned short us;
   unsigned int len;
   int elem_spec_len = 8;
-  if ((count-offset)<= elem_spec_len) return 0;
+  if ((int)(count - offset) <= elem_spec_len) 
+	  return 0;
   DICOM_data2host(buf+offset,&us,2,1); group = us;
   DICOM_data2host(buf+offset+2,&us,2,1); elem = us;
   DICOM_data2host(buf+offset+4,&len,4,1);
@@ -170,7 +171,8 @@ static int DICOM10_scan_elem(u_char *buf, int count, unsigned offset,
 {
   unsigned short us;
   int elem_spec_len = 8;
-  if (offset>count || ((count-offset) <= elem_spec_len)) return 0;
+  if (offset > count || ((int)(count - offset) <= elem_spec_len))
+	  return 0;
   DICOM_data2host(buf+offset, &us,2,1); group = us;
   DICOM_data2host(buf+offset+2, &us,2,1); elem = us;
   DICOM_data2host(buf+offset+4, &us,2,1); dcm_elem.type = us;

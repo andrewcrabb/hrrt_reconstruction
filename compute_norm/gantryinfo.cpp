@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <iostream>
+
 #define LINE_SIZE 256
 using namespace std;
 using namespace cps;
@@ -52,11 +54,16 @@ int GantryInfo::load(int model_number)
 		sprintf(filename, "%s\\gm%d.ini", gmini_dir, model_number);
 #endif
 		fp = fopen(filename,"rb");
+	} else {
+	  fprintf(stderr, "ERROR: GantryInfo::load(): GMINI environment variable not set: Exiting\n");
+	  exit(-1);
 	}
 	if (fp == NULL)
 	{
-		state = -1;
-		return state;
+    std::cerr << "ERROR: gantryinfo.cpp: GantryInfo::load(" << model_number << "): could not open GMINI file " << filename <<" : Exiting" << std::endl;   
+    exit(-1);
+    //		state = -1;
+    //		return state;
 	}
 	while (fgets(line,LINE_SIZE,fp) != NULL)
 	{

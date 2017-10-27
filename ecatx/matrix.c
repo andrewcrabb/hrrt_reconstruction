@@ -127,8 +127,9 @@ mat_rblk(FILE *fptr,  int blkno, char *bufr, int nblks)
 	matrix_errtxt[0] = '\0';
 
     /* My change ahc - not needed on Mac. */
-    /*	if( fseeko64( fptr, (blkno-1)*MatBLKSIZE, 0) ) return( ECATX_ERROR ); */
-    if( fseeko( fptr, (blkno-1)*MatBLKSIZE, 0) ) return( ECATX_ERROR );
+    if( fseek( fptr, (blkno-1)*MatBLKSIZE, 0) ) return( ECATX_ERROR );
+	/* if (fseeko64(fptr, (blkno - 1)*MatBLKSIZE, 0)) return(ECATX_ERROR); */
+	/* if( fseeko( fptr, (blkno-1)*MatBLKSIZE, 0) ) return( ECATX_ERROR ); */
     
 	err = fread( bufr, 1, nblks*MatBLKSIZE, fptr);
 	if( err == ECATX_ERROR ) {
@@ -596,8 +597,8 @@ mat_wblk(FILE *fptr, int blkno, char *bufr, int nblks)
 	/* seek to position in file */
 
     /* My change ahc */
-    /*	err = fseeko64(fptr, (blkno - 1) * MatBLKSIZE, 0); */
-    err = fseeko(fptr, (blkno - 1) * MatBLKSIZE, 0);
+    err = fseek(fptr, (blkno - 1) * MatBLKSIZE, 0);
+   /* err = fseeko(fptr, (blkno - 1) * MatBLKSIZE, 0); */
     
 	if (err) return (ECATX_ERROR);
 

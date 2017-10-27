@@ -205,8 +205,10 @@ extern float rel_fov;            /* relative fov : 0.95 (95%)  */
 
 #ifdef IS_WIN32
 #else
-	#define max(a,b) ((a)>(b)?(a):(b))
-	#define min(a,b) ((a)<(b)?(a):(b))
+// ahc 8/11/17 this was calling :
+// /usr/include/c++/6/bits/stl_algobase.h:243:56: error: macro "min" passed 3 arguments, but takes just 2
+//	#define max(a,b) ((a)>(b)?(a):(b))
+//	#define min(a,b) ((a)<(b)?(a):(b))
 #endif
 
 /* prototype of routines */

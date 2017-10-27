@@ -205,8 +205,8 @@ extern float rel_fov;            /* relative fov : 0.95 (95%)  */
 
 #ifdef IS_WIN32
 #else
-	#define max(a,b) ((a)>(b)?(a):(b))
-	#define min(a,b) ((a)<(b)?(a):(b))
+//	#define max(a,b) ((a)>(b)?(a):(b))
+//	#define min(a,b) ((a)<(b)?(a):(b))
 #endif
 
 /* prototype of routines */

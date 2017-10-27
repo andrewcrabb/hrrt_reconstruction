@@ -67,6 +67,7 @@ int GantryInfo::load(int model_number)
     fp = fopen(filename,"rb");
   } else {
     cerr << "ERROR: GantryInfo::load(): Envt var GMINI not set!" << endl;
+    exit(-1);
   }
   if (fp == NULL) {
     cerr << "ERROR: GantryInfo::load(): Cannot read filename '" << filename << "'" << endl;
