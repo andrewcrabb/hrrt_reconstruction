@@ -38,7 +38,7 @@
 #define AIR_CONFIG_DECOMPRESS 1
 
 /* MACHINE GENERATED */
-#define AIR_CONFIG_DECOMPRESS_COMMAND "/usr/bin/gunzip -c "
+#define AIR_CONFIG_DECOMPRESS_COMMAND "/bin/gunzip -c "
 
 /* MACHINE GENERATED, 1 if unistd.h, sys/types.h, sys/param.h and getgroups() were found */
 #define AIR_CONFIG_GROUPS 1
