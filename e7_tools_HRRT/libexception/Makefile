@@ -3,6 +3,10 @@
 # $Log$
 #
 #
+
+# ahc
+# CPPFLAGS = "-D _GLIBCXX_USE_CXX11_ABI=0"
+
 .SUFFIXES:	.o .cpp .h
 
 .cpp.o:
