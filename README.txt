@@ -1,21 +1,16 @@
 My notes ahc
 ------------
 
+invert_air must be copied from the AIR directory to the path of all the e7_ programs.
+
+Old notes from Arman
+--------------------
+
 1. Preprocessor flags:
 
 MYCPPFLAGS="-D_LINUX -D__LINUX__ -L${mypwd}/AIR5.3.0/src"
 
-2. 
-
-1) Update name of directory in the path in .cshrc:
-
-set path = (/home/rahmim/ForAndy/hrrt_codes_Arman/*/ $path)
-set path = (/home/rahmim/ForAndy/hrrt_codes_Arman/*/*/ $path)
-
-Both above lines are really needed.
-
 2)  Make sure  libraries/hrrt_rebinner.lut is executable:
- chmod r+x file (i.e. executable)
 
 3) Typing make clear; make does the compiling job except for few directories which you need to go in there specifically:
 

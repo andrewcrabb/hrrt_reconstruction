@@ -166,6 +166,7 @@ For commercial use, please contact zcho@gachon.ac.kr or isslhong@kpu.ac.kr
 /* ahc */
 #include <linux/types.h>
 #include <linux/stat.h>
+#include <algorithm>
 #ifdef IS_WIN32
 #include <windows.h>
 #include <process.h>
@@ -185,7 +186,7 @@ For commercial use, please contact zcho@gachon.ac.kr or isslhong@kpu.ac.kr
 #include <stdarg.h>
 #include <unistd.h>
 // O_DIRECT defined here because not found otherwise CM + MS
-#define O_DIRECT         040000 /* direct disk access hint */	
+// #define O_DIRECT         040000 /* direct disk access hint */	
 #define		DIR_SEPARATOR '/'
 #endif
 
@@ -875,7 +876,7 @@ void norm_UW(float ***out,int theta){
 	}
 }
 /*
-* out[yr][view][xr] = 1/max(A[yr][view][xr],1) (AW case)
+* out[yr][view][xr] = 1/std::max(A[yr][view][xr],1) (AW case)
 */
 void norm_AW(float ***out,float ***atten,int theta) {
 	int v,yr,xr;
@@ -889,7 +890,7 @@ void norm_AW(float ***out,float ***atten,int theta) {
 			atten1 = &atten[yr][v][0];
 			est1   = &out[yr2][v][0];
 			for( xr=0; xr<xr_pixels; xr++ ) {
-				if(norm1[xr] > 0.0f) est1[xr] = 1.0f/max(atten1[xr],1.0f);
+				if(norm1[xr] > 0.0f) est1[xr] = 1.0f/std::max(atten1[xr],1.0f);
 				else  est1[xr] = 0.0f; // missing data
 			}
 		}
@@ -1080,11 +1081,11 @@ void prepare_norm(float ***out,int nFlag,int weighting,FILEPTR normfp,FILEPTR at
             for(xr=0;xr<xr_pixels;xr++){
               //v1 view  
               if (out[i1][v1][xr]>0) 
-                out[i1][v1][xr] /= max(mu_prj[i1][xr], 1.0f);
+                out[i1][v1][xr] /= std::max(mu_prj[i1][xr], 1.0f);
               else out[i1][v1][xr] = 0.0f; // missing data
               //v2 view (v1+views/2)
               if (out[i1][v2][xr]>0) 
-                out[i1][v2][xr] /= max(mu_prj[i2][xr], 1.0f);
+                out[i1][v2][xr] /= std::max(mu_prj[i2][xr], 1.0f);
               else out[i1][v2][xr] = 0.0f; // missing data
 			      }
           }
@@ -1148,11 +1149,11 @@ void prepare_norm(float ***out,int nFlag,int weighting,FILEPTR normfp,FILEPTR at
           for(xr=0;xr<xr_pixels;xr++){
             //v1 view  
             if (out[i1][v1][xr]>0) 
-              out[i1][v1][xr] /= max(mu_prj[i1][xr], 1.0f);
+              out[i1][v1][xr] /= std::max(mu_prj[i1][xr], 1.0f);
             else out[i1][v1][xr] = 0.0f; // missing data
             //v2 view (v1+views/2)
             if (out[i1][v2][xr]>0) 
-              out[i1][v2][xr] /= max(mu_prj[i2][xr], 1.0f);
+              out[i1][v2][xr] /= std::max(mu_prj[i2][xr], 1.0f);
             else out[i1][v2][xr] = 0.0f; // missing data
           }
   	    }

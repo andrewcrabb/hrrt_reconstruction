@@ -14,12 +14,12 @@ EXECPATH	= ${HOME}/bin
 LIBPATH		=
 CPPFLAGS        = -Wno-write-strings
 CFLAGS		= $(DEBUG)
-LDLIBS		= ../ecatx/libecatx.a -L/usr/local/lib ../AIR5.3.0/src/libRPW.a -lm
-INCLUDES	= -I../include
+LDLIBS		= ../ecatx/libecatx.a -L/usr/local/lib -L../lib -lhrrtutil ../AIR5.3.0/src/libRPW.a -lm
+INCLUDES	= -I../include -I../common
 # MACRO		=  -D_FILE_OFFSET_BITS=64 -D_LINUX
 MACRO		=  -D_FILE_OFFSET_BITS=64
 INSTALLDIR      = ../bin
-LIBDEPS     = ../ecatx/libecatx.a ../AIR5.3.0/src/libRPW.a
+LIBDEPS     = ../ecatx/libecatx.a ../AIR5.3.0/src/libRPW.a ../common/libhrrtutil.a
 
 # ------
 .SUFFIXES: .o .cpp .h

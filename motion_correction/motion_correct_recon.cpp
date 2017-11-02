@@ -72,6 +72,7 @@
 
 #include "frame_info.h"
 #include "qmatrix.h"
+#include "hrrt_util.h"
 
 // ahc
 #include <iostream>
@@ -79,7 +80,6 @@
 // Following 3 args sent to run_system_command()
 static char program_name[2048]; // Program to run
 static char cmd_line[2048];     // Args to program
-static char check_file[2048];   // Output file to check for existence
 
 const char *data_dir = "D:\\SCS_SCANS";
 static char em_dir[FILENAME_MAX], log_dir[FILENAME_MAX], qc_dir[FILENAME_MAX]; 
@@ -101,9 +101,7 @@ static const char *prog_e7_fwd      = "e7_fwd_u";
 static const char *prog_e7_sino     = "e7_sino_u";
 static const char *prog_gsmooth     = "gsmooth_ps";
 static const char *prog_if2e7       = "if2e7";
-static const char *prog_invert_air  = "invert_air";
-// static const char *prog_lmhistogram = "lmhistogram_u"; // Was originally in this prog.
-static const char *prog_lmhistogram = "lmhistogram_mp";
+static const char *prog_lmhistogram = "lmhistogram_mp";  // Was originally lmhistogram_u
 static const char *prog_maf_join    = "MAF_join";
 static const char *prog_make_air    = "ecat_make_air";
 static const char *prog_matcopy     = "matcopy";
@@ -111,49 +109,8 @@ static const char *prog_recon       = "je_hrrt_osem3d";
 static const char *prog_reslice     = "ecat_reslice";
 static const char *prog_volume_reslice   = "volume_reslice";
 static const char *prog_motion_distance = "motion_distance";
-
-// prog:    Program to run
-// args:    Argument string to program
-// outfile: Optional output file to check for
-// Check for existence of given program, then run with given args.
-// Returns: 0 on success, else 1
-
-int run_system_command( char *prog, char *args ) {
-  char command_line[4096];
-  int ret = 0;
-  char *ptr = NULL;
-  char ma_pattern_name[FILENAME_MAX];
-  
-  ma_pattern_name[0] = '\0';
-  if ((ptr=getenv("HOME")) != NULL) {
-    sprintf(ma_pattern_name, "%s/.ma_pattern.dat", ptr);
-    if (!access(ma_pattern_name, R_OK)) {
-      fprintf(stderr, "*** ma_pattern file exists: '%s'\n", ma_pattern_name);      
-      if (remove(ma_pattern_name) != 0) {
-        fprintf(stderr, "*** ERROR: Removing ma_pattern file: '%s'\n", ma_pattern_name);
-      } else {
-        fprintf(stderr, "*** Removed ma_pattern file OK: '%s'\n", ma_pattern_name);
-      }
-    } else {
-      fprintf(stderr, "*** ma_pattern file '%s' does not exist\n", ma_pattern_name);
-    }
-  } else {
-    fprintf(stderr, "*** Could not determine HOME envt var: Cannot remove ma_pattern.dat file\n");
-  }
-  fflush(stderr);
-
-  ret = access(prog, X_OK);
-  if (ret) {
-    std::cerr << "Error: run_system_command(" << prog << "): File does not exist" << std::endl << std::flush;    
-  } else {
-    std::cerr << "*** run_system_command('" << prog << "', '" << args << "')" << std::endl << std::flush;
-    sprintf(command_line, "%s %s", prog, args);
-    fprintf(log_fp, "%s\n", command_line);
-    ret = system(command_line);
-  }
-  std::cerr << "run_system_command('" << prog << "', '" << args << "') returning " << ret << std::endl << std::flush;
-  return(ret);
-}
+// AIR programs (compiled separately in AIR directory)
+static const char *prog_invert_air  = "invert_air";
 
 static void usage(const char *pgm){
   printf("%s Build %s %s \n", pgm, __DATE__, __TIME__);
@@ -365,8 +322,7 @@ int main(int argc, char **argv)
   prog_gnuplot[0] = '\0';
   rebinner_lut_file[0] = '\0';
   dir_log[0] = '\0';
-  log_fp=NULL;  // Made global so run_system_command can log.
-  // Global parameters
+  log_fp=NULL;  // Made global so run_system_command can  // Global p, log_fparameters
   int g_no_ref_frame_delay = 0;   // Injection was some time before scan: don't wait 600 seconds to look for reference frame.
 
   if (argc<2) usage(argv[0]);
@@ -743,7 +699,7 @@ if (*ext == 'v') {
             vicra_align_txt(vicra_info.em[frame], vicra_info.tx,
                             &cmd_line[strlen(cmd_line)]);
             sprintf(&cmd_line[strlen(cmd_line)]," -o %s", mu_rsl);
-            if (run_system_command(program_name, cmd_line)) {
+            if (run_system_command(program_name, cmd_line, log_fp)) {
               exit(1);
             }
             */
@@ -755,7 +711,7 @@ if (*ext == 'v') {
             sprintf(program_name, "%s/%s", program_path, prog_invert_air);
             sprintf(cmd_line,"%s_fr%d.air %s_fr%d.air y",
               em_na, frame, mu_prefix, frame);
-            if (run_system_command(program_name, cmd_line)) {
+            if (run_system_command(program_name, cmd_line, log_fp)) {
               exit(1);
             }
             if (ecat_reslice_flag) {
@@ -773,7 +729,7 @@ if (*ext == 'v') {
             // fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
             printf("\nFrame: %d \n ", frame); fflush(stdout);
             printf("%s %s\n", program_name, cmd_line); fflush(stdout);
-            if (run_system_command(program_name, cmd_line)) {
+            if (run_system_command(program_name, cmd_line, log_fp)) {
               exit(1);
             }
           }
@@ -801,7 +757,7 @@ if (*ext == 'v') {
           sprintf(cmd_line, "--model 328 -u %s -w %d --oa %s --span 9 "
             "--mrd 67 --prj ifore --force -l 33,%s",
             mu_rsl, mu_width, at_rsl, log_dir);
-          if (run_system_command(program_name, cmd_line)) {
+          if (run_system_command(program_name, cmd_line, log_fp)) {
             exit(1);
           }
         } // end attenuation
@@ -822,7 +778,7 @@ if (*ext == 'v') {
           if (athr != NULL)
             // ahc yes.  Option 'a' to motion_correct_recon
             sprintf(&cmd_line[strlen(cmd_line)]," --athr %s",athr);
-          if (run_system_command(program_name, cmd_line)) {
+          if (run_system_command(program_name, cmd_line, log_fp)) {
             exit(1);
           }
 
@@ -857,7 +813,7 @@ if (*ext == 'v') {
 
         if (psf_flag)
           strcat(cmd_line, " -B 0,0,0");
-        if (run_system_command(program_name, cmd_line)) {
+        if (run_system_command(program_name, cmd_line, log_fp)) {
           exit(1);
         }
       } // end reconstruction
@@ -870,7 +826,7 @@ if (*ext == 'v') {
     sprintf(cmd_line,"-g 0 -u %s -v -e %g -s %s %s_frame0_3D_ATX.i",
       units, user_time_constant, calib_file, em_prefix);
     printf("%s %s\n", program_name, cmd_line); fflush(stdout);
-    if (run_system_command(program_name, cmd_line)) {
+    if (run_system_command(program_name, cmd_line, log_fp)) {
       exit(1);
     }
   } 
@@ -890,7 +846,7 @@ if (*ext == 'v') {
         sprintf(program_name, "%s/%s", program_path, prog_gsmooth);
         sprintf(cmd_line, "%s.v %d",
           im_prefix, default_smoothing);
-        if (run_system_command(program_name, cmd_line)) {
+        if (run_system_command(program_name, cmd_line, log_fp)) {
           exit(1);
         }
       }
@@ -916,7 +872,7 @@ if (*ext == 'v') {
         sprintf(program_name, "%s/%s", program_path, prog_matcopy);
         sprintf(cmd_line,"-i %s.v,%d,1,1 -o %s,%d,1,1",
                 im_prefix, frame1, fname, frame1); // ECAT 1-N counting
-        if (run_system_command(program_name, cmd_line)) {
+        if (run_system_command(program_name, cmd_line, log_fp)) {
           exit(1);
         }
         continue;
@@ -927,7 +883,7 @@ if (*ext == 'v') {
         sprintf(program_name, "%s/%s", program_path, prog_volume_reslice);
         sprintf(cmd_line,"-i %s.v,%d,1,1 -o %s,%d,1,1 -M %s",
           im_prefix,  frame1, fname, frame1, transformer_txt(frame_info[frame].transformer));
-        if (run_system_command(program_name, cmd_line)) {
+        if (run_system_command(program_name, cmd_line, log_fp)) {
           exit(1);
         }
       } else {
@@ -947,13 +903,13 @@ if (*ext == 'v') {
           sprintf(cmd_line,"-s %s.v,%d,1,1 -r %s.v,%d,1,1 -i %s_fr%d.air -o %s_fr%d.air",
             im_prefix, ref_frame+1, im_prefix, frame1, em_na, frame, im_prefix, frame);
         }
-        if (run_system_command(program_name, cmd_line)) {
+        if (run_system_command(program_name, cmd_line, log_fp)) {
           exit(1);
         }
         sprintf(program_name, "%s/%s", program_path, prog_reslice);
         sprintf(cmd_line,"%s_fr%d.air %s,%d,1,1 -a %s.v,%d,1,1 -k -o",
           im_prefix, frame, fname, frame1, im_prefix, frame1);
-        if (run_system_command(program_name, cmd_line)) {
+        if (run_system_command(program_name, cmd_line, log_fp)) {
           exit(1);
         }
       }
@@ -1023,7 +979,7 @@ if (*ext == 'v') {
     /* fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
        if (exec)
        system(cmd_line); */
-    if (run_system_command(program_name, cmd_line)) {
+    if (run_system_command(program_name, cmd_line, log_fp)) {
       exit(1);
     }
     

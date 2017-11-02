@@ -67,10 +67,11 @@ Purpose B usage:
 // ahc
 #include <iostream>
 #include <sys/stat.h>
+#include "hrrt_util.h"
 
 static char cmd_line[2048];
 static int ref_frame=-1, start_frame=-1, end_frame=-1, num_frames=0;
-static int exec=1, overwrite=0, verbose = 0;
+static int do_exec=1, overwrite=0, verbose = 0;
 static char em_prefix[FILENAME_MAX];
 static char im_prefix[FILENAME_MAX];
 static char mu_file[FILENAME_MAX];
@@ -88,13 +89,17 @@ char prog_gnuplot[FILENAME_MAX];
 char dir_log[FILENAME_MAX];
 
 // HRRT programs (all must be found in program_path)
-static const char *prog_e7_fwd = "e7_fwd_u";
-static const char *prog_e7_sino = "e7_sino_u";
-static const char *prog_gsmooth = "gsmooth_ps";
-static const char *prog_matcopy = "matcopy";
+static const char *prog_e7_fwd      = "e7_fwd_u";
+static const char *prog_e7_sino     = "e7_sino_u";
+static const char *prog_gsmooth     = "gsmooth_ps";
+static const char *prog_matcopy     = "matcopy";
 static const char *prog_alignlinear = "ecat_alignlinear";
-static const char *prog_reslice = "ecat_reslice";
+static const char *prog_reslice     = "ecat_reslice";
 static const char *prog_lmhistogram = "lmhistogram_u";
+
+// ahc
+// Following 3 args sent to run_system_command()
+static char program_name[2048]; // Program to run
 
 static void usage(const char *pgm)
 {
@@ -174,12 +179,14 @@ static int compute_scatter()
     if (access(at_file,R_OK) == 0  && overwrite==0) {
       fprintf(log_fp,"Reusing existing %s\n",at_file);
     } else {
-      sprintf(cmd_line, "%s/%s --model 328 -u %s -w 128 --oa %s --span 9 --mrd 67 --prj ifore --force -l 53,%s", \
-        program_path, prog_e7_fwd, mu_file, at_file, log_dir);
-      fprintf(log_fp,"%s\n",cmd_line);
-      fflush(log_fp);
-      if (exec)
-        system(cmd_line);
+      sprintf(program_name, "%s/%s", program_path, prog_e7_fwd);
+      sprintf(cmd_line, "--model 328 -u %s -w 128 --oa %s --span 9 --mrd 67 --prj ifore --force -l 53,%s", \
+        mu_file, at_file, log_dir);
+      if (do_exec)
+        // system(cmd_line);
+        if (run_system_command(program_name, cmd_line, log_fp)) {
+          exit(1);
+        }
     }
     // Compute scatter
 
@@ -192,45 +199,54 @@ static int compute_scatter()
       if (access(sc_file,R_OK) == 0 && overwrite==0) {
         fprintf(log_fp,"Reusing existing %s\n",sc_file);
       } else {
-        sprintf(cmd_line, "%s/%s -e %s_frame%d.tr.s -u %s  -w 128 "
+        sprintf(program_name, "%s/%s", program_path, prog_e7_sino);
+        sprintf(cmd_line, "-e %s_frame%d.tr.s -u %s  -w 128 "
           "-a %s -n %s --force --os %s --os2d --gf --model 328 "
           "--skip 2 --mrd 67 --span 9 --ssf 0.25,2 -l 73,%s -q %s",
-          program_path, prog_e7_sino, em_prefix, frame, mu_file, at_file, norm_file, sc_file, log_dir, qc_dir);
+          em_prefix, frame, mu_file, at_file, norm_file, sc_file, log_dir, qc_dir);
         if (lber>0.0f)
           sprintf(&cmd_line[strlen(cmd_line)]," --lber %g",lber);
         if (athr != NULL)
           sprintf(&cmd_line[strlen(cmd_line)]," --athr %s",athr);
-        fprintf(log_fp,"%s\n",cmd_line);
-        fflush(log_fp);
-        if (exec)
-          system(cmd_line);
+        if (do_exec)
+          // system(cmd_line);
+          if (run_system_command(program_name, cmd_line, log_fp)) {
+              exit(1);
+            }
 
       //Scatter QC
       /*
       sprintf(cmd_line, "cd %s", qc_dir);
       fprintf(log_fp,"%s\n",cmd_line);
       fflush(log_fp);
-      if (exec)
+      if (do_exec)
         chdir(qc_dir);
       */
 
-        sprintf(cmd_line,"cd %s; %s %s/scatter_qc_00.plt", em_dir, prog_gnuplot, em_dir);
-        fprintf(log_fp,"%s\n",cmd_line);
-        fflush(log_fp);
-        if (exec)
-          system(cmd_line);
+        sprintf(program_name, "%s", prog_gnuplot);
+        // took out the cd
+        // sprintf(cmd_line,"cd %s; %s %s/scatter_qc_00.plt", em_dir, prog_gnuplot, em_dir);
+        sprintf(cmd_line,"%s/scatter_qc_00.plt", em_dir, prog_gnuplot);
+        if (do_exec)
+            if (run_system_command(program_name, cmd_line, log_fp)) {
+              exit(1);
+            }
 
-        sprintf(cmd_line,"rename %s/scatter_qc_00.ps %s/%s_frame%d_sc_qc.ps ", em_dir, em_dir, em_prefix, frame);
+        // =======================================================================
+        // Come back to this one.  Is there a portable way to rename a file?
+        // =======================================================================
+
+        sprintf(cmd_line,"mv %s/scatter_qc_00.ps %s/%s_frame%d_sc_qc.ps ", em_dir, em_dir, em_prefix, frame);
         fprintf(log_fp,"%s\n",cmd_line);
         fflush(log_fp);
-        if (exec)
+        if (do_exec)
           system(cmd_line);
 
       /*
       sprintf(cmd_line, "cd %s", em_dir);
       fprintf(log_fp,"%s\n",cmd_line);
       fflush(log_fp);
-      if (exec)
+      if (do_exec)
         chdir(em_dir);
       */
       }
@@ -253,36 +269,37 @@ static int compute_scatter()
       if (ecat_reslice_flag) {  // ahc no
         if (frame_info[frame].em_align_flag==0) {
           // Copy frame
-          sprintf(cmd_line,"%s/%s -i %s.v,%d,1,1 -o %s_rsl.v,%d,1,1",
-            program_path, prog_matcopy, \
+          sprintf(program_name, "%s/%s", program_path, prog_matcopy);
+          sprintf(cmd_line,"-i %s.v,%d,1,1 -o %s_rsl.v,%d,1,1",
                   im_prefix, frame1, im_prefix, frame1); // ECAT 1-N counting
-          fprintf(log_fp,"%s\n",cmd_line);  fflush(log_fp);
-          if (exec)
-            system(cmd_line);
+          if (do_exec)
+            if (run_system_command(program_name, cmd_line, log_fp)) {
+              exit(1);
+            }
           continue;
         }
       }
       
-      sprintf(cmd_line,"%s/%s %s,%d,1,1 %s,%d,1,1 %s_fr%d.air -m 6 -t1 %d -t2 %d",
-       program_path, prog_alignlinear, \
+      sprintf(program_name, "%s/%s", program_path, prog_alignlinear);
+      sprintf(cmd_line,"%s,%d,1,1 %s,%d,1,1 %s_fr%d.air -m 6 -t1 %d -t2 %d",
               ecat_file, ref_frame+1, ecat_file, frame+1, // ECAT 1-N counting
               em_prefix, frame,                           // Standardized 0-N counting
               thr, thr);
-      fprintf(log_fp,"%s\n",cmd_line);
-      if (exec)
-        system(cmd_line);
+      if (do_exec)
+          if (run_system_command(program_name, cmd_line, log_fp))
+            exit(1);
       
+      sprintf(program_name, "%s/%s", program_path, prog_reslice);
       if (ecat_reslice_flag) {
-        sprintf(cmd_line,"%s/%s %s_fr%d.air %s_rsl.v,%d,1,1 -a %s.v,%d,1,1 -k -o",
-          program_path, prog_reslice, \
+        sprintf(cmd_line,"%s_fr%d.air %s_rsl.v,%d,1,1 -a %s.v,%d,1,1 -k -o",
           im_prefix, frame, im_prefix, frame1, im_prefix, frame1);
-        fprintf(log_fp,"%s\n",cmd_line);
-        if (exec)
-          system(cmd_line);
+        if (do_exec)
+          if (run_system_command(program_name, cmd_line, log_fp))
+            exit(1);
       }
     }
   //Create Motion QC plot
-    if (exec) {
+    if (do_exec) {
       sprintf(dat_fname,"%s_motion_qc.dat", em_prefix);
       if ((qc_dat_file=fopen(dat_fname,"wt")) == NULL) {
         fprintf(log_fp,"Error opening file %s\n", dat_fname);
@@ -297,7 +314,7 @@ static int compute_scatter()
       // motion_distance output is like '0 0.694 0.733 -0.224 1.03'
         sprintf(cmd_line,"motion_distance -a %s_fr%d.air", em_prefix, frame);
         fprintf(log_fp,"%s\n",cmd_line);
-        if (exec) {
+        if (do_exec) {
           if ((pp = popen(cmd_line,"r")) != NULL) {
             fgets(line, sizeof(line),pp);
             fprintf(qc_dat_file,"%d %s",x0, line);
@@ -309,16 +326,16 @@ static int compute_scatter()
           }
         }
       } else {
-        if (exec) {
+        if (do_exec) {
           fprintf(qc_dat_file,"%d %d 0 0 0 0\n",x0, x0);
           fprintf(qc_dat_file,"%d %d 0 0 0 0\n",x1, x0);
         }
       }
     }
-    if (exec)
+    if (do_exec)
     fclose(qc_dat_file); // close .dat file
   sprintf(plt_fname,"%s_motion_qc.plt", em_prefix);
-  if (exec) {
+  if (do_exec) {
     if ((qc_plt_file=fopen(plt_fname,"wt")) != NULL) {
       fprintf(qc_plt_file,"set terminal postscript portrait color 'Helvetica' 8\n");
       fprintf(qc_plt_file,"set output  '%s_motion_qc.ps'\n", em_prefix);
@@ -336,7 +353,7 @@ static int compute_scatter()
   }
   sprintf(cmd_line,"%s %s", prog_gnuplot, plt_fname);
   fprintf(log_fp,"%s\n",cmd_line);
-  if (exec)
+  if (do_exec)
     system(cmd_line);
 }
 static int sc_motion_qc()
@@ -371,7 +388,7 @@ static int sc_motion_qc()
   if (found_frames<2) return 0;
   sprintf(fname,"%s_sc_qc.dat", sc_prefix);
   fprintf(log_fp,"Create %s\n", fname);
-  if (exec) {
+  if (do_exec) {
     if ((fp=fopen(fname,"wt")) != NULL) {
       for (plane=0; plane<(int)nplanes; plane++) {
         if (scale_factors[0].size() != nplanes) 
@@ -393,7 +410,7 @@ static int sc_motion_qc()
   }
   sprintf(plt_fname,"%s_sc_qc.plt", sc_prefix);
   fprintf(log_fp,"Create %s\n", plt_fname);
-  if (exec) {
+  if (do_exec) {
     int num_plots = (num_frames+4)/5; // 5 frames per plot
     int num_pages = (num_plots+5)/6;  // 2x3 plots per page
     frame = 0;
@@ -430,7 +447,7 @@ static int sc_motion_qc()
   }
   sprintf(cmd_line,"%s %s", prog_gnuplot, plt_fname);
   fprintf(log_fp,"%s\n",cmd_line);
-  if (exec)
+  if (do_exec)
     system(cmd_line);
   return 1;
 }
@@ -459,15 +476,21 @@ int main(int argc, char **argv)
   // Global parameters
   int g_no_ref_frame_delay = 0;   // Injection was some time before scan: don't wait 600 seconds to look for reference frame.
 
-
   program_path[0] = '\0';
   prog_gnuplot[0] = '\0';
   dir_log[0] = '\0';
 
+  fprintf(stderr, "hello 0?\n");   fflush(stderr);
+
   if (argc<2) usage(argv[0]);
+  fprintf(stderr, "hello 1?\n");   fflush(stderr);
   em_file = argv[1];
+  fprintf(stderr, "hello 2?\n");   fflush(stderr);
   mu_file[0] = '\0';
+  fprintf(stderr, "hello 3?\n");   fflush(stderr);
   while ((c = getopt (argc-1, argv+1, "n:r:F:x:D:u:a:L:g:T:R:Odtvp:z:l:")) != EOF) {
+  fprintf(stderr, "hello 3a? argc %d argv %s\n", argc, argv);   fflush(stderr);
+  fprintf(stderr, "c is %s\n", c);  fflush(stderr);
     switch (c) {
       case 'd':
       // No delay to look for reference frame, as scan was delayed after injection
@@ -522,7 +545,7 @@ int main(int argc, char **argv)
       }
       break;
       case 't' :
-      exec = 0;
+      do_exec = 0;
       break;
       case 'v' :
       verbose = 1;
@@ -547,6 +570,7 @@ int main(int argc, char **argv)
       break;
     }
   }
+  fprintf(stderr, "hello 4?\n");   fflush(stderr);
 
   // Check required arguments present.
   if (!strlen(program_path)) {
@@ -562,6 +586,16 @@ int main(int argc, char **argv)
     usage(argv[0]);
   }
   
+  if ((log_fp=fopen(log_file,"wt")) == NULL) {
+    perror(log_file);
+    exit(1);
+  }
+
+  if (!file_exists(em_file)) {
+    fprintf(log_fp, "No input file: %s\n", em_file);
+    exit(1);
+  }
+
   strcpy(em_prefix,em_file);
   if ((ext=strrchr(em_prefix,'.')) == NULL) {
     printf( "%s unknown file type\n", em_file);
@@ -590,10 +624,6 @@ int main(int argc, char **argv)
       sprintf(log_file, "%s_motion_qc.log", em_prefix);
     }
 
-    if ((log_fp=fopen(log_file,"wt")) == NULL) {
-      perror(log_file);
-      exit(1);
-    }
     strcpy(em_ecat_file, em_file);
 
     
@@ -729,16 +759,14 @@ int main(int argc, char **argv)
           exit(1);
         }
         sprintf(em_dyn_file,"%s.dyn", em_prefix);
-        sprintf(cmd_line,"%s/%s %s -o %s.s -PR", \
-          program_path, prog_lmhistogram, \
-          em_file, em_prefix);
-        printf("%s\n",cmd_line);
         if (access(em_dyn_file,R_OK) == 0 && overwrite==0) {
           fprintf(log_fp,"Reusing existing %s\n",em_dyn_file);
         } else {
-          fprintf(log_fp,"%s\n",cmd_line);
-          if (exec)
-            system(cmd_line);
+          sprintf(program_name, "%s/%s", program_path, prog_lmhistogram);
+          sprintf("%s -o %s.s -PR", em_file, em_prefix);
+          if (do_exec)
+            if (run_system_command(program_name, cmd_line, log_fp))
+              exit(1);
           if (access(em_dyn_file,R_OK) != 0) {
             fprintf(log_fp,"Error creating file %s\n", em_dyn_file);
             exit(1);
@@ -783,16 +811,15 @@ int main(int argc, char **argv)
 
     // Fill em_ecat_file and start reconstruction
     if (recon_pgm != NULL) {
-      //sprintf(em_ecat_file,"%s_na.v", em_prefix);
       sprintf(em_ecat_file,"%s.v", em_prefix);
-      sprintf(cmd_line,"%s -t %s -n %s -X 128 -o %s -W 2 -I 4 -S 8 -N -T 1",
-        recon_pgm, em_dyn_file, norm_file, em_ecat_file);
       if (access(em_ecat_file,R_OK) == 0 && overwrite==0) {
         fprintf(log_fp,"Reusing existing %s\n",em_ecat_file);
       } else {
-        fprintf(log_fp,"%s\n",cmd_line);
-        if (exec) 
-         system(cmd_line);
+      sprintf(cmd_line,"-t %s -n %s -X 128 -o %s -W 2 -I 4 -S 8 -N -T 1",
+        em_dyn_file, norm_file, em_ecat_file);
+        if (do_exec) 
+          if (run_system_command(recon_pgm, cmd_line, log_fp))
+            exit(1);
      }
    } else {
       // can't create image files, create scatter QC
@@ -816,19 +843,17 @@ int main(int argc, char **argv)
   if (strlen(em_ecat_file)>0) {
     // Smooth reconstructed images with 6mm
     sprintf(fname,"%s_%dmm.v",em_prefix, fwhm);
-    sprintf(cmd_line, "%s/%s %s %d %s", program_path, prog_gsmooth, em_ecat_file, fwhm, fname);
     printf("\nfname: %s\n", fname);
     fflush(stdout);
     
     if (access(fname,R_OK) == 0 && overwrite==0) {
       fprintf(log_fp,"Reusing existing %s\n",fname);
     } else {
-      fprintf(log_fp,"%s\n",cmd_line);
-      fflush(log_fp);
-      printf("%s\n",cmd_line);
-      fflush(stdout);
-      if (exec)
-        system(cmd_line);
+      sprintf(program_name, "%s/%s", program_path, prog_gsmooth);
+      sprintf(cmd_line, "%s %d %s", em_ecat_file, fwhm, fname);
+      if (do_exec)
+        if (run_system_command(program_name, cmd_line, log_fp))
+          exit(1);
     }
      // Use AIR to compute motion transformers on smoothed images
     AIR_motion_qc(fname, AIR_threshold);

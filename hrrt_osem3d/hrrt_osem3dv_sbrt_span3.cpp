@@ -46,6 +46,10 @@ For commercial use, please contact zcho@gachon.ac.kr or isslhong@kpu.ac.kr
 
 #include "hrrt_osem3d.h"
 #include "nr_utils.h"
+
+// ahc
+#include <algorithm>
+
 extern int nthreads;
 
 //int group, del, zmin, zmax, iminp, imaxp, iminm, imaxm;
@@ -355,7 +359,7 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 	xr_pixels = radial_pixels;
 	yr_pixels = z_pixels;    
 	th_pixels = 2 * groupmax + 1;
-	th_min    = max(2 * groupmin - 1, 0);
+	th_min    = std::max(2 * groupmin - 1, 0);
 	//    	xr_off    = xr_pixels / 2;
 	//    	yr_off    = yr_pixels / 2;
 
