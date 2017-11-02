@@ -1,8 +1,5 @@
 /*
 
-  Arman:
-  Added -R option; allowing ecat_reslice performance (default 1/one).
-  
 File: motion_qc.cpp
 Authors:
   Merence Sibomana
@@ -53,6 +50,9 @@ Purpose B usage:
       21-AUG-2010: Add -T option for AIR alignment threshold
       23-NOV-2010: Use hrrt_osem3d_u for fast 128x128 reconstruction
                    Bug fix: default reference frame set to 0 if no 5min or more frame found
+  Arman:
+  Added -R option; allowing ecat_reslice performance (default 1/one).
+  
 */
 
 #include <stdio.h>

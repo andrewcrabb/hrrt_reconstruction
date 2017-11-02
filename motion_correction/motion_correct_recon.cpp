@@ -620,7 +620,8 @@ if (*ext == 'v') {
           frame_info[frame].em_align_flag = 0;
       }
       frame_info[ref_frame].em_align_flag = 0;
-    }
+      fprintf(log_fp, "ref_frame %d\n", ref_frame);
+    }  // if/else vicra_file
     goto ecat_ready;
   }  // if ext = 'v'.
 
