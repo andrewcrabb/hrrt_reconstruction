@@ -480,17 +480,13 @@ int main(int argc, char **argv)
   prog_gnuplot[0] = '\0';
   dir_log[0] = '\0';
 
-  fprintf(stderr, "hello 0?\n");   fflush(stderr);
-
   if (argc<2) usage(argv[0]);
-  fprintf(stderr, "hello 1?\n");   fflush(stderr);
   em_file = argv[1];
-  fprintf(stderr, "hello 2?\n");   fflush(stderr);
   mu_file[0] = '\0';
   fprintf(stderr, "hello 3?\n");   fflush(stderr);
   while ((c = getopt (argc-1, argv+1, "n:r:F:x:D:u:a:L:g:T:R:Odtvp:z:l:")) != EOF) {
-  fprintf(stderr, "hello 3a? argc %d argv %s\n", argc, argv);   fflush(stderr);
-  fprintf(stderr, "c is %s\n", c);  fflush(stderr);
+  // fprintf(stderr, "hello 3a? argc %d argv %s\n", argc, argv);   fflush(stderr);
+  // fprintf(stderr, "c is %s\n", c);  fflush(stderr);
     switch (c) {
       case 'd':
       // No delay to look for reference frame, as scan was delayed after injection
@@ -591,6 +587,7 @@ int main(int argc, char **argv)
     exit(1);
   }
 
+  std::cerr << "calling file_exists: " << em_file << std::endl << std::flush;
   if (!file_exists(em_file)) {
     fprintf(log_fp, "No input file: %s\n", em_file);
     exit(1);
