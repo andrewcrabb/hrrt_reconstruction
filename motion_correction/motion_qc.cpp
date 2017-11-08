@@ -588,8 +588,10 @@ int main(int argc, char **argv)
   }
 
   std::cerr << "calling file_exists: " << em_file << std::endl << std::flush;
-  if (!file_exists(em_file)) {
-    fprintf(log_fp, "No input file: %s\n", em_file);
+  std::string s0 (em_file);
+  if (!file_exists(s0)) {
+    std::cerr << "No input file: " << em_file << std::endl << std::flush;
+    // fprintf(log_fp, "No input file: %s\n", em_file);
     exit(1);
   }
 
@@ -607,7 +609,7 @@ int main(int argc, char **argv)
   memset(em_dyn_file,0,sizeof(em_dyn_file));
 
   if (strcasecmp(ext,"v") == 0) {
-    // ecat reconstructed images file
+    // ecat reconstructed .v image file
     MatrixFile *mf=NULL;
     MatrixData *matdata;
     Image_subheader *imh;
@@ -623,7 +625,7 @@ int main(int argc, char **argv)
 
     strcpy(em_ecat_file, em_file);
 
-    
+    // matrix_open defined in matrix_extra.c    
     if ((mf=matrix_open(em_file,MAT_READ_ONLY,MAT_UNKNOWN_FTYPE)) == NULL) {
       fprintf(log_fp, "Error opening %s\n", em_file);
       exit(1);
@@ -778,6 +780,7 @@ int main(int argc, char **argv)
 
   // Reconstruct ecat images if l64 or dyn input
   if (em_ecat_file[0] == '\0') {
+    // ahc no
     if ((fp=fopen(em_dyn_file,"rt")) == NULL) {
       fprintf(log_fp,"Error opening file %s\n", em_dyn_file);
       exit(1);
@@ -812,23 +815,25 @@ int main(int argc, char **argv)
       if (access(em_ecat_file,R_OK) == 0 && overwrite==0) {
         fprintf(log_fp,"Reusing existing %s\n",em_ecat_file);
       } else {
-      sprintf(cmd_line,"-t %s -n %s -X 128 -o %s -W 2 -I 4 -S 8 -N -T 1",
-        em_dyn_file, norm_file, em_ecat_file);
+        sprintf(cmd_line,"-t %s -n %s -X 128 -o %s -W 2 -I 4 -S 8 -N -T 1",
+          em_dyn_file, norm_file, em_ecat_file);
         if (do_exec) 
           if (run_system_command(recon_pgm, cmd_line, log_fp))
             exit(1);
-     }
-   } else {
+        }
+      } else {
       // can't create image files, create scatter QC
-    em_ecat_file[0] = '\0';
-  }
+        em_ecat_file[0] = '\0';
+      }
   }  // if (not em_ecat_file)
 
   printf("\n start_frame: %d, end_frame:%d, ref_frame:%d \n", start_frame, end_frame, ref_frame);
   fflush(stdout);
   
   // scatter scaling motion QC
+  // mu_file is option -u
   if (strlen(mu_file)>0) {
+    // ahc no
     if (compute_scatter()) {
       fprintf(log_fp,"Error in compute_scatter()\n");
       exit(1);
@@ -838,6 +843,7 @@ int main(int argc, char **argv)
 
   // Reconstructed images motion QC
   if (strlen(em_ecat_file)>0) {
+    // ahc yes
     // Smooth reconstructed images with 6mm
     sprintf(fname,"%s_%dmm.v",em_prefix, fwhm);
     printf("\nfname: %s\n", fname);
@@ -853,7 +859,9 @@ int main(int argc, char **argv)
           exit(1);
     }
      // Use AIR to compute motion transformers on smoothed images
+          fprintf(log_fp,"Calling AIR_motion_qc\n");  fflush(log_fp);
     AIR_motion_qc(fname, AIR_threshold);
+          fprintf(log_fp,"Returned from AIR_motion_qc\n");  fflush(log_fp);
   }
 
   fclose(log_fp);
