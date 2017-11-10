@@ -1,2 +1,0 @@
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc libgen_delays.a  CMakeFiles/gen_delays.dir/gen_delays.cpp.o CMakeFiles/gen_delays.dir/geometry_info.cpp.o CMakeFiles/gen_delays.dir/lor_sinogram_map.cpp.o CMakeFiles/gen_delays.dir/segment_info.cpp.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib libgen_delays.a

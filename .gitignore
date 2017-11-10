@@ -46,6 +46,7 @@ lib/
 bin/
 /bin/
 !/lib/hrrt_rebinner.lut
+build/
 
 # Compiled Libraries #
 ######################
