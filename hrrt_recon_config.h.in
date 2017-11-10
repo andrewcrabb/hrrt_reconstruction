@@ -1,0 +1,5 @@
+// the configured options and settings for gflags
+#define gflags_VERSION_MAJOR @gflags_VERSION_MAJOR@
+#define gflags_VERSION_MINOR @gflags_VERSION_MINOR@
+
+// #cmakedefine USE_MYMATH
