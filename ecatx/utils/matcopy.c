@@ -14,7 +14,10 @@ static char sccsid[]="(#)matcopy.c 1.4 7/10/92 Copyright 1990 CTI Pet Systems, I
 #endif
 extern MatrixData *matrix_read_scan();
 
-static usage() {
+static void usage();
+static int copy_scan(mptr1,matnum, mptr2,o_matnum,storage_order);
+
+static void usage() {
 	fprintf(stderr,
 		"usage: matcopy -i matspec -o matspec [-V version -v] [-s storage_order]]\n");
 	fprintf(stderr,"version is either 70 or 6 (default = 70)\n");
@@ -25,7 +28,7 @@ static usage() {
 
 static int verbose=0;
 
-static copy_scan(mptr1,matnum, mptr2,o_matnum,storage_order)
+static int copy_scan(mptr1,matnum, mptr2,o_matnum,storage_order)
 MatrixFile *mptr1, *mptr2;
 int matnum, o_matnum, storage_order;
 {
@@ -144,7 +147,7 @@ int matnum, o_matnum, storage_order;
 	return 1;
 }
 	
-main( argc, argv)
+int main( argc, argv)
   int argc;
   char **argv;
 {
@@ -270,4 +273,5 @@ main( argc, argv)
 	}
 	matrix_close( mptr1);
 	matrix_close( mptr2);
+	return(0);
 }

@@ -12,9 +12,17 @@
 #include <time.h>
 #include "matrix.h"
 
-main( argc, argv)
-  int argc;
-  char **argv;
+void show_main_header( Main_header *mh );
+static char* storage_order(int idx);
+void show_scan_subheader( Scan_subheader *sh );
+void show_Scan3D_subheader( Scan3D_subheader *sh );
+void day_time( char *str, int day, int month, int year, int hour, int minute, int sec);
+void show_attn_subheader( Attn_subheader *ah );
+void show_norm_subheader( Norm_subheader *nh );
+void show_norm3d_subheader( Norm3D_subheader *nh );
+void show_image_subheader( MatrixData *matrix );
+
+int main( int argc, char **argv )
 {
 	int matnum=0;
 	char fname[256];
@@ -66,7 +74,8 @@ FILE *fp;
 	  default    :
 		crash("%s    : unknown matrix file type (%d)\n", argv[0], mptr->mhptr->file_type);
 	}
-	exit(0);
+	// exit(0);
+	return(0);
 }
 
 static char *ftypes[]= {
@@ -83,8 +92,7 @@ static char *applied_proc[] = {
     "Smooth_X", "Smooth_Y", "Smooth_Z", "Scat2d", "Scat3d",
     "ArcPrc", "DecayPrc", "OnCompPrc", "Random","","","",""};
 
-static char* storage_order(idx)
-int idx;
+static char* storage_order(int idx)
 {
 	switch (idx)
 	{
@@ -94,8 +102,7 @@ int idx;
 	return "Unknown mode";
 }
 	
-show_main_header( mh)
-  Main_header *mh;
+void show_main_header( Main_header *mh )
 {
 	int ft, i;
 	char *ftstr, tod[256];
@@ -198,8 +205,7 @@ show_main_header( mh)
 	}
 }
 
-show_scan_subheader( sh)
-  Scan_subheader *sh;
+void show_scan_subheader( Scan_subheader *sh )
 {
 	int i,j;
 
@@ -250,8 +256,7 @@ show_scan_subheader( sh)
 	printf("Loss Correction Factor      : %0.5f\n", sh->loss_correction_fctr);
 }
 
-show_Scan3D_subheader( sh)
-  Scan3D_subheader *sh;
+void show_Scan3D_subheader( Scan3D_subheader *sh )
 {
 	int i,j;
 
@@ -304,8 +309,7 @@ show_Scan3D_subheader( sh)
 	}
 }
 
-show_image_subheader(matrix)
-  MatrixData *matrix;
+void show_image_subheader( MatrixData *matrix )
 {
 	char tod[256], *fcode;
   	Image_subheader *ih;
@@ -383,9 +387,7 @@ show_image_subheader(matrix)
 	printf("Annotation                  : %-40s\n", ih->annotation);
 }
 
-day_time( str, day, month, year, hour, minute, sec)
-  char *str;
-  int day, month, year, hour, minute, sec;
+void day_time( char *str, int day, int month, int year, int hour, int minute, int sec)
 {
 	static char *months="JanFebMarAprMayJunJulAugSepOctNovDec";
 	char mstr[4];
@@ -407,8 +409,7 @@ day_time( str, day, month, year, hour, minute, sec)
 	sprintf( str, "%02d-%s-%4d %02d:%02d:%02d", day, mstr, year, 
 		hour, minute, sec);
 }
-show_attn_subheader( ah)
-  Attn_subheader *ah;
+void show_attn_subheader( Attn_subheader *ah )
 {
 	int i=0;
 	printf("Attenuation Matrix Sub-header\n");
@@ -440,8 +441,8 @@ show_attn_subheader( ah)
 	printf("Sample Distance             : %0.5f cm\n", ah->sample_distance);
 */
 }
-show_norm_subheader( nh)
-  Norm_subheader *nh;
+
+void show_norm_subheader( Norm_subheader *nh )
 {
 	char tod[256];
 
@@ -466,8 +467,7 @@ show_norm_subheader( nh)
 	printf("Norm_max                    : %f\n", nh->norm_max);
 }
 
-show_norm3d_subheader( nh)
-  Norm3D_subheader *nh;
+void show_norm3d_subheader( Norm3D_subheader *nh )
 {
 	int i;
 	printf("Normalization Matrix Sub-header\n");

@@ -29,14 +29,21 @@
    * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+// ahc
+#define _XOPEN_SOURCE
+
 #include <stdlib.h>
 #include <string.h>
 #include "matrix.h"
 
+// ahc
+#include <unistd.h>
+#include <linux/swab.h>
+
 void 
 SWAB(void *from, void *to, int length)
 {
-	if (ntohs(1) == 1) swab(from, to, length);
+	if (ntohs(1) == 1) swab(from, to, (ssize_t)length);
 	else memcpy(to,from,length);
 }
 
@@ -275,7 +282,7 @@ bufRead(char *s, char *buf, int *i, int len)
 void
 bufRead_s(short *val, char *buf, int *i)
 {
-	union { short s; u_char b[2]; } tmp, tmp1;
+	union { short s; unsigned char b[2]; } tmp, tmp1;
 	memcpy(tmp.b,&buf[*i],2);
 	if (ntohs(1) != 1) {
 		swab((char*)tmp.b,(char*)tmp1.b,2);
@@ -287,7 +294,7 @@ bufRead_s(short *val, char *buf, int *i)
 void 
 bufRead_i(int *val, char *buf, int *i)
 {
-	union {int i; u_char b[4]; } tmp, tmp1;
+	union {int i; unsigned char b[4]; } tmp, tmp1;
 	memcpy(tmp1.b,&buf[*i],4);
 	if (ntohs(1) != 1) {
 		swab((char*)tmp1.b,(char*)tmp.b,4);
@@ -300,7 +307,7 @@ bufRead_i(int *val, char *buf, int *i)
 void 
 bufRead_u(unsigned int *val, char *buf, int *i)
 {
-	union {unsigned int u; u_char b[4]; } tmp, tmp1;
+	union {unsigned int u; unsigned char b[4]; } tmp, tmp1;
 	memcpy(tmp1.b,&buf[*i],4);
 	if (ntohs(1) != 1) {
 		swab((char*)tmp1.b,(char*)tmp.b,4);
@@ -313,7 +320,7 @@ bufRead_u(unsigned int *val, char *buf, int *i)
 void 
 bufRead_f(float *val, char *buf, int *i)
 {
-	union {float f; u_char b[2]; } tmp, tmp1;
+	union {float f; unsigned char b[2]; } tmp, tmp1;
     memcpy(tmp1.b, &buf[*i], sizeof(float));
 	if (ntohs(1) != 1) {
 		swab((char*)tmp1.b,(char*)tmp.b,4);

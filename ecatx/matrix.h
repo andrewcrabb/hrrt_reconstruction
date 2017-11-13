@@ -588,8 +588,9 @@ extern "C" {
 #endif
 void SWAB(void *from, void *to, int len);
 void SWAW(short *from, short *to, int len);
-u_char find_bmin(const u_char*, int size);
-u_char find_bmax(const u_char*, int size);
+// ahc replace all u_char with unsigned char
+unsigned char find_bmin(const unsigned char*, int size);
+unsigned char find_bmax(const unsigned char*, int size);
 short find_smin(const short*, int size);
 short find_smax(const short*, int size);
 int find_imin(const int*, int size);

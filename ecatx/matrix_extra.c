@@ -29,6 +29,7 @@
  * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <stdio.h>
 #include	<stdlib.h>
 #include	<math.h>
 #include	<fcntl.h>
@@ -862,8 +863,8 @@ matrix_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment)
 #ifdef _WIN32
         fseek64(fileno(mptr->fptr),file_pos,0) == -1 ||
 #else
-        fseeko64(mptr->fptr,file_pos,0) == -1 ||
-        /* ahc */
+        fseek(mptr->fptr,file_pos,0) == -1 ||
+        /* ahc all Linux fseek now 64 bits */
         /* fseeko(mptr->fptr,file_pos,0) == -1 || */
 #endif
         fread(data->data_ptr, plane_size, z_elements, mptr->fptr)

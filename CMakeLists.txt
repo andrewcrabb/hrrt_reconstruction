@@ -18,7 +18,9 @@ configure_file (
 include_directories("${PROJECT_BINARY_DIR}")
 
 # My compiler switches (from setup.sh)
-add_definitions(-D_LINUX -D__LINUX__ -D_GLIBCXX_USE_CXX11_ABI=0)
+# Might want to use GLIBCXX_USE_CX11 more sparingly as it is disabling some posix features like getopt and swab
+# add_definitions(-D_LINUX -D__LINUX__ -D_GLIBCXX_USE_CXX11_ABI=0)
+add_definitions(-D_LINUX -D__LINUX__ )
 add_compile_options(-I${PROJECT_SOURCE_DIR}/AIR5.3.0/src -L${PROJECT_SOURCE_DIR}/AIR5.3.0/src)
 
 
