@@ -29,6 +29,9 @@
    * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+// ahc
+#define _XOPEN_SOURCEs
+
 #include <time.h>
 #include <string.h>
 #include <stdlib.h>
@@ -42,6 +45,10 @@
 #define stat _stat
 #define itoa _itoa
 #endif
+
+// ahc
+#include <unistd.h>
+
 
 
 #define END_OF_KEYS END_OF_INTERFILE+1

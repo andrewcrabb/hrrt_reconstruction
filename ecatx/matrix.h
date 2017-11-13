@@ -544,7 +544,9 @@ typedef
 		FILE		*fptr ;		/* file ptr for I/O calls */
 		FileFormat file_format;
 		char **interfile_header;
-    caddr_t analyze_hdr;
+	// ahc replace all occurences of caddr_t with void*
+    // caddr_t analyze_hdr;
+    void *analyze_hdr;
 	}
 MatrixFile ;
 
@@ -555,8 +557,10 @@ typedef
 		MatrixFile	*matfile ;	/* pointer to parent */
 		DataSetType	mat_type ;	/* type of matrix? */
 		MatrixDataType	data_type ;	/* type of data */
-		caddr_t		shptr ;		/* pointer to sub-header */
-		caddr_t		data_ptr ;	/* pointer to data */
+		// caddr_t		shptr ;		 pointer to sub-header 
+		// caddr_t		data_ptr ;	/* pointer to data */
+		void *shptr ;		/* pointer to sub-header */
+		void *data_ptr ;	/* pointer to data */
 		int		data_size ;	/* size of data in bytes */
 		int		xdim;		/* dimensions of data */
 		int		ydim;		/* y dimension */

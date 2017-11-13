@@ -9,7 +9,8 @@
 */
 #ifndef gen_delays_h
 #define gen_delays_h
-#include <stdio.h>
+// #include <stdio.h>
+#include <cstdio>
 int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
 			   float ***result,FILE *p_coins_file,  char *p_delays_file, 
                int span=9, int max_rd=67,

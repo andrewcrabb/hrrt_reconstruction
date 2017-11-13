@@ -55,7 +55,7 @@ static void usage() {
 	exit (FAIL);
 }
 
-static threshold(volume, t1, t2) 
+static int threshold(volume, t1, t2) 
 MatrixData *volume;
 float t1, t2;
 {
@@ -90,9 +90,10 @@ float t1, t2;
 	volume->scale_factor = f1;
 	volume->data_min = t1;
 	volume->data_max = t2;
+	return(0);
 }
 		
-main (argc, argv)
+int main (argc, argv)
 	int			 argc;
 	char		   *argv[];
 {
@@ -480,5 +481,6 @@ main (argc, argv)
 	fclose (fd_hdr);
 	fclose (fd_img);
 	fclose (fd_if);
-	exit (0);
+	// exit (0);
+	return(0);
 }

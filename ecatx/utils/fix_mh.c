@@ -67,7 +67,7 @@ static void usage() {
 	fprintf (stderr,"Version 8 : Nov 07, 2005\n");
 	exit(1);
 }
-main( argc, argv)
+int main( argc, argv)
   int argc;
   char** argv;
 {
@@ -346,4 +346,5 @@ main( argc, argv)
 	}
 	mat_write_main_header(mptr->fptr, mh);
 	matrix_close(mptr);
+	return(0);
 }

@@ -52,6 +52,10 @@
 #include	<unistd.h>
 #endif
 
+// ahc
+#define _XOPEN_SOURCE
+#include <stdbool.h>
+
 
 #define TRUE 1
 #define FALSE 0
@@ -118,7 +122,7 @@ free_matrix_file(MatrixFile *mptr)
   free(mptr);
 }
 
-is_acs(fname)
+bool is_acs(fname)
 char	*fname ;
 {
   if (strstr(fname, "/sd") == fname)

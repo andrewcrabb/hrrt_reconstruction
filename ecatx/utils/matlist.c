@@ -5,7 +5,7 @@
 
 #include "matrix.h"
 
-main( argc, argv)
+int main( argc, argv)
   int argc;
   char **argv;
 {
@@ -35,4 +35,5 @@ main( argc, argv)
 	  node = node->next;
 	}
 	matrix_close(mptr);
+	return(0);
 }

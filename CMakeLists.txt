@@ -1,9 +1,12 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 3.7)
 project (hrrt_recon)
 # The version number.
 set (hrrt_recon_VERSION_MAJOR 1)
 set (hrrt_recon_VERSION_MINOR 0)
  
+include(GNUInstallDirs)
+set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
+
 # configure a header file to pass some of the CMake settings to the source code
 configure_file (
   "${PROJECT_SOURCE_DIR}/hrrt_recon_config.h.in"
@@ -25,6 +28,9 @@ if (APPLE)
 endif()
 
 add_subdirectory(gen_delays_lib)
+add_subdirectory(interfile_lib)
+add_subdirectory(ecatx)
+add_subdirectory(ecatx/utils)
 
 # # add the MathFunctions library?
 # if (USE_MYMATH)
