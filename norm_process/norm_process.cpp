@@ -24,7 +24,7 @@
   11/13/08: Set maximum ring difference in norm header
   04/30/09: Use gen_delays_lib C++ library for rebinning and remove dead code
   Add an option to use a measured rotation_dwell and omega sino
-  Integrate Peter Bloomfield _LINUX support
+  Integrate Peter Bloomfield __linux__ support
   28-May-2009: Added new geometric profiles format using 4 linear segments cosine
   16-Sep-2009: Check input arguments and exit if arguments are invalid
   16-Oct-2009: Added fix_back_layer_ce() to solve ring artifact
@@ -47,9 +47,9 @@
 #include <time.h>
 
 /* ahc */
-#define _LINUX 1
+#define __linux__ 1
 
-#ifdef _LINUX
+#ifdef __linux__
 #define _MAX_PATH 256
 #define _MAX_DRIVE 0
 #define _MAX_DIR 256
@@ -473,7 +473,7 @@ static float sum[NLAYERS][NHEADS][NXCRYS];
 /*---------------------------*/
 /* The Compute Delays Thread */
 
-#ifdef _LINUX
+#ifdef __linux__
 void *CNThread2( void *arglist ) 
 #else
   unsigned int __stdcall CNThread2( void *arglist ) 
@@ -493,7 +493,7 @@ void *CNThread2( void *arglist )
   SOL *sol;
   float *dptr=NULL;
 
-#ifdef _LINUX
+#ifdef __linux__
 #ifdef _THREADTIME
   char TimeStr[ 32 ] ;
   memset( TimeStr, 0, 32 ) ;
@@ -591,7 +591,7 @@ void *CNThread2( void *arglist )
 	    } // end ay
 	} // end ax
     } // end alayer
-#ifdef _LINUX
+#ifdef __linux__
 #ifdef _THREADTIME
   StopTimer( TimeStr ) ;
 #endif
@@ -603,7 +603,7 @@ void *CNThread2( void *arglist )
 
 /*---------------------------*/
 /* The Compute Fan Sum from listmode Thread*/
-#ifdef _LINUX
+#ifdef __linux__
 void *FS_L64_Thread( void *arglist )
 #else
   unsigned int __stdcall FS_L64_Thread( void *arglist ) 
@@ -611,7 +611,7 @@ void *FS_L64_Thread( void *arglist )
 {
   struct FS_L64_Args *args = (struct FS_L64_Args *) arglist;
   fan_sum(args->in, args->count, args->out, corrections);
-#ifdef _LINUX
+#ifdef __linux__
   pthread_exit( NULL ) ;
 #else
   return 0 ;
@@ -669,7 +669,7 @@ static void compute_fan_sum(const char *l64_file, float *fan_sum)
   int thread=0, end_of_file=0, end_of_frame=0;
   int nthreads=0; // Number of current threads may be less than NumberOfThreads
   int num_buf=0;
-#ifdef _LINUX
+#ifdef __linux__
   pthread_t	ThreadHandles[ MAX_THREADS ] ;
   pthread_attr_t	attr ;
 #else
@@ -700,7 +700,7 @@ static void compute_fan_sum(const char *l64_file, float *fan_sum)
 
   while (!end_of_file && !end_of_frame)
     {
-#ifdef _LINUX
+#ifdef __linux__
       /* Initialize and set thread detached attribute */
       pthread_attr_init(&attr);
       pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -719,7 +719,7 @@ static void compute_fan_sum(const char *l64_file, float *fan_sum)
 	      if (end_of_frame > 0)
 		FS_L64_args[thread].count = end_of_frame;
 	    }
-#ifdef _LINUX
+#ifdef __linux__
 	  pthread_create( &ThreadHandles[thread], &attr, &FS_L64_Thread, &FS_L64_args[thread] ) ;
 	  usleep( 1000 ) ;
 #else
@@ -730,7 +730,7 @@ static void compute_fan_sum(const char *l64_file, float *fan_sum)
 	}     
       nthreads = thread; //may be less than NumberOfThreads if end_of_frame of end_of_file
       //Wait for threads to finish
-#ifdef _LINUX
+#ifdef __linux__
       /* Free attribute and wait for the other threads */
       pthread_attr_destroy(&attr);
       for ( thread = 0 ; thread < nthreads ; thread++ )
@@ -914,7 +914,7 @@ void create_gr_sino(int layer)
   free(sino);
 }
 
-#ifdef _LINUX
+#ifdef __linux__
 void splitpath(const char* path, char* drv, char* dir, char* name, char* ext)
 {
   /*
@@ -1231,7 +1231,7 @@ int main(int argc, char **argv)
   /*--------------------------------*/
   /* determine number of processors */
 
-#ifdef _LINUX
+#ifdef __linux__
   NumberOfProcessors = 2;
 #else
   nprocstring = getenv("NUMBER_OF_PROCESSORS");
@@ -1521,7 +1521,7 @@ int main(int argc, char **argv)
     }
   fflush(log_fp);
 
-#ifndef _LINUX
+#ifndef __linux__
   StopTimer("Total Time");
   PrintTimerList();
   StartTimer("Total Time");
@@ -1561,7 +1561,7 @@ int main(int argc, char **argv)
   unsigned int threadID;
   //create array of handles to threads
 
-#ifdef _LINUX
+#ifdef __linux__
   pthread_t	ThreadHandles[ nmpairs ] ;
   pthread_attr_t	attr ;
 #else
@@ -1572,7 +1572,7 @@ int main(int argc, char **argv)
   struct CNArgs *CNargs= (struct CNArgs *) malloc( nmpairs * sizeof( struct CNArgs) );;
   if( CNargs == NULL )	printf("BP: ERROR malloc CNargs\n");
 	
-#ifdef _LINUX
+#ifdef __linux__
   /* Initialize and set thread detached attribute */
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -1582,18 +1582,18 @@ int main(int argc, char **argv)
       CNargs[mp].alayer = CNargs[mp].blayer=layer;
       CNargs[mp].mp = mp+1;
       CNargs[mp].TNumber = mp;
-#ifdef _LINUX
+#ifdef __linux__
       pthread_create( &ThreadHandles[mp], &attr, &CNThread2, &CNargs[mp] ) ;
 #else
       threadhandles[mp] =(HANDLE) _beginthreadex( NULL,0,CNThread2,&CNargs[mp],0,&threadID );
 #endif
     }
-#ifdef _LINUX
+#ifdef __linux__
   /* Free attribute and wait for the other threads */
   pthread_attr_destroy(&attr);
 #endif
   for (mp=0; mp<nmpairs; mp++){
-#ifdef _LINUX
+#ifdef __linux__
     pthread_join( ThreadHandles[mp] , NULL ) ;
 #else
     WaitForSingleObject( threadhandles[mp], INFINITE );
@@ -1601,7 +1601,7 @@ int main(int argc, char **argv)
   }
 
   StopTimer("Compute Normalization");
-#ifndef _LINUX
+#ifndef __linux__
   free( threadhandles );
   PrintTimerList();
 #endif
@@ -1666,7 +1666,7 @@ int main(int argc, char **argv)
 	}
     }
 
-#ifndef _LINUX
+#ifndef __linux__
   StopTimer("Normalization Rescale");
   StopTimer("Total Time");
   PrintTimerList();
@@ -1745,7 +1745,7 @@ int main(int argc, char **argv)
   /*-----*/
   /* End */
 
-#ifndef _LINUX
+#ifndef __linux__
   StopTimer("Total Time");
   PrintTimerList();
 #endif

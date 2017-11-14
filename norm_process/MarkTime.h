@@ -9,7 +9,7 @@
 
 Copyright (C) CPS Innovations 2002-2003-2004 All Rights Reserved.
 Modification History (HRRT User Community):
-        04/30/09: Integrate Peter Bloomfield _LINUX support
+        04/30/09: Integrate Peter Bloomfield __linux__ support
 
 -------------------------------------------------------------------*/
 

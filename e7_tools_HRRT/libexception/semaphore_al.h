@@ -8,7 +8,7 @@
 #ifndef _SEMAPHORE_AL_H
 #define _SEMAPHORE_AL_H
 
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <pthread.h>
 #include <semaphore.h>
 #endif
@@ -20,7 +20,7 @@
 
 class Semaphore
  { private:
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
     sem_t sem;                                         /*!< semaphore handle */
 #endif
 #ifdef WIN32
@@ -29,7 +29,7 @@ class Semaphore
    public:
     Semaphore(unsigned short int);                          // create semaphore
     ~Semaphore();                                          // destroy semaphore
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
     unsigned short int getValue();                // request value of semaphore
 #endif
     void signal();                                          // signal semaphore

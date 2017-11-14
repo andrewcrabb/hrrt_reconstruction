@@ -4,7 +4,7 @@ Modification History
     \author Peter M. Bloomfield - HRRT users community (peter.bloomfield@camhpet.ca)
     \date 2009/08/28 Port to Linux (peter.bloomfield@camhpet.ca)
 */
-#if defined(__LINUX__) && defined(__INTEL_COMPILER)
+#if defined(__linux__) && defined(__INTEL_COMPILER)
 #include <mathimf.h>
 #else
 #include <cmath>

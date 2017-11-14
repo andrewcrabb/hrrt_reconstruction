@@ -9,7 +9,7 @@
 
 #include <ctime>
 #include <string>
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <unistd.h>
 #include <sys/time.h>
 #endif
@@ -68,7 +68,7 @@ TIMEDATE::tdate TIMEDATE::currentDate()
    dt.month=t.wMonth;
    dt.year=t.wYear;
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    timeval tv;
    tm *t;
                                                             // get current time
@@ -104,7 +104,7 @@ TIMEDATE::ttime TIMEDATE::currentTime(unsigned short int * const msec)
    ti.gmt_offset_h=-_timezone/3600;
    ti.gmt_offset_m=(-_timezone-ti.gmt_offset_h*3600)/60;
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    tm *t;
    timeval tv;
                                                             // get current time

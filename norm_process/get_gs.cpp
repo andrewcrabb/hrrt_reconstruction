@@ -11,7 +11,7 @@
   09-Apr-2009: Use last geometric factor for angle higher than NUM_ANGLES
   Some values are sligthly higher than 28 degrees
   30-Apr-2009: Use gen_delays_lib C++ library for rebinning and remove dead code
-  Integrate Peter Bloomfield _LINUX support
+  Integrate Peter Bloomfield __linux__ support
   28-May-2009: Added new geometric profiles format using 4 linear segments cosine
   16-Oct-2009: Changed geometric file windows directory to c:\cps\users_sw
 */

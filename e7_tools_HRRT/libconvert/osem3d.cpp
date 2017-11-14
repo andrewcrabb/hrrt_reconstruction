@@ -39,7 +39,7 @@
 
 #include <iostream>
 #include <vector>
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <sys/utsname.h>
 #include <netdb.h>
 #endif
@@ -69,7 +69,7 @@ const float OSEM3D::image_max=100000.0f; /*!< maximum allowed value in image */
 #ifdef WIN32
 const std::string OSEM3D::slave_executable="osem_slave.exe";
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 const std::string OSEM3D::slave_executable="osem_slave";
 #endif
             /*! size of receive buffer in bytes for communication with slave */
@@ -1689,7 +1689,7 @@ void OSEM3D::init(const unsigned short int _XYSamples, const float _DeltaXY,
          hostent *h;
          std::string om_ip, local_name;
 
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
          { struct utsname un;
                                              // get IP number of local computer
            uname(&un);
@@ -2648,7 +2648,7 @@ ImageConversion *OSEM3D::reconstructGibbs(SinogramConversion * const sino,
                         loglevel+1)->arg(RhoSamples)->arg(tof_bins)->
             arg(ThetaSamples)->arg(axes_slices)->arg(XYSamples)->
             arg(XYSamples)->arg(axis_slices[0]);
-#if defined(__LINUX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__SOLARIS__)
      flog->logMsg("Gibbs prior: #1=#2", loglevel+2)->arg((char)223)->arg(beta);
 #endif
 #ifdef __MACOSX__
@@ -3073,7 +3073,7 @@ float *OSEM3D::reconstructMP_master(float * const sino,
                       x <= mask[y].end;
                       x++)
                   if (normfac[x] > OSEM3D::epsilon)
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
                    ip[x]=std::min(ip[x]*cp[x]/normfac[x], OSEM3D::image_max);
 #endif
 #ifdef WIN32
@@ -3239,7 +3239,7 @@ float *OSEM3D::reconstructMP_master(float * const sino,
                       x <= mask[y].end;
                       x++)
                   if (normfac[x] > OSEM3D::epsilon)
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
                    ip[x]=std::min(ip[x]*cp[x]/normfac[x], OSEM3D::image_max);
 #endif
 #ifdef WIN32

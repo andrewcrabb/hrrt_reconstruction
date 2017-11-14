@@ -24,7 +24,7 @@
 #include <algorithm>
 #include <limits>
 #ifdef XEON_HYPERTHREADING_BUG
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <alloca.h>
 #endif
 #ifdef WIN32
@@ -84,7 +84,7 @@ void *executeThread_FFT_block(void *param)
 #ifdef XEON_HYPERTHREADING_BUG
       // allocate some padding memory on the stack in front of the thread-stack
       // to avoid cache conflicts while accessing local variables
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      alloca(tp->thread_number*STACK_OFFSET);
 #endif
 #ifdef WIN32
@@ -125,7 +125,7 @@ void *executeThread_rFFT_block(void *param)
 #ifdef XEON_HYPERTHREADING_BUG
       // allocate some padding memory on the stack in front of the thread-stack
       // to avoid cache conflicts while accessing local variables
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      alloca(tp->thread_number*STACK_OFFSET);
 #endif
 #ifdef WIN32

@@ -128,7 +128,7 @@ void ImageConversion::CT2UMAP(const std::vector <float> bed_position,
      std::vector <float> xind, yind, ct_zpos, conversion_parms;
      std::vector <unsigned short int> pet_umap_idx;
      std::string mu;
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      char c[2];
 
      c[1]=0;

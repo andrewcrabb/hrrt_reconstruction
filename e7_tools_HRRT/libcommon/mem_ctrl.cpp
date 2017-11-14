@@ -96,7 +96,7 @@
 #include <mach/mach_host.h>
 #include <mach-o/arch.h>
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__SOLARIS__)
 /* ahc */
 /* #include <sys/sysinfo.h> */
 #endif
@@ -129,7 +129,7 @@ const unsigned short int MemCtrl::MAX_BLOCK=200;
 const unsigned short int MemCtrl::MAX_PATTERN_RESYNC=4;
 
                                      /*! path for memory access pattern file */
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 const std::string MemCtrl::pattern_path="~";
 #endif
 #ifdef WIN32
@@ -180,7 +180,7 @@ MemCtrl::MemCtrl()
       }
                               // create filename for memory access pattern file
      pattern_filename=pattern_path;
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      char *ptr;
                                                        // convert '~' into path
      if ((ptr=getenv("HOME")) == NULL)
@@ -1584,7 +1584,7 @@ void MemCtrl::setMemLimit(const float factor)
 #ifdef __SOLARIS__
    phys_mem=1024*1024;
 #endif
-#ifdef __LINUX__
+#ifdef __linux__
    {
      /* ahc */
      /*

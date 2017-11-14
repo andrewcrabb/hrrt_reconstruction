@@ -15,7 +15,7 @@
 
 #include <cstdlib>
 #include <fstream>
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <dirent.h>
 #include <sys/utsname.h>
 #endif
@@ -446,7 +446,7 @@ unsigned short int findMNR(const std::string filename,
     }
  }
 
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 /*---------------------------------------------------------------------------*/
 /*! \brief Notify COM event handler about error or status of job.
    Notify COM event handler about error or status of job.
@@ -700,7 +700,7 @@ unsigned short int numberOfMatrices(const std::string filename)
 #ifdef WIN32
 int OutOfMemory(size_t)
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 void OutOfMemory()
 #endif
  { throw Exception(REC_OUT_OF_MEMORY, "Memory exhausted.");
@@ -716,7 +716,7 @@ void OutOfMemory()
 /*---------------------------------------------------------------------------*/
 bool PathExist(const std::string path)
  {
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    return(opendir(path.c_str()) != NULL);
 #endif
 #ifdef WIN32
@@ -789,7 +789,7 @@ BSTR string2BSTR(std::string str)
    return(SysAllocString(A2OLE(str.c_str())));
  }
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 std::string string2BSTR(std::string str)
  { return(str);
  }

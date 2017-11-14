@@ -4,7 +4,7 @@
 	10-DEC-2007: Modifications for compatibility with windelays.
   07-Apr-2009: Changed filenames from .c to .cpp and removed debugging printf 
   09-Apr-2009: Bug fix in init_geometry_hrrt (initialize i=0)
-  30-Apr-2009: Integrate Peter Bloomfield _LINUX support
+  30-Apr-2009: Integrate Peter Bloomfield __linux__ support
   02-JUL-2009: Add Transmission(TX) LUT
 */
 #include <stdio.h>

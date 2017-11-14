@@ -66,7 +66,7 @@ unsigned short int numberOfMatrices(const std::string);
 #ifdef WIN32
 int OutOfMemory(size_t);                     // error handler for "new" command
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 void OutOfMemory();                          // error handler for "new" command
 #endif
 bool PathExist(const std::string);                         // does path exist ?
@@ -76,7 +76,7 @@ std::string segStr(const unsigned short int);
 #ifdef WIN32
 BSTR string2BSTR(std::string);              // convert COM BSTR into STL string
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 std::string string2BSTR(std::string);       // convert COM BSTR into STL string
 #endif
 std::string stripPath(std::string);                // remove path from filename

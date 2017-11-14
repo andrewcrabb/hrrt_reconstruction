@@ -11,7 +11,7 @@
         08/06/08: Bug fix: cosine correction was wrong (multiplied instead of divided)
                   in event fansum function.
         04/30/09: Use gen_delays_lib C++ library for rebinning and remove dead code
-                  Integrate Peter Bloomfield _LINUX support
+                  Integrate Peter Bloomfield __linux__ support
 */
 #include <math.h>
 #include <stdlib.h>

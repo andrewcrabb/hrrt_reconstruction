@@ -17,7 +17,7 @@ class Socket
                               /*! maximum number of connectors to one socket */
     static const int MAX_CONNECT=1;
     static const int SOCK_BUF_LEN=60000;         /*!< size of socket buffers */
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
     static const int INVALID_SOCKET=-1;                  /*!< invalid socket */
     static const int SOCKET_ERROR=-1;                      /*!< socket error */
 #endif

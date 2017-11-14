@@ -12,7 +12,7 @@
 #ifdef WIN32
 #define FILENAME_SIZE _MAX_PATH
 #endif
-#ifdef _LINUX
+#ifdef __linux__
 #define _MAX_PATH 256
 #define FILENAME_SIZE _MAX_PATH
 #endif

@@ -536,7 +536,7 @@ void AttenReco::reconstruct(float * const blank, float * const tx,
      std::vector <unsigned long int> histo[2];
 
      flog=Logging::flog();
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      char c[2];
 
      c[1]=0;

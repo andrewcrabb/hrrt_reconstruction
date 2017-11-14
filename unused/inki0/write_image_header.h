@@ -16,7 +16,7 @@ Copyright (C) CPS Innovations 2002-2003-2004 All Rights Reserved.
 #include	<stdlib.h>
 
 // !sv
-#ifdef IS_LINUX
+#ifdef IS__linux__
 #define _MAX_PATH 256
 #endif
 

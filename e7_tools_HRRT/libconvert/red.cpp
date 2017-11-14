@@ -96,7 +96,7 @@ bool Red::recvAndInterpretMsg()
 #ifdef WIN32
        Sleep(1);
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
        sleep(1);
 #endif
        rc->closeConnectionToClient();             // close connection to client
@@ -121,7 +121,7 @@ bool Red::recvAndInterpretMsg()
               if (p == std::string::npos) break;
               directory+=fname.substr(0, p+1);
               fname=fname.substr(p+1);
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
               mkdir(directory.c_str(), S_IXUSR | S_IRUSR | S_IWUSR |
                                        S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
 #endif
@@ -139,7 +139,7 @@ bool Red::recvAndInterpretMsg()
            delete[] buffer;
            buffer=NULL;
                                          // change access rights for executable
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
            chmod(filename.c_str(), S_IXUSR | S_IRUSR | S_IWUSR |
                                    S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
 #endif
@@ -160,7 +160,7 @@ bool Red::recvAndInterpretMsg()
          *rc >> name >> filename >> params;
          flog.logMsg("RED received EXEC(#1) from #2", 1)->arg(filename)->
           arg(name);
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
          if (fork() == 0) { filename+=" "+params;
                             system(filename.c_str());
                             exit(127);

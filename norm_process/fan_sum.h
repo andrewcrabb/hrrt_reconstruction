@@ -7,7 +7,7 @@
           and update the crystal fan sum
  Modification History:
         04/30/09: Use gen_delays_lib C++ library for rebinning and remove dead code
-                  Integrate Peter Bloomfield _LINUX support
+                  Integrate Peter Bloomfield __linux__ support
 
 */
 #ifndef fan_sum_h

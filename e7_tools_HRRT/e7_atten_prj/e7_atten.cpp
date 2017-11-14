@@ -18,7 +18,7 @@
 #include <limits>
 #include <vector>
 #include <iostream>
-#if defined(__LINUX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__SOLARIS__)
 #include <new>
 #endif
 #ifdef WIN32
@@ -88,7 +88,7 @@ void calculate3DAttenuation(Parser::tparam * const v)
     { unsigned short int num_log_cpus, subsets, number_of_matrices, i;
       std::string str, mu;
       std::vector <unsigned short int> matrices;
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
       char c[2];
 
       c[1]=0;
@@ -108,7 +108,7 @@ void calculate3DAttenuation(Parser::tparam * const v)
       /*
         PMB
       */
-#ifdef __LINUX__
+#ifdef __linux__
       float hrrt_tx_scatter_a, hrrt_tx_scatter_b;
 #endif
       if (v->txscatter[0] != 0.0f) hrrt_tx_scatter_a = v->txscatter[0];
@@ -439,7 +439,7 @@ bool validate(Parser::tparam * const v)
 { std::string mu;
   bool ret=true;
   {
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
     char c[2];
 
     c[1]=0;
@@ -778,7 +778,7 @@ int main(int argc, char **argv)
   Parser *cpar = NULL;
   StopWatch sw;
 
-#if __LINUX__
+#if __linux__
   if ( getenv( "GMINI" ) == NULL )
     {
       printf( "Environment variable 'GMINI' not set\n" ) ;
@@ -792,7 +792,7 @@ int main(int argc, char **argv)
 #ifdef WIN32
       _set_new_handler(OutOfMemory);
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
       std::set_new_handler(OutOfMemory);
 #endif
       // initialize parser

@@ -137,7 +137,7 @@ For commercial use, please contact zcho@gachon.ac.kr or isslhong@kpu.ac.kr
 */
 
 
-// IS_WIN32 and IS_LINUX will be defined by compilation switches
+// IS_WIN32 and IS__linux__ will be defined by compilation switches
 //#define IS_WIN32
 #include "compile.h" 	
 

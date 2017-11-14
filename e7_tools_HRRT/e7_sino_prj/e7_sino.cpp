@@ -19,7 +19,7 @@
 #include <string>
 #include <cstdlib>
 #include <limits>
-#if defined(__LINUX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__SOLARIS__)
 #include <new>
 #endif
 #ifdef WIN32
@@ -32,7 +32,7 @@
 #include "gm.h"
 #include "hwinfo.h" 
 #ifdef SUPPORT_NEW_SCATTER_CODE
-#if defined(__LINUX__) || defined(WIN32) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(WIN32) || defined(__SOLARIS__)
 #include "idl_interface.h"
 #endif
 #endif
@@ -101,7 +101,7 @@ void calculateSinogram(Parser::tparam * const v)
      std::string str, mu;
      std::vector <unsigned short int> matrices;
 
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      char c[2];
 
      c[1]=0;
@@ -594,7 +594,7 @@ bool validate(Parser::tparam * const v)
  { std::string mu;
    bool ret=true;
    {
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      char c[2];
 
      c[1]=0;
@@ -977,7 +977,7 @@ int main(int argc, char **argv)
  { Parser *cpar=NULL;
    StopWatch sw;
 
-#if __LINUX__
+#if __linux__
         if ( getenv( "GMINI" ) == NULL )
         {
                 printf( "Environment variable 'GMINI' not set\n" ) ;
@@ -990,7 +990,7 @@ int main(int argc, char **argv)
 #ifdef WIN32
      _set_new_handler(OutOfMemory);
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      std::set_new_handler(OutOfMemory);
 #endif
                                               // initialize command line parser
@@ -1053,7 +1053,7 @@ int main(int argc, char **argv)
       }
               // check for IDL runtime license (used for new scatter code only)
 #ifdef SUPPORT_NEW_SCATTER_CODE
-#if defined(__LINUX__) || defined(WIN32) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(WIN32) || defined(__SOLARIS__)
      if (cpar->params()->new_scatter_code) IDL_Interface::idl();
 #endif
 #endif
@@ -1090,7 +1090,7 @@ int main(int argc, char **argv)
      cpar=NULL;
      MemCtrl::mc()->printPattern(0);              // save memory access pattern
 #ifdef SUPPORT_NEW_SCATTER_CODE
-#if defined(__LINUX__) || defined(WIN32) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(WIN32) || defined(__SOLARIS__)
      IDL_Interface::IDL_close();                                  // unload IDL
 #endif
 #endif

@@ -5,7 +5,7 @@
    10-DEC-2007: Modifications for compatibility with windelays.
    02-DEC-2008: Bug fix in hrrt_rebinner_lut_path
    07-Apr-2009: Changed filenames from .c to .cpp and removed debugging printf 
-   30-Apr-2009: Integrate Peter Bloomfield _LINUX support
+   30-Apr-2009: Integrate Peter Bloomfield __linux__ support
    11-May-2009: Add span and max ring difference parameters
    02-JUL-2009: Add Transmission(TX) LUT
    21-JUL-2010: Bug fix argument parsing errors after -v (or other single parameter)
@@ -27,7 +27,7 @@
 #include <string.h>
 #include <time.h>
 #include <xmmintrin.h>
-#ifdef _LINUX
+#ifdef __linux__
 #define _MAX_PATH 256
 #include <pthread.h>
 #include <sys/time.h>
@@ -67,7 +67,7 @@ static char progid[]="$Id: gen_delays.c,v 1.3 2007/01/08 06:04:55 cvsuser Exp $"
 
 // ahc: No longer search absolutely anywhere for hrrt_rebinner.lut
 /*
-#ifdef _LINUX
+#ifdef __linux__
 static const char *exe_path[] = { ".", "/tmp", NULL};
 #else
 static const char *exe_path[] = { "c:\\cps\\users_sw", "c:\\cps\\cluster_u", NULL};
@@ -86,7 +86,7 @@ float koln_lthick[8]   = {0.75f, 0.75f, 1.0f, 0.75f, 0.75f, 0.75f, 1.0f, 0.75f};
 //   const char *lut_dir=NULL;
 //   // PMB Added
 //   // Use GMINI environment variable as path for hrrt_rebinner.lut
-// #ifdef _LINUX
+// #ifdef __linux__
 //   char buf[_MAX_PATH];
 //   exe_path[ 0 ] = getenv( "GMINI" ) ;
 // #endif
@@ -95,7 +95,7 @@ float koln_lthick[8]   = {0.75f, 0.75f, 1.0f, 0.75f, 0.75f, 0.75f, 1.0f, 0.75f};
 //       lut_dir = exe_path[i];
 //       if (access(lut_dir,0) == 0) 
 // 	{  // found directory 
-// #ifdef _LINUX
+// #ifdef __linux__
 // 	  if (!tx_flag) sprintf(lut_path,"%s/hrrt_rebinner.lut",lut_dir);
 // 	  else sprintf(lut_path,"%s/hrrt_rebinner_tx.lut",lut_dir);
 // #else
@@ -105,7 +105,7 @@ float koln_lthick[8]   = {0.75f, 0.75f, 1.0f, 0.75f, 0.75f, 0.75f, 1.0f, 0.75f};
 // 	  if (access(lut_path,0) == 0) return lut_path; //exising file
 // 	  // PMB Added
 // 	  //	IFF lut not found; try to locate it using 'which'
-// #ifdef _LINUX
+// #ifdef __linux__
 // 	  sprintf( buf, "which hrrt_rebinner.lut"  ) ;
 // 	  FILE *in  = popen( buf, "r" ) ;
 // 	  fscanf( in, "%s", lut_path ) ;
@@ -347,7 +347,7 @@ int compute_csings_from_drates( int ncrys, int *dcoins, float tau, float dt, flo
   return(iter);
 }
      
-#ifdef _LINUX
+#ifdef __linux__
 void *pt_compute_delays(void *ptarg)
 #else
   unsigned __stdcall pt_compute_delays(void *ptarg)
@@ -356,7 +356,7 @@ void *pt_compute_delays(void *ptarg)
   COMPUTE_DELAYS *arg = (COMPUTE_DELAYS *) ptarg;
   //	printf("%x\t%x\t%d\n",delays_data,arg->delaydata,arg->mp);
   compute_delays(arg->mp,arg->delaydata,arg->csings);
-#ifdef _LINUX
+#ifdef __linux__
   pthread_exit( NULL ) ;
 #else
   return 0;
@@ -374,7 +374,7 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
                ) 
 {
   int i, n, mp,j;
-#ifdef _LINUX
+#ifdef __linux__
   struct timeval t0, t1, t2, t3;
 #else
   clock_t t0, t1, t2, t3;
@@ -406,7 +406,7 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
   int kflag=0;	
   float *csings=NULL;
 
-#ifdef _LINUX
+#ifdef __linux__
   int threadnum ;
   pthread_t threads[ 4 ] ;
   pthread_attr_t attr;
@@ -479,7 +479,7 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
   if (!csingles_file && !coins_file && p_coins_file==NULL)
     fprintf(stdout,"Input Crystal Singles or Coincidence Histogram file must be specified with -h or -C <filename>\n");
 		
-#ifdef _LINUX
+#ifdef __linux__
   gettimeofday( &t0, NULL ) ;
 #else
   t0=clock();
@@ -579,14 +579,14 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
     n = (int)fread( coins, sizeof(int), nvals*2, fptr);
     if (fptr != p_coins_file) fclose(fptr);
     if (n != 2*nvals) printf("Not enough data in coinsfile '%s' (only %d of %d)\n", coins_file, n, nvals*2);
-#ifdef _LINUX
+#ifdef __linux__
     gettimeofday( &t2, NULL);
 #else
     t2=clock();
 #endif
     // we only used the delayed coins (coins+nvals)vvvvvv
     niter = compute_csings_from_drates( nvals, coins+nvals, tau, ftime, csings);
-#ifdef _LINUX
+#ifdef __linux__
     gettimeofday( &t3, NULL);
     printf("csings computed from drates in %d iterations (%d msec)\n", niter, ( ( ( t3.tv_sec * 1000 ) + ( int )( (double)t3.tv_usec / 1000.0 ) ) - ( ( t2.tv_sec * 1000 ) + ( int )( (double)t2.tv_usec / 1000.0 ) ) ) );
 #else
@@ -630,7 +630,7 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
   comdelay[3].csings=csings;
 
   for (mp=0; mp<5; mp++) {
-#ifdef _LINUX
+#ifdef __linux__
     gettimeofday( &t1, NULL );
 #else
     t1=clock();
@@ -639,7 +639,7 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
     comdelay[1].mp=mporder[1][mp];
     comdelay[2].mp=mporder[0][mp+5];
     comdelay[3].mp=mporder[1][mp+5];
-#ifdef _LINUX
+#ifdef __linux__
     /* Initialize and set thread detached attribute */
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -669,7 +669,7 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
 #endif
     fflush(stdout);
   }
-#ifdef _LINUX
+#ifdef __linux__
   gettimeofday( &t1, NULL);
   fprintf(stdout,"Smooth Delays computed in %d msec.\n", ( ( ( t1.tv_sec * 1000 ) + ( int )( (double)t1.tv_usec / 1000.0 ) ) - ( ( t0.tv_sec * 1000 ) + ( int )( (double)t0.tv_usec / 1000.0 ) ) ) );
   gettimeofday( &t2, NULL );
@@ -735,7 +735,7 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
     fclose( fptr);
   }
   
-#ifdef _LINUX
+#ifdef __linux__
   gettimeofday( &t3, NULL);
   dtime1 = ( ( ( t1.tv_sec * 1000 ) + ( int )( (double)t1.tv_usec / 1000.0 ) ) - ( ( t0.tv_sec * 1000 ) + ( int )( (double)t0.tv_usec / 1000.0 ) ) ) ;
   dtime2 = ( ( ( t2.tv_sec * 1000 ) + ( int )( (double)t2.tv_usec / 1000.0 ) ) - ( ( t1.tv_sec * 1000 ) + ( int )( (double)t1.tv_usec / 1000.0 ) ) ) ;

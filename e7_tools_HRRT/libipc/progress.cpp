@@ -119,7 +119,7 @@ void Progress::close()
 #ifdef WIN32
       Sleep(1);
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
       sleep(1);
 #endif
       delete instance;

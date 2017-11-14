@@ -3,7 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 /*------------------------------------------------------------------
 Modification History (HRRT User Community):
-        04/30/09: Integrate Peter Bloomfield _LINUX support
+        04/30/09: Integrate Peter Bloomfield __linux__ support
 -------------------------------------------------------------------*/
 
 #include <stdio.h>

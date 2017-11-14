@@ -4,7 +4,7 @@
 #ifdef WIN32
 class __declspec(dllexport) GM_3D
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 class GM_3D
 #endif
  { private:

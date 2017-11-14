@@ -7,7 +7,7 @@
  Modification History:
  31-JUL-2007: Make max_iterations and min_rmse variable
  30-Apr-2009: Use gen_delays_lib C++ library for rebinning and remove dead code
-              Integrate Peter Bloomfield _LINUX support
+              Integrate Peter Bloomfield __linux__ support
 
 */
 #include <math.h>

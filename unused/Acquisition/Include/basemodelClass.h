@@ -49,7 +49,7 @@
 #ifdef WIN32
 class BASEMODEL_API CModel {
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__SOLARIS__)
 class CModel {
 #endif
 public:

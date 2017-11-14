@@ -25,7 +25,7 @@ void Usage()
 #ifdef WIN32
    std::cout << "(c)";
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    std::cout << "  " << (char)169;
 #endif
    std::cout << " 2004-2005 CPS Innovations\n\n"

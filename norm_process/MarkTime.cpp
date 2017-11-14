@@ -11,7 +11,7 @@
    When: 3/31/2004
    Modification History
    30-Apr-2009: Use gen_delays_lib C++ library for rebinning and remove dead code
-              Integrate Peter Bloomfield _LINUX support
+              Integrate Peter Bloomfield __linux__ support
 
 
 Copyright (C) CPS Innovations 2002-2003-2004 All Rights Reserved.
@@ -21,7 +21,7 @@ Copyright (C) CPS Innovations 2002-2003-2004 All Rights Reserved.
 
 /*------------------------------------------------------------------
 Modification History (HRRT User Community):
-        04/30/09: Integrate Peter Bloomfield _LINUX support
+        04/30/09: Integrate Peter Bloomfield __linux__ support
 -------------------------------------------------------------------*/
 
 #include <stdio.h>
@@ -86,7 +86,7 @@ struct Mark *MarkTime(char *MarkText)
 	static double TimeBase = 0.0;
 	static struct Mark *Current;
 	
-	#ifdef _LINUX
+	#ifdef __linux__
 		struct timeval	tnow ;
 	#else
 		struct _timeb	tnow;
@@ -97,7 +97,7 @@ struct Mark *MarkTime(char *MarkText)
 
 	// get current time
 
-	#ifdef _LINUX
+	#ifdef __linux__
 		gettimeofday( &tnow , NULL ) ; TimeNow = ( (double) tnow.tv_sec + ( (double) tnow.tv_usec / 1000000.0 ) );
 	#else
 	  _ftime(&tnow); TimeNow = ( (double) tnow.time + ( (double) tnow.millitm / 1000.0 ) ); 

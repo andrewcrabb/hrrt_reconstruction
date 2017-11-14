@@ -19,7 +19,7 @@ event loop.
 -----------------------------------------------------------------------------*/
 
 #include <iostream>
-#if defined(__LINUX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__SOLARIS__)
 #include <new>
 #endif
 #ifdef WIN32
@@ -36,7 +36,7 @@ event loop.
 #ifdef WIN32
 int OutOfMemory(size_t)
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 void OutOfMemory()
 #endif
  { throw Exception(REC_RS_OUT_OF_MEMORY,
@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 #ifdef WIN32
    _set_new_handler(OutOfMemory);
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    std::set_new_handler(OutOfMemory);
 #endif
    if (argc == 2)

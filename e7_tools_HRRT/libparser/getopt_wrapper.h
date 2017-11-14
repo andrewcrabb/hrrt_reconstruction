@@ -8,7 +8,7 @@
 #ifndef _GETOPT_WRAPPER_H
 #define _GETOPT_WRAPPER_H
 
-#if defined(__LINUX__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__MACOSX__)
 #include <getopt.h>
 #endif
 

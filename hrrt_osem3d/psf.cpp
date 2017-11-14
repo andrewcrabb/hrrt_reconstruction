@@ -12,7 +12,7 @@ Modification history:
 #include <math.h>
 #include "hrrt_osem3d.h"
 
-#ifdef IS_LINUX
+#ifdef IS__linux__
 #define _alloca alloca
 #endif
 

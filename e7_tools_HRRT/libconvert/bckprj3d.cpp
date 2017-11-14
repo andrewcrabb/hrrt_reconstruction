@@ -96,14 +96,14 @@
 
 #include <string>
 #ifdef XEON_HYPERTHREADING_BUG
-#if defined(__LINUX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__SOLARIS__)
 #include <alloca.h>
 #endif
 #ifdef WIN32
 #include <malloc.h>
 #endif
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <unistd.h>
 #endif
 #ifdef WIN32
@@ -178,7 +178,7 @@ void *executeThread_Backproject(void *param)
       // allocate some padding memory on the stack in front of the thread-stack
       // to avoid cache conflicts while accessing local variables
 #ifdef XEON_HYPERTHREADING_BUG
-#if defined(__LINUX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__SOLARIS__)
      alloca(tp->thread_number*STACK_OFFSET);
 #endif
 #ifdef WIN32
@@ -274,7 +274,7 @@ void *executeThread_searchBkp(void *param)
       // allocate some padding memory on the stack in front of the thread-stack
       // to avoid cache conflicts while accessing local variables
 #ifdef XEON_HYPERTHREADING_BUG
-#if defined(__LINUX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__SOLARIS__)
      alloca(tp->thread_number*STACK_OFFSET);
 #endif
 #ifdef WIN32

@@ -18,7 +18,7 @@ Daemon.
 
 -----------------------------------------------------------------------------*/
 
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <sys/utsname.h>
 #endif
 #include "red_client.h"
@@ -45,7 +45,7 @@ void RED_execute(const std::string hostname, const std::string filename,
 
    try
    { std::string name;
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      { struct utsname un;
                                                   // get name of local computer
        uname(&un);
@@ -102,7 +102,7 @@ void RED_install(const std::string hostname, const std::string filename,
      unsigned long int filesize;
      std::string::size_type p;
                                                   // get name of local computer
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      { struct utsname un;
 
        uname(&un);
@@ -172,7 +172,7 @@ bool RED_ping(const std::string hostname)
    { unsigned short int result;
      std::string name;
                                                   // get name of local computer
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      { struct utsname un;
 
        uname(&un);
@@ -236,7 +236,7 @@ void RED_terminate(const std::string hostname)
    { unsigned short int result;
      std::string name;
                                                   // get name of local computer
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      { struct utsname un;
 
        uname(&un);

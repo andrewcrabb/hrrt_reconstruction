@@ -10,7 +10,7 @@
  */
 
 #include <ctime>
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <sys/time.h>
 #endif
 #include "stopwatch.h"
@@ -87,7 +87,7 @@ float StopWatch::stop()
 /*---------------------------------------------------------------------------*/
 float StopWatch::time() const
  {
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    timeval tv;
    tm *t;
                                                             // get current time

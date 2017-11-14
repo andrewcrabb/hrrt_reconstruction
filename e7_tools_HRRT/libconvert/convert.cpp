@@ -18,7 +18,7 @@
 
 #include <cstdio>
 #include <cstdlib>
-#ifdef __LINUX__
+#ifdef __linux__
 #include <dlfcn.h>
 #endif
 #ifdef WIN32
@@ -31,7 +31,7 @@
 #include "fbp.h"
 #include "global_tmpl.h"
 #ifdef SUPPORT_NEW_SCATTER_CODE
-#if defined(WIN32) || defined(__SOLARIS__) || defined(__LINUX__)
+#if defined(WIN32) || defined(__SOLARIS__) || defined(__linux__)
 #include "idl_interface.h"
 #endif
 #endif // SUPPORT_NEW_SCATTER_CODE
@@ -164,7 +164,7 @@ ImageConversion *bt2umap(SinogramConversion * blank_sino,
      std::string str, mu;
      uint64 tx_singles=0;
 
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      char c[2];
 
      c[1]=0;
@@ -334,7 +334,7 @@ SinogramConversion *eau2scatter(SinogramConversion *emi_sino,
         new_scatter_code=false;
       }
 #ifdef SUPPORT_NEW_SCATTER_CODE
-#if defined(__LINUX__) || defined(WIN32) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(WIN32) || defined(__SOLARIS__)
      if (new_scatter_code)                            // use IDL scatter code ?
       { unsigned short int emis_idx;
         std::string scatter_code, scale_code, nr, sav_path, scatter_data_path;
@@ -611,7 +611,7 @@ void get_umap_acf(Parser::tparam * const v, ImageConversion **umap_image,
  { std::string mu, nr;
    float fov_diameter=0.0f;
 
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    char c[2];
 
    c[1]=0;

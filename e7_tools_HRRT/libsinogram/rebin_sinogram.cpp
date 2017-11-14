@@ -16,7 +16,7 @@
 #include <algorithm>
 #include <limits>
 #ifdef XEON_HYPERTHREADING_BUG
-#if defined(__LINUX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__SOLARIS__)
 #include <alloca.h>
 #endif
 #ifdef WIN32
@@ -50,7 +50,7 @@ void *executeThread_RebinSinogram(void *param)
 
      tp=(RebinSinogram::tthread_params *)param;
 #ifdef XEON_HYPERTHREADING_BUG
-#if defined(__LINUX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__SOLARIS__)
       // allocate some padding memory on the stack in front of the thread-stack
      alloca(tp->thread_number*STACK_OFFSET);
 #endif

@@ -11,7 +11,7 @@
 #ifdef WIN32
 #include <winsock2.h>
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <netdb.h>
 #endif
 #include "unique_name.h"
@@ -96,7 +96,7 @@ std::string UniqueName::getName()
 
    mypid=_getpid();
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    pid_t mypid;
 
    mypid=getpid();

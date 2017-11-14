@@ -21,7 +21,7 @@
 #ifdef WIN32
 class __declspec(dllexport) Projected_Image_3D
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 class Projected_Image_3D
 #endif
  { protected:

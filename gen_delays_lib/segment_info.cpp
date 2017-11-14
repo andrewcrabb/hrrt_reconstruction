@@ -5,7 +5,7 @@
   29-JAN-2009: Add clean_segment_info()
                Replace segzoffset2 by m_segzoffset_span9
   07-Apr-2009: Changed filenames from .c to .cpp and removed debugging printf 
-  30-Apr-2009: Integrate Peter Bloomfield _LINUX support
+  30-Apr-2009: Integrate Peter Bloomfield __linux__ support
   02-JUL-2009: Add Transmission(TX) LUT
 */
 #include <stdio.h>

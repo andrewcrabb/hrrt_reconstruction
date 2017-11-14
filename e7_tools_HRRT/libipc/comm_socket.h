@@ -14,7 +14,7 @@
 #ifdef WIN32
 #include <windows.h>
 #endif
-#ifdef __LINUX__
+#ifdef __linux__
 #include <sys/types.h>
 #include <unistd.h>
 #endif
@@ -37,7 +37,7 @@ class CommSocket
 #ifdef WIN32
     PROCESS_INFORMATION pi;    /*!< information about started client process */
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
     pid_t child_pid;           /*!< information about started client process */
 #endif
    public:

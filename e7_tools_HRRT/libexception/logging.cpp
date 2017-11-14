@@ -239,7 +239,7 @@ void Logging::getPath()
    RegistryAccess *ra=NULL;
 #endif
                                                        // get logging directory
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
                                   // get logging path from environment variable
    if (getenv(logging_path.c_str()) != NULL)
     path=std::string(getenv(logging_path.c_str()));
@@ -469,10 +469,10 @@ unsigned short int Logging::maxLoggingLevel() const
 /*---------------------------------------------------------------------------*/
 void Logging::saveMemUsage()
  { if (memfile == NULL) return;
-#if defined(__LINUX__) || defined(WIN32)
+#if defined(__linux__) || defined(WIN32)
    unsigned long int total_mem, phys_mem, sh_mem, st_mem, usec;
 #endif
-#ifdef __LINUX__
+#ifdef __linux__
    std::ifstream *file=NULL;
    std::string line;
    std::string::size_type p;
@@ -505,7 +505,7 @@ void Logging::saveMemUsage()
    st_mem=0;
    usec=0;
 #endif
-#if defined(__LINUX__) || defined(WIN32)
+#if defined(__linux__) || defined(WIN32)
    *memfile << (float)(time(NULL)-timeoffset)+(float)usec/1000000.0f << " "
             << total_mem << " " << phys_mem << " " << sh_mem << " "
             << st_mem << std::endl;
@@ -530,7 +530,7 @@ std::string Logging::timeStr(unsigned short int * const day) const
    ti=TIMEDATE::currentTime(&msec);
    dt=TIMEDATE::currentDate();
    *day=dt.day;
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
                                              // create string with current time
    return(toStringZero(ti.hour, 2) + ":" + toStringZero(ti.minute, 2) + ":" +
           // toStringZero(ti.second, 2) + "." + toStringZero(msec, 6) + " ");

@@ -6,7 +6,7 @@
   17-Mar-2009: Modified init_sol_lut to load only sinogram map
                if seginfo not provided (segzoffset==NULL)
   07-Apr-2009: Changed filenames from .c to .cpp and removed debugging printf 
-  30-Apr-2009: Integrate Peter Bloomfield _LINUX support
+  30-Apr-2009: Integrate Peter Bloomfield __linux__ support
   02-JUL-2009: Add Transmission(TX) LUT
 */
 #include <stdio.h>

@@ -14,7 +14,7 @@
 
  */
 
-#if defined(__LINUX__) && defined(__INTEL_COMPILER)
+#if defined(__linux__) && defined(__INTEL_COMPILER)
 #include <mathimf.h>
 #else
 #include <cmath>

@@ -12,7 +12,7 @@
 #include <string>
 #include <limits>
 #include <vector>
-#if defined(__LINUX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__SOLARIS__)
 #include <new>
 #endif
 #ifdef WIN32
@@ -188,7 +188,7 @@ bool validate(Parser::tparam * const v)
  { bool ret=true;
    std::string mu;
    {
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      char c[2];
 
      c[1]=0;
@@ -466,7 +466,7 @@ int main(int argc, char **argv)
  { Parser *cpar=NULL;
    StopWatch sw;
 
-#if __LINUX__
+#if __linux__
         if ( getenv( "GMINI" ) == NULL )
         {
                 printf( "Environment variable 'GMINI' not set\n" ) ;
@@ -479,7 +479,7 @@ int main(int argc, char **argv)
 #ifdef WIN32
      _set_new_handler(OutOfMemory);
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      std::set_new_handler(OutOfMemory);
 #endif
                                                            // initialize parser

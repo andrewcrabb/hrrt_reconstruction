@@ -37,7 +37,7 @@
 #include <algorithm>
 #include <limits>
 #ifdef XEON_HYPERTHREADING_BUG
-#if defined(__LINUX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__SOLARIS__)
 #include <alloca.h>
 #endif
 #ifdef WIN32
@@ -75,7 +75,7 @@ void *executeThread_RS_createSino(void *param)
      tp=(RandomsSmoothing::tthread_cs_params *)param;
 #ifdef XEON_HYPERTHREADING_BUG
       // allocate some padding memory on the stack in front of the thread-stack
-#if defined(__LINUX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__SOLARIS__)
      alloca(tp->thread_number*STACK_OFFSET);
 #endif
 #ifdef WIN32
@@ -118,7 +118,7 @@ void *executeThread_RS_total(void *param)
      tp=(RandomsSmoothing::tthread_rs_params *)param;
 #ifdef XEON_HYPERTHREADING_BUG
       // allocate some padding memory on the stack in front of the thread-stack
-#if defined(__LINUX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__SOLARIS__)
      alloca(tp->thread_number*STACK_OFFSET);
 #endif
 #ifdef WIN32

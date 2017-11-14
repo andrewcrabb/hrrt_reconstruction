@@ -22,7 +22,7 @@
 #define _STREAM_BUFFER_CPP
 #include "stream_buffer.h"
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include "exception.h"
 #endif
 

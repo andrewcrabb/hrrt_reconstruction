@@ -31,12 +31,12 @@
  */
 
 #include <iostream>
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <unistd.h>
 #endif
 #include <typeinfo>
 #ifdef XEON_HYPERTHREADING_BUG
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <alloca.h>
 #endif
 #ifdef WIN32
@@ -92,7 +92,7 @@ void *executeThread_ReadFileOffs(void *param)
       // allocate some padding memory on the stack in front of the thread-stack
       // to avoid cache conflicts while accessing local variables
 #ifdef XEON_HYPERTHREADING_BUG
-#if defined(__LINUX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__SOLARIS__)
        alloca(tp->thread_number*STACK_OFFSET);
 #endif
 #ifdef WIN32
@@ -184,7 +184,7 @@ void *executeThread_WriteFile(void *param)
       // allocate some padding memory on the stack in front of the thread-stack
       // to avoid cache conflicts while accessing local variables
 #ifdef XEON_HYPERTHREADING_BUG
-#if defined(__LINUX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__SOLARIS__)
        alloca(tp->thread_number*STACK_OFFSET);
 #endif
 #ifdef WIN32

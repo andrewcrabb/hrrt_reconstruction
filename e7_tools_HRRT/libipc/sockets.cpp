@@ -29,7 +29,7 @@
 #ifdef __MACOSX__
 #include <netinet/in.h>
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/socket.h>
@@ -44,7 +44,7 @@
 
 /*- definitions -------------------------------------------------------------*/
 
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #define closesocket close
 #define SD_SEND 2
 #endif
@@ -83,7 +83,7 @@ Socket::Socket(const std::string server_ip,
       throw Exception(REC_SOCKET_ERROR_CREATE_C,
                       "Client can't create TCP/IP socket.");
     }
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    setBufferSizes(sock);
 #endif
                                                // build TCP/IP socket to server
@@ -139,7 +139,7 @@ Socket::Socket(unsigned short int * const port_number)
       throw Exception(REC_SOCKET_ERROR_CREATE_S,
                       "Server can't create TCP/IP socket.");
     }
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    setBufferSizes(sock);
    { const int on=1;
 
@@ -167,7 +167,7 @@ Socket::Socket(unsigned short int * const port_number)
 #if defined(WIN32) || defined(__MACOSX__) || defined(__SOLARIS__)
      int length;
 #endif
-#if defined(__LINUX__)
+#if defined(__linux__)
      socklen_t length;
 #endif
                                                 // request the used port number
@@ -230,7 +230,7 @@ Socket::Socket(const unsigned short int port_number)
       throw Exception(REC_SOCKET_ERROR_CREATE_S,
                       "Server can't create TCP/IP socket.");
     }
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    setBufferSizes(sock);
    { const int on=1;
 
@@ -387,7 +387,7 @@ void Socket::readFromSock(char *buffer, unsigned long int size)
 #ifdef WIN32
         rcv_len=recv(msgsock, buffer, size, 0);
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
         rcv_len=(signed long int)read(msgsock, buffer, size);
 #endif
         if (rcv_len > 0) { buffer+=rcv_len;

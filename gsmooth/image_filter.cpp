@@ -19,7 +19,7 @@ filtering in x/y- followed by a filtering in z-direction is not a correct
         25-may-2010: Use SIMD for gaussian smoothing 
 */
 
-#if defined(__LINUX__) && defined(__INTEL_COMPILER)
+#if defined(__linux__) && defined(__INTEL_COMPILER)
 #include <mathimf.h>
 #else
 #include <cmath>
@@ -128,7 +128,7 @@ void ImageFilter::boxcar_space(float * const data, const unsigned long int offs,
      unsigned long int i;
      unsigned short int half_width, filter_width;
 
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      filter_width=std::max(1+2*(unsigned short int)
                                round((filter.resolution-1.0f)/2.0f), 3);
 #endif

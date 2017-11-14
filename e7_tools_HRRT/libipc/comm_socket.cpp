@@ -22,7 +22,7 @@
 #ifdef WIN32
 #include <process.h>
 #endif
-#if defined(__LINUX__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__MACOSX__)
 #include <cstdlib>
 #include <sys/wait.h>
 #endif
@@ -88,7 +88,7 @@ CommSocket::CommSocket(const std::string server_ip,
          throw Exception(REC_CANT_START_PROCESS,
                    "Server can't start client process '#1'.").arg(client_name);
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
         child_pid=fork();
         if (child_pid == 0)
          { params=client_name+" "+server_ip+" "+toString(portNumber())+" "+
@@ -216,7 +216,7 @@ CommSocket::~CommSocket()
 #ifdef WIN32
     WaitForSingleObject(pi.hProcess, INFINITE);
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
     { int status;
 
       waitpid(child_pid, &status, 0);

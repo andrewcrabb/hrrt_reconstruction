@@ -61,7 +61,7 @@ int write_image_header(ImageHeaderInfo *info, int psf_flag,
 	char	ImgHeaderName[_MAX_PATH];
 	char	*p=NULL;
 
-#ifdef IS_LINUX
+#ifdef IS__linux__
 	#define _MAX_DRIVE 0
 	#define _MAX_DIR 256
 	#define _MAX_FNAME 256

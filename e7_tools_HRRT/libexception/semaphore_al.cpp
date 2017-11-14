@@ -8,7 +8,7 @@
  */
 
 #include <fcntl.h>
-#if defined(__LINUX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__SOLARIS__)
 #include <unistd.h>
 #endif
 #ifdef __SOLARIS__
@@ -27,7 +27,7 @@
 /*---------------------------------------------------------------------------*/
 Semaphore::Semaphore(unsigned short int value)
  {
-#if defined(__LINUX__) || defined(__MACOSX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__MACOSX__) || defined(__SOLARIS__)
    sem_init(&sem, 0, value);
 #endif
 #ifdef WIN32
@@ -43,7 +43,7 @@ Semaphore::Semaphore(unsigned short int value)
 /*---------------------------------------------------------------------------*/
 Semaphore::~Semaphore()
  {
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    sem_destroy(&sem);
 #endif
 #ifdef WIN32
@@ -58,7 +58,7 @@ Semaphore::~Semaphore()
     Request value of semaphore.
  */
 /*---------------------------------------------------------------------------*/
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 unsigned short int Semaphore::getValue()
  { int value;
 
@@ -75,7 +75,7 @@ unsigned short int Semaphore::getValue()
 /*---------------------------------------------------------------------------*/
 void Semaphore::signal()
  {
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    sem_post(&sem);
 #endif
 #ifdef WIN32
@@ -93,7 +93,7 @@ void Semaphore::signal()
 /*---------------------------------------------------------------------------*/
 bool Semaphore::tryWait()
  {
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    return(sem_trywait(&sem) == 0);
 #endif
 #ifdef WIN32
@@ -109,7 +109,7 @@ bool Semaphore::tryWait()
 /*---------------------------------------------------------------------------*/
 void Semaphore::wait()
  {
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    sem_wait(&sem);
 #endif
 #ifdef WIN32

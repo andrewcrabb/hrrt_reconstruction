@@ -16,7 +16,7 @@
 #include <mach/mach_host.h>
 #include <mach-o/arch.h>
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__)
+#if defined(__linux__) || defined(__SOLARIS__)
 /* #include <sys/sysinfo.h> */
 #endif
 #ifdef WIN32
@@ -56,7 +56,7 @@ unsigned short int logicalCPUs()
 #ifdef __SOLARIS__
    num_log_cpus=1;
 #endif
-#ifdef __LINUX__
+#ifdef __linux__
    std::ifstream *file=NULL;
 
    try
@@ -168,7 +168,7 @@ void printHWInfo(const unsigned short int loglevel)
            if (i < 1) i=1;
          }
 #endif
-#if defined(__LINUX__) && defined(__INTEL_COMPILER)
+#if defined(__linux__) && defined(__INTEL_COMPILER)
    std::ifstream *file=NULL;
 
    file=new std::ifstream("/proc/cpuinfo");
@@ -206,7 +206,7 @@ void printHWInfo(const unsigned short int loglevel)
    Logging::flog()->logMsg("#1 (#2x)    memory: #3 MByte", loglevel)->
     arg(cpu_name)->arg(i)->arg(mbyte);
 #endif
-#if defined(__LINUX__) && defined(__INTEL_COMPILER)
+#if defined(__linux__) && defined(__INTEL_COMPILER)
 
    if (mmx || sse || sse2)
     { str=" (";
@@ -348,7 +348,7 @@ void printHWInfo(const unsigned short int loglevel)
 #ifdef WIN32
           s+=(char)230;
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
           s+="µ";
 #endif
           s+="op, 8-way set associative";
@@ -358,7 +358,7 @@ void printHWInfo(const unsigned short int loglevel)
 #ifdef WIN32
           s+=(char)230;
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
           s+="µ";
 #endif
           s+="op, 8-way set associative";
@@ -368,7 +368,7 @@ void printHWInfo(const unsigned short int loglevel)
 #ifdef WIN32
           s+=(char)230;
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
           s+="µ";
 #endif
           s+="op, 8-way set associative";

@@ -24,7 +24,7 @@ void timestamp(std::string prog, const std::string date)
  { std::string gmt_str;
    signed short int h;
 
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    tm *tf;
    time_t t;
 
@@ -50,7 +50,7 @@ void timestamp(std::string prog, const std::string date)
 #ifdef WIN32
    std::cout << "(c)";
 #endif
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    std::cout << "  " << (char)169;
 #endif
    std::cout << " " << date << " CPS Innovations\n\n"

@@ -14,7 +14,7 @@
 #define _LOGGING_H
 
 #include <sys/types.h>
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <unistd.h>
 #endif
 #include <fstream>

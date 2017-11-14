@@ -10,7 +10,7 @@
 #ifndef _THREAD_WRAPPER_H
 #define _THREAD_WRAPPER_H
 
-#if defined(__LINUX__) || defined(__SOLARIS__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <pthread.h>
 #endif
 #ifdef WIN32

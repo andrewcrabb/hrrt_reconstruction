@@ -15,13 +15,17 @@ configure_file (
  
 # add the binary tree to the search path for include files
 # so that we will find hrrt_recon_config.h
-include_directories("${PROJECT_BINARY_DIR}")
+include_directories(/usr/include ${PROJECT_BINARY_DIR})
 
 # My compiler switches (from setup.sh)
 # Might want to use GLIBCXX_USE_CX11 more sparingly as it is disabling some posix features like getopt and swab
 # add_definitions(-D_LINUX -D__LINUX__ -D_GLIBCXX_USE_CXX11_ABI=0)
-add_definitions(-D_LINUX -D__LINUX__ )
-add_compile_options(-I${PROJECT_SOURCE_DIR}/AIR5.3.0/src -L${PROJECT_SOURCE_DIR}/AIR5.3.0/src)
+# set (GCC_COMPILE_FLAGS "-std=c99")
+
+# add_definitions(-D_LINUX -D__LINUX__ ${GCC_COMPILE_FLAGS})
+# Test for Linux defined at https://sourceforge.net/p/predef/wiki/OperatingSystems/: __linux__
+# add_definitions(-D_LINUX -D__LINUX__)
+# add_compile_options(-I${PROJECT_SOURCE_DIR}/AIR5.3.0/src -L${PROJECT_SOURCE_DIR}/AIR5.3.0/src)
 
 
 if (APPLE)
