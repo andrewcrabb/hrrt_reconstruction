@@ -23,7 +23,7 @@ include_directories(/usr/include ${PROJECT_BINARY_DIR})
 # set (GCC_COMPILE_FLAGS "-std=c99")
 
 # add_definitions(-D_LINUX -D__LINUX__ ${GCC_COMPILE_FLAGS})
-# Test for Linux defined at https://sourceforge.net/p/predef/wiki/OperatingSystems/: __linux__
+# Removed definition: Test for Linux defined at https://sourceforge.net/p/predef/wiki/OperatingSystems/: __linux__
 # add_definitions(-D_LINUX -D__LINUX__)
 # add_compile_options(-I${PROJECT_SOURCE_DIR}/AIR5.3.0/src -L${PROJECT_SOURCE_DIR}/AIR5.3.0/src)
 
