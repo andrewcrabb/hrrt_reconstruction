@@ -104,7 +104,7 @@ interfile_load(char *filename, IFH_Table *table)
     Returns 1 if found or 0 otherwise.
  */
 int 
-interfile_find(IFH_Table *table, char *key, char* val, int len)
+interfile_find(IFH_Table *table, const char *key, char* val, int len)
 {
   size_t i;
 	for (i = 0; i < table->size; i++)

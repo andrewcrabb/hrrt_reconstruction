@@ -190,7 +190,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 // O_DIRECT defined here because not found otherwise CM + MS
-#define O_DIRECT         040000 /* direct disk access hint */	
+// #define O_DIRECT         040000 /* direct disk access hint */	
 #define		DIR_SEPARATOR '/'
 
 #include "write_image_header.h"
@@ -575,9 +575,9 @@ static void usage() {
 }
 
 #define FOPEN_ERROR NULL
-FILEPTR file_open(const char *fn,char *mode){
-  return fopen(fn,mode);
-}
+// FILEPTR file_open(const char *fn,char *mode){
+//   return fopen(fn,mode);
+// }
 
 void file_close(FILEPTR fp){
   fclose(fp);
@@ -3712,16 +3712,16 @@ void CheckFileValidate()
   if ( iterations > 0 ){// !sv  we need only image to generate fully corrected 3D scans by forward projection 
     /* open input files  */
     if (tFlag) {            
-      tsinofp = file_open(true_file,"rb");
+      tsinofp = fopen(true_file,"rb");
       if (tsinofp == FOPEN_ERROR)
         crash2("  Error: cannot open input true sinogram file %s\n",true_file);
     } else {            
-      psinofp = file_open(prompt_file,"rb");
+      psinofp = fopen(prompt_file,"rb");
       if (psinofp == FOPEN_ERROR) {
         LogMessage("  Error: cannot open input prompt sinogram file '%s'\n",prompt_file);
         crash2("  Error: cannot open input prompt sinogram file %s\n",prompt_file);
       }
-      dsinofp = file_open(delayed_file,"rb");
+      dsinofp = fopen(delayed_file,"rb");
       if (dsinofp == FOPEN_ERROR) {
         LogMessage("  Error: cannot open input delayed sinogram file %s\n",delayed_file);
         crash2("  Error: cannot open input delayed sinogram file %s\n",delayed_file);
@@ -3729,7 +3729,7 @@ void CheckFileValidate()
     }
 
     if (nFlag) {            
-      normfp = file_open(norm_file,"rb");
+      normfp = fopen(norm_file,"rb");
       if (normfp == FOPEN_ERROR) {
         LogMessage("  Error: cannot open normalization file %s\n",norm_file);
         crash2("  Error: cannot open normalization file %s\n",norm_file);
@@ -3737,7 +3737,7 @@ void CheckFileValidate()
     }
 
     if (noattenFlag == 0) {            
-      attenfp = file_open(atten_file,"rb");
+      attenfp = fopen(atten_file,"rb");
       if (attenfp == FOPEN_ERROR) {
         LogMessage("  Error: cannot open attenuation file %s\n",atten_file);    /* attenfp could be null */
         crash2("  Error: cannot open attenuation file %s\n",atten_file);    /* attenfp could be null */
@@ -3745,7 +3745,7 @@ void CheckFileValidate()
     }
 
     if (sFlag) {            
-      ssinofp = file_open(scat_scan_file,"rb");
+      ssinofp = fopen(scat_scan_file,"rb");
       if (ssinofp == FOPEN_ERROR) {
         LogMessage("  Error: cannot open input scatter sinogram file %s\n",scat_scan_file);
         crash2("  Error: cannot open input scatter sinogram file %s\n",scat_scan_file);
@@ -3762,7 +3762,7 @@ void CheckFileValidate()
   }
 
   printf("\n normfac_img:%s", normfac_img); fflush(stdout);
-  if ((normfacfp = file_open(normfac_img,"rb")) == FOPEN_ERROR) {
+  if ((normfacfp = fopen(normfac_img,"rb")) == FOPEN_ERROR) {
     calnormfacFlag=1;
   } else {
     calnormfacFlag=0;
@@ -4846,7 +4846,7 @@ int main(int argc, char* argv[]) {
                    );
         // close ch file and open created smoothed random file
         fclose(dsinofp);
-        dsinofp = file_open(ra_smo_file,"rb");
+        dsinofp = fopen(ra_smo_file,"rb");
         if (dsinofp == FOPEN_ERROR) 
           crash2("  Error: cannot open input delayed sinogram file %s\n",ra_smo_file);
       } else {
@@ -4975,11 +4975,11 @@ int main(int argc, char* argv[]) {
     if (!ecat_flag)
       sprintf(out_img_file,"%s_frame%d%s.i",em_file_prefix,em_frame,em_file_postfix);
 
-    if ((tsinofp = file_open(true_file,"rb")) == FOPEN_ERROR) 
+    if ((tsinofp = fopen(true_file,"rb")) == FOPEN_ERROR) 
       crash2("  Error: cannot open input true sinogram file %s\n",true_file);
     
     if (nFlag) {  // reopen normalization          
-      if ((normfp = file_open(norm_file,"rb")) == FOPEN_ERROR) 
+      if ((normfp = fopen(norm_file,"rb")) == FOPEN_ERROR) 
         crash2("  Error: cannot open normalization file %s\n",norm_file);
     }
 

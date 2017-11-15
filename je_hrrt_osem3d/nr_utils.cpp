@@ -10,7 +10,8 @@
 
 unsigned int memoryused=0;
 
-void nrerror( char error_text[])
+// void nrerror( char error_text[])
+void nrerror( const char *error_text)
 {
 	fprintf(stderr,"run-time error ... \n");
 	fprintf(stderr,"%s\n",error_text);
@@ -18,16 +19,15 @@ void nrerror( char error_text[])
 	exit(1);
 }
 
-float	*vector(int nl, int nh)
-{
+float	*vector(int nl, int nh) {
 	float *v;
-	v = (float *)_mm_malloc( (size_t) ( (nh-nl+1+NR_END)*sizeof(float) ),16 );
-	if( !v ) nrerror("allocation failure in vector() ");
-	memoryused+=(nh-nl)*sizeof(float);
+	v = (float *)_mm_malloc( (size_t) ( (nh - nl + 1 + NR_END) * sizeof(float) ), 16 );
+	if ( !v )
+		nrerror("allocation failure in vector() ");
+	memoryused += (nh - nl) * sizeof(float);
 	////printf("vector memory used %d\n",memoryused/1024);
-	return v-nl+NR_END;
+	return v - nl + NR_END;
 }
-
 
 float	***matrix3d(int nrl, int nrh, int ncl, int nch, int ndl, int ndh)
 {

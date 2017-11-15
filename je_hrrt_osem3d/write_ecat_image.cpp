@@ -25,7 +25,7 @@
 
 #define		LINESIZE 1024
 #define		IN_DIR_SEPARATOR '/'
-static char *data_types[] = {"Error", "unsigned integer", "signed integer", "float"};
+static const char *data_types[] = {"Error", "unsigned integer", "signed integer", "float"};
 static char line[LINESIZE];
 
 static int data_bytes[] = {0, 1, 2, 4};
@@ -274,10 +274,8 @@ int write_ecat_image(float ***image, char * filename, int frame,
 
 
   if (ifh_ok) {
-    interfile_find(&ifh,"Patient name",mh.patient_name, 
-                   sizeof(mh.patient_name));
-    interfile_find(&ifh,"Patient ID",mh.patient_id,
-                   sizeof(mh.patient_id));
+    interfile_find(&ifh, "Patient name", mh.patient_name, sizeof(mh.patient_name));
+    interfile_find(&ifh, "Patient ID"  , mh.patient_id  , sizeof(mh.patient_id));
     if (interfile_find(&ifh,"Patient DOB",value,sizeof(date_txt))) {  
       mh.patient_birth_date = ifh_date(date_txt);
     }

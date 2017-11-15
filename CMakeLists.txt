@@ -42,6 +42,7 @@ add_subdirectory(interfile_lib)
 add_subdirectory(ecatx)
 add_subdirectory(ecatx/utils)
 add_subdirectory(hrrt_osem3d)
+add_subdirectory(je_hrrt_osem3d)
 
 # # add the MathFunctions library?
 # if (USE_MYMATH)
