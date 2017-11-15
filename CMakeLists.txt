@@ -45,6 +45,7 @@ add_subdirectory(hrrt_osem3d)
 add_subdirectory(je_hrrt_osem3d)
 add_subdirectory(norm_process)
 add_subdirectory(air_ecat)
+add_subdirectory(motion_distance)
 
 # # add the MathFunctions library?
 # if (USE_MYMATH)

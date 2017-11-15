@@ -7,7 +7,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <AIR/AIR.h>
+// #include <AIR/AIR.h>
+// Now include directly from AIR src dir, path from CMake file
+#include "AIR.h"
 #include <ecatx/matrix.h>
 #include <ecatx/matpkg.h>
 #ifdef WIN32
