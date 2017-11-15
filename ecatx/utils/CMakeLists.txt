@@ -1,5 +1,9 @@
 # cmake_minimum_required (VERSION 3.7)
 
+# set (GCC_COMPILE_FLAGS "-std=gnu99")
+set (GCC_COMPILE_FLAGS "-std=c99")
+add_definitions(${GCC_COMPILE_FLAGS})
+
 include_directories(${PROJECT_SOURCE_DIR}/ecatx)
 link_directories(${PROJECT_SOURCE_DIR}/ecatx)
 link_libraries(ecatx m)

@@ -155,7 +155,7 @@ MatrixData *matrix_read_slice(MatrixFile *mptr, MatrixData *volume,
 
 		nblks = (data_size+(MatBLKSIZE-1))/MatBLKSIZE;
 		data->data_size = data_size;
-		data->data_ptr = (caddr_t) calloc(nblks, MatBLKSIZE) ;
+		data->data_ptr = (void *) calloc(nblks, MatBLKSIZE) ;
 		if (!data->data_ptr) {
 			free_matrix_data(data);
 			return NULL;
@@ -200,7 +200,7 @@ MatrixData *matrix_read_slice(MatrixFile *mptr, MatrixData *volume,
       data->data_max = find_fmax((float*)data->data_ptr, npixels);
       data->data_max = 0; /* not applicable */
     }
-		data->shptr = (caddr_t)scansub;
+		data->shptr = (void *)scansub;
 		scansub->num_z_elements = 1;
 		scansub->num_angles = scan3Dsub->num_angles;
 		scansub->num_r_elements = scan3Dsub->num_r_elements;
@@ -289,9 +289,9 @@ MatrixData *matrix_read_slice(MatrixFile *mptr, MatrixData *volume,
 		file_data_to_host(data->data_ptr,nblks,data->data_type);
 		memcpy(imagesub,volume->shptr,sizeof(Image_subheader));
 		imagesub->z_dimension = 1;
-		data->shptr = (caddr_t)imagesub;
+		data->shptr = (void *)imagesub;
 		if (data->data_type==ByteData)
-			imagesub->image_max = find_bmax((u_char*)data->data_ptr,npixels);
+			imagesub->image_max = find_bmax((unsigned char *)data->data_ptr,npixels);
 		else imagesub->image_max = find_smax((short*)data->data_ptr,npixels);
 		data->data_max = imagesub->image_max * data->scale_factor;
 		return data;
@@ -373,7 +373,7 @@ MatrixData *matrix_read_view(MatrixFile *mptr, MatrixData *volume,
 
 	nblks = (view_size+(MatBLKSIZE-1))/MatBLKSIZE;
 	data->data_size = view_size;
-	data->data_ptr = (caddr_t) calloc(nblks, MatBLKSIZE) ;
+	data->data_ptr = (void *) calloc(nblks, MatBLKSIZE) ;
 
 	line_blks = (line_size+511)/512;
 	if ((line = calloc(line_blks,512)) == NULL) {

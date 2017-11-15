@@ -296,7 +296,7 @@ int main(int argc, char **argv)
       }
 		  sdata = (short*)calloc(nvoxels, sizeof(short));
 		  for (i=0;i<nvoxels;i++) sdata[i] = (short)(fact*image[i]);
-		  volume->data_ptr = (caddr_t)sdata;
+		  volume->data_ptr = (void *)sdata;
 		  free(image);
 	  }
   	

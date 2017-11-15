@@ -69,13 +69,13 @@ float t1, t2;
 	nvoxels = volume->xdim * volume->ydim * volume->zdim;
 	f0 = volume->scale_factor;
 	if (volume->data_type == ByteData) {
-		u_char *bdata = (u_char*)volume->data_ptr;
+		unsigned char  *bdata = (unsigned char *)volume->data_ptr;
 		f1 = t2/255.0;
 		for (i=0; i<nvoxels; i++) {
 			fv = bdata[i]*f0;
 			if (fv > t1) {
 				v = (int) ( 0.5 + bdata[i]*f0/f1 );
-				if (v<255) bdata[i] = (u_char)v;
+				if (v<255) bdata[i] = (unsigned char )v;
 				else bdata[i] = 255;
 			} else bdata[i] = 0;
 		}
@@ -145,7 +145,7 @@ int main (argc, argv)
 	int threshold1=0, threshold2=0;
 	float threshold_val1 = 0, threshold_val2 = 0;
 	int				bitpix=16;
-	u_char		*b_line=NULL;
+	unsigned char 		*b_line=NULL;
 	short		*s_line=NULL;
 	int			spm_header = 0;
 	short		spm_origin[5];
@@ -166,7 +166,6 @@ int main (argc, argv)
  *	Get command line arguments and initialize filenames:
  *	---------------------------------------------------
  */
-
 
      while ((c = getopt (argc, argv, "i:o:t:T:vh:pc:")) != EOF) {
         switch (c) {
@@ -305,7 +304,7 @@ int main (argc, argv)
 	scale_factor = matrix->scale_factor;
 	switch(data_type) {
 		case 2 :
-			b_line = (u_char*)calloc(xdim,1);
+			b_line = (unsigned char *)calloc(xdim,1);
 			bitpix = 8;
 			if (global_max > 255) {
 				b_scale = 255.0/global_max;

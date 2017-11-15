@@ -35,7 +35,7 @@ inline MatrixData* blank(int xdim=64, int ydim=64, int zdim=64) {
 	ret->data_max = 1.0f;
 	ret->scale_factor = 1.0f;
     ret->data_size = xdim*ydim*zdim;
-    ret->data_ptr = (caddr_t)calloc(ret->data_size,1);
+    ret->data_ptr = (void *)calloc(ret->data_size,1);
 	return ret;
 }
 
@@ -69,13 +69,13 @@ void t_histogram(T *src, int nvoxels, float dmin, float dmax, float dv,
 	}
 }
 
-static void color_histogram(u_char *rgb, int nvoxels, float *yv, int psize)
+static void color_histogram(unsigned char  *rgb, int nvoxels, float *yv, int psize)
 {
 	int i, k;
-	u_char *r=rgb, *g=rgb+nvoxels, *b=rgb+2*nvoxels;
+	unsigned char  *r=rgb, *g=rgb+nvoxels, *b=rgb+2*nvoxels;
 	for (i=0; i<nvoxels; i++)
 	{
-		k = brightness<u_char>(*r++, *g++, *b++);
+		k = brightness<unsigned char >(*r++, *g++, *b++);
 		if (k>0 && k<psize) yv[k] += 1;
 	}
 }
@@ -159,7 +159,7 @@ MatrixData *Volume::rgb_create_data(MatrixData *r, MatrixData *g ,
 	ret->z_size = r->z_size;
 	ret->scale_factor = 1;
     int nvoxels = r->xdim*r->ydim*r->zdim;
-	ret->data_ptr = (caddr_t)calloc(3,nvoxels);
+	ret->data_ptr = (void *)calloc(3,nvoxels);
     memcpy(ret->data_ptr, r->data_ptr, nvoxels);
     memcpy(ret->data_ptr+nvoxels, g->data_ptr, nvoxels);
     memcpy(ret->data_ptr+2*nvoxels, b->data_ptr, nvoxels);
@@ -509,8 +509,8 @@ int Volume::matnum(MatrixFile* matfile,int frame)
 MatrixData *ColorConverter::load(MatrixFile *file, MatrixData *vheader)
 {
 // Creates display pixels volume
-	u_char r,g,b;
-	u_char bt, bt_max=0;
+	unsigned char  r,g,b;
+	unsigned char  bt, bt_max=0;
 	MatrixData *volume = (MatrixData*)calloc(1,sizeof(MatrixData));
 	memcpy(volume,vheader,sizeof(MatrixData));
 	volume->shptr = 0;
@@ -522,29 +522,29 @@ MatrixData *ColorConverter::load(MatrixFile *file, MatrixData *vheader)
     {
         volume->data_type = ByteData; 
         volume->data_size = nvoxels;
-        volume->data_ptr = (caddr_t)calloc(1,nvoxels);
+        volume->data_ptr = (void *)calloc(1,nvoxels);
     }
     else
     {
        volume->data_type = Color_24;
        volume->data_size = nvoxels*sizeof(unsigned);
-       volume->data_ptr = (caddr_t)calloc(3,nvoxels);
+       volume->data_ptr = (void *)calloc(3,nvoxels);
     }
-	u_char *p = (u_char*)volume->data_ptr;
-	u_char *p_red = (u_char*)volume->data_ptr;
-	u_char *p_green = (u_char*)volume->data_ptr + nvoxels;
-	u_char *p_blue = (u_char*)volume->data_ptr + 2*nvoxels;
+	unsigned char  *p = (unsigned char *)volume->data_ptr;
+	unsigned char  *p_red = (unsigned char *)volume->data_ptr;
+	unsigned char  *p_green = (unsigned char *)volume->data_ptr + nvoxels;
+	unsigned char  *p_blue = (unsigned char *)volume->data_ptr + 2*nvoxels;
 	for (int plane=1; plane<=volume->zdim; plane++)
 	{
 		MatrixData *slice = matrix_read_slice(file,vheader, plane,0);
 		assert((slice != NULL));
-		u_char *p0 = (u_char*)slice->data_ptr;
+		unsigned char  *p0 = (unsigned char *)slice->data_ptr;
 		for (int i=0; i<npixels; i++)
 		{
 			r = *p0++;
 			g = *p0++;
 			b = *p0++;
-            bt = brightness<u_char>(r,g,b);
+            bt = brightness<unsigned char >(r,g,b);
 			if (bt_max < bt) bt_max = bt;
             if (_bytes_per_pixel < 3) *p++ = bt;
             else
@@ -563,16 +563,16 @@ MatrixData *ColorConverter::load(MatrixFile *file, MatrixData *vheader)
 
 MatrixData *matrix_brightness(const MatrixData *rgb)
 {
-	u_char *B, *r, *g, *b;
+	unsigned char  *B, *r, *g, *b;
 	if (rgb->data_type != Color_24) return 0;
 	MatrixData *ret = matrix_create(rgb);
 	ret->data_type = ByteData;
 	int nvoxels = ret->xdim*ret->ydim*ret->zdim;
-	ret->data_ptr = (caddr_t)calloc(1, nvoxels);
-	r = (u_char*)rgb->data_ptr; g = r+nvoxels; b = g+nvoxels;
-	B = (u_char*)ret->data_ptr;
+	ret->data_ptr = (void *)calloc(1, nvoxels);
+	r = (unsigned char *)rgb->data_ptr; g = r+nvoxels; b = g+nvoxels;
+	B = (unsigned char *)ret->data_ptr;
 	for (int i=0; i<nvoxels; i++)
-		*B++ = brightness<u_char>(*r++, *g++, *b++);
+		*B++ = brightness<unsigned char >(*r++, *g++, *b++);
 	return ret;
 }
 
@@ -612,9 +612,9 @@ static void  matrix_align_color_4(MatrixData *data)
 {
 	int x, y, z, xtrail, ytrail, xdim, ydim;
 	int sx = data->xdim, sy = data->ydim, sz = data->zdim;
-	u_char *src, *dest;
-	src = (u_char*)data->data_ptr;
-	dest = (u_char*)data->data_ptr;
+	unsigned char  *src, *dest;
+	src = (unsigned char *)data->data_ptr;
+	dest = (unsigned char *)data->data_ptr;
 	xtrail = sx%4; ytrail = sy%4;		// 4 pixels aligned trailing borders
 	if (xtrail==0 && ytrail==0) return;
 	xdim = sx-xtrail; ydim = sy-ytrail;	// ignore trailings
@@ -795,7 +795,7 @@ MatrixData* Volume::average(float abs_z, float thickness,
     {
     case ByteData:
       {
-        IsotropicSlicer<u_char> slicer1(_data, _transformer, interpolate);
+        IsotropicSlicer<unsigned char > slicer1(_data, _transformer, interpolate);
         return slicer1.average(z, thickness, pixel_size);
       }
     case SunShort:
@@ -893,7 +893,7 @@ MatrixData* Volume::get_slice(
     case ByteData:
     case Color_8:
       {
-        IsotropicSlicer<u_char> slicer1(_data, t, interpolate);
+        IsotropicSlicer<unsigned char > slicer1(_data, t, interpolate);
         ret =  slicer1.slice(dimension, pos, area.x, area.y, area.z, pixel_size);
       }
 	  break;
@@ -914,9 +914,9 @@ MatrixData* Volume::get_slice(
     case Color_24:
       {
         MatrixData *red_slice, *green_slice, *blue_slice, *rgb;
-        IsotropicSlicer<u_char> r_slicer(red_data, t, interpolate);
-        IsotropicSlicer<u_char> g_slicer(green_data,t,interpolate);
-        IsotropicSlicer<u_char> b_slicer(blue_data, t,interpolate);
+        IsotropicSlicer<unsigned char > r_slicer(red_data, t, interpolate);
+        IsotropicSlicer<unsigned char > g_slicer(green_data,t,interpolate);
+        IsotropicSlicer<unsigned char > b_slicer(blue_data, t,interpolate);
 		red_slice = r_slicer.slice(dimension, pos, area.x, area.y,area.z,pixel_size);
 		green_slice = g_slicer.slice(dimension, pos,area.x,area.y,area.z,pixel_size);
 		blue_slice = b_slicer.slice(dimension, pos, area.x, area.y,area.z,pixel_size);
@@ -990,7 +990,7 @@ printf("RRRRRRRRRRRRRRRr transverse area = (%g,%g)\n",area.x, area.y);
     case ByteData:
     case Color_8:
       {
-        IsotropicSlicer<u_char> slicer1(_data, t, interpolate);
+        IsotropicSlicer<unsigned char > slicer1(_data, t, interpolate);
         ret =  slicer1.slice(dimension, pos, area.x, area.y, area.z, pixel_size);
       }
 	  break;
@@ -1011,9 +1011,9 @@ printf("RRRRRRRRRRRRRRRr transverse area = (%g,%g)\n",area.x, area.y);
     case Color_24:
       {
         MatrixData *red_slice, *green_slice, *blue_slice, *rgb;
-        IsotropicSlicer<u_char> r_slicer(red_data, t, interpolate);
-        IsotropicSlicer<u_char> g_slicer(green_data,t,interpolate);
-        IsotropicSlicer<u_char> b_slicer(blue_data, t,interpolate);
+        IsotropicSlicer<unsigned char > r_slicer(red_data, t, interpolate);
+        IsotropicSlicer<unsigned char > g_slicer(green_data,t,interpolate);
+        IsotropicSlicer<unsigned char > b_slicer(blue_data, t,interpolate);
 		red_slice = r_slicer.slice(dimension, pos, area.x, area.y,area.z,pixel_size);
 		green_slice = g_slicer.slice(dimension, pos,area.x,area.y,area.z,pixel_size);
 		blue_slice = b_slicer.slice(dimension, pos, area.x, area.y,area.z,pixel_size);
@@ -1049,7 +1049,7 @@ MatrixData* Volume::projection(DimensionName dimension, float abs_l,
     {
     case ByteData:
       {
-        IsotropicSlicer<u_char> slicer1(_data, _transformer, interpolate);
+        IsotropicSlicer<unsigned char > slicer1(_data, _transformer, interpolate);
         return slicer1.projection(dimension, l, h, pixel_size, mode);
       }
     case SunShort:
@@ -1125,7 +1125,7 @@ void Volume::reverse(DimensionName dimension)
     {
     case ByteData:
     case Color_8:
-        matrix_reverse<u_char>((u_char*)_data->data_ptr,_data, dimension);
+        matrix_reverse<unsigned char >((unsigned char *)_data->data_ptr,_data, dimension);
         break;
     case SunShort:
     case VAX_Ix2:
@@ -1185,7 +1185,7 @@ float Volume::voxel_value(const VoxelCoord& pos, VoxelCoord& voxel_pos) const {
 	}
 	if (xi<0 || xi>=_data->xdim || yi<0 || yi>=_data->ydim ||
 		zi<0 || zi >= _data->zdim) return 0.0;
-	u_char *bp = (u_char*)_data->data_ptr + sx*sy*zi;
+	unsigned char  *bp = (unsigned char *)_data->data_ptr + sx*sy*zi;
 	short* sp = (short*)_data->data_ptr + sx*sy*zi;
 	unsigned short* usp = (unsigned short*)_data->data_ptr + sx*sy*zi;
 	float *fp = (float*)_data->data_ptr + sx*sy*zi;
@@ -1265,14 +1265,14 @@ float ty, float tz) {
 	return 1;
 }
 
-char*  Volume::save(MatrixFile* matfile, const u_char* rgb,
+char*  Volume::save(MatrixFile* matfile, const unsigned char * rgb,
 const char* _fname) const{
 	FILE *fp=NULL;
 	char *fname = NULL, *ext = NULL;
 	const char* str = _fname;
 	struct MatDir matdir;
 	char data_offset[20];
-	const u_char *p = NULL;
+	const unsigned char  *p = NULL;
 	int i, j, error_flag=0;
 
 	assert(_data->data_type != Color_24);
@@ -1451,7 +1451,7 @@ int Volume::histogram(float *& xv, float *& yv, int &psize) {
 	{	
 	case ByteData:
 	case Color_8:
-		t_histogram<u_char>((u_char*)_data->data_ptr, nvoxels, d_min, d_max,
+		t_histogram<unsigned char >((unsigned char *)_data->data_ptr, nvoxels, d_min, d_max,
 			d_step, yv, psize);
 		break;
 	case SunShort:
@@ -1469,7 +1469,7 @@ int Volume::histogram(float *& xv, float *& yv, int &psize) {
 			d_step, yv, psize);
 		break;
 	case Color_24:
-		color_histogram((u_char*)_data->data_ptr, nvoxels, yv, psize);
+		color_histogram((unsigned char *)_data->data_ptr, nvoxels, yv, psize);
 		break;
 	default:
 		throw("Volume::histogram : bad datatype");

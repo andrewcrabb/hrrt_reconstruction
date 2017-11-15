@@ -100,7 +100,7 @@ int interpolate, int align, interpolate_func func=0)
 			}
 		}
 		slice->xdim = size1;
-		slice->data_ptr = (caddr_t)y;
+		slice->data_ptr = (void *)y;
 		free(ya);
 		ya = y;
 	} else if (sx1<size1) {		/* Align to 4 bytes boundary */
@@ -108,7 +108,7 @@ int interpolate, int align, interpolate_func func=0)
 		for (i2=0; i2<sx2a; i2++) 
 			memcpy(y+i2*size1, src+i2*sx1, sx1*sizeof(T));
 		slice->xdim = size1;
-		slice->data_ptr = (caddr_t)y;
+		slice->data_ptr = (void *)y;
 		free(ya);
 		ya = y;
 	}
@@ -137,7 +137,7 @@ int interpolate, int align, interpolate_func func=0)
 			}
 		}
 		slice->ydim = sx2;
-		slice->data_ptr = (caddr_t)y;
+		slice->data_ptr = (void *)y;
 		free(ya);
 	}
 	if (sx1<size1) {	/* fill line with last value */
@@ -157,7 +157,7 @@ static MatrixData *rgb_split_data(MatrixData *src , int segment)
     int nvoxels = src->xdim*src->ydim*src->zdim;
     MatrixData *dest = (MatrixData*)calloc(1,sizeof(MatrixData));
     memcpy(dest,src,sizeof(MatrixData));
-    dest->data_ptr = (caddr_t)calloc(1, nvoxels);
+    dest->data_ptr = (void *)calloc(1, nvoxels);
 	memcpy(dest->data_ptr, src->data_ptr + segment*nvoxels, nvoxels);
     dest->data_type = ByteData;
 	return dest;
@@ -176,7 +176,7 @@ MatrixData *r, MatrixData *g , MatrixData *b)
     ret->scale_factor = 1;
     int nvoxels = r->xdim*r->ydim*r->zdim;
 	free(ret->data_ptr);
-	ret->data_ptr = (caddr_t)calloc(3,nvoxels);
+	ret->data_ptr = (void *)calloc(3,nvoxels);
 	memcpy(ret->data_ptr, r->data_ptr, nvoxels);
 	memcpy(ret->data_ptr+nvoxels, g->data_ptr, nvoxels);
 	memcpy(ret->data_ptr+2*nvoxels, b->data_ptr, nvoxels);
@@ -192,7 +192,7 @@ int  matrix_resize(MatrixData *mat, float pixel_size, int interp_flag,
 	{
 	case ByteData:
 	case Color_8:
-		return matrix_resize_((u_char*)mat->data_ptr, mat, pixel_size,
+		return matrix_resize_((unsigned char *)mat->data_ptr, mat, pixel_size,
 			interpolate, align);
 	case SunShort:
 	case VAX_Ix2:
@@ -203,11 +203,11 @@ int  matrix_resize(MatrixData *mat, float pixel_size, int interp_flag,
 			MatrixData *red_slice = rgb_split_data(mat,0);
 			MatrixData *green_slice = rgb_split_data(mat,1);
 			MatrixData *blue_slice = rgb_split_data(mat,2);
-			matrix_resize_((u_char*)red_slice->data_ptr,
+			matrix_resize_((unsigned char *)red_slice->data_ptr,
 				red_slice, pixel_size, interpolate, align);
-			matrix_resize_((u_char*)green_slice->data_ptr,
+			matrix_resize_((unsigned char *)green_slice->data_ptr,
 				green_slice, pixel_size, interpolate, align);
-			matrix_resize_((u_char*)blue_slice->data_ptr,
+			matrix_resize_((unsigned char *)blue_slice->data_ptr,
 				blue_slice, pixel_size, interpolate, align);
 			rgb_create_data(mat, red_slice,green_slice,blue_slice);
 			free_matrix_data(red_slice);

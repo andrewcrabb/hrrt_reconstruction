@@ -37,11 +37,9 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <memory.h>
-#ifdef unix
+#include <strings.h>
+#ifdef __unix__
 #include <unistd.h>
-#endif
-#ifdef WIN32
-#define LITTLE_ENDIAN 1
 #endif
 #include "DICOM.h"
 
@@ -51,8 +49,8 @@
 #define W_MODE "wb"
 #define swab _swab
 #define strdup _strdup
-typedef char *caddr_t;
-typedef unsigned char u_char;
+typedef char *void *;
+typedef unsigned char unsigned char ;
 typedef unsigned short u_short;
 #include <winsock.h>
 #else  /* WIN32 */
@@ -81,7 +79,7 @@ static void DICOM_data2host(void *buf, void *dest,
                             size_t size, size_t num_items)
 {
   char *tmp=NULL;
-  if (LITTLE_ENDIAN || size<2) {
+  if (size<2) {
     memcpy(dest,buf,size*num_items);
     return;
   }
@@ -102,7 +100,7 @@ static void DICOM_data2host(void *buf, void *dest,
 
 static  unsigned S2B2(const char *s)
 {
-  const u_char *us = (const u_char*)s;
+  const unsigned char  *us = (const unsigned char *)s;
   return ((us[1] << 8) + us[0]); 
 }
 
@@ -122,7 +120,7 @@ static void DICOM_blank(char *data)
     if (*p == '^') *p = ' ';
 }
 
-static int DICOM_scan_elem(u_char *buf, unsigned count, unsigned offset,
+static int DICOM_scan_elem(unsigned char  *buf, unsigned count, unsigned offset,
                            unsigned *group, unsigned *elem, DICOMElem *dcm_elem)
 {
   unsigned short us;
@@ -142,7 +140,7 @@ static int DICOM_scan_elem(u_char *buf, unsigned count, unsigned offset,
   return 1;
 }
 
-static int DICOM10_scan_elem(u_char *buf, unsigned count, unsigned offset,
+static int DICOM10_scan_elem(unsigned char  *buf, unsigned count, unsigned offset,
                              unsigned *group, unsigned *elem, DICOMElem *dcm_elem)
 {
   unsigned short us;
@@ -182,7 +180,7 @@ static int strncasecmp(const char* s1, const char *s2, int len)
 }
 #endif
  
-static int DICOM_get_elem(unsigned my_group, unsigned my_elem,  u_char *buf, int count,
+static int DICOM_get_elem(unsigned my_group, unsigned my_elem,  unsigned char  *buf, int count,
                           DICOMElem *dcm_elem)
 {
   unsigned offset=0, group, elem;
@@ -213,7 +211,7 @@ static int DICOM_get_elem(unsigned my_group, unsigned my_elem,  u_char *buf, int
 int dicom_scan_string(int a, int b, char* data, void* header, int header_size)
 {
   DICOMElem  dcm_elem;
-  if (DICOM_get_elem(a,b,(u_char*)header,header_size, &dcm_elem)) {
+  if (DICOM_get_elem(a,b,(unsigned char *)header,header_size, &dcm_elem)) {
     memcpy(data, (char*)header+dcm_elem.offset, dcm_elem.len);
     data[dcm_elem.len] = '\0';
     DICOM_blank(data);
@@ -225,7 +223,7 @@ int dicom_scan_string(int a, int b, char* data, void* header, int header_size)
 int dicom_scan_int32(int a, int b, int *value, void* header, int header_size)
 {
   DICOMElem  dcm_elem;
-  if (DICOM_get_elem(a,b,(u_char*)header,header_size, &dcm_elem)) {
+  if (DICOM_get_elem(a,b,(unsigned char *)header,header_size, &dcm_elem)) {
     memcpy(value, (char*)header+dcm_elem.offset, 4);
     return 1;
   }
@@ -235,7 +233,7 @@ int dicom_scan_int32(int a, int b, int *value, void* header, int header_size)
 int dicom_scan_int16(int a, int b, short *value, void* header, int header_size)
 {
   DICOMElem  dcm_elem;
-  if (DICOM_get_elem(a,b,(u_char*)header,header_size, &dcm_elem)) {
+  if (DICOM_get_elem(a,b,(unsigned char *)header,header_size, &dcm_elem)) {
     memcpy(value, (char*)header+dcm_elem.offset, 4);
     return 1;
   }

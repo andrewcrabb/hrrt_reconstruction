@@ -32,10 +32,7 @@
 
 #include  "isotope_info.h"
 #include <string.h>
-
-#ifdef WIN32
-#define strcasecmp _stricmp
-#endif
+#include <strings.h>
 
 	/* ALWAYS add new isotopes to the END of the following array to
 	   ensure backward compatibility */

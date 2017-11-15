@@ -13,8 +13,8 @@
 #define W_MODE "wb"
 #define swab _swab
 #define strdup _strdup
-typedef char *caddr_t;
-typedef unsigned char u_char;
+typedef char *void *;
+typedef unsigned char unsigned char ;
 typedef unsigned short u_short;
 //extern unsigned short ntohs(unsigned short);
 //extern unsigned long ntohl(unsigned long);
@@ -528,8 +528,8 @@ typedef
 		MatrixFile	*matfile ;	/* pointer to parent */
 		DataSetType	mat_type ;	/* type of matrix? */
 		MatrixDataType	data_type ;	/* type of data */
-		caddr_t		shptr ;		/* pointer to sub-header */
-		caddr_t		data_ptr ;	/* pointer to data */
+		void *		shptr ;		/* pointer to sub-header */
+		void *		data_ptr ;	/* pointer to data */
 		int		data_size ;	/* size of data in bytes */
 		int		xdim;		/* dimensions of data */
 		int		ydim;		/* y dimension */
@@ -559,8 +559,8 @@ extern "C" {
 #endif
 void SWAB(const void *from, void *to, int len);
 void SWAW(const short *from, short *to, int len);
-int find_bmin(const u_char*, int size);
-int find_bmax(const u_char*, int size);
+int find_bmin(const unsigned char *, int size);
+int find_bmax(const unsigned char *, int size);
 int find_smin(const short*, int size);
 int find_smax(const short*, int size);
 int find_imin(const int*, int size);

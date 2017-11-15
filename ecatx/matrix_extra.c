@@ -54,9 +54,7 @@
 #endif
 
 // ahc
-#define _XOPEN_SOURCE
 #include <stdbool.h>
-
 
 #define TRUE 1
 #define FALSE 0
@@ -165,7 +163,7 @@ int matrix_convert_data(MatrixData *matrix, MatrixDataType dtype)
   for (i=0; i<nvoxels; i++)
     sdata[i] = (short)(0.5+fdata[i]/scalef);
   free(fdata);
-  matrix->data_ptr = (caddr_t)sdata;
+  matrix->data_ptr = (void *)sdata;
   matrix->scale_factor = scalef;
   matrix->data_min = minval;
   matrix->data_max = maxval;
@@ -184,7 +182,7 @@ static int matrix_write_slice(mptr,matnum,data,plane)
   struct Matval val;
   int i, npixels, nblks, s_matnum;
   short *sdata;
-  u_char* bdata;
+  unsigned char * bdata;
   int	ret;
 
   switch(mptr->mhptr->file_type) {
@@ -205,11 +203,11 @@ static int matrix_write_slice(mptr,matnum,data,plane)
     }
     memcpy(slice,data,sizeof(MatrixData));
     memcpy(imh,data->shptr,sizeof(Image_subheader));
-    slice->shptr = (caddr_t)imh;
+    slice->shptr = (void *)imh;
     slice->zdim = imh->z_dimension = 1;
     npixels = slice->xdim*slice->ydim;
     nblks = (npixels*2 + MatBLKSIZE-1)/MatBLKSIZE;
-    slice->data_ptr = (caddr_t)calloc(nblks,MatBLKSIZE);
+    slice->data_ptr = (void *)calloc(nblks,MatBLKSIZE);
     if( !slice->data_ptr ) {
       free( slice );
       free( imh );
@@ -217,7 +215,7 @@ static int matrix_write_slice(mptr,matnum,data,plane)
     }
     slice->data_size = nblks*MatBLKSIZE;
     if (data->data_type ==  ByteData) {
-      bdata = (u_char*)(data->data_ptr+(plane-1)*npixels);
+      bdata = (unsigned char *)(data->data_ptr+(plane-1)*npixels);
       imh->image_min = find_bmin(bdata,npixels);
       imh->image_max = find_bmax(bdata,npixels);
       sdata = (short*)slice->data_ptr;
@@ -247,21 +245,21 @@ static int matrix_write_slice(mptr,matnum,data,plane)
   }
 }
 
-u_char 
-find_bmax(const u_char *bdata, int nvals)
+unsigned char  
+find_bmax(const unsigned char  *bdata, int nvals)
 {
   int i;
-  u_char bmax = bdata[0];
+  unsigned char  bmax = bdata[0];
   for (i=1; i<nvals; i++)
     if (bdata[i] > bmax) bmax = bdata[i];
   return bmax;
 }
 
-u_char 
-find_bmin(const u_char *bdata, int nvals)
+unsigned char  
+find_bmin(const unsigned char  *bdata, int nvals)
 {
   int i;
-  u_char bmin = bdata[0];
+  unsigned char  bmin = bdata[0];
   for (i=1; i<nvals; i++)
     if (bdata[i] < bmin) bmin = bdata[i];
   return bmin;
@@ -362,7 +360,7 @@ read_host_data(MatrixFile *mptr, int matnum, MatrixData *data, int dtype)
   data_size = data->data_size = 512*nblks;
   if (dtype != MAT_SUB_HEADER)
 	{
-	  data->data_ptr = (caddr_t) calloc(1, data_size) ;
+	  data->data_ptr = (void *) calloc(1, data_size) ;
 	  if (data->data_ptr == NULL)
         {
           return(ECATX_ERROR) ;
@@ -457,8 +455,8 @@ read_host_data(MatrixFile *mptr, int matnum, MatrixData *data, int dtype)
       read_matrix_data(mptr->fptr, matdir.strtblk+1, nblks,
                        data->data_ptr, imagesub->data_type) ;
       if (imagesub->data_type == ByteData) {
-        imagesub->image_max = find_bmax((u_char*)data->data_ptr,sx*sy*sz);
-        imagesub->image_min = find_bmin((u_char*)data->data_ptr,sx*sy*sz);
+        imagesub->image_max = find_bmax((unsigned char *)data->data_ptr,sx*sy*sz);
+        imagesub->image_min = find_bmin((unsigned char *)data->data_ptr,sx*sy*sz);
       } else {
         imagesub->image_max = find_smax((short*)data->data_ptr,sx*sy*sz);
         imagesub->image_min = find_smin((short*)data->data_ptr,sx*sy*sz);
@@ -581,7 +579,7 @@ int matrix_write(MatrixFile *mptr, int matnum, MatrixData *data)
       imagesub = (Image_subheader *) data->shptr ;
       if (imagesub == NULL) {
         imagesub = (Image_subheader *) calloc(1, MatBLKSIZE);
-        data->shptr = (caddr_t)imagesub;
+        data->shptr = (void *)imagesub;
       }							/* use MatrixData info */
       imagesub->x_pixel_size = data->pixel_size;
       imagesub->y_pixel_size = data->y_size;
@@ -752,7 +750,7 @@ convert_float_scan( MatrixData *scan, float *fdata)
   nvals = scan->xdim*scan->ydim;
   sdata = (short int*) malloc( nvals*sizeof(short int));
   if (sdata == NULL) return ECATX_ERROR;
-  scan->data_ptr = (caddr_t) sdata;
+  scan->data_ptr = (void *) sdata;
   scan->data_size = nvals*sizeof(short int);
   fmax = (float)(fabs(*fdata));
   for (i=0; i<nvals; i++)
@@ -807,7 +805,7 @@ matrix_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment)
     return NULL;
 
   if ((data = (MatrixData *) calloc( 1, sizeof(MatrixData))) != NULL) {
-    if ( (data->shptr = (caddr_t) calloc(2, MatBLKSIZE)) == NULL) {
+    if ( (data->shptr = (void *) calloc(2, MatBLKSIZE)) == NULL) {
       free(data);
       return NULL;
     }
@@ -859,7 +857,7 @@ matrix_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment)
 
 
                                     
-    if ((data->data_ptr = (caddr_t)calloc(nblks,512)) == NULL ||
+    if ((data->data_ptr = (void *)calloc(nblks,512)) == NULL ||
 #ifdef _WIN32
         fseek64(fileno(mptr->fptr),file_pos,0) == -1 ||
 #else
@@ -920,7 +918,7 @@ matrix_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment)
     nblks = (data->data_size+511)/512;
 
 
-    if ((data->data_ptr = (caddr_t)calloc(nblks,512)) == NULL ||
+    if ((data->data_ptr = (void *)calloc(nblks,512)) == NULL ||
 #ifdef _WIN32
         fseek64(fileno(mptr->fptr),file_pos,0) == -1 ||
 #else
@@ -1285,7 +1283,7 @@ matrix_read(MatrixFile *mptr, int matnum, int dtype)
     return (NULL);
 
   /* allocate space for subheader and initialize */
-  data->shptr = (caddr_t) calloc(2, MatBLKSIZE);
+  data->shptr = (void *) calloc(2, MatBLKSIZE);
   if (!data->shptr) {
     free(data);
     return (NULL);

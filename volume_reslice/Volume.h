@@ -126,7 +126,7 @@ public :
 									// segment is used for 3D sinograms 
 	virtual Volume* clone() const;
 	int contains(const VoxelCoord&);
-	char* save(MatrixFile*, const u_char* cmap=NULL,
+	char* save(MatrixFile*, const unsigned char * cmap=NULL,
 		const char* fname=NULL) const;
 			// export current range  in InterFile format
 

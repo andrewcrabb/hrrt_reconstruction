@@ -131,7 +131,7 @@ e.g 10e-6 counts/second
 static char* magicNumber = "interfile";
 static char  line[LINESIZE];
 
-static void byte_order(caddr_t data_ptr, int elem_size, int nblks, 
+static void byte_order(void * data_ptr, int elem_size, int nblks, 
                        char *in_order)
 {
   int swap_order = 0;
@@ -219,8 +219,8 @@ static void find_data_extrema(MatrixData *data)
 	switch(data->data_type) {
 		case ByteData :
 		case Color_8 :
-			data->data_max = find_bmax((u_char*)data->data_ptr,npixels);
-			data->data_min = find_bmin((u_char*)data->data_ptr,npixels);
+			data->data_max = find_bmax((unsigned char *)data->data_ptr,npixels);
+			data->data_min = find_bmin((unsigned char *)data->data_ptr,npixels);
 			break;
 		default :
 		case SunShort:
@@ -237,34 +237,34 @@ static void find_data_extrema(MatrixData *data)
 			data->data_min = find_fmin((float*)data->data_ptr,npixels);
 			break;
 		case Color_24 :  /* get min and max brightness */
-			data->data_max = find_bmax((u_char*)data->data_ptr,3*npixels);
-			data->data_min = find_bmin((u_char*)data->data_ptr,3*npixels);
+			data->data_max = find_bmax((unsigned char *)data->data_ptr,3*npixels);
+			data->data_min = find_bmin((unsigned char *)data->data_ptr,3*npixels);
 	}
 	data->data_max *=  data->scale_factor;
 	data->data_min *=  data->scale_factor;
 }
 
-void flip_x(caddr_t line, int data_type, int xdim)
+void flip_x(void * line, int data_type, int xdim)
 {
-	static caddr_t _line=NULL;
+	static void * _line=NULL;
 	static int line_size = 0;
 	int x=0;
 	int elem_size = _elem_size(data_type);
 
 	if (line_size == 0) {
 		line_size = xdim*elem_size;
-		_line = (caddr_t)malloc(line_size);
+		_line = (void *)malloc(line_size);
 	} else if (xdim*elem_size > line_size) {
 		line_size = xdim*elem_size;
-		_line = (caddr_t)realloc(_line, line_size);
+		_line = (void *)realloc(_line, line_size);
 	}
 	switch(data_type) {
 		case Color_8 :
 		case ByteData :
 		{
-			u_char *b_p0, *b_p1;
-			b_p0 = (u_char*)line;
-			b_p1 = (u_char*)_line + xdim - 1;
+			unsigned char  *b_p0, *b_p1;
+			b_p0 = (unsigned char *)line;
+			b_p1 = (unsigned char *)_line + xdim - 1;
 			for (x=0; x<xdim; x++) *b_p1-- = *b_p0++;
 			memcpy(line,_line,xdim);
 			break;
@@ -300,9 +300,9 @@ void flip_x(caddr_t line, int data_type, int xdim)
 		}
 		case Color_24:
 		{
-			u_char *p0, *p1;
-			p0 = (u_char*)line;
-			p1 = (u_char*)(_line + (xdim-1)*elem_size);
+			unsigned char  *p0, *p1;
+			p0 = (unsigned char *)line;
+			p1 = (unsigned char *)(_line + (xdim-1)*elem_size);
 			for (x=0; x<xdim; x++)
 			{
 				*p1++ = *p0++;  /* red */
@@ -315,20 +315,20 @@ void flip_x(caddr_t line, int data_type, int xdim)
 	}
 }
 
-void flip_y(caddr_t plane, int data_type, int xdim, int ydim)
+void flip_y(void * plane, int data_type, int xdim, int ydim)
 {
-	static caddr_t _plane=NULL;
+	static void * _plane=NULL;
 	static int plane_size = 0;
-	caddr_t p0, p1;
+	void *p0, *p1;
 	int elem_size = _elem_size(data_type);
 	int y=0;
 
 	if (plane_size == 0) {
 		plane_size = xdim*ydim*elem_size;
-		_plane = (caddr_t)malloc(plane_size);
+		_plane = (void *)malloc(plane_size);
 	} else if (xdim*ydim*elem_size > plane_size) {
 		plane_size = xdim*ydim*elem_size;
-		_plane = (caddr_t)realloc(_plane, plane_size);
+		_plane = (void *)realloc(_plane, plane_size);
 	}
 	p0 = plane;
 	p1 = _plane + (ydim-1)*xdim*elem_size;
@@ -824,8 +824,8 @@ interfile_read(MatrixFile *mptr, int matnum, MatrixData *data, int dtype)
   int y, z, image_min=0, image_max=0;
   size_t i, npixels, nvoxels;
   int tmp, nblks, elem_size=2, data_offset=0;
-  caddr_t plane, line;
-  u_short u_max, *up=NULL;
+  void *plane, *line;
+  unsigned short u_max, *up=NULL;
   short *sp=NULL;
   int z_flip=0, y_flip=0, x_flip=0;
   float f;
@@ -965,7 +965,7 @@ interfile_read(MatrixFile *mptr, int matnum, MatrixData *data, int dtype)
   nvoxels = npixels * data->zdim;
   data->data_size = nvoxels * elem_size;
   nblks = (data->data_size+MatBLKSIZE-1)/MatBLKSIZE;
-  data->data_ptr = (caddr_t) calloc(nblks,MatBLKSIZE);
+  data->data_ptr = (void *) calloc(nblks,MatBLKSIZE);
   if (ifh[DATA_STARTING_BLOCK] &&
       sscanf(ifh[DATA_STARTING_BLOCK],"%d",&data_offset) ) {
     if (data_offset<0) data_offset = 0;
@@ -1008,14 +1008,14 @@ interfile_read(MatrixFile *mptr, int matnum, MatrixData *data, int dtype)
   
   if (elem_size == 2 &&
       ifh[NUMBER_FORMAT] && strstr(ifh[NUMBER_FORMAT], "unsigned") ) {
-    up = (u_short*)data->data_ptr;
+    up = (unsigned short*)data->data_ptr;
     u_max = *up++;
     for (i=1; i<nvoxels; i++, up++) 
       if (u_max< (*up)) u_max = *up;
     if (u_max > 32767) {
       fprintf(stderr,"converting unsigned to signed integer\n");
       sp = (short*)data->data_ptr;
-      up = (u_short*)data->data_ptr;
+      up = (unsigned short*)data->data_ptr;
       for (i=0; i<nvoxels; i++) {
         tmp = *up++;
         *sp++ = tmp/2;
@@ -1031,11 +1031,11 @@ MatrixData*
 interfile_read_slice(FILE *fptr, char **ifh, MatrixData *volume,
                                  int slice, int u_flag)
 {
-	caddr_t line;
+	void * line;
 	int i, npixels, file_pos, data_size, nblks, elem_size = 2;
 	int  y, data_offset = 0;
 	int z_flip=0,y_flip=0, x_flip=0;
-	/* u_short *up=NULL; */
+	/* unsigned short *up=NULL; */
 	/* short *sp=NULL; */
 	MatrixData *data;
 
@@ -1086,7 +1086,7 @@ interfile_read_slice(FILE *fptr, char **ifh, MatrixData *volume,
 		u_flag = 1;
 	if (u_flag && elem_size == 2) {
 		short* sp = (short*)data->data_ptr;
-		u_short* up = (u_short*)data->data_ptr;
+		unsigned short* up = (unsigned short*)data->data_ptr;
 		for (i=0; i<npixels; i++) *sp++ = (*up++)/2;
 		data->scale_factor *= 2;
 	}
@@ -1095,7 +1095,7 @@ interfile_read_slice(FILE *fptr, char **ifh, MatrixData *volume,
 }
 int 
 interfile_write_volume(MatrixFile *mptr, char *image_name, char *header_name,
-                       u_char *data_matrix, int size)
+                       unsigned char  *data_matrix, int size)
 {
 	int count;
 	FILE *fp_h, *fp_i;
@@ -1132,7 +1132,7 @@ interfile_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment)
 	int elem_size=2, view_size, plane_size, nblks;
 	unsigned file_pos=0, z_fill=0;
 	int error_flag=0;
-	caddr_t data_pos=NULL;
+	void * data_pos=NULL;
   	char **ifh;
 
 /* Scan3D and Atten storage:
@@ -1148,7 +1148,7 @@ interfile_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment)
     if (matrix_find(mptr,matnum,&matdir) == ECATX_ERROR)
 		return NULL;
 	if ((data = (MatrixData *) calloc( 1, sizeof(MatrixData))) != NULL) {
-		if ( (data->shptr = (caddr_t) calloc(2, MatBLKSIZE)) == NULL) {
+		if ( (data->shptr = (void *) calloc(2, MatBLKSIZE)) == NULL) {
 			free(data);
 			return NULL;
 		}
@@ -1179,7 +1179,7 @@ interfile_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment)
 	nvoxels = nprojs*nviews*scan3Dsub->num_z_elements[0];
 	data->data_size = nvoxels*elem_size;
 	nblks = (data->data_size+MatBLKSIZE-1)/MatBLKSIZE;
-	if ((data->data_ptr = (caddr_t)calloc(nblks,MatBLKSIZE)) == NULL ||
+	if ((data->data_ptr = (void *)calloc(nblks,MatBLKSIZE)) == NULL ||
 		fseek(mptr->fptr,file_pos,0) == -1) {
 		free_matrix_data(data);
 		return NULL;

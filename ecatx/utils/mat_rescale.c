@@ -44,8 +44,8 @@ void matrix_sum(MatrixData *matrix, MatrixData **sum)
     memcpy(*sum, matrix,sizeof(MatrixData));
     (*sum)->data_size = nvoxels*sizeof(float);
     nblks = ((*sum)->data_size + MatBLKSIZE-1)/MatBLKSIZE;
-    (*sum)->data_ptr = (caddr_t)calloc(nblks,MatBLKSIZE);
-    (*sum)->shptr =(caddr_t)calloc(1,MatBLKSIZE);
+    (*sum)->data_ptr = (void *)calloc(nblks,MatBLKSIZE);
+    (*sum)->shptr =(void *)calloc(1,MatBLKSIZE);
     memcpy((*sum)->shptr,matrix->shptr,sizeof(Image_subheader));
     fdata = (float*)(*sum)->data_ptr;
     for (i=0; i<nvoxels; i++)

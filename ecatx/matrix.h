@@ -49,7 +49,7 @@
 #define strdup _strdup
 #define DIR_SEPARATOR '\\'
 #ifndef __CYGWIN__
-typedef char *caddr_t;
+typedef char *void *;
 typedef unsigned char u_char;
 typedef unsigned short u_short;
 typedef unsigned long u_long;
@@ -544,8 +544,8 @@ typedef
 		FILE		*fptr ;		/* file ptr for I/O calls */
 		FileFormat file_format;
 		char **interfile_header;
-	// ahc replace all occurences of caddr_t with void*
-    // caddr_t analyze_hdr;
+	// ahc replace all occurences of void * with void*
+    // void * analyze_hdr;
     void *analyze_hdr;
 	}
 MatrixFile ;
@@ -557,8 +557,8 @@ typedef
 		MatrixFile	*matfile ;	/* pointer to parent */
 		DataSetType	mat_type ;	/* type of matrix? */
 		MatrixDataType	data_type ;	/* type of data */
-		// caddr_t		shptr ;		 pointer to sub-header 
-		// caddr_t		data_ptr ;	/* pointer to data */
+		// void *		shptr ;		 pointer to sub-header 
+		// void *		data_ptr ;	/* pointer to data */
 		void *shptr ;		/* pointer to sub-header */
 		void *data_ptr ;	/* pointer to data */
 		int		data_size ;	/* size of data in bytes */

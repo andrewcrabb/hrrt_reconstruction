@@ -39,21 +39,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
-#ifdef unix
+#ifdef __unix__
 #include <unistd.h>
-#endif
-#ifdef sun
-#define LITTLE_ENDIAN 0
-#else
-#define LITTLE_ENDIAN 1
 #endif
 #include "DICOM.h"
 #include <string>
 
-#ifdef WIN32
-typedef unsigned char u_char;
-#define strncasecmp _strnicmp
-#endif
 
 int sequence_number = 1;
 extern int verbose;
@@ -71,10 +62,8 @@ static void swaw(short *from, short *to, int len) {
 static void DICOM_data2host(void *buf, void *dest,
 			    size_t size, size_t num_items)
 {
-  if (LITTLE_ENDIAN || size<2) {
     memcpy(dest,buf,size*num_items);
     return;
-  }
   char *tmp = (char*)malloc(size*num_items);
   switch(size)
     {
@@ -92,7 +81,7 @@ static void DICOM_data2host(void *buf, void *dest,
 
 inline unsigned S2B2(const char *s)
 {
-  const u_char *us = (const u_char*)s;
+  const unsigned char  *us = (const unsigned char *)s;
   return ((us[1] << 8) + us[0]); 
 }
 
@@ -145,7 +134,7 @@ const char *DICOM10_type(unsigned type)
   return "UNKOWN";
 }
 
-static int DICOM_scan_elem(u_char *buf, int count, unsigned offset,
+static int DICOM_scan_elem(unsigned char  *buf, int count, unsigned offset,
 		    unsigned &group, unsigned &elem, DICOMElem &dcm_elem)
 {
  unsigned short us;
@@ -166,7 +155,7 @@ static int DICOM_scan_elem(u_char *buf, int count, unsigned offset,
   return 1;
 }
 
-static int DICOM10_scan_elem(u_char *buf, int count, unsigned offset,
+static int DICOM10_scan_elem(unsigned char  *buf, int count, unsigned offset,
 		    unsigned &group, unsigned &elem, DICOMElem &dcm_elem)
 {
   unsigned short us;
@@ -192,7 +181,7 @@ static int DICOM10_scan_elem(u_char *buf, int count, unsigned offset,
   return 1;
 }
  
-static int DICOM_scan(u_char *buf, int count, DICOMMap &dcm_map, int DICOM10_flag)
+static int DICOM_scan(unsigned char  *buf, int count, DICOMMap &dcm_map, int DICOM10_flag)
 {
   int success;
   unsigned offset=0, group, elem;
@@ -236,7 +225,7 @@ int DICOM_get_elem(unsigned group, unsigned elem,  DICOMMap &dcm_map, DICOMElem 
   return 0;
 }
 
-int DICOM_open(const char *filename, u_char *&buf, int &bufsize,
+int DICOM_open(const char *filename, unsigned char  *&buf, int &bufsize,
 		 DICOMMap &dcm_map, int &DICOM10_flag)
 {
   struct stat st;
@@ -254,13 +243,13 @@ int DICOM_open(const char *filename, u_char *&buf, int &bufsize,
     return 0;
   }
   if (buf == NULL) {
-    if ((buf = (u_char*)calloc(1, st.st_size)) == NULL) {
+    if ((buf = (unsigned char *)calloc(1, st.st_size)) == NULL) {
       perror(filename);
       return 0;
     }
     bufsize = st.st_size;
   } else if (bufsize < st.st_size) {
-    if ((buf = (u_char*)realloc(buf,st.st_size)) == NULL) {
+    if ((buf = (unsigned char *)realloc(buf,st.st_size)) == NULL) {
        perror(filename);
        return 0;
     }
@@ -316,7 +305,7 @@ int main(int argc, char **argv)
   DICOMMap dcm_map;
   DICOMMap::iterator i;
   DICOMGroupMap::iterator j;
-  u_char *buf=NULL;
+  unsigned char  *buf=NULL;
   int buf_size = 0, DICOM10_flag=0;
   if (argc < 2) return 1;
   if (DICOM_open(argv[1], buf, buf_size, dcm_map, DICOM10_flag) > 0) {

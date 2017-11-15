@@ -8,14 +8,12 @@ static char sccsid[]="(#)matcopy.c 1.4 7/10/92 Copyright 1990 CTI Pet Systems, I
 #include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
+#include <getopt.h>
 #include "matrix.h"
-#ifdef WIN32
-#include "getopt.h"
-#endif
 extern MatrixData *matrix_read_scan();
 
 static void usage();
-static int copy_scan(mptr1,matnum, mptr2,o_matnum,storage_order);
+static int copy_scan(MatrixFile *mptr1, int matnum, MatrixFile *mptr2, int o_matnum, int storage_order);
 
 static void usage() {
 	fprintf(stderr,
@@ -28,15 +26,12 @@ static void usage() {
 
 static int verbose=0;
 
-static int copy_scan(mptr1,matnum, mptr2,o_matnum,storage_order)
-MatrixFile *mptr1, *mptr2;
-int matnum, o_matnum, storage_order;
-{
+static int copy_scan(MatrixFile *mptr1, int matnum, MatrixFile *mptr2, int o_matnum, int storage_order) {
 	MatrixData *matrix;
 	struct MatDir matdir, o_matdir;
 	Scan3D_subheader *sh=NULL, *o_sh=NULL;
 	Attn_subheader  *ah=NULL, *o_ah=NULL;
-	caddr_t blk, sino, planar, dest;
+	void *blk, *sino, *planar, *dest;
 	int keep_order = 1;
 	int i, view, plane;
 	int blkno, file_pos, view_pos;
@@ -52,7 +47,7 @@ int matnum, o_matnum, storage_order;
 		insert_mdir(&o_matdir, mptr2->dirlist) ;
 	}
 	matrix = matrix_read(mptr1,matnum,MAT_SUB_HEADER);
-	blk = (caddr_t)malloc(MatBLKSIZE);
+	blk = (void *)malloc(MatBLKSIZE);
 	switch (mptr1->mhptr->file_type) {
 	case Float3dSinogram :
 	case Short3dSinogram :
@@ -102,7 +97,7 @@ int matnum, o_matnum, storage_order;
 	}  else {	/* keep_order */
 		if (storage_order == 1) {		/* view mode to sino mode */
 			if (verbose) fprintf(stderr,"view mode to sino mode\n");
-			sino = (caddr_t)malloc(line_size*num_views);
+			sino = (void *)malloc(line_size*num_views);
 			file_pos = ftell(mptr1->fptr);
 			for (plane=0;plane<num_planes;plane++) {
 				dest = sino;
@@ -123,7 +118,7 @@ int matnum, o_matnum, storage_order;
 			}
 		} else {				/* storage_order */
 			if (verbose) fprintf(stderr,"sino mode to view mode\n");
-			planar = (caddr_t)malloc(line_size*num_planes);
+			planar = (void *)malloc(line_size*num_planes);
 			file_pos = ftell(mptr1->fptr);
 			for (view=0; view<num_views; view++) {
 				dest = planar;
@@ -164,7 +159,7 @@ int main( argc, argv)
 	int elem_size=2, offset = 0;
 	int storage_order = -1;
 	short *sdata;
-	u_char *bdata;
+	unsigned char  *bdata;
 	int *matnums=NULL, nmats=0;
 	struct Matval mat;
 	extern char *optarg;

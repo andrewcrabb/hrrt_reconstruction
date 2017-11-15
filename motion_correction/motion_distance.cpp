@@ -75,7 +75,7 @@ static void matrix_float(MatrixData *matrix)
 	fdata = (float*)calloc(np,sizeof(float));
 	sdata = (short*)matrix->data_ptr;
 	scalef = matrix->scale_factor;
-	matrix->data_ptr = (caddr_t)fdata;
+	matrix->data_ptr = (void *)fdata;
 	for (i=0; i<np;i++) fdata[i] = scalef * sdata[i];
 	matrix->scale_factor = 1.0;
 	free(sdata);

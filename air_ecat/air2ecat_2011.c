@@ -38,7 +38,7 @@ static MatrixData* air2matrix(AIR_Pixels ***pixels, struct AIR_Key_info *stats,
   AIR_Pixels *image_data;
   int elem_size=2, data_type=SunShort;	/* default */
   int i, nvoxels, nblks;
-  u_char *bdata = NULL;
+  unsigned char *bdata = NULL;
   short *sdata = NULL;
   float a,v;
 
@@ -60,7 +60,7 @@ static MatrixData* air2matrix(AIR_Pixels ***pixels, struct AIR_Key_info *stats,
     imh->image_min = (int)(matrix->data_min/matrix->scale_factor);
     imh->image_max = (int)(matrix->data_max/matrix->scale_factor);
   }
-  matrix->shptr = (caddr_t)imh;
+  matrix->shptr = (void *)imh;
   if (matrix->data_type == VAX_Ix2)
     /* old integer 2 image format */
     imh->data_type = matrix->data_type = SunShort;
@@ -80,7 +80,7 @@ static MatrixData* air2matrix(AIR_Pixels ***pixels, struct AIR_Key_info *stats,
   imh->z_pixel_size = matrix->z_size     = (float)stats->z_size * 0.1f; /* in cm */
   nblks = (nvoxels*elem_size+511)/512;
   matrix->data_size = nblks*512;
-  matrix->data_ptr = (caddr_t)calloc(512,nblks);
+  matrix->data_ptr = (void *)calloc(512,nblks);
 
   /* fill matrix data */
   image_data = pixels[0][0];
@@ -88,7 +88,7 @@ static MatrixData* air2matrix(AIR_Pixels ***pixels, struct AIR_Key_info *stats,
   case ByteData :
   case BitData :
     a = 255.0f/AIR_CONFIG_MAX_POSS_VALUE;
-    bdata = (u_char*)matrix->data_ptr;
+    bdata = (unsigned char *)matrix->data_ptr;
     for (i=0; i<nvoxels; i++)
       *bdata++ = (int)(0.5+a*(*image_data++));
     break;

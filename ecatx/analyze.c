@@ -29,8 +29,6 @@
    * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-// ahc
-#define _XOPEN_SOURCEs
 
 #include <time.h>
 #include <string.h>
@@ -41,15 +39,9 @@
 #include "analyze.h"
 #include "interfile.h"
 #include "machine_indep.h"
-#ifdef _WIN32
-#define stat _stat
-#define itoa _itoa
-#endif
 
 // ahc
 #include <unistd.h>
-#include <linux/swab.h>
-
 
 
 #define END_OF_KEYS END_OF_INTERFILE+1
@@ -290,7 +282,7 @@ int analyze_read(MatrixFile *mptr, int matnum, MatrixData *data, int dtype)
   int y, z, image_min=0, image_max=0;
   size_t npixels, nvoxels;
   int nblks, elem_size=2, data_offset=0;
-  caddr_t plane, line;
+  void *plane, *line;
   /* u_short u_max, *up=NULL; */
   short *sp=NULL;
   int z_flip=1, y_flip=1, x_flip=1;
@@ -323,7 +315,7 @@ int analyze_read(MatrixFile *mptr, int matnum, MatrixData *data, int dtype)
   nvoxels = npixels * data->zdim;
   data->data_size = nvoxels * elem_size;
   nblks = (data->data_size+MatBLKSIZE-1)/MatBLKSIZE;
-  data->data_ptr = (caddr_t) calloc(nblks,MatBLKSIZE);
+  data->data_ptr = (void *) calloc(nblks,MatBLKSIZE);
   if (matval.frame>1) data_offset = (matval.frame-1)*data->data_size;
   if (data_offset>0) {
     if (fseek(mptr->fptr, data_offset, SEEK_SET) != 0) 

@@ -14,7 +14,7 @@ MatrixData *matrix;
   int x,y,z,i, nvoxels;
   char *units;
   struct Matval mat;
-  u_char *b_data;
+  unsigned char  *b_data;
   short *s_data;
   float *f_data;
   double total=0, mean=0;
@@ -29,7 +29,7 @@ MatrixData *matrix;
   nvoxels = matrix->xdim*matrix->ydim*matrix->zdim ;
   switch(matrix->data_type) {
   case ByteData:
-    b_data = (u_char*)matrix->data_ptr;
+    b_data = (unsigned char *)matrix->data_ptr;
     for (i=0, z=1; z<=matrix->zdim; z++)  {
       for (y=1; y<=matrix->ydim; y++) {
         for (x=1; x<=matrix->xdim; x++, i++) {

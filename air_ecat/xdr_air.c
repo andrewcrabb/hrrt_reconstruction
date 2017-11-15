@@ -19,7 +19,7 @@ XDR *xdrs;
 struct air16 *objp;
 {
 	int i,j;
-	union { u_short s[2]; u_int u; } tmp;
+	union { unsigned short s[2]; u_int u; } tmp;
 
 	for (i=0; i<4; i++)
 		for (j=0; j<4; j++)

@@ -47,7 +47,7 @@ main( argc, argv)
 	float *imagea, *imageb, *imagec;
 	float valb;
 	short int *sdata;
-	u_char *bdata;
+	unsigned char  *bdata;
 	float maxval, minval, scalef;
 	int i, matnuma, matnumb, matnumc, plane, nblks;
 	char op1 = ' ', op2=' ',  *ptr, fname[256];
@@ -127,7 +127,7 @@ main( argc, argv)
 			for (i=0; i<npixels; i++)
 	  			imagea[i] = slice1->scale_factor*sdata[i];
 		} else {	/* assume byte data */
-			bdata = (u_char*)slice1->data_ptr;
+			bdata = (unsigned char *)slice1->data_ptr;
 			for (i=0; i<npixels; i++)
 				imagea[i] = slice1->scale_factor*bdata[i];
 		}
@@ -140,7 +140,7 @@ main( argc, argv)
 				for (i=0; i<npixels; i++)
 	  				imageb[i] = slice2->scale_factor*sdata[i];
 			} else {    /* assume byte data */
-				bdata = (u_char*)slice2->data_ptr;
+				bdata = (unsigned char *)slice2->data_ptr;
 				for (i=0; i<npixels; i++)
 					imageb[i] = slice2->scale_factor*bdata[i];
 			}
@@ -219,7 +219,7 @@ main( argc, argv)
 
 	if (image1->data_type!=ByteData || image2->data_type!=ByteData || minval<0)
 	{
-		image3->shptr = (caddr_t)imh;
+		image3->shptr = (void *)imh;
 		nblks = (nvoxels*sizeof(short)+511)/512;
 		image3->data_size = nblks*512;
 		image3->data_type = imh->data_type = SunShort;
@@ -229,16 +229,16 @@ main( argc, argv)
 		for (i=0; i<nvoxels; i++)
 	  		sdata[i] = (short)(0.5f+imagec[i]/scalef);
 	} else {
-		image3->shptr = (caddr_t)imh;
+		image3->shptr = (void *)imh;
 		image3->data_type = imh->data_type = ByteData;
-		nblks = (nvoxels*sizeof(u_char)+511)/512;
+		nblks = (nvoxels*sizeof(unsigned char )+511)/512;
 		image3->data_size = nblks*512;
 		scalef = fabsf(maxval)/255;
-		bdata = (u_char*)imagec;				/* reuse huge float array */
+		bdata = (unsigned char *)imagec;				/* reuse huge float array */
 		for (i=0; i<nvoxels; i++)
-			bdata[i] = (u_char)(0.5+imagec[i]/scalef);
+			bdata[i] = (unsigned char )(0.5+imagec[i]/scalef);
 	}
-	image3->data_ptr = (caddr_t)imagec;
+	image3->data_ptr = (void *)imagec;
 	image3->scale_factor = imh->scale_factor = scalef;
 	imh->image_max = (short)((0.5f+maxval)/scalef);
 	imh->image_min = (short)((0.5f+minval)/scalef);

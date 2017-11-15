@@ -103,7 +103,7 @@ static MatrixData matrix;
 static int is_bigendian=0;
 static DICOMMap dcm_map;
 static DICOMElem dcm_elem;
-static u_char *dcm_buf=0;
+static unsigned char  *dcm_buf=0;
 static int dcm_buf_size=0;
 static int DICOM10_flag=0;
 
@@ -532,9 +532,9 @@ static int ecat2DICOM(MatrixData *matrix, char *out_dir, const char *prefix,
   FILE *fp=NULL;
   Image_subheader *imh=NULL;
   int nblks, data_size, header_size;
-  caddr_t header, buf=NULL;
+  void * header, buf=NULL;
   unsigned char *p;
-  u_short g = 0x7fe0, no = 0x0010;
+  unsigned short g = 0x7fe0, no = 0x0010;
   char image_id[80];
 
   imh = (Image_subheader*)matrix->shptr;
@@ -569,7 +569,7 @@ static int ecat2DICOM(MatrixData *matrix, char *out_dir, const char *prefix,
   nblks = (data_size+511)/512;
   header = matrix->data_ptr + nblks*512;
   header_size = matrix->data_size - nblks*512;
-  p = (u_char*)(header + header_size -1);
+  p = (unsigned char *)(header + header_size -1);
   for (; header_size>0; header_size--, p--)
     if (*p == 0xff) break;
   if (header_size == 0) crash("no DICOM header found\n");
@@ -577,7 +577,7 @@ static int ecat2DICOM(MatrixData *matrix, char *out_dir, const char *prefix,
   fwrite(header, 1, header_size, fp);
   if (ntohs(1) == 1 && matrix->data_type!=ByteData)
   {
-    buf = (caddr_t)malloc(data_size);
+    buf = (void *)malloc(data_size);
     swab(matrix->data_ptr, buf, data_size);
     fwrite(matrix->data_ptr, data_size, 1, fp);
     free(buf);

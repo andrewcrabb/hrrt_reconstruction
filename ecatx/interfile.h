@@ -135,8 +135,7 @@ extern "C" {
  * high level user functions
  */
 #endif
-int interfile_write_volume(MatrixFile* mptr, char *image_name,char *header_name,
-		u_char* data_matrix, int size);
+int interfile_write_volume(MatrixFile* mptr, char *image_name,char *header_name, unsigned char* data_matrix, int size);
 char *is_interfile(const char*);
 int interfile_open(MatrixFile*);
 MatrixData *interfile_read_slice(FILE*, char** ifh, MatrixData*, int slice,
@@ -145,8 +144,8 @@ int interfile_read(MatrixFile *mptr,int matnum, MatrixData  *data, int dtype);
 MatrixData *interfile_read_scan(MatrixFile *mptr,int matnum,
 	int dtype, int segment);
 int free_interfile_header(char** ifh);
-void flip_x(caddr_t line, int data_type, int xdim);
-void flip_y(caddr_t plane, int data_type, int xdim, int ydim);
+void flip_x(void *line, int data_type, int xdim);
+void flip_y(void *plane, int data_type, int xdim, int ydim);
 #if defined(__cplusplus)
 }
 #endif

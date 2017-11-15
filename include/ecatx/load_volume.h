@@ -89,7 +89,7 @@ Tslice *slice, int nslices, int cubic, int interp)
 	float fval;
 	int ival;
 	short *vp=NULL, *p1, *p2;
-	u_char *b_vp=NULL, *b_p1, *b_p2;
+	unsigned char  *b_vp=NULL, *b_p1, *b_p2;
 	int npixels, nvoxels;
 	char cbufr[256];
 	float  zsep,zloc, w1, w2, scalef = volume->scale_factor;
@@ -105,13 +105,13 @@ Tslice *slice, int nslices, int cubic, int interp)
 	imh = (Image_subheader*)volume->shptr;
 	switch (volume->data_type) {
 	case ByteData : 
-		volume->data_ptr = (caddr_t)calloc(nvoxels,sizeof(u_char));
-		b_vp = (u_char*)volume->data_ptr;
+		volume->data_ptr = (void *)calloc(nvoxels,sizeof(unsigned char ));
+		b_vp = (unsigned char *)volume->data_ptr;
 		break;
 	case VAX_Ix2:
 	case SunShort:
 	default:
-		volume->data_ptr = (caddr_t)calloc(nvoxels,sizeof(short));
+		volume->data_ptr = (void *)calloc(nvoxels,sizeof(short));
 		vp = (short*)volume->data_ptr;
 	}
 						/* set position to center */
@@ -128,13 +128,13 @@ Tslice *slice, int nslices, int cubic, int interp)
 			s1 = matrix_read( matrix_file, slice[i].matnum, UnknownMatDataType);
 			switch (volume->data_type) {
 			case ByteData : 
-				b_p1 = (u_char*) s1->data_ptr;
+				b_p1 = (unsigned char *) s1->data_ptr;
 				w1 = s1->scale_factor/scalef;
 				for (k=0; k<npixels; k++, b_vp++ ) {
 					ival = (int)(w1*(*b_p1++));
 					if (ival < 0) *b_vp = 0;
 					else if (ival > 255) *b_vp = 255;
-					else *b_vp = (u_char)(ival);
+					else *b_vp = (unsigned char )(ival);
 				}
 				break;
 			case VAX_Ix2:
@@ -184,14 +184,14 @@ Tslice *slice, int nslices, int cubic, int interp)
 		w2 = w2*s2->scale_factor;
 		switch (volume->data_type) {
 		case ByteData : 
-			 b_p1 = (u_char*)s1->data_ptr;
-		 	 b_p2 = (u_char*)s2->data_ptr;
+			 b_p1 = (unsigned char *)s1->data_ptr;
+		 	 b_p2 = (unsigned char *)s2->data_ptr;
 			for (k=0; k<npixels; k++, b_vp++) {
 				fval = w1*(*b_p1++)+w2*(*b_p2++);
 				ival = (int)(fval/scalef);
 				if (ival < 0) *b_vp = 0;
 				else if (ival > 255) *b_vp = 255;
-				else *b_vp = (u_char)(ival);
+				else *b_vp = (unsigned char )(ival);
 			}
 			break;
 		case VAX_Ix2:
@@ -219,7 +219,7 @@ Tslice *slice, int interp)
 {
 	MatrixData *v_slices;
 	short *vp, *s1_data, *s2_data, *s_p1, *s_p2;
-	u_char *b_vp, *b1_data, *b2_data, *b_p1, *b_p2;
+	unsigned char  *b_vp, *b1_data, *b2_data, *b_p1, *b_p2;
 	float *f1_data, *f2_data, *f_p1, *f_p2;
 	float fval;
 	float zloc, w1, w2, zsep,scalef;
@@ -245,8 +245,8 @@ Tslice *slice, int interp)
 	npixels = volume->xdim*volume->ydim;
 	nvoxels = npixels*sz;
 	if (volume->data_type == ByteData) 
-		volume->data_ptr = (caddr_t)calloc(nvoxels,1);
-	else volume->data_ptr = (caddr_t)calloc(nvoxels,sizeof(short));
+		volume->data_ptr = (void *)calloc(nvoxels,1);
+	else volume->data_ptr = (void *)calloc(nvoxels,sizeof(short));
 	if (!volume->data_ptr)
 	{
 		sprintf( cbufr, "malloc failure for %d voxels...volume too large",
@@ -256,10 +256,10 @@ Tslice *slice, int interp)
 	}
 	switch(v_slices->data_type) {
 	case ByteData:
-		b_vp = (u_char*)volume->data_ptr;
+		b_vp = (unsigned char *)volume->data_ptr;
 		j = 1;
-		b1_data = (u_char*)v_slices->data_ptr;
-		b2_data = (u_char*)v_slices->data_ptr+npixels;
+		b1_data = (unsigned char *)v_slices->data_ptr;
+		b2_data = (unsigned char *)v_slices->data_ptr+npixels;
 		for (i=0; i<sz; i++)
 		{
 			zloc = i*volume->pixel_size;
@@ -270,7 +270,7 @@ Tslice *slice, int interp)
 				b1_data = b2_data;
 				if (j < nslices-1) {
 					j++;
-					b2_data = (u_char*)v_slices->data_ptr+npixels*j;
+					b2_data = (unsigned char *)v_slices->data_ptr+npixels*j;
 				} else { 	/*	plane overflow */
 					j++;
 					slice[j].zloc = slice[j-1].zloc+zsep;
@@ -287,7 +287,7 @@ Tslice *slice, int interp)
 			b_p1 = b1_data; b_p2 = b2_data;
 			for (k=0; k<npixels; k++) {
 				fval = w1*(*b_p1++)+w2*(*b_p2++);
-				*b_vp++ = (u_char)(fval/scalef);
+				*b_vp++ = (unsigned char )(fval/scalef);
 			}
 		}
 		break;
@@ -428,7 +428,7 @@ int interp)
 		else volume->scale_factor = maxval/32768;
 	} else volume->scale_factor = 1.0;
 	if (imh) imh->scale_factor = volume->scale_factor;
-	if (imh) volume->shptr = (caddr_t)imh;
+	if (imh) volume->shptr = (void *)imh;
 	if (nslices > 1) {
 		ret = load_slices(matrix_file,volume,slice,nslices, cubic, interp);
 	} else {
@@ -455,8 +455,8 @@ int interp)
 		imh->y_pixel_size = volume->y_size;
 		imh->z_pixel_size = volume->z_size;
 		if (volume->data_type == ByteData) {
-			imh->image_min = find_bmin((u_char*)volume->data_ptr,nvoxels);
-			imh->image_max = find_bmax((u_char*)volume->data_ptr,nvoxels);
+			imh->image_min = find_bmin((unsigned char *)volume->data_ptr,nvoxels);
+			imh->image_max = find_bmax((unsigned char *)volume->data_ptr,nvoxels);
 		} else {
 			imh->image_min = find_smin((short*)volume->data_ptr,nvoxels);
 			imh->image_max = find_smax((short*)volume->data_ptr,nvoxels);

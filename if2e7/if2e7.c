@@ -569,7 +569,7 @@ int ecat7WriteImageMatrix(MatrixFile *fp, int mat_id, Image_subheader *imh,
     matrix->data_min = imh->image_min*matrix->scale_factor;
     matrix->data_size = matrix->xdim*matrix->ydim*matrix->zdim*sizeof(short);
     nblks = (matrix->data_size + MatBLKSIZE-1)/MatBLKSIZE;
-   	matrix->data_ptr = (caddr_t)calloc(nblks, MatBLKSIZE);
+   	matrix->data_ptr = (void *)calloc(nblks, MatBLKSIZE);
     minval = maxval = fdata[0];
     nvoxels = matrix->xdim*matrix->xdim*matrix->zdim;
     if (mask != NULL)
@@ -608,7 +608,7 @@ int ecat7WriteImageMatrix(MatrixFile *fp, int mat_id, Image_subheader *imh,
     matrix->scale_factor = imh->scale_factor=scalef;
     matrix->data_max = imh->image_max*matrix->scale_factor;
     matrix->data_min = imh->image_min*matrix->scale_factor;
-    matrix->shptr = (caddr_t)calloc(sizeof(Image_subheader),1);
+    matrix->shptr = (void *)calloc(sizeof(Image_subheader),1);
     memcpy(matrix->shptr, imh, sizeof(Image_subheader));
 
     
@@ -765,7 +765,7 @@ static int copyFile(char *in_fname, char *dest_dir, Main_header *mh)
   char path[_MAX_PATH];
   int i=0, len=0;
   time_t t;
-  caddr_t buf=NULL;
+  void * buf=NULL;
   FILE *in=NULL, *out=NULL;
   int retOK=1;
 
@@ -813,7 +813,7 @@ static int copyFile(char *in_fname, char *dest_dir, Main_header *mh)
   sprintf(path,"%s\\%s%s",patient_dir, fname, ext);
   if ((in=fopen(in_fname,"rb")) != NULL) {
     if ((out = fopen(path,"wb")) != NULL)  {
-      buf = (caddr_t)calloc(1, MatBLKSIZE);
+      buf = (void *)calloc(1, MatBLKSIZE);
 
       while (retOK && fread(buf, MatBLKSIZE, 1, in) == 1) {
         if (fwrite(buf, MatBLKSIZE, 1, out) != 1) {

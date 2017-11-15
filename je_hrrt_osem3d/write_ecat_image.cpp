@@ -60,7 +60,7 @@ static int write_image(MatrixFile *fp, int frame, Image_subheader *imh,
   matrix->data_min = imh->image_min*matrix->scale_factor;
   matrix->data_size = matrix->xdim*matrix->ydim*matrix->zdim*sizeof(short);
   nblks = (matrix->data_size + MatBLKSIZE-1)/MatBLKSIZE;
-  matrix->data_ptr = (caddr_t)calloc(nblks, MatBLKSIZE);
+  matrix->data_ptr = (void *)calloc(nblks, MatBLKSIZE);
   minval = maxval = fdata[0];
   nvoxels = matrix->xdim*matrix->xdim*matrix->zdim;
   matnum=mat_numcod(frame+1, 1, 1, 0, 0);
@@ -134,7 +134,7 @@ static int write_image(MatrixFile *fp, int frame, Image_subheader *imh,
   matrix->data_max = imh->image_max*scalef;
   matrix->data_min = imh->image_min*scalef;
   printf("frame %d: image_min,image_max = %d,%d, scale factor=%g\n",frame+1,imh->image_min,imh->image_max,scalef);
-  matrix->shptr = (caddr_t)calloc(sizeof(Image_subheader),1);
+  matrix->shptr = (void *)calloc(sizeof(Image_subheader),1);
   memcpy(matrix->shptr, imh, sizeof(Image_subheader));
   return matrix_write(fp,matnum,matrix);
 }

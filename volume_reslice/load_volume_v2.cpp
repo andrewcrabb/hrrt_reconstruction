@@ -156,9 +156,9 @@ static MatrixData *load_slices(/*CProgressCtrl *progress_ctrl,*/ MatrixFile *mat
 	int i, j, k;
 	MatrixData *s1, *s2;
 	MatrixData *volume;
-	caddr_t vdata=NULL;
+	void * vdata=NULL;
 	short *vp=NULL, *p1=NULL, *p2=NULL;
-	u_char *b_vp=NULL, *b_p1=NULL, *b_p2=NULL;
+	unsigned char  *b_vp=NULL, *b_p1=NULL, *b_p2=NULL;
 	float *f_vp=NULL, *f_p1=NULL, *f_p2=NULL;
 	int xdim, ydim, zdim, npixels, nvoxels,nblks;
 	char cbufr[256];
@@ -220,18 +220,18 @@ static MatrixData *load_slices(/*CProgressCtrl *progress_ctrl,*/ MatrixFile *mat
 	switch (volume->data_type) {
 	case ByteData : 
 		nblks = (nvoxels+MatBLKSIZE-1)/MatBLKSIZE;
-		vdata = (caddr_t)calloc(nblks,MatBLKSIZE);
-		b_vp = (u_char*)vdata;
+		vdata = (void *)calloc(nblks,MatBLKSIZE);
+		b_vp = (unsigned char *)vdata;
 		break;
 	case VAX_Ix2:
 	case SunShort:
 		nblks = (nvoxels*sizeof(short)+MatBLKSIZE-1)/MatBLKSIZE;
-		vdata = (caddr_t)calloc(nblks,MatBLKSIZE);
+		vdata = (void *)calloc(nblks,MatBLKSIZE);
 		vp = (short*)vdata;
 		break;
 	case IeeeFloat:
 		nblks = (nvoxels*sizeof(float)+MatBLKSIZE-1)/MatBLKSIZE;
-		vdata = (caddr_t)calloc(nblks,MatBLKSIZE);
+		vdata = (void *)calloc(nblks,MatBLKSIZE);
 		f_vp = (float*)vdata;
 		break;
 	default:
@@ -258,7 +258,7 @@ static MatrixData *load_slices(/*CProgressCtrl *progress_ctrl,*/ MatrixFile *mat
 			scalef[i] = s1->scale_factor;
 			switch (volume->data_type) {
 			case ByteData : 
-				b_p1 = (u_char*) s1->data_ptr;
+				b_p1 = (unsigned char *) s1->data_ptr;
 				data_min = scalef[i]*find_bmin(b_p1,npixels);
 				data_max = scalef[i]*find_bmax(b_p1,npixels);
 				memcpy(b_vp,b_p1,npixels);
@@ -376,14 +376,14 @@ static MatrixData *load_slices(/*CProgressCtrl *progress_ctrl,*/ MatrixFile *mat
 				break;
 			case ByteData :
 				if (w1>0.0) {
-					b_p1 = (u_char*)s1->data_ptr;
+					b_p1 = (unsigned char *)s1->data_ptr;
 					w1 *= s1->scale_factor;			/* pre-multiply w1 */
 					for (k=0, fp=fdata; k<npixels; k++, fp++)
 						*fp = w1 * (*b_p1++);
 					w1 /= s1->scale_factor;			/* retrieve w1 */
 				} else memset(fdata,0,npixels*sizeof(float)); 
 				if (w2>0.0) {
-					b_p1 = (u_char*)s2->data_ptr;
+					b_p1 = (unsigned char *)s2->data_ptr;
 					w2 *= s2->scale_factor;            /* pre-multiply w2 */
 					for (k=0, fp = fdata; k<npixels; k++, fp++)
 						*fp += w2 * (*b_p1++);
@@ -399,7 +399,7 @@ static MatrixData *load_slices(/*CProgressCtrl *progress_ctrl,*/ MatrixFile *mat
 					w1 /= s1->scale_factor;			/* retrieve w1 */
 				} else memset(fdata,0,npixels*sizeof(float)); 
 				if (w2>0.0) {
-					b_p1 = (u_char*)s2->data_ptr;
+					b_p1 = (unsigned char *)s2->data_ptr;
 					w2 *= s2->scale_factor;            /* pre-multiply w2 */
 					for (k=0, fp = fdata; k<npixels; k++, fp++)
 						*fp += w2 * (*f_p1++);
@@ -449,7 +449,7 @@ static MatrixData *load_slices(/*CProgressCtrl *progress_ctrl,*/ MatrixFile *mat
 	for (i=1; i<zdim; i++)
 		volume->scale_factor = my_max(volume->scale_factor,scalef[i]);
 	vp = (short*)vdata;
-	b_vp = (u_char*)vdata;
+	b_vp = (unsigned char *)vdata;
 	f_vp = (float*)vdata;
 	for (i=0; i<zdim; i++)
 	{

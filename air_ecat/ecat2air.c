@@ -39,9 +39,9 @@ typedef struct _MatrixExtrema {
 static MatrixExtrema *matrix_extrema=NULL;
 
 
-static void flip_x(caddr_t line, int data_type, int xdim)
+static void flip_x(void * line, int data_type, int xdim)
 {
-	static caddr_t _line=NULL;
+	static void * _line=NULL;
 	static int line_size = 0;
 	int x=0;
 	int elem_size = (data_type==ByteData)? 1 : 2;
@@ -49,17 +49,17 @@ static void flip_x(caddr_t line, int data_type, int xdim)
   if (data_type == IeeeFloat) elem_size = 4;
 	if (line_size == 0) {
 		line_size = xdim*elem_size;
-		_line = (caddr_t)malloc(line_size);
+		_line = (void *)malloc(line_size);
 	} else if (xdim*elem_size > line_size) {
 		line_size = xdim*elem_size;
-		_line = (caddr_t)realloc(_line, line_size);
+		_line = (void *)realloc(_line, line_size);
 	}
 	switch(data_type) {
 		case ByteData :
 		{
-			u_char *b_p0, *b_p1;
-			b_p0 = (u_char*)line;
-			b_p1 = (u_char*)_line + xdim - 1;
+			unsigned char  *b_p0, *b_p1;
+			b_p0 = (unsigned char *)line;
+			b_p1 = (unsigned char *)_line + xdim - 1;
 			for (x=0; x<xdim; x++) *b_p1-- = *b_p0++;
 			memcpy(line,_line,xdim);
 			break;
@@ -76,21 +76,21 @@ static void flip_x(caddr_t line, int data_type, int xdim)
 	}
 }
 
-static void flip_y(caddr_t plane, int data_type, int xdim, int ydim)
+static void flip_y(void * plane, int data_type, int xdim, int ydim)
 {
-	static caddr_t _plane=NULL;
+	static void * _plane=NULL;
 	static int plane_size = 0;
-	caddr_t p0, p1;
+	void *p0, *p1;
 	int elem_size = (data_type==ByteData)? 1 : 2;
 	int y=0;
 
   if (data_type == IeeeFloat) elem_size = 4;
 	if (plane_size == 0) {
 		plane_size = xdim*ydim*elem_size;
-		_plane = (caddr_t)malloc(plane_size);
+		_plane = (void *)malloc(plane_size);
 	} else if (xdim*ydim*elem_size > plane_size) {
 		plane_size = xdim*ydim*elem_size;
-		_plane = (caddr_t)realloc(_plane, plane_size);
+		_plane = (void *)realloc(_plane, plane_size);
 	}
 	p0 = plane;
 	p1 = _plane + (ydim-1)*xdim*elem_size;
@@ -105,7 +105,7 @@ static void flip_y(caddr_t plane, int data_type, int xdim, int ydim)
 void  matrix_flip(MatrixData *data, int x_flip, int y_flip, int z_flip)
 {
   int y=0,z=0;
-  caddr_t plane_in=NULL, plane_out=NULL, tmp=NULL, line=NULL; 
+  void *plane_in=NULL, *plane_out=NULL, *tmp=NULL, *line=NULL; 
   int elem_size = (data->data_type==ByteData)? 1 : 2;
   int npixels;
 
@@ -114,7 +114,7 @@ void  matrix_flip(MatrixData *data, int x_flip, int y_flip, int z_flip)
 	plane_in = data->data_ptr;
 	if(z_flip){
 	  plane_out = data->data_ptr + (data->zdim-1)*elem_size*npixels;
-	  tmp = (caddr_t) malloc(npixels*elem_size);
+	  tmp = (void *) malloc(npixels*elem_size);
 	  while (plane_in<plane_out) {
 		memcpy(tmp,plane_out,npixels*elem_size);
 		memcpy(plane_out,plane_in,npixels*elem_size);
@@ -140,7 +140,7 @@ void  matrix_flip(MatrixData *data, int x_flip, int y_flip, int z_flip)
 static AIR_Pixels ***matrix2air(MatrixData* matrix, struct AIR_Key_info *stats)
 {
 	int i, nvoxels;
-	u_char *bdata=NULL;
+	unsigned char  *bdata=NULL;
 	short *sdata=NULL;
   float *fdata=NULL;
 	float a,b,f,v, v0,v1;
@@ -207,7 +207,7 @@ static AIR_Pixels ***matrix2air(MatrixData* matrix, struct AIR_Key_info *stats)
 	switch (matrix->data_type) {
 		case BitData:
 		case ByteData:
-			bdata = (u_char*)matrix->data_ptr;
+			bdata = (unsigned char *)matrix->data_ptr;
 			for (i=0; i<nvoxels; i++) {
 				v = *bdata++;
 				f = a*v+b;

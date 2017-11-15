@@ -121,10 +121,10 @@ MatrixData *volume_resize(Volume *volume, int xydim, int nplanes)
   if (cdata->data_type == IeeeFloat) cdata->data_size *= sizeof(float);
   else cdata->data_size *= sizeof(float);
   int nblks = (cdata->data_size + MatBLKSIZE - 1)/MatBLKSIZE;
-  cdata->data_ptr = (caddr_t) calloc(nblks, MatBLKSIZE);
+  cdata->data_ptr = (void *) calloc(nblks, MatBLKSIZE);
   Image_subheader *imh = (Image_subheader*)calloc(1, MatBLKSIZE);
   memcpy(imh, data->shptr, sizeof(Image_subheader));
-  cdata->shptr = (caddr_t)imh;
+  cdata->shptr = (void *)imh;
   imh->x_dimension = cdata->xdim;
   imh->y_dimension = cdata->ydim;
   imh->z_dimension = cdata->zdim;
@@ -313,10 +313,10 @@ int main(int argc, char **argv)
         cdata->zdim = (int)(zdim/c_size);
         int size_factor = (cdata->xdim*cdata->ydim*cdata->zdim)/(data->xdim*data->ydim*data->zdim);
         cdata->data_size = data->data_size * size_factor;
-        cdata->data_ptr = (caddr_t) calloc(cdata->data_size, 1);
+        cdata->data_ptr = (void *) calloc(cdata->data_size, 1);
         imh = (Image_subheader*)calloc(1, MatBLKSIZE);
         memcpy(imh, data->shptr, sizeof(Image_subheader));
-        cdata->shptr = (caddr_t)imh;
+        cdata->shptr = (void *)imh;
         imh->x_dimension = cdata->xdim;
         imh->y_dimension = cdata->ydim;
         imh->z_dimension = cdata->zdim;
@@ -388,10 +388,10 @@ int main(int argc, char **argv)
   imh = (Image_subheader*)calloc(1, MatBLKSIZE);
   MatrixData *out_data = (MatrixData*) calloc(1, sizeof(MatrixData));
   memcpy(out_data,slice,sizeof(MatrixData));
-  out_data->shptr = (caddr_t)imh;
+  out_data->shptr = (void *)imh;
   out_data->dicom_header = NULL;
   out_data->dicom_header_size = 0;
-  out_data->data_ptr = (caddr_t)calloc(volume_blks, MatBLKSIZE);
+  out_data->data_ptr = (void *)calloc(volume_blks, MatBLKSIZE);
   out_data->data_size = volume_blks*MatBLKSIZE;
   out_data->pixel_size /= 10.0f;
   out_data->y_size /= 10.0f;
@@ -405,7 +405,7 @@ int main(int argc, char **argv)
   out_data->zdim = imh->z_dimension = num_planes;
   int plane_size = slice->data_size;
   memcpy(out_data->data_ptr, slice->data_ptr, slice->data_size);
-  caddr_t dest = out_data->data_ptr + plane_size;
+  void * dest = out_data->data_ptr + plane_size;
   for (int plane=1; plane<num_planes; plane++, dest+=plane_size)
   {
     slice = volume->get_slice(zoom_center, zoom_factor, orientation, plane*dz,

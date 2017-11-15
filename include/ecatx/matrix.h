@@ -48,8 +48,8 @@
 #define strdup _strdup
 #define DIR_SEPARATOR '\\'
 #ifndef __CYGWIN__
-typedef char *caddr_t;
-typedef unsigned char u_char;
+typedef char *void *;
+typedef unsigned char unsigned char ;
 typedef unsigned short u_short;
 typedef unsigned long u_long;
 #endif /* __CYGWIN__ */
@@ -543,7 +543,7 @@ typedef
 		FILE		*fptr ;		/* file ptr for I/O calls */
 		FileFormat file_format;
 		char **interfile_header;
-    caddr_t analyze_hdr;
+    void * analyze_hdr;
 	}
 MatrixFile ;
 
@@ -554,8 +554,8 @@ typedef
 		MatrixFile	*matfile ;	/* pointer to parent */
 		DataSetType	mat_type ;	/* type of matrix? */
 		MatrixDataType	data_type ;	/* type of data */
-		caddr_t		shptr ;		/* pointer to sub-header */
-		caddr_t		data_ptr ;	/* pointer to data */
+		void *		shptr ;		/* pointer to sub-header */
+		void *		data_ptr ;	/* pointer to data */
 		int		data_size ;	/* size of data in bytes */
 		int		xdim;		/* dimensions of data */
 		int		ydim;		/* y dimension */
@@ -583,8 +583,8 @@ extern "C" {
 #endif
 void SWAB(void *from, void *to, int len);
 void SWAW(short *from, short *to, int len);
-u_char find_bmin(const u_char*, int size);
-u_char find_bmax(const u_char*, int size);
+unsigned char  find_bmin(const unsigned char *, int size);
+unsigned char  find_bmax(const unsigned char *, int size);
 short find_smin(const short*, int size);
 short find_smax(const short*, int size);
 int find_imin(const int*, int size);

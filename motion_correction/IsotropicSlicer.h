@@ -103,10 +103,10 @@ MatrixData* IsotropicSlicer<T>::create_slice(T *dptr, int sx, int sy,
   MatrixData* slice = (MatrixData*)calloc(1,sizeof(MatrixData));
   slice->data_type = volume->data_type;
   slice->zdim = 1;
-  if (dptr) slice->data_ptr = (caddr_t)dptr;
+  if (dptr) slice->data_ptr = (void *)dptr;
   else
   {
-    slice->data_ptr = (caddr_t)calloc(sx*sy, sizeof(T));
+    slice->data_ptr = (void *)calloc(sx*sy, sizeof(T));
     slice->data_type = ByteData;
   }
   slice->xdim = sx;
@@ -129,7 +129,7 @@ MatrixData* IsotropicSlicer<T>::create_comp_slice(float *dptr, int sx, int sy,
   MatrixData* slice = (MatrixData*)calloc(1,sizeof(MatrixData));
   slice->zdim = 1;
   slice->data_type = IeeeFloat;
-  slice->data_ptr = (caddr_t)dptr;
+  slice->data_ptr = (void *)dptr;
   slice->xdim = sx;
   slice->ydim = sy;
   slice->pixel_size = dx;

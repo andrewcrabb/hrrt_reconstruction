@@ -129,7 +129,7 @@ int matrix_resize_4( MatrixData* slice, float pixel_size, int interpolate)
 			}
 		}
 		slice->xdim = sx1;
-		slice->data_ptr = (caddr_t)y;
+		slice->data_ptr = (void *)y;
 		free(ya);
 	}
 /* linear interpolation in y dimension */
@@ -154,7 +154,7 @@ int matrix_resize_4( MatrixData* slice, float pixel_size, int interpolate)
 			}
 		}
 		slice->ydim = sx2;
-		slice->data_ptr = (caddr_t)y;
+		slice->data_ptr = (void *)y;
 		free(ya);
 	}
 	if (sx1<size1) {			/* fill line with last value */
