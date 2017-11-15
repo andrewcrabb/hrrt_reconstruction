@@ -24,7 +24,7 @@
 #include "Accelerate/Accelerate.h"
 #endif
 #include "image_filter.h"
-#include "const.h"
+#include "e7_tools_const.h"
 #ifdef WIN32
 #include "global_tmpl.h"
 #endif

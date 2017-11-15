@@ -45,7 +45,7 @@
 #endif
 #endif
 #include "randoms_smoothing.h"
-#include "const.h"
+#include "e7_tools_const.h"
 #include "exception.h"
 #ifdef WIN32
 #include "global_tmpl.h"

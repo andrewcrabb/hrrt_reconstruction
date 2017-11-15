@@ -9,7 +9,7 @@
 #ifndef _SCATTER_SIM_H
 #define _SCATTER_SIM_H
 
-#include "const.h"
+#include "e7_tools_const.h"
 
 /*- class definitions -------------------------------------------------------*/
 

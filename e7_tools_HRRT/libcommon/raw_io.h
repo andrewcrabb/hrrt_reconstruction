@@ -15,7 +15,7 @@
 #include <cstdio>
 #include <string>
 #ifdef XEON_HYPERTHREADING_BUG
-#include "const.h"
+#include "e7_tools_const.h"
 #endif
 #include "semaphore_al.h"
 #include "thread_wrapper.h"

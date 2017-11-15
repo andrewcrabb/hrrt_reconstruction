@@ -9,7 +9,7 @@
 #ifndef _REBIN_SINOGRAM_H
 #define _REBIN_SINOGRAM_H
 
-#include "const.h"
+#include "e7_tools_const.h"
 #include "rebin_x.h"
 
 /*- class definitions -------------------------------------------------------*/

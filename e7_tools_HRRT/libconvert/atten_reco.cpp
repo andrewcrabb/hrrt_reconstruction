@@ -20,7 +20,7 @@
 #include <cstring>
 #include <algorithm>
 #include <sys/stat.h>
-#include "const.h"
+#include "e7_tools_const.h"
 #include "atten_reco.h"
 #include "global_tmpl.h"
 #include "gm.h"

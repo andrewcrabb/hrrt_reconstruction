@@ -24,7 +24,7 @@
 #include <vector>
 #include <sys/stat.h>
 #include "scatter.h"
-#include "const.h"
+#include "e7_tools_const.h"
 #include "e7_common.h"
 #include "exception.h"
 #include "fastmath.h"

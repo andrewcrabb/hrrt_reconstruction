@@ -9,7 +9,7 @@
 #include <iostream>
 #include <string>
 #include <ctime>
-#include "const.h"
+#include "e7_tools_const.h"
 #include "str_tmpl.h"
 
 /*---------------------------------------------------------------------------*/

@@ -110,7 +110,7 @@
 #include "global_tmpl.h"
 #endif
 #include "bckprj3d.h"
-#include "const.h"
+#include "e7_tools_const.h"
 #include "e7_common.h"
 #include "exception.h"
 #include "fastmath.h"

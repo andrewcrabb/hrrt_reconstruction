@@ -31,7 +31,7 @@
 #include <cstring>
 #include "fastmath.h"
 #include "fore.h"
-#include "const.h"
+#include "e7_tools_const.h"
 #include "exception.h"
 #include "logging.h"
 #include "mem_ctrl.h"

@@ -10,7 +10,7 @@
 #define _RANDOMS_SMOOTHING_H
 
 #include <vector>
-#include "const.h"
+#include "e7_tools_const.h"
 #include "semaphore_al.h"
 
 /*- class definitions -------------------------------------------------------*/

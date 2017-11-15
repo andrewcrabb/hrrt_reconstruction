@@ -18,7 +18,7 @@
 #ifdef __ALTIVEC__
 #include "vecLib/vecLib.h"
 #endif
-#include "const.h"
+#include "e7_tools_const.h"
 
 /*- class definitions -------------------------------------------------------*/
 

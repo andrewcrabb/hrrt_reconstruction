@@ -12,7 +12,7 @@
 #define _GAPFILL_H
 
 #include <vector>
-#include "const.h"
+#include "e7_tools_const.h"
 
 /*- class definitions -------------------------------------------------------*/
 

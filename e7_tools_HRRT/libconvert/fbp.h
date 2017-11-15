@@ -20,7 +20,7 @@
 
 #include <vector>
 #include "bckprj3d.h"
-#include "const.h"
+#include "e7_tools_const.h"
 #include "fft.h"
 #include "image_conversion.h"
 #include "sinogram_conversion.h"

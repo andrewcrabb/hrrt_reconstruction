@@ -56,7 +56,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include "sinogram_conversion.h"
-#include "const.h"
+#include "e7_tools_const.h"
 #include "e7_common.h"
 #include "fastmath.h"
 #include "fore.h"

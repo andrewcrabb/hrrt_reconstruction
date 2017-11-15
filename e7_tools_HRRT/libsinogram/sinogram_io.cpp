@@ -30,7 +30,7 @@
 #define _SINOGRAM_IO_CPP
 #include "sinogram_io.h"
 #endif
-#include "const.h"
+#include "e7_tools_const.h"
 #include "e7_common.h"
 #include "ecat7.h"
 #include "ecat7_attenuation.h"
@@ -393,7 +393,7 @@ void SinogramIO::copyFileHeader(ECAT7_MAINHEADER *mh, Interfile *infhdr)
 
     Request the corrections that were applied on the data. The return value is
     a bitmask encoding the different possible corrections. See the
-    <I>CORR_</I> flags in the file const.h for a list of corrections.
+    <I>CORR_</I> flags in the file e7_tools_const.h for a list of corrections.
  */
 /*---------------------------------------------------------------------------*/
 unsigned short int SinogramIO::correctionsApplied() const
@@ -406,7 +406,7 @@ unsigned short int SinogramIO::correctionsApplied() const
 
     Set the corrections that were applied on the data. The parameter is a
     bitmask encoding the different corrections. See the <I>CORR_</I> flags in
-    the file const.h for a list of corrections.
+    the file e7_tools_const.h for a list of corrections.
  */
 /*---------------------------------------------------------------------------*/
 void SinogramIO::correctionsApplied(const unsigned short int ca)

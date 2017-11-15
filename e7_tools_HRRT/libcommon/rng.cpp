@@ -10,7 +10,7 @@
 
 #include <cmath>
 #include "rng.h"
-#include "const.h"
+#include "e7_tools_const.h"
 #include "fastmath.h"
 
 #define IA 16807

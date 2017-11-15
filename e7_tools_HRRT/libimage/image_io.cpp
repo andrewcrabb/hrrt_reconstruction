@@ -27,7 +27,7 @@
 #include <fstream>
 #include <limits>
 #include "image_io.h"
-#include "const.h"
+#include "e7_tools_const.h"
 #ifdef WIN32
 #include "global_tmpl.h"
 #endif
@@ -220,7 +220,7 @@ void ImageIO::correctDOI(const unsigned short int loglevel)
 
     Request the corrections that were applied on the data. The return value is
     a bitmask encoding the different possible corrections. See the
-    <I>CORR_</I> flags in the file const.h for a list of corrections.
+    <I>CORR_</I> flags in the file e7_tools_const.h for a list of corrections.
  */
 /*---------------------------------------------------------------------------*/
 unsigned short int ImageIO::correctionsApplied() const
@@ -233,7 +233,7 @@ unsigned short int ImageIO::correctionsApplied() const
 
     Set the corrections that were applied on the data. The parameter is a
     bitmask encoding the different corrections. See the <I>CORR_</I> flags in
-    the file const.h for a list of corrections.
+    the file e7_tools_const.h for a list of corrections.
  */
 /*---------------------------------------------------------------------------*/
 void ImageIO::correctionsApplied(const unsigned short int ca)

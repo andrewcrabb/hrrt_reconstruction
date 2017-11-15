@@ -14,7 +14,7 @@ Modification History
 #include <fstream>
 #include <algorithm>
 #include "Projected_Image_3D.h"
-#include "const.h"
+#include "e7_tools_const.h"
 #include "exception.h"
 #ifdef WIN32
 #include "global_tmpl.h"

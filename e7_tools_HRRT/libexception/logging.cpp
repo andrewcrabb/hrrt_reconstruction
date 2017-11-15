@@ -26,7 +26,7 @@
 #define _LOGGING_CPP
 #include "logging.h"
 #endif
-#include "const.h"
+#include "e7_tools_const.h"
 #include "e7_common.h"
 #include "exception.h"
 #include "registry.h"

@@ -24,7 +24,7 @@
 #endif
 #endif
 #include "rebin_sinogram.h"
-#include "const.h"
+#include "e7_tools_const.h"
 #include "exception.h"
 #include "fastmath.h"
 #include "mem_ctrl.h"

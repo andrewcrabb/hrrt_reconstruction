@@ -22,7 +22,7 @@
 
 #include <cmath>
 #include "image_conversion.h"
-#include "const.h"
+#include "e7_tools_const.h"
 #include "e7_common.h"
 #include "global_tmpl.h"
 #include "image_filter.h"

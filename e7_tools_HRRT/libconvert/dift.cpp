@@ -25,7 +25,7 @@
 #include <malloc.h>
 #endif
 #endif
-#include "const.h"
+#include "e7_tools_const.h"
 #include "dift.h"
 #include "exception.h"
 #include "fastmath.h"
