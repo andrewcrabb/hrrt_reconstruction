@@ -21,7 +21,13 @@
  * Modification history: Merence Sibomana <sibomana@gmail.com> 
  * 10-FEB-2010: Added function ecat_AIR_load_probr
 */
-#include <AIR/AIR.h>
+
+// ahc 11/15/17 This was including hrrt_open_2011/include/AIR/AIR.h
+// But this was an old version of AIR.h from 2002
+// Current AIR 5.3.0 is 2011, so set -I in CMake to AIR src dir.
+// #include <AIR/AIR.h>
+#include "AIR.h"
+
 #include <ecatx/matrix.h>
 
 #define AIR_ECAT 

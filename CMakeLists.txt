@@ -44,6 +44,7 @@ add_subdirectory(ecatx/utils)
 add_subdirectory(hrrt_osem3d)
 add_subdirectory(je_hrrt_osem3d)
 add_subdirectory(norm_process)
+add_subdirectory(air_ecat)
 
 # # add the MathFunctions library?
 # if (USE_MYMATH)
