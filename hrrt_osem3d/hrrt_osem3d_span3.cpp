@@ -558,11 +558,11 @@ static void usage() {
 }
 
 #define FOPEN_ERROR NULL
-FILEPTR file_open(const char *fn,char *mode){
-	return fopen(fn,mode);
-}
+// FILEPTR file_open(const char *fn,char *mode) {
+// 	return fopen(fn,mode);
+// }
 
-void file_close(FILEPTR fp){
+void file_close(FILEPTR fp) {
 	fclose(fp);
 }
 
@@ -646,7 +646,7 @@ static int sequence(int sets,short int *order) {
 	int d;
 
 	done = (int *)calloc( sizeof(int), sets);
-	if( done==NULL ) { 
+	if ( done==NULL ) { 
 		fprintf(stdout,"  sequence(): memory allocation failure for done[%d] \n", sets); 
 		return -1; 
 	}
@@ -660,14 +660,14 @@ static int sequence(int sets,short int *order) {
 		ibest = 0; dbest = 0; j = 0;
 		while(j < sets) {    /*next unprocessed subset*/
 			while((done[j] == 1) && (j < sets) ) j += 1;
-			if( j<sets )
-				if(done[j] == 0){ /* we have found a yet unprocessed subset*/
+			if ( j<sets )
+				if (done[j] == 0) { /* we have found a yet unprocessed subset*/
 					/*find distance to previous subset*/
 					k = order[i-1];
 					d = abs(j-k);
-					if((sets-abs(j-k)) < d) 
+					if ((sets-abs(j-k)) < d) 
 						d = sets-abs(j-k);
-					if(d > dbest) { /*check if this is the largest distance found so far*/
+					if (d > dbest) { /*check if this is the largest distance found so far*/
 						dbest = d;    
 						ibest = j;
 					}
@@ -687,11 +687,11 @@ static int sequence(int sets,short int *order) {
 
 /**************************************************************************************************************/
 /*    data[x][y] --> data[y][x]   */
-static  int  flip_xy(float *data,int x_dim,int y_dim){
+static  int  flip_xy(float *data,int x_dim,int y_dim) {
 	int     x,y;
 	float    **tmp; 
 	tmp = (float **)matrixfloat(0,y_pixels-1,0,x_pixels-1);
-	if( tmp == NULL ) return 0;
+	if ( tmp == NULL ) return 0;
 	for(y=0;y<y_dim;y++)
 		for(x=0;x<x_dim;x++) 
 			tmp[y][x] = data[x*y_dim+y]; 
@@ -721,22 +721,22 @@ void make_compress_mask(float ***prj)
 	unsigned long c1,c2;
 	c1=clock();
 
-	for(v=0;v<views;v++){
-		for(xr=0;xr<xr_pixels;xr++){
+	for(v=0;v<views;v++) {
+		for(xr=0;xr<xr_pixels;xr++) {
 			compress_num[v][xr]=0;	
 		}
 	}
 	memset(&compressmask[0][0][0],0,views*xr_pixels*segmentsize/8);
-	for(theta=0;theta<th_pixels;theta++){
+	for(theta=0;theta<th_pixels;theta++) {
 		yr2=segment_offset[theta];
-		for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++){
-			for(v=0;v<views;v++){
+		for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++) {
+			for(v=0;v<views;v++) {
 				ptr=prj[yr2][v];
 				sptr=compress_num[v];
 				ucmask=compressmask[v][yr2];
-				for(xr=0,i=0;xr<xr_pixels;xr+=8,i++){
-					for(j=0;j<8;j++){
-						if(ptr[xr+j]>0){
+				for(xr=0,i=0;xr<xr_pixels;xr+=8,i++) {
+					for(j=0;j<8;j++) {
+						if (ptr[xr+j]>0) {
 							ucmask[i]|=(0x01)<<j;
 							totalcount++;
 							sptr[xr+j]++;
@@ -762,22 +762,22 @@ void make_compress_mask_short(short ***prj)
 	unsigned long c1,c2;
 	c1=clock();
 
-	for(v=0;v<views;v++){
-		for(xr=0;xr<xr_pixels;xr++){
+	for(v=0;v<views;v++) {
+		for(xr=0;xr<xr_pixels;xr++) {
 			compress_num[v][xr]=0;	
 		}
 	}
 	memset(&compressmask[0][0][0],0,views*xr_pixels*segmentsize/8);
-	for(theta=0;theta<th_pixels;theta++){
+	for(theta=0;theta<th_pixels;theta++) {
 		yr2=segment_offset[theta];
-		for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++){
-			for(v=0;v<views;v++){
+		for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++) {
+			for(v=0;v<views;v++) {
 				ptr=prj[yr2][v];
 				sptr=compress_num[v];
 				ucmask=compressmask[v][yr2];
-				for(xr=0,i=0;xr<xr_pixels;xr+=8,i++){
-					for(j=0;j<8;j++){
-						if(ptr[xr+j]>0){
+				for(xr=0,i=0;xr<xr_pixels;xr+=8,i++) {
+					for(j=0;j<8;j++) {
+						if (ptr[xr+j]>0) {
 							ucmask[i]|=(0x01)<<j;
 							totalcount++;
 							sptr[xr+j]++;
@@ -808,8 +808,8 @@ void compress_sinogram_and_alloc_mem(float ***input,float ***out)
 //	int xri;
 	c1=clock();
 
-	for(v=0;v<views;v++){
-		for(xr=0;xr<xr_pixels;xr++){
+	for(v=0;v<views;v++) {
+		for(xr=0;xr<xr_pixels;xr++) {
 			num+=compress_num[v][xr];
 		}
 	}
@@ -818,8 +818,8 @@ void compress_sinogram_and_alloc_mem(float ***input,float ***out)
 	out=(float ***) matrixfloatptr(0,views-1,0,xr_pixels-1,0,0);
 	ptr=(float *) calloc(num,sizeof(float));
 	num=0;
-	for(v=0;v<views;v++){
-		for(xr=0;xr<xr_pixels;xr++){
+	for(v=0;v<views;v++) {
+		for(xr=0;xr<xr_pixels;xr++) {
 			out[v][xr]=&ptr[num];
 	//		printf("num=%d %d %ld\t%d\n",v,xr,num,compress_num[v][xr]);
 			num+=compress_num[v][xr];
@@ -827,19 +827,19 @@ void compress_sinogram_and_alloc_mem(float ***input,float ***out)
 	}
 	printf("num=%d\n",num);
 
-	for(v=0;v<views;v++){
+	for(v=0;v<views;v++) {
 		memset(&xrnum[0],0,xr_pixels*sizeof(int));
 		outptr=out[v];
-		for(theta=0;theta<th_pixels;theta++){
+		for(theta=0;theta<th_pixels;theta++) {
 			yr2=segment_offset[theta];
-			for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++){
+			for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++) {
 				ptr=input[yr2][v];
 				ptr=largeprj3[yr2][v];
 				ucmask=compressmask[v][yr2];
-				for(xr=0,j=0;xr<xr_pixels;xr+=8,j++){
+				for(xr=0,j=0;xr<xr_pixels;xr+=8,j++) {
 					uc=ucmask[j];
-					for(i=0;i<8;i++){
-						if(uc&0x01){
+					for(i=0;i<8;i++) {
+						if (uc&0x01) {
 							outptr[xr+i][xrnum[xr+i]]=ptr[xr+i];
 							xrnum[xr+i]++;
 						}
@@ -848,8 +848,8 @@ void compress_sinogram_and_alloc_mem(float ***input,float ***out)
 				}
 			}
 		}
-		for(xr=0;xr<xr_pixels;xr++){
-			if(xrnum[xr]!=compress_num[v][xr]) printf("error %d %d %d %d\n",v,xr,xrnum[xr],compress_num[v][xr]);
+		for(xr=0;xr<xr_pixels;xr++) {
+			if (xrnum[xr]!=compress_num[v][xr]) printf("error %d %d %d %d\n",v,xr,xrnum[xr],compress_num[v][xr]);
 		}
 	}
 	c2=clock();
@@ -860,18 +860,18 @@ void compress_sinogram_and_alloc_mem(float ***input,float ***out)
 /*
 * make out array as binary mask from normalization (UW case).
 */
-void norm_UW(float ***out,int theta){
+void norm_UW(float ***out,int theta) {
 
 	int v,yr,xr;
 	float *norm1,*est1;
 	int yr2;
 
 	yr2=segment_offset[theta];
-	for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++){
-		for(v=0;v<views;v++){ // see norm_ANW
+	for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++) {
+		for(v=0;v<views;v++) { // see norm_ANW
 			norm1 = &out[yr2][v][0];
 			est1 = &out[yr2][v][0];
-			for( xr=0; xr<xr_pixels; xr++ ) if(norm1[xr] > 0.0f) est1[xr] = 1.0f; // else  est1[xr] = 0.f; missing data
+			for( xr=0; xr<xr_pixels; xr++ ) if (norm1[xr] > 0.0f) est1[xr] = 1.0f; // else  est1[xr] = 0.f; missing data
 		}
 	}
 }
@@ -884,13 +884,13 @@ void norm_AW(float ***out,float ***atten,int theta) {
 	int yr2;
 
 	yr2=segment_offset[theta];
-	for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++){
-		for(v=0;v<views;v++){ // see norm_ANW
+	for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++) {
+		for(v=0;v<views;v++) { // see norm_ANW
 			norm1  = &out[yr2][v][0];
 			atten1 = &atten[yr][v][0];
 			est1   = &out[yr2][v][0];
 			for( xr=0; xr<xr_pixels; xr++ ) {
-				if(norm1[xr] > 0.0f) est1[xr] = 1.0f/std::max(atten1[xr],1.0f);
+				if (norm1[xr] > 0.0f) est1[xr] = 1.0f/std::max(atten1[xr],1.0f);
 				else  est1[xr] = 0.0f; // missing data
 			}
 		}
@@ -907,8 +907,8 @@ void norm_ANW(float ***out,float ***atten,int theta) {
 	int yr2;
 
 	yr2=segment_offset[theta];
-	for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++){
-		for(v=0;v<views;v++){
+	for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++) {
+		for(v=0;v<views;v++) {
 			norm1 = &out[yr2][v][0];
 			atten1 = &atten[yr][v][0];
 			est1  = &out[yr2][v][0];
@@ -916,7 +916,7 @@ void norm_ANW(float ***out,float ***atten,int theta) {
 				if (atten1[xr] < 1.0f) atten1[xr]= 1.0f;  /* atten should be > 1. */
 				if (norm1[xr] > 0.0f) {
 					den = norm1[xr]*atten1[xr];       /* AN */
-					if(den > epsilon2 ){
+					if (den > epsilon2 ) {
 						est1[xr] = 1.0f/den;
 					//	est1[xr]=log(1+est1[xr]);
 					}
@@ -945,16 +945,16 @@ void prepare_norm(float ***out,int nFlag,int weighting,FILEPTR normfp,FILEPTR at
 
 	/* set out(=largeprj3) with normalization file. */
 	if (verbose & 0x0020) fprintf(stdout,"  Prepare normalization (sensitivity) data\n");
-  if(nFlag) {
+  if (nFlag) {
 		printf("  Read normalization (should show the gaps or missing data) \n");
     for(theta=0;theta<th_pixels;theta++) {
-	//		if( !read_flat_float_proj_ori_theta(normfp, &out[segment_offset[theta]][0][0], theta) )        
+	//		if ( !read_flat_float_proj_ori_theta(normfp, &out[segment_offset[theta]][0][0], theta) )        
 	//			crash3("  Prepare_norm: error reading normalization at theta  = %d \n ", theta);
-			if( !read_flat_float_proj_ori_theta(normfp, &tmp_prj1[0][0][0], theta, 1.0f, 1) )        
+			if ( !read_flat_float_proj_ori_theta(normfp, &tmp_prj1[0][0][0], theta, 1.0f, 1) )        
 				crash3("  Prepare_norm: error reading normalization at theta  = %d \n ", theta);
       yr2=segment_offset[theta];
-      for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++){
-        for(v=0;v<views;v++){
+      for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++) {
+        for(v=0;v<views;v++) {
           memcpy(&out[yr2][v][0],&tmp_prj1[yr][v][0],xr_pixels*sizeof(float));
         }
       }
@@ -968,11 +968,11 @@ void prepare_norm(float ***out,int nFlag,int weighting,FILEPTR normfp,FILEPTR at
 					out[yr2][v][xr]=1.0f; // memset should be faster
 	}
 	
-  if(newzoom==1) {// fix bug related with -Z option  // 14-NOV-2008 inki
-		for(yr2=0;yr2<segmentsize;yr2++){
-			for(v=0;v<views;v++){
-				for(xr=0;xr<xr_pixels;xr++){
-					if(out[yr2][v][xr]==0) zerocount++;
+  if (newzoom==1) {// fix bug related with -Z option  // 14-NOV-2008 inki
+		for(yr2=0;yr2<segmentsize;yr2++) {
+			for(v=0;v<views;v++) {
+				for(xr=0;xr<xr_pixels;xr++) {
+					if (out[yr2][v][xr]==0) zerocount++;
 					else {
 						mask[v][xr]=1;
 					}
@@ -981,8 +981,8 @@ void prepare_norm(float ***out,int nFlag,int weighting,FILEPTR normfp,FILEPTR at
 			}
 		}
   } else {
-		for(v=0;v<views;v++){
-			for(xr=0;xr<xr_pixels;xr++){
+		for(v=0;v<views;v++) {
+			for(xr=0;xr<xr_pixels;xr++) {
 				mask[v][xr]=1;
 				totalcount++;
 			}
@@ -995,8 +995,8 @@ void prepare_norm(float ***out,int nFlag,int weighting,FILEPTR normfp,FILEPTR at
 	//		fwrite(mask,256*288,4,fp);
 	//		fclose(fp);
   for(v=0;v<views;v++) {
-		for(xr=0;xr<xr_pixels;xr++){
-			if(mask[v][xr]==0) zerocount++;
+		for(xr=0;xr<xr_pixels;xr++) {
+			if (mask[v][xr]==0) zerocount++;
 			totalcount++;
 		}
 	}
@@ -1004,8 +1004,8 @@ void prepare_norm(float ***out,int nFlag,int weighting,FILEPTR normfp,FILEPTR at
 	printf("zero2 %d %d %f\n",zerocount,totalcount,(zerocount+0.0)/totalcount);
 	zerocount=totalcount=0;
   for(v=0;v<views/2;v++) {
-		for(xr=1;xr<=xr_pixels/2;xr++){
-			if(mask[v][xr]==0 &&mask[v+views/2][xr]==0 &&mask[v][xr_pixels-xr]==0 &&mask[v+views/2][xr_pixels-xr]==0 ){
+		for(xr=1;xr<=xr_pixels/2;xr++) {
+			if (mask[v][xr]==0 &&mask[v+views/2][xr]==0 &&mask[v][xr_pixels-xr]==0 &&mask[v+views/2][xr_pixels-xr]==0 ) {
 				zerocount++;
 				norm_zero_mask[v][xr]=0;
 			} else {
@@ -1018,22 +1018,22 @@ void prepare_norm(float ***out,int nFlag,int weighting,FILEPTR normfp,FILEPTR at
 	printf("zero2 %d %d %f\n",zerocount,totalcount,(zerocount+0.0)/totalcount);
 
 	//now, out[yr][view][xr] = normalization projection data.
-  if(weighting==0 || weighting==5) { // UW case
-		if(nFlag){ // normalization may contain mask containing gaps
+  if (weighting==0 || weighting==5) { // UW case
+		if (nFlag) { // normalization may contain mask containing gaps
 			if (verbose & 0x0020) fprintf(stdout,"  Invert normalization as mask\n");
 			for(theta=0;theta<th_pixels;theta++) norm_UW(out,theta); // UW works if theta<th_pixels (was theta) CM+ZB
 		}  // else the inverse of 1 is one 
 	} 
 
-  else if(weighting==1 || weighting==6) {// AW case
+  else if (weighting==1 || weighting==6) {// AW case
    int s3_offset;
    int i1,i2, v1, v2;
     if (verbose & 0x0020) fprintf(stdout,"  Read attenuation and do 1/A\n");
     switch(attenType)
     {
     case Atten3D: // Atten size is prompt size
-      for(theta=0;theta<th_pixels;theta++){
-        if( !read_flat_float_proj_ori_theta(attenfp, &tmp_prj1[0][0][0],  theta, 1.0f))   
+      for(theta=0;theta<th_pixels;theta++) {
+        if ( !read_flat_float_proj_ori_theta(attenfp, &tmp_prj1[0][0][0],  theta, 1.0f))   
           crash3("  Prepare_norm: error reading attenuation at theta  =%d !\n ", theta);
         norm_AW(out,tmp_prj1,theta);
       }
@@ -1075,10 +1075,10 @@ void prepare_norm(float ***out,int nFlag,int weighting,FILEPTR normfp,FILEPTR at
     case RebinnedMuMap:
         read_atten_image(attenfp, atten_image, attenType);
         if (verbose & 0x0020) fprintf(stdout,"  FWDProj mu-map\n");
-        for(v1=0, v2=views/2;v1<views/2;v1++, v2++){
+        for(v1=0, v2=views/2;v1<views/2;v1++, v2++) {
           proj_atten_view(atten_image, &mu_prj[0][0],  v1);
-          for (i1=0,i2=segmentsize; i1<segmentsize; i1++,i2++){
-            for(xr=0;xr<xr_pixels;xr++){
+          for (i1=0,i2=segmentsize; i1<segmentsize; i1++,i2++) {
+            for(xr=0;xr<xr_pixels;xr++) {
               //v1 view  
               if (out[i1][v1][xr]>0) 
                 out[i1][v1][xr] /= std::max(mu_prj[i1][xr], 1.0f);
@@ -1094,7 +1094,7 @@ void prepare_norm(float ***out,int nFlag,int weighting,FILEPTR normfp,FILEPTR at
     }
   }
 
-  else if(weighting==2 || weighting==3 || weighting==4 || weighting==7 || weighting==8|| weighting==9) {
+  else if (weighting==2 || weighting==3 || weighting==4 || weighting==7 || weighting==8|| weighting==9) {
     int i1,i2, v1, v2;
     int s3_offset=0;
 		// ANW or OP 
@@ -1102,8 +1102,8 @@ void prepare_norm(float ***out,int nFlag,int weighting,FILEPTR normfp,FILEPTR at
     switch(attenType)
     {
     case Atten3D:// Atten size is prompt size
-		  for(theta=0;theta<th_pixels;theta++){
-			  if( !read_flat_float_proj_ori_theta(attenfp, &tmp_prj1[0][0][0], theta, 1.0f))        
+		  for(theta=0;theta<th_pixels;theta++) {
+			  if ( !read_flat_float_proj_ori_theta(attenfp, &tmp_prj1[0][0][0], theta, 1.0f))        
 				  crash3("  Prepare_norm: error reading attenuation at theta  =%d !\n ", theta);
 			  norm_ANW(out,tmp_prj1,theta);
       }
@@ -1143,10 +1143,10 @@ void prepare_norm(float ***out,int nFlag,int weighting,FILEPTR normfp,FILEPTR at
     case RebinnedMuMap:
       read_atten_image(attenfp, atten_image, attenType);
       if (verbose & 0x0020) fprintf(stdout,"  FWDProj mu-map\n");
-      for(v1=0, v2=views/2;v1<views/2;v1++, v2++){
+      for(v1=0, v2=views/2;v1<views/2;v1++, v2++) {
         proj_atten_view(atten_image, &mu_prj[0][0],  v1);
-        for (i1=0,i2=segmentsize; i1<segmentsize; i1++,i2++){
-          for(xr=0;xr<xr_pixels;xr++){
+        for (i1=0,i2=segmentsize; i1<segmentsize; i1++,i2++) {
+          for(xr=0;xr<xr_pixels;xr++) {
             //v1 view  
             if (out[i1][v1][xr]>0) 
               out[i1][v1][xr] /= std::max(mu_prj[i1][xr], 1.0f);
@@ -1174,59 +1174,59 @@ void readsinogram(float ***largeprj3,FILEPTR tsinofp, FILEPTR psinofp,FILEPTR ds
 {
 	int theta;
 	int yr,yr2,v;
-	if(tFlag==1){
+	if (tFlag==1) {
 		if (verbose & 0x0020) {
 			fprintf(stdout,"  Reading true sinogram ");
 			if (floatFlag == 0) fprintf(stdout,"  (short)\n");
 			else fprintf(stdout,"  (float)\n");
 		}
-		for(theta=0;theta<th_pixels;theta++){
-			if(floatFlag==0){			// short
-				if( !read_flat_short_proj_ori_to_float_array_theta(tsinofp, &tmp_prj1[0][0][0],  theta))        
+		for(theta=0;theta<th_pixels;theta++) {
+			if (floatFlag==0) {			// short
+				if ( !read_flat_short_proj_ori_to_float_array_theta(tsinofp, &tmp_prj1[0][0][0],  theta))        
 					crash3(" Main(): error occurs in read_flat_short_proj_ori_to_float_array_theta at theta  =%d !\n ", theta);
-			} else if(floatFlag==1){	// float data
-				if( !read_flat_float_proj_ori_theta(tsinofp, &tmp_prj1[0][0][0],  theta, 0.0f))
+			} else if (floatFlag==1) {	// float data
+				if ( !read_flat_float_proj_ori_theta(tsinofp, &tmp_prj1[0][0][0],  theta, 0.0f))
 					crash3(" Main(): error occurs in read_flat_float_proj_ori_to_float_array_theta at theta  =%d !\n ", theta);
-			} else if(floatFlag==2){	// 4byte int
-			  if( 1 ) // !sv !read_flat_int_proj_ori_to_float_array_theta(tsinofp, &tmp_prj1[0][0][0],  theta)) 
+			} else if (floatFlag==2) {	// 4byte int
+			  if ( 1 ) // !sv !read_flat_int_proj_ori_to_float_array_theta(tsinofp, &tmp_prj1[0][0][0],  theta)) 
 					crash3(" Main(): error occurs in read_flat_int_proj_ori_to_float_array_theta at theta  =%d !\n ", theta);
 			}
 			yr2=segment_offset[theta];
-			for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++){
-				for(v=0;v<views;v++){
+			for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++) {
+				for(v=0;v<views;v++) {
 					memcpy(&largeprj3[yr2][v][0],tmp_prj1[yr][v],xr_pixels*sizeof(float));
 				}
 			}
 		}
 	}
-	if(tFlag==0){
-		for(theta=0;theta<th_pixels;theta++){
+	if (tFlag==0) {
+		for(theta=0;theta<th_pixels;theta++) {
 			if (verbose & 0x0020) {
 				fprintf(stdout,"  Reading prompt sinogram %d ",theta);
 				if (floatFlag == 0) fprintf(stdout,"  (short)\n");
-				else if(floatFlag==1) fprintf(stdout,"  (float)\n");
-				else if(floatFlag==2) fprintf(stdout,"  (int)\n");
+				else if (floatFlag==1) fprintf(stdout,"  (float)\n");
+				else if (floatFlag==2) fprintf(stdout,"  (int)\n");
 			}
-			if(floatFlag==0){	// short
-				if( !read_flat_short_proj_ori_to_float_array_theta(psinofp, &tmp_prj1[0][0][0],  theta))
+			if (floatFlag==0) {	// short
+				if ( !read_flat_short_proj_ori_to_float_array_theta(psinofp, &tmp_prj1[0][0][0],  theta))
 					crash3("  Readsinogram: error reading short sinogram at theta  =%d !\n ", theta);
-			} else if(floatFlag==1){	// float
-				if( !read_flat_float_proj_ori_theta(psinofp, &tmp_prj1[0][0][0],  theta, 0.0f))
+			} else if (floatFlag==1) {	// float
+				if ( !read_flat_float_proj_ori_theta(psinofp, &tmp_prj1[0][0][0],  theta, 0.0f))
 					crash3("  Readsinogram: error reading float sinogram at theta  =%d !\n ", theta);
-			}else if(floatFlag==2){		// 4byte int
-			  if( 1 ) // !sv !read_flat_int_proj_ori_to_float_array_theta(psinofp, &tmp_prj1[0][0][0],  theta))
+			}else if (floatFlag==2) {		// 4byte int
+			  if ( 1 ) // !sv !read_flat_int_proj_ori_to_float_array_theta(psinofp, &tmp_prj1[0][0][0],  theta))
 					crash3("  Readsinogram: error reading int sinogram at theta  =%d !\n ", theta);
 			}
 			yr2=segment_offset[theta];
-			for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++){
-				for(v=0;v<views;v++){
+			for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++) {
+				for(v=0;v<views;v++) {
 					memcpy(&largeprj3[yr2][v][0],tmp_prj1[yr][v],xr_pixels*sizeof(float));
 				}
 			}
 		}
 		if (verbose & 0x0020) fprintf(stdout,"  Reading and subtracting delayed sinogram\n");
-		for(theta=0;theta<th_pixels;theta++){
-			if( !read_flat_float_proj_ori_theta(dsinofp, &tmp_prj1[0][0][0],  theta, 0.0f))        
+		for(theta=0;theta<th_pixels;theta++) {
+			if ( !read_flat_float_proj_ori_theta(dsinofp, &tmp_prj1[0][0][0],  theta, 0.0f))        
 				crash3("  Readsinogram: error reading float delayed at theta  =%d !\n ", theta);
 			subprojection(largeprj3,tmp_prj1,theta); // subtract smoothed random
 		}
@@ -1247,7 +1247,7 @@ int convert_s9_s3(float **pscale_factors)
   if (span == 9) return 0;
   *pscale_factors = (float*)calloc(segmentsize, sizeof(float));
   float *sf_s3 = *pscale_factors;
-  while(theta<th_pixels){
+  while(theta<th_pixels) {
     // current span3 theta corresponds to span 9 theta/3
     nplanes = yr_top[theta]-yr_bottom[theta]+1;
     for(plane=0; plane<nplanes; plane++, i++, j++)
@@ -1300,11 +1300,11 @@ void prepare_osem3dw0(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
 	int theta;
 
   if (verbose & 0x0020) fprintf(stdout,"  Prepare_osem3dw0 (unweighted case) \n");
-  if(precorFlag==0) {
+  if (precorFlag==0) {
 		if (verbose & 0x0020) fprintf(stdout,"  Read or build true from prompt & delayed \n");
 		readsinogram(largeprj3,tsinofp,psinofp,dsinofp,tFlag,floatFlag);		
 		//	     (shortTrue * norm - scatter ) * attenuation
-    if( sFlag==1 ) {
+    if ( sFlag==1 ) {
       float *sc2d=NULL, *scale_factors=NULL;
 			if (verbose & 0x0020) fprintf(stdout,"  True - scatter/norm\n");
       if (s2DFlag) { // pre-load unscaled scatter and scale factors
@@ -1312,24 +1312,24 @@ void prepare_osem3dw0(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
         scale_factors = (float*)calloc(segmentsize, sizeof(float));
         if (sc2d==NULL || scale_factors==NULL) 
           crash1("  Prepare_osem3dw0: memory allocation error!\n ");
-        if( fread(sc2d, sizeof(float), xr_pixels*views*z_pixels, ssinofp) != 
+        if ( fread(sc2d, sizeof(float), xr_pixels*views*z_pixels, ssinofp) != 
           xr_pixels*views*z_pixels)  
           crash1("  Prepare_osem3dw0: error reading unscaled 2D scatter!\n");
         if (fread(scale_factors, sizeof(float), segmentsize_s9, ssinofp) != segmentsize_s9)
           crash1("  Prepare_osem3dw0: error reading scatter scale factors!\n");
         convert_s9_s3(&scale_factors);
       }
-			for(theta=0;theta<th_pixels;theta++){
-				if(nFlag==1){
+			for(theta=0;theta<th_pixels;theta++) {
+				if (nFlag==1) {
 					if (verbose & 0x0020) fprintf(stdout,"  Reading normalization at theta %d\n",theta);
-					if( !read_flat_float_proj_ori_theta(normfp, &tmp_prj1[0][0][0],  theta, 1.0f, 1))        
+					if ( !read_flat_float_proj_ori_theta(normfp, &tmp_prj1[0][0][0],  theta, 1.0f, 1))        
 						crash3("  Prepare_osem3dw0: error reading normalization at theta  =%d !\n ", theta);
 					if (verbose & 0x0020) fprintf(stdout,"  Normalize scattered trues at theta %d\n",theta);
 			     mulprojection(largeprj3,tmp_prj1,theta);
 				}
 				if (verbose & 0x0020) fprintf(stdout,"  Reading scatter at theta %d\n",theta);
 				if (!s2DFlag) {
-				  if( !read_flat_float_proj_ori_theta(ssinofp, &tmp_prj2[0][0][0],  theta))  
+				  if ( !read_flat_float_proj_ori_theta(ssinofp, &tmp_prj2[0][0][0],  theta))  
 					crash3("  Prepare_osem3dw0: error reading scatter at theta  =%d !\n ", theta);
 				} else apply_scale_factors(sc2d, scale_factors, theta, &tmp_prj2[0][0][0]);
 				if (verbose & 0x0020) fprintf(stdout,"  Substract scatter at theta %d\n",theta);
@@ -1340,24 +1340,24 @@ void prepare_osem3dw0(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
         free(scale_factors);
       }
     } else {
-		  if(nFlag==1){
+		  if (nFlag==1) {
 			  if (verbose & 0x0020) fprintf(stdout,"  Multiply true by normalization \n");
-			  for(theta=0;theta<th_pixels;theta++){
-				  if( !read_flat_float_proj_ori_theta(normfp, &tmp_prj1[0][0][0],  theta, 1.0f, 1))        
+			  for(theta=0;theta<th_pixels;theta++) {
+				  if ( !read_flat_float_proj_ori_theta(normfp, &tmp_prj1[0][0][0],  theta, 1.0f, 1))        
 					  crash3("  Prepare_osem3dw0: error reading normalization at theta  =%d !\n ", theta);
 				  mulprojection(largeprj3,tmp_prj1,theta);
 			  }
 		  }
     }
-		if(noattenFlag==0){
+		if (noattenFlag==0) {
       int i1,i2, v1, v2;
       int s3_offset=0;
       if (verbose & 0x0020) fprintf(stdout,"  Multiply result by attenuation \n");
       switch(attenType)
       {
       case Atten3D:
-			  for(theta=0;theta<th_pixels;theta++){
-				  if( !read_flat_float_proj_ori_theta(attenfp, &tmp_prj1[0][0][0],  theta, 1.0f))        
+			  for(theta=0;theta<th_pixels;theta++) {
+				  if ( !read_flat_float_proj_ori_theta(attenfp, &tmp_prj1[0][0][0],  theta, 1.0f))        
 					  crash3("  Prepare_osem3dw0: error reading attenuation at theta  =%d !\n ", theta);
 				  mulprojection(largeprj3,tmp_prj1,theta);
 			  }
@@ -1365,7 +1365,7 @@ void prepare_osem3dw0(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
       case Atten3D_Span9:
         theta=0;
         fseek(attenfp,0, SEEK_SET); // reset file position
-	      while(theta<th_pixels){
+	      while(theta<th_pixels) {
           int  nplanes = yr_top[theta]-yr_bottom[theta]+1;
           // read span9 segment 0 or negative segment
           if (fread(&tmp_prj1[0][0][0],sizeof(float)*xr_pixels*views,nplanes,attenfp) != nplanes)
@@ -1398,10 +1398,10 @@ void prepare_osem3dw0(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
       case FullMuMap:
         read_atten_image(attenfp, atten_image, attenType);
 		    if (verbose & 0x0020) fprintf(stdout,"  FWDProj mu-map\n");
-        for(v1=0, v2=views/2;v1<views/2;v1++, v2++){
+        for(v1=0, v2=views/2;v1<views/2;v1++, v2++) {
           proj_atten_view(atten_image, &mu_prj[0][0],  v1);
-          for (i1=0,i2=segmentsize; i1<segmentsize; i1++,i2++){
-            for(xr=0;xr<xr_pixels;xr++){
+          for (i1=0,i2=segmentsize; i1<segmentsize; i1++,i2++) {
+            for(xr=0;xr<xr_pixels;xr++) {
               largeprj3[i1][v1][xr] *= mu_prj[i1][xr];
               largeprj3[i1][v2][xr] *= mu_prj[i2][xr];
             }
@@ -1411,16 +1411,16 @@ void prepare_osem3dw0(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
       }
 		}
   }
-	else if(precorFlag==1) {
+	else if (precorFlag==1) {
 		//assumed fully precorrected.
 		if (verbose & 0x0020) fprintf(stdout,"  Reading fully precorrected sinogram \n");
-		for(theta=0;theta<th_pixels;theta++){
-			//			if( !read_flat_float_proj_ori_theta(tsinofp, &largeprj3[segment_offset[theta]][0][0],  theta))
-			if( !read_flat_float_proj_ori_theta(tsinofp, &tmp_prj1[0][0][0],  theta, 0.0f))
+		for(theta=0;theta<th_pixels;theta++) {
+			//			if ( !read_flat_float_proj_ori_theta(tsinofp, &largeprj3[segment_offset[theta]][0][0],  theta))
+			if ( !read_flat_float_proj_ori_theta(tsinofp, &tmp_prj1[0][0][0],  theta, 0.0f))
 				crash3("  Prepare_osem3dw0: error reading precorrected sino at theta  =%d !\n ", theta);
 			yr2=segment_offset[theta];
-			for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++){
-				for(v=0;v<views;v++){
+			for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++) {
+				for(v=0;v<views;v++) {
 					memcpy(&largeprj3[yr2][v][0],tmp_prj1[yr][v],xr_pixels*sizeof(float));
 				}
 			}
@@ -1448,13 +1448,13 @@ void prepare_osem3dw1(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
 	int xr,yr2,yr;
 	int theta;
 	if (verbose & 0x0020) fprintf(stdout,"  Prepare_osem3dw1 (attenuation weighted case) \n");
-	if(precorFlag==0){
+	if (precorFlag==0) {
 		if (verbose & 0x0020)fprintf(stdout,"  Read or build true from prompt & delayed \n");
 		readsinogram(largeprj3,tsinofp,psinofp,dsinofp,tFlag,floatFlag);
 		//	scatter processing
-		if(sFlag==1){
+		if (sFlag==1) {
       float *sc2d=NULL, *scale_factors=NULL;
-			if(nFlag) {
+			if (nFlag) {
 				if (verbose & 0x0020) fprintf(stdout,"  subtract un-normalized scatter \n");
 			} else {
 				if (verbose & 0x0020) fprintf(stdout,"  subtract scatter (already unnormalized) \n");
@@ -1464,7 +1464,7 @@ void prepare_osem3dw1(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
         scale_factors = (float*)calloc(segmentsize, sizeof(float));
         if (sc2d==NULL || scale_factors==NULL) 
           crash1("  Prepare_osem3dw1: memory allocation error!\n");
-        if( fread(sc2d, sizeof(float), xr_pixels*views*z_pixels, ssinofp) != 
+        if ( fread(sc2d, sizeof(float), xr_pixels*views*z_pixels, ssinofp) != 
           xr_pixels*views*z_pixels)  
           crash1("  Prepare_osem3dw1: error reading unscaled scatter!\n");
         if (fread(scale_factors, sizeof(float), segmentsize_s9, ssinofp)!= segmentsize_s9)
@@ -1472,26 +1472,26 @@ void prepare_osem3dw1(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
         convert_s9_s3(&scale_factors);
 
       }
-			for(theta=0;theta<th_pixels;theta++){
+			for(theta=0;theta<th_pixels;theta++) {
 				if (!s2DFlag) {
-          if( !read_flat_float_proj_ori_theta(ssinofp, &tmp_prj1[0][0][0],  theta, 0.0f))  
+          if ( !read_flat_float_proj_ori_theta(ssinofp, &tmp_prj1[0][0][0],  theta, 0.0f))  
             crash3("  Prepare_osem3dw1: error reading scatter at theta  =%d !\n ", theta);
         } else apply_scale_factors(sc2d, scale_factors, theta, &tmp_prj1[0][0][0]);
-				if(nFlag==1){
-					if( !read_flat_float_proj_ori_theta(normfp, &tmp_prj2[0][0][0],  theta, 1.0f, 1))
+				if (nFlag==1) {
+					if ( !read_flat_float_proj_ori_theta(normfp, &tmp_prj2[0][0][0],  theta, 1.0f, 1))
 						crash3("  Prepare_osem3dw1: error reading normalization at theta  =%d !\n ", theta);
 					yr2=segment_offset[theta];
-					for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++){
-						for(v=0;v<views;v++){
-							for(xr=0;xr<xr_pixels;xr++){
-								if(tmp_prj2[yr][v][xr]>0.0f) 
+					for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++) {
+						for(v=0;v<views;v++) {
+							for(xr=0;xr<xr_pixels;xr++) {
+								if (tmp_prj2[yr][v][xr]>0.0f) 
 									// 				   e = t - s/n
 									largeprj3[yr2][v][xr]=largeprj3[yr2][v][xr]-tmp_prj1[yr][v][xr]/tmp_prj2[yr][v][xr];
 								else largeprj3[yr2][v][xr]=0;
 							}
 						}
 					}
-				} else if(nFlag==0){ 
+				} else if (nFlag==0) { 
 					//		    e = t - s (scatter already unnormalized)
 					subprojection(largeprj3,tmp_prj1,theta);
 				}
@@ -1504,21 +1504,21 @@ void prepare_osem3dw1(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
 		if (nFlag ==1) { // CM if exists
 			//     	  normalization processing
 			if (verbose & 0x0020) fprintf(stdout,"  Normalize result \n");
-			for(theta=0;theta<th_pixels;theta++){
-				if( !read_flat_float_proj_ori_theta(normfp, &tmp_prj1[0][0][0],  theta, 1.0f, 1))        
+			for(theta=0;theta<th_pixels;theta++) {
+				if ( !read_flat_float_proj_ori_theta(normfp, &tmp_prj1[0][0][0],  theta, 1.0f, 1))        
 					crash3("  Prepare_oseme3dw1: error reading normalization at theta  =%d !\n ", theta);            
 				//           e= t*n-s 
 				mulprojection(largeprj3,tmp_prj1,theta);
 			}
 		}
 	}    
-	else if(precorFlag==1){
+	else if (precorFlag==1) {
     int s3_offset;
     int i1,i2, v1, v2;
 		//load fully precorrected sinogram
 		if (verbose & 0x0004) fprintf(stdout,"  Reading precorrected sinogram\n");
-		for(theta=0;theta<th_pixels;theta++){
-			if( !read_flat_float_proj_ori_theta(tsinofp, &largeprj3[segment_offset[theta]][0][0],  theta, 0.0f))        
+		for(theta=0;theta<th_pixels;theta++) {
+			if ( !read_flat_float_proj_ori_theta(tsinofp, &largeprj3[segment_offset[theta]][0][0],  theta, 0.0f))        
 				crash3("  Prepare_osem3dw1: error reading precorrected true at theta  =%d !\n ", theta);
 		}
 		//      normalization processing => CM: we should divide precorrected data with attenuation not normalization 
@@ -1526,8 +1526,8 @@ void prepare_osem3dw1(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
     switch (attenType)
     {
     case Atten3D:
-      for(theta=0;theta<th_pixels;theta++){
-			  if( !read_flat_float_proj_ori_theta(attenfp, &tmp_prj1[0][0][0],  theta, 1.0f))        
+      for(theta=0;theta<th_pixels;theta++) {
+			  if ( !read_flat_float_proj_ori_theta(attenfp, &tmp_prj1[0][0][0],  theta, 1.0f))        
 				  crash3(" Prepare_osem3dw1: error reading attenuation at theta  =%d !\n ", theta);
         divideprojection(largeprj3, tmp_prj1, theta);
       }
@@ -1535,7 +1535,7 @@ void prepare_osem3dw1(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
     case Atten3D_Span9:
       theta=0;
       fseek(attenfp,0, SEEK_SET); // reset file position
-	    while(theta<th_pixels){
+	    while(theta<th_pixels) {
         int  nplanes = yr_top[theta]-yr_bottom[theta]+1;
         // read span9 segment 0 or negative segment
         if (fread(&tmp_prj1[0][0][0],sizeof(float)*xr_pixels*views,nplanes,attenfp) != nplanes)
@@ -1568,16 +1568,16 @@ void prepare_osem3dw1(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
     case FullMuMap:
       read_atten_image(attenfp, atten_image, attenType);
       if (verbose & 0x0020) fprintf(stdout,"  FWDProj mu-map\n");
-      for(v1=0,v2=views/2; v1<views/2; v1++,v2++){
+      for(v1=0,v2=views/2; v1<views/2; v1++,v2++) {
         proj_atten_view(atten_image, &mu_prj[0][0],  v1);
-        for (i1=0,i2=segmentsize; i1<segmentsize; i1++,i2++){
-          for(xr=0;xr<xr_pixels;xr++){
+        for (i1=0,i2=segmentsize; i1<segmentsize; i1++,i2++) {
+          for(xr=0;xr<xr_pixels;xr++) {
 							  //	v1:		  e = (t-s*a)/n
-            if(mu_prj[i1][xr]>0) 
+            if (mu_prj[i1][xr]>0) 
               largeprj3[i1][v1][xr]=largeprj3[i1][v1][xr]/mu_prj[i1][xr];
             else largeprj3[i1][v1][xr]=0;
 							  //	v1+views/2:		  e = (t-s*a)/n
-            if(mu_prj[i2][xr]>0) 
+            if (mu_prj[i2][xr]>0) 
               largeprj3[i1][v2][xr]=largeprj3[i1][v2][xr]/mu_prj[i2][xr];
             else largeprj3[i1][v2][xr]=0;
           }
@@ -1587,7 +1587,7 @@ void prepare_osem3dw1(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
     }
 	}
 	if (verbose & 0x0020) fprintf(stdout,"  Set negative to 0 \n");
-	if(weighting==1) setnegative2zero(largeprj); 
+	if (weighting==1) setnegative2zero(largeprj); 
 }
 /*
 *
@@ -1607,10 +1607,10 @@ void prepare_osem3dw2(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
 	int theta;
 
 	if (verbose & 0x0020) fprintf(stdout,"  Prepare_osem3dw2 (attenuation normalization weighted case) \n");
-	if(precorFlag==0) {
+	if (precorFlag==0) {
 		if (verbose & 0x0020) fprintf(stdout,"  Read or build true sinogram from prompt and delayed \n");
 		readsinogram(largeprj3,tsinofp,psinofp,dsinofp,tFlag,floatFlag);
-		if(sFlag==1){
+		if (sFlag==1) {
 			//	  e = t - s/n
       float *sc2d=NULL, *scale_factors=NULL;
 			if (verbose & 0x0020) fprintf(stdout,"  Subtract un-normalized scatter\n");
@@ -1619,25 +1619,25 @@ void prepare_osem3dw2(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
         scale_factors = (float*)calloc(segmentsize, sizeof(float));
         if (sc2d==NULL || scale_factors==NULL) 
           crash1("  Prepare_osem3dw2: memory allocation error!\n");
-        if( fread(sc2d, sizeof(float), xr_pixels*views*z_pixels, ssinofp) != 
+        if ( fread(sc2d, sizeof(float), xr_pixels*views*z_pixels, ssinofp) != 
           xr_pixels*views*z_pixels)  
           crash1("  Prepare_osem3dw3: error reading unscaled 2D scatter!\n");
         if (fread(scale_factors, sizeof(float), segmentsize_s9, ssinofp)!= segmentsize_s9)
           crash1("  Prepare_osem3dw3: error reading scatter scale factors!\n");
         convert_s9_s3(&scale_factors);
       }
-			for(theta=0;theta<th_pixels;theta++){
+			for(theta=0;theta<th_pixels;theta++) {
         if (!s2DFlag) {
-          if( !read_flat_float_proj_ori_theta(ssinofp, &tmp_prj1[0][0][0],  theta, 0.0f))        
+          if ( !read_flat_float_proj_ori_theta(ssinofp, &tmp_prj1[0][0][0],  theta, 0.0f))        
 					crash3("  Prepare_osem3dw2: error reading scatter at theta  =%d !\n ", theta);
         } else apply_scale_factors(sc2d, scale_factors, theta, &tmp_prj1[0][0][0]);
-				if( !read_flat_float_proj_ori_theta(normfp, &tmp_prj2[0][0][0],  theta, 1.0f, 1))        
+				if ( !read_flat_float_proj_ori_theta(normfp, &tmp_prj2[0][0][0],  theta, 1.0f, 1))        
 					crash3("  Prepare_osem3dw2: error reading normalization at theta  =%d !\n ", theta);
 				yr2=segment_offset[theta];
-				for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++){
-					for(v=0;v<views;v++){
-						for(xr=0;xr<xr_pixels;xr++){
-							if(tmp_prj2[yr][v][xr]>0.0f) 
+				for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++) {
+					for(v=0;v<views;v++) {
+						for(xr=0;xr<xr_pixels;xr++) {
+							if (tmp_prj2[yr][v][xr]>0.0f) 
 								largeprj3[yr2][v][xr]=largeprj3[yr2][v][xr]-tmp_prj1[yr][v][xr]/tmp_prj2[yr][v][xr];
 							else largeprj3[yr2][v][xr]=0.0f;
 						}
@@ -1650,25 +1650,25 @@ void prepare_osem3dw2(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
       }
 		}  
 	}
-	if(precorFlag==1){
+	if (precorFlag==1) {
     int s3_offset;
     int i1,i2, v1, v2;
 		//	read fully precorrected sinogram
 		if (verbose & 0x0020) fprintf(stdout,"  Reading precorrected sinogram\n");
-		for(theta=0;theta<th_pixels;theta++){
-			if( !read_flat_float_proj_ori_theta(tsinofp, &largeprj3[segment_offset[theta]][0][0],  theta, 0.0f))        
+		for(theta=0;theta<th_pixels;theta++) {
+			if ( !read_flat_float_proj_ori_theta(tsinofp, &largeprj3[segment_offset[theta]][0][0],  theta, 0.0f))        
 				crash3("  Prepare_osem3dw2: error reading corrcted sinogram at theta  =%d !\n ", theta);
 		}
 		// 	e=t/(a*n)
 		if (verbose & 0x0020) fprintf(stdout,"  Divide by normalization\n");
-    for(theta=0;theta<th_pixels;theta++){
-			if( !read_flat_float_proj_ori_theta(normfp, &tmp_prj1[0][0][0],  theta, 1.0f, 1))        
+    for(theta=0;theta<th_pixels;theta++) {
+			if ( !read_flat_float_proj_ori_theta(normfp, &tmp_prj1[0][0][0],  theta, 1.0f, 1))        
 				crash3("  Prepare_osem3dw2: error reading normalization at theta  =%d !\n ", theta);
 			yr2=segment_offset[theta];
-			for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++){
-				for(v=0;v<views;v++){
-					for(xr=0;xr<xr_pixels;xr++){
-						if(tmp_prj1[yr][v][xr]>0) 
+			for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++) {
+				for(v=0;v<views;v++) {
+					for(xr=0;xr<xr_pixels;xr++) {
+						if (tmp_prj1[yr][v][xr]>0) 
 							largeprj3[yr2][v][xr]/=tmp_prj1[yr][v][xr];
 						else largeprj3[yr2][v][xr]=0;
 					}
@@ -1679,8 +1679,8 @@ void prepare_osem3dw2(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
     switch (attenType)
     {
     case Atten3D:
-      for(theta=0;theta<th_pixels;theta++){
-			  if( !read_flat_float_proj_ori_theta(attenfp, &tmp_prj1[0][0][0],  theta, 1.0f))        
+      for(theta=0;theta<th_pixels;theta++) {
+			  if ( !read_flat_float_proj_ori_theta(attenfp, &tmp_prj1[0][0][0],  theta, 1.0f))        
 				  crash3("  Prepare_osem3dw2: error reading attenuation at theta  =%d !\n ", theta);
         divideprojection(largeprj3, tmp_prj1, theta);
 		  }
@@ -1688,7 +1688,7 @@ void prepare_osem3dw2(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
     case Atten3D_Span9:
       theta=0;
       fseek(attenfp,0, SEEK_SET); // reset file position
-	    while(theta<th_pixels){
+	    while(theta<th_pixels) {
         int  nplanes = yr_top[theta]-yr_bottom[theta]+1;
         // read span9 segment 0 or negative segment
         if (fread(&tmp_prj1[0][0][0],sizeof(float)*xr_pixels*views,nplanes,attenfp) != nplanes)
@@ -1721,16 +1721,16 @@ void prepare_osem3dw2(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
     case FullMuMap:
     case RebinnedMuMap:
       read_atten_image(attenfp, atten_image, attenType);
-      for(v1=0, v2=views/2;v1<views/2;v1++, v2++){
+      for(v1=0, v2=views/2;v1<views/2;v1++, v2++) {
         proj_atten_view(atten_image, &mu_prj[0][0],  v1);
-        for (i1=0,i2=segmentsize; i1<segmentsize; i1++,i2++){
-          for(xr=0;xr<xr_pixels;xr++){
+        for (i1=0,i2=segmentsize; i1<segmentsize; i1++,i2++) {
+          for(xr=0;xr<xr_pixels;xr++) {
             // v1
-						  if(mu_prj[i1][xr]>0) 
+						  if (mu_prj[i1][xr]>0) 
 							  largeprj3[i1][v1][xr]/=mu_prj[i1][xr];
 						  else largeprj3[i1][v1][xr]=0;
               //v1 + views/2
-						  if(mu_prj[i2][xr]>0) 
+						  if (mu_prj[i2][xr]>0) 
 							  largeprj3[i1][v2][xr]/=mu_prj[i2][xr];
 						  else largeprj3[i1][v2][xr]=0;
           }
@@ -1740,7 +1740,7 @@ void prepare_osem3dw2(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
     }
   }
 	if (verbose & 0x0020) fprintf(stdout,"  Set negative to 0 \n");
-	if(weighting==2) setnegative2zero(largeprj);
+	if (weighting==2) setnegative2zero(largeprj);
 }
 
 /**
@@ -1763,26 +1763,26 @@ void prepare_osem3dw3(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
 
 	if (verbose & 0x0020) {
 		fprintf(stdout, "  Prepare_osem3dw3 \n   Reading prompt sinogram ");
-		if(floatFlag ==0) fprintf(stdout, "  (short) \n");
+		if (floatFlag ==0) fprintf(stdout, "  (short) \n");
 		else fprintf(stdout, "  (float) \n");
 	}
 
-	for(theta=0;theta<th_pixels;theta++){	
-		if(floatFlag==0){
+	for(theta=0;theta<th_pixels;theta++) {	
+		if (floatFlag==0) {
 
-//			if( !read_flat_short_proj_ori_to_short_array_theta(psinofp, &largeprjshort3[segment_offset[theta]][0][0],  theta))        
+//			if ( !read_flat_short_proj_ori_to_short_array_theta(psinofp, &largeprjshort3[segment_offset[theta]][0][0],  theta))        
 //				crash3("  Prepare_osem3dw3: error reading (short) prompt sinogram at theta  =%d !\n ", theta);
-			if( !read_flat_short_proj_ori_to_short_array_theta(psinofp,&tmp_for_short_sino_read[0][0][0],theta))        
+			if ( !read_flat_short_proj_ori_to_short_array_theta(psinofp,&tmp_for_short_sino_read[0][0][0],theta))        
 				crash3("  Prepare_osem3dw3: error reading (short) prompt sinogram at theta  =%d !\n ", theta);
 			yr2=segment_offset[theta];
-			for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++){
-				for(v=0;v<views;v++){
+			for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++) {
+				for(v=0;v<views;v++) {
 					memcpy(&largeprjshort3[yr2][v][0],tmp_for_short_sino_read[yr][v],xr_pixels*sizeof(short));
 				}
 			}
 		} 
 		else {
-			if( !read_flat_float_proj_ori_theta(psinofp, &largeprjfloat3[segment_offset[theta]][0][0],  theta, 0.0f))        
+			if ( !read_flat_float_proj_ori_theta(psinofp, &largeprjfloat3[segment_offset[theta]][0][0],  theta, 0.0f))        
 				crash3("  Prepare_osem3dw3: error reading (float) prompt sinogram at theta  =%d !\n ", theta);
 
 		}
@@ -1792,12 +1792,12 @@ void prepare_osem3dw3(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
 	// if (verbose & 0x0020)
   if (!chFlag) {
     fprintf(stderr,"  Read delayed \n");
-	  for(theta=0;theta<th_pixels;theta++){
-		  if( !read_flat_float_proj_ori_theta(dsinofp, &tmp_prj1[0][0][0],  theta, 0.0f))        
+	  for(theta=0;theta<th_pixels;theta++) {
+		  if ( !read_flat_float_proj_ori_theta(dsinofp, &tmp_prj1[0][0][0],  theta, 0.0f))        
 			  crash3("  Prepare_osem3dw3: error reading delayed at theta  =%d !\n ", theta);
 		  yr2=segment_offset[theta];
-		  for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++){
-			  for(v=0;v<views;v++){
+		  for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++) {
+			  for(v=0;v<views;v++) {
 				  memcpy(&largeprj3[yr2][v][0],tmp_prj1[yr][v],xr_pixels*sizeof(float));
 			  }
       }
@@ -1813,15 +1813,15 @@ void prepare_osem3dw3(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
  // if (verbose & 0x0020)
   LogMessage("  Read normalization and normalize delayed\n");	
   LogMessage("  Apply normalization mask to prompt sinogram\n");
-	for(theta=0;theta<th_pixels;theta++){
-		if( !read_flat_float_proj_ori_theta(normfp, &tmp_prj1[0][0][0],  theta, 1.0f, 1))        
+	for(theta=0;theta<th_pixels;theta++) {
+		if ( !read_flat_float_proj_ori_theta(normfp, &tmp_prj1[0][0][0],  theta, 1.0f, 1))        
 			crash3("  Prepare_osem3dw3: error reading normalization at theta  =%d !\n ", theta);
 		mulprojection(largeprj3,tmp_prj1,theta);
     yr2=segment_offset[theta];
-    for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++){
-      for(v=0;v<views;v++){
-        for(xr=0;xr<xr_pixels;xr++){
-          if(tmp_prj1[yr][v][xr]==0.0f) 
+    for( yr=0; yr<=yr_top[theta]-yr_bottom[theta]; yr++,yr2++) {
+      for(v=0;v<views;v++) {
+        for(xr=0;xr<xr_pixels;xr++) {
+          if (tmp_prj1[yr][v][xr]==0.0f) 
           {
             if (floatFlag==0) largeprjshort3[yr2][v][xr]=0;
             else largeprjfloat3[yr2][v][xr]=0.0f;
@@ -1833,7 +1833,7 @@ void prepare_osem3dw3(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
 
 
 	//    d(t)*N(t)+s(t)
-  if(sFlag==1) {
+  if (sFlag==1) {
     float *sc2d=NULL, *scale_factors=NULL;
 		if (verbose & 0x0020) fprintf(stderr,"  Add scatter (assumed normalized) \n");
  
@@ -1842,16 +1842,16 @@ void prepare_osem3dw3(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
       scale_factors = (float*)calloc(segmentsize, sizeof(float));
       if (sc2d==NULL || scale_factors==NULL) 
         crash1("  Prepare_osem3dw3: memory allocation error!\n");
-      if( fread(sc2d, sizeof(float), xr_pixels*views*z_pixels, ssinofp) != 
+      if ( fread(sc2d, sizeof(float), xr_pixels*views*z_pixels, ssinofp) != 
         xr_pixels*views*z_pixels)  
         crash1("  Prepare_osem3dw3: error reading unscaled 2D scatter!\n");
       if (fread(scale_factors, sizeof(float), segmentsize_s9, ssinofp)!= segmentsize_s9)
         crash1("  Prepare_osem3dw3: error reading scatter scale factors!\n");
        convert_s9_s3(&scale_factors);
     }
-		for(theta=0;theta<th_pixels;theta++){
+		for(theta=0;theta<th_pixels;theta++) {
       if (!s2DFlag) {
-        if( !read_flat_float_proj_ori_theta(ssinofp, &tmp_prj1[0][0][0],  theta, 0.0f))        
+        if ( !read_flat_float_proj_ori_theta(ssinofp, &tmp_prj1[0][0][0],  theta, 0.0f))        
 				  crash3("  Prepare_osem3dw3: error reading scatter at theta  =%d !\n ", theta);
       } else apply_scale_factors(sc2d, scale_factors, theta, &tmp_prj1[0][0][0]);
 			addprojection(largeprj3,tmp_prj1,theta);
@@ -1867,8 +1867,8 @@ void prepare_osem3dw3(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
   switch (attenType)
   {
   case Atten3D:
-	  for(theta=0;theta<th_pixels;theta++){
-		  if( !read_flat_float_proj_ori_theta(attenfp, &tmp_prj1[0][0][0],  theta, 1.0f))        
+	  for(theta=0;theta<th_pixels;theta++) {
+		  if ( !read_flat_float_proj_ori_theta(attenfp, &tmp_prj1[0][0][0],  theta, 1.0f))        
 			  crash3("  Prepare_osem3dw3: error reading attenuation at theta  =%d !\n ", theta);
 		  mulprojection(largeprj3,tmp_prj1,theta);
     }
@@ -1876,7 +1876,7 @@ void prepare_osem3dw3(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
   case Atten3D_Span9:
     theta=0;
     fseek(attenfp,0, SEEK_SET); // reset file position
-	  while(theta<th_pixels){
+	  while(theta<th_pixels) {
       int  nplanes = yr_top[theta]-yr_bottom[theta]+1;
       // read span9 segment 0 or negative segment
       if (fread(&tmp_prj1[0][0][0],sizeof(float)*xr_pixels*views,nplanes,attenfp) != nplanes)
@@ -1908,10 +1908,10 @@ void prepare_osem3dw3(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
   case FullMuMap:
   case RebinnedMuMap:
     read_atten_image(attenfp, atten_image, attenType);
-    for(v1=0, v2=views/2;v1<views/2;v1++, v2++){
+    for(v1=0, v2=views/2;v1<views/2;v1++, v2++) {
       proj_atten_view(atten_image, &mu_prj[0][0],  v1);
-      for (i1=0,i2=segmentsize; i1<segmentsize; i1++,i2++){
-        for(xr=0;xr<xr_pixels;xr++){
+      for (i1=0,i2=segmentsize; i1<segmentsize; i1++,i2++) {
+        for(xr=0;xr<xr_pixels;xr++) {
           largeprj3[i1][v1][xr] *= mu_prj[i1][xr];
           largeprj3[i1][v2][xr] *= mu_prj[i2][xr];
         }
@@ -1928,9 +1928,9 @@ void prepare_osem3dw3(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
 FUNCPTR pt_write_norm(void *ptarg) 
 {
 	File_structure *arg = (File_structure *) ptarg;
-	if(normfac_in_file_flag==1){
+	if (normfac_in_file_flag==1) {
 		;
-	} else if(!write_norm(arg->normfac, arg->normfac_img, arg->isubset,arg->verbose) )
+	} else if (!write_norm(arg->normfac, arg->normfac_img, arg->isubset,arg->verbose) )
 		crash3("  Error occurs in write_norm at subset %d !\n", arg->isubset );
 	return 0;
 }
@@ -1938,15 +1938,15 @@ FUNCPTR pt_write_norm(void *ptarg)
 FUNCPTR pt_read_norm(void *ptarg)
 {
 	File_structure *arg = (File_structure *) ptarg;
-	if(normfac_in_file_flag==1){
+	if (normfac_in_file_flag==1) {
 		;
 		//	memcpy(&(arg->normfac[0][0][0]),&(normfac_infile[arg->isubset][0][0][0]),x_pixels*y_pixels*z_pixels_simd*sizeof(__m128));
 	} else	{
-		if(normfac_in_file_flag==2){
-			if(!read_norm(normfac_infile[arg->isubset], arg->normfac_img, arg->isubset,arg->verbose) )
+		if (normfac_in_file_flag==2) {
+			if (!read_norm(normfac_infile[arg->isubset], arg->normfac_img, arg->isubset,arg->verbose) )
 				crash3("  Error occurs in read_norm at subset %d !\n", arg->isubset );
-		} else if(normfac_in_file_flag==-1){
-			if(!read_norm(arg->normfac, arg->normfac_img, arg->isubset,arg->verbose) )
+		} else if (normfac_in_file_flag==-1) {
+			if (!read_norm(arg->normfac, arg->normfac_img, arg->isubset,arg->verbose) )
 				crash3("  Error occurs in read_norm at subset %d !\n", arg->isubset );
 		}
 	}
@@ -1966,7 +1966,7 @@ FUNCPTR pt_normfac_calculate(void *ptarg)
 	mmsum=_mm_set_ps1(0);
 
 
-	if(thr==0){
+	if (thr==0) {
 		xs=0;
 		xe=x_pixels/2;
 	} else {
@@ -1982,15 +1982,15 @@ FUNCPTR pt_normfac_calculate(void *ptarg)
 			ptr1=correction[x][y];
 			ptr2=normfac[x][y];
 			mptr=(__m128 *) ptr1;
-			if(mapemflag){
+			if (mapemflag) {
 				memcpy(ptr1,ptr2,z_pixels_simd*4*4);
-				for(z=0;z<z_pixels_simd;z++){
+				for(z=0;z<z_pixels_simd;z++) {
 					mmsum=_mm_add_ps(mmsum,mptr[z]);
 				}
 				continue;
 			} else {
 			for( z=0; z<z_pixels; z++ ) { 
-				if( fabs(normfac[x][y][z])> epsilon1 )  ptr1[z] = (1.0f/normfac[x][y][z]);
+				if ( fabs(normfac[x][y][z])> epsilon1 )  ptr1[z] = (1.0f/normfac[x][y][z]);
 				else 
 					ptr1[z] = 0.;
 			}
@@ -2008,7 +2008,7 @@ FUNCPTR pt_back_proj3d_thread1(void *ptarg)
 	FPBP_thread *arg= (FPBP_thread *) ptarg;
 	
 
-	if(CompressFlag==0){
+	if (CompressFlag==0) {
 		back_proj3d_thread1(arg->prj,arg->ima,arg->view,arg->numthread,arg->imagebuf,arg->prjbuf);
 	} else {
 		back_proj3d_thread1(arg->prj,arg->ima,arg->view,arg->numthread,arg->imagebuf,arg->prjbuf);
@@ -2021,15 +2021,15 @@ FUNCPTR pt_osem3d_proj_thread1(void *ptarg)
 	FPBP_thread *arg= (FPBP_thread *) ptarg;
 	int weighting=arg->weighting;
 
-	if(CompressFlag==0){
+	if (CompressFlag==0) {
 		forward_proj3d_thread1(arg->ima,arg->prj,arg->view,arg->numthread,arg->imagebuf,arg->prjbuf);
 //		forward_proj3d_thread1_swap_pack(arg->ima,arg->imagepack,arg->prj,arg->view,arg->numthread,arg->imagebuf,arg->prjbuf);
 			if (weighting ==0 || weighting ==1 || weighting ==2 || weighting ==5 || weighting ==6 || weighting ==7 ) { 
 				update_estimate_w012(arg->prj,arg->volumeprj,segmentsize*2,xr_pixels,1);
 			}	        
 			if ((weighting == 3 || weighting==8)) {  
-				if(floatFlag==0) update_estimate_w3(arg->prj,arg->volumeprj,arg->volumeprjshort,arg->volumeprjfloat,segmentsize*2,xr_pixels,1);
-				if(floatFlag==1) update_estimate_w3(arg->prj,arg->volumeprj,NULL,arg->volumeprjfloat,segmentsize*2,xr_pixels,1);
+				if (floatFlag==0) update_estimate_w3(arg->prj,arg->volumeprj,arg->volumeprjshort,arg->volumeprjfloat,segmentsize*2,xr_pixels,1);
+				if (floatFlag==1) update_estimate_w3(arg->prj,arg->volumeprj,NULL,arg->volumeprjfloat,segmentsize*2,xr_pixels,1);
 			}
 		back_proj3d_thread1(arg->prj,arg->ima, arg->view, 1,arg->imagebuf,arg->prjbuf); 
 	} else {
@@ -2038,8 +2038,8 @@ FUNCPTR pt_osem3d_proj_thread1(void *ptarg)
 		//	update_estimate_w012(arg->prj,arg->volumeprj,segmentsize*2,xr_pixels,1);
 		//}	        
 		//if ((weighting == 3 || weighting==8)) {  
-		//	if(floatFlag==0) update_estimate_w3(arg->prj,arg->volumeprj,arg->volumeprjshort,NULL,segmentsize*2,xr_pixels,1);
-		//	if(floatFlag==1) update_estimate_w3(arg->prj,arg->volumeprj,NULL,arg->volumeprjfloat,segmentsize*2,xr_pixels,1);
+		//	if (floatFlag==0) update_estimate_w3(arg->prj,arg->volumeprj,arg->volumeprjshort,NULL,segmentsize*2,xr_pixels,1);
+		//	if (floatFlag==1) update_estimate_w3(arg->prj,arg->volumeprj,NULL,arg->volumeprjfloat,segmentsize*2,xr_pixels,1);
 		//}
 		//back_proj3d_thread1_compress(arg->prj,arg->ima, arg->view, 1,arg->imagebuf,arg->prjbuf); 
 	}
@@ -2054,18 +2054,18 @@ void calculate_derivative_mapem(float ***image,float ***gradient,float ***laplac
 						            {{ 0.8165f ,1.0f,0.8165f}, { 1.0f ,1.4142f ,1.0f},    { 0.8165f ,1.0f ,0.8165f} }};
 	float normtotal=0;
 
-	for(x=0;x<3;x++){
-		for(y=0;y<3;y++){
-			for(z=0;z<3;z++){
+	for(x=0;x<3;x++) {
+		for(y=0;y<3;y++) {
+			for(z=0;z<3;z++) {
 				normtotal+=omega[x][y][z];
 			}
 		}
 	}
 
-	for(x=0;x<x_pixels;x++){
-		for(y=cylwiny[x][0];y<cylwiny[x][1];y++){
+	for(x=0;x<x_pixels;x++) {
+		for(y=cylwiny[x][0];y<cylwiny[x][1];y++) {
 			
-			for(z=1;z<z_pixels-1;z++){
+			for(z=1;z<z_pixels-1;z++) {
 				gradient[x][y][z]=0;
 				gradient[x][y][z]+=1.4142f*(image[x+1][y][z]+image[x][y+1][z]+image[x][y][z+1]+image[x-1][y][z]+image[x][y-1][z]+image[x][y][z-1])
 					+(image[x+1][y+1][z]+image[x-1][y+1][z]+image[x+1][y-1][z]+image[x-1][y-1][z]
@@ -2093,17 +2093,17 @@ BPFP_ptargs *arg;
 	float eps=0.0003f;
 	__m128 mmeps;
 
-	if(sum_image!=0) eps*=sum_normfac/sum_image;
+	if (sum_image!=0) eps*=sum_normfac/sum_image;
 	else eps=0;
 	mmeps=_mm_set_ps1(eps);
 	amax=_mm_set_ps1(100.00);
 	amin=_mm_set_ps1(0.1f);
-	if(sum_image!=0) printf("sumnormfac %f\t%f\t%f\n",sum_normfac,sum_image,eps);
+	if (sum_image!=0) printf("sumnormfac %f\t%f\t%f\n",sum_normfac,sum_image,eps);
 	czero=_mm_set_ps1(0);
 
 	arg=(BPFP_ptargs*) ptarg;
 	coef=_mm_set_ps1(image_max);
-	for(x=arg->start;x<arg->end;x++){
+	for(x=arg->start;x<arg->end;x++) {
 		for( y=cylwiny[x][0]; y<cylwiny[x][1]; y++ ) {
 			mptr1=(__m128 *)image[x][y];
 			mptr2=(__m128 *)correction[x][y];
@@ -2113,7 +2113,7 @@ BPFP_ptargs *arg;
 			nptr2=(float *)mptr2;
 			nptr3=(float *)mptr3;
 			nptr4=(float *)mptr4;
-			for(z=0;z<z_pixels_simd;z++){
+			for(z=0;z<z_pixels_simd;z++) {
 				mptr1[z]=_mm_mul_ps(mptr1[z],_mm_div_ps(_mm_sub_ps(mptr2[z],_mm_mul_ps(mmeps,_mm_sub_ps(mptr4[z],mptr1[z]))),_mm_add_ps(mptr3[z],_mm_mul_ps(mmeps,mptr1[z]))));
 //				mptr1[z]=_mm_add_ps(mptr1[z],_mm_mul_ps(mptr1[z],_mm_mul_ps(mptr2[z],mptr3[z])));
 //				mptr1[z]=_mm_min_ps(coef,_mm_mul_ps(mptr1[z],_mm_mul_ps(mptr2[z],mptr3[z])));
@@ -2135,7 +2135,7 @@ FUNCPTR pt_cal_updateimage(void *ptarg)
 	float *nptr1,*nptr2,*nptr3;
 
 
-	if(mapemflag){
+	if (mapemflag) {
 		pt_cal_updateimage_mapem(ptarg);
 		return 0;
 	}
@@ -2146,7 +2146,7 @@ FUNCPTR pt_cal_updateimage(void *ptarg)
 
 	arg=(BPFP_ptargs*) ptarg;
 	coef=_mm_set_ps1(image_max);
-	for(x=arg->start;x<arg->end;x++){
+	for(x=arg->start;x<arg->end;x++) {
 		for( y=cylwiny[x][0]; y<cylwiny[x][1]; y++ ) {
 			mptr1=(__m128 *)image[x][y];
 			mptr2=(__m128 *)correction[x][y];
@@ -2154,7 +2154,7 @@ FUNCPTR pt_cal_updateimage(void *ptarg)
 			nptr1=(float *)mptr1;
 			nptr2=(float *)mptr2;
 			nptr3=(float *)mptr3;
-			for(z=0;z<z_pixels_simd;z++){
+			for(z=0;z<z_pixels_simd;z++) {
 //				mptr1[z]=_mm_add_ps(mptr1[z],_mm_mul_ps(mptr1[z],_mm_mul_ps(mptr2[z],mptr3[z])));
 //				mptr1[z]=_mm_min_ps(coef,_mm_mul_ps(mptr1[z],_mm_mul_ps(mptr2[z],mptr3[z])));
 				mptr1[z]=_mm_min_ps(coef,_mm_mul_ps(mptr1[z],_mm_mul_ps(_mm_min_ps(amax,_mm_max_ps(amin,mptr2[z])),mptr3[z])));
@@ -2211,32 +2211,32 @@ void allocation_memory(int pFlag,int  sFlag,int weighting) {
 	//	largeprj3 = (float ***) matrix3dm128(0,segmentsize-1,0,views-1,0,xr_pixels/4-1); //for all theta.	
 
 	largeprj3=(float ***) calloc(segmentsize,sizeof(float **));
-	for(i=0;i<segmentsize;i++){
+	for(i=0;i<segmentsize;i++) {
 		largeprj3[i]=(float **) calloc(views,sizeof(float*));
-		for(j=0;j<views;j++){
+		for(j=0;j<views;j++) {
 			largeprj3[i][j]=(float *) _mm_malloc(xr_pixels*sizeof(float),16);
 		}
 	}
 
-	if(mapemflag){
+	if (mapemflag) {
 		gradient=(float ***) matrix3dm128(0,x_pixels-1,0,y_pixels-1,0,z_pixels_simd-1);  //for two views.
 		laplacian=(float ***) matrix3dm128(0,x_pixels-1,0,y_pixels-1,0,z_pixels_simd-1);  //for two views.
 	}
 
-	if( largeprj3 == NULL ) crash1 ("  Error in allocation memory for largeprj3 !\n");
+	if ( largeprj3 == NULL ) crash1 ("  Error in allocation memory for largeprj3 !\n");
 	else if (verbose & 0x0040) fprintf(stdout,"  Allocate largeprj3      : %d kbytes \n", views/2*segmentsize*2*xr_pixels/256);
-	if(weighting==3|| weighting==8|| weighting==4|| weighting==9){
-		if(floatFlag==0){
+	if (weighting==3|| weighting==8|| weighting==4|| weighting==9) {
+		if (floatFlag==0) {
 			largeprjshort3=(short ***) calloc(segmentsize,sizeof(short **));
-			for(i=0;i<segmentsize;i++){
+			for(i=0;i<segmentsize;i++) {
 				largeprjshort3[i]=(short **) calloc(views,sizeof(short*));
-				for(j=0;j<views;j++){
+				for(j=0;j<views;j++) {
 					largeprjshort3[i][j]=(short *) _mm_malloc(xr_pixels*sizeof(short),16);
 				}
 			}
 		} else { //MS+CM next was short and should be float
 			largeprjfloat3 = (float ***) matrix3dm128(0,segmentsize-1,0,views-1,0,xr_pixels/4-1);
-			if( largeprjfloat3 == NULL ) crash1 ("  Error in allocation memory  for largeprjfloat3 !\n");
+			if ( largeprjfloat3 == NULL ) crash1 ("  Error in allocation memory  for largeprjfloat3 !\n");
 			else if (verbose & 0x0040) fprintf(stdout,"  Allocate largeprjfloat3      : %d kbytes \n", views/2*segmentsize*2*xr_pixels/256);
 		}
 	}
@@ -2248,34 +2248,34 @@ void allocation_memory(int pFlag,int  sFlag,int weighting) {
 	estimate_thread = (float ***) matrix3dm128(0,nthreads-1,0,segmentsize*2-1,0,xr_pixels/4-1);  //for two views.
 
 	largeprj=(float ***) calloc(views/2,sizeof(float **));                 //for all views.
-	for(i=0;i<views/2;i++){
+	for(i=0;i<views/2;i++) {
 		largeprj[i]=(float **) calloc(segmentsize*2,sizeof(float *));
 	}
-	for(i=0;i<views/2;i++){
-		for(j=0;j<segmentsize;j++){
+	for(i=0;i<views/2;i++) {
+		for(j=0;j<segmentsize;j++) {
 			largeprj[i][j]=largeprj3[j][i];
 			largeprj[i][j+segmentsize]=largeprj3[j][i+views/2];
 		}
 	}
-	if(weighting==3|| weighting==8|| weighting==4|| weighting==9){
-		if(floatFlag==0){
+	if (weighting==3|| weighting==8|| weighting==4|| weighting==9) {
+		if (floatFlag==0) {
 			largeprjshort=(short ***) calloc(views/2,sizeof(short **));
-			for(i=0;i<views/2;i++){
+			for(i=0;i<views/2;i++) {
 				largeprjshort[i]=(short **) calloc(segmentsize*2,sizeof(short *));
 			}
-			for(i=0;i<views/2;i++){
-				for(j=0;j<segmentsize;j++){
+			for(i=0;i<views/2;i++) {
+				for(j=0;j<segmentsize;j++) {
 					largeprjshort[i][j]=largeprjshort3[j][i];
 					largeprjshort[i][j+segmentsize]=largeprjshort3[j][i+views/2];
 				}
 			}
 		} else {
 			largeprjfloat=(float ***) calloc(views/2,sizeof(float **));
-			for(i=0;i<views/2;i++){
+			for(i=0;i<views/2;i++) {
 				largeprjfloat[i]=(float **) calloc(segmentsize*2,sizeof(float *));
 			}
-			for(i=0;i<views/2;i++){
-				for(j=0;j<segmentsize;j++){
+			for(i=0;i<views/2;i++) {
+				for(j=0;j<segmentsize;j++) {
 					largeprjfloat[i][j]=largeprjfloat3[j][i];
 					largeprjfloat[i][j+segmentsize]=largeprjfloat3[j][i+views/2];
 				}
@@ -2283,13 +2283,13 @@ void allocation_memory(int pFlag,int  sFlag,int weighting) {
 		}
 	}
 
-	if(CompressFlag==1){
+	if (CompressFlag==1) {
 		compressmask=(unsigned char ***) matrix3dchar(0,views-1,0,segmentsize-1,0,xr_pixels/8-1);
 		compress_num=(short **) matrixshort(0,views-1,0,xr_pixels-1);
-		if(compressmask==NULL){
+		if (compressmask==NULL) {
 			printf("compressmask allocation error\n");
 		}
-		if(compress_num==NULL){
+		if (compress_num==NULL) {
 			printf("compress_num allocation error\n");
 		}
 	}
@@ -2298,28 +2298,28 @@ void allocation_memory(int pFlag,int  sFlag,int weighting) {
 }
 
 
-void test_free(int weighting){
+void test_free(int weighting) {
 
 	int i =0;
 	int j =0;
 	free_matrix3dm128(largeprj3, 0,segmentsize-1,0,views-1   , 0,xr_pixels/4-1);
 	if (verbose & 0x0040) fprintf(stdout,"  Free largeprj3     : %d kbytes \n", views/2*segmentsize*2*xr_pixels/256);
-	if(weighting==3|| weighting==8|| weighting==4|| weighting==9){
+	if (weighting==3|| weighting==8|| weighting==4|| weighting==9) {
 		free_matrix3dm128((float ***)largeprjshort3, 0,segmentsize-1,0,views-1,0,xr_pixels/8-1);        
 		if (verbose & 0x0040) fprintf(stdout,"  Free largeprjshort3      : %d kbytes \n", views/2*segmentsize*2*xr_pixels/512);
 	}
 	free_matrixm128(estimate,0,segmentsize-1,0,xr_pixels/4-1);
 	if (verbose & 0x0040) fprintf(stdout,"  Free estimate      : %d kbytes \n", segmentsize*2*xr_pixels/512);
-	for(i=0;i<views/2;i++){
-		for(j=0;j<segmentsize*2;j++){
+	for(i=0;i<views/2;i++) {
+		for(j=0;j<segmentsize*2;j++) {
 			//free(largeprj[i][j]);
 		}
 		free(largeprj[i]);
 	}
 	free(largeprj);
-	if(weighting==3|| weighting==8|| weighting==4|| weighting==9){
-		for(i=0;i<views/2;i++){
-			for(j=0;j<segmentsize*2;j++){
+	if (weighting==3|| weighting==8|| weighting==4|| weighting==9) {
+		for(i=0;i<views/2;i++) {
+			for(j=0;j<segmentsize*2;j++) {
 				free(largeprjshort[i][j]);
 			}
 			free(largeprjshort[i]);//=(short **) calloc(segmentsize*2,sizeof(short *));
@@ -2340,21 +2340,21 @@ void zoom_proj_zoomup(float ***largeprj3,float zoom)
 	int xri,xrzi;
 
 	tmpf=(float *) calloc(xr_pixels,sizeof(float));
-	if(zoom<=1){
+	if (zoom<=1) {
 		printf("  Zoom should be greater than 1.\n");
 		return;
 	}
 	zoomf=1/zoom;
-	for(i=0;i<segmentsize;i++){
-		for(j=0;j<views;j++){
+	for(i=0;i<segmentsize;i++) {
+		for(j=0;j<views;j++) {
 			xr=xrz=0;
 			memset(tmpf,0,xr_pixels*sizeof(float));
 			data=largeprj3[i][j];
 			xrz=-xr_pixels/2*zoomf+xr_pixels/2;
-			for(xri=0;xri<xr_pixels;xri++){
+			for(xri=0;xri<xr_pixels;xri++) {
 				xrzi=(int)xrz;
 				r=xrz-xrzi;
-				if(xrzi<xr_pixels-2 && xrzi>=0){
+				if (xrzi<xr_pixels-2 && xrzi>=0) {
 					tmpf[xri]=data[xrzi]+r*(data[xrzi+1]-data[xrzi]);
 				} else tmpf[xri]=0;
 				xrz+=zoomf;
@@ -2379,7 +2379,7 @@ void zoom_proj_reduce(float ***largeprj3,float zoom)
 
 	tmpf=(float *) calloc(xr_pixels,sizeof(float));
 	normal=(float *) calloc(xr_pixels,sizeof(float));
-	if(zoom>=1){
+	if (zoom>=1) {
 		printf("  Zoom should be smaller than 1\n");
 		return;
 	}
@@ -2387,27 +2387,27 @@ void zoom_proj_reduce(float ***largeprj3,float zoom)
 
 	for(k=0;k<xr_pixels;k++) normal[k]=0;
 	xrz=-xr_pixels/2*zoomf+xr_pixels/2;
-	for(xri=0;xri<xr_pixels;xri++){
+	for(xri=0;xri<xr_pixels;xri++) {
 		xrzi=(int)xrz;
 		r=xrz-xrzi;
-		if(xrzi<xr_pixels-2 && xrzi>=0){
+		if (xrzi<xr_pixels-2 && xrzi>=0) {
 			normal[xrzi]+=(1-r);
 			normal[xrzi+1]+=r;
 		}
 		xrz+=zoomf;
 	}
-	for(k=0;k<xr_pixels;k++) if(normal[k]!=0) normal[k]=1/normal[k];
+	for(k=0;k<xr_pixels;k++) if (normal[k]!=0) normal[k]=1/normal[k];
 
-	for(i=0;i<segmentsize;i++){
-		for(j=0;j<views;j++){
+	for(i=0;i<segmentsize;i++) {
+		for(j=0;j<views;j++) {
 			xr=xrz=0;
 			memset(tmpf,0,xr_pixels*sizeof(float));
 			data=largeprj3[i][j];
 			xrz=-xr_pixels/2*zoomf+xr_pixels/2;
-			for(xri=0;xri<xr_pixels;xri++){
+			for(xri=0;xri<xr_pixels;xri++) {
 				xrzi=(int)xrz;
 				r=xrz-xrzi;
-				if(xrzi<xr_pixels-2 && xrzi>=0){
+				if (xrzi<xr_pixels-2 && xrzi>=0) {
 					tmpf[xrzi]+=data[xri]*(1-r);
 					tmpf[xrzi+1]+=data[xri]*r;
 				}
@@ -2431,22 +2431,22 @@ void zoom_proj_short_zoomup(short ***largeprj3,float zoom)
 	short *data;
 	int xri,xrzi;
 	tmpf=(float *) calloc(xr_pixels,sizeof(float));
-	if(zoom<=1){
+	if (zoom<=1) {
 		printf(" Zoom should be greater than 1\n");
 		return;
 	}
 	zoomf=1/zoom;
 
-	for(i=0;i<segmentsize;i++){
-		for(j=0;j<views;j++){
+	for(i=0;i<segmentsize;i++) {
+		for(j=0;j<views;j++) {
 			xr=xrz=0;
 			memset(tmpf,0,xr_pixels*sizeof(float));
 			data=largeprj3[i][j];
 			xrz=-xr_pixels/2*zoomf+xr_pixels/2;
-			for(xri=0;xri<xr_pixels;xri++){
+			for(xri=0;xri<xr_pixels;xri++) {
 				xrzi=(int)xrz;
 				r=xrz-xrzi;
-				if(xrzi<xr_pixels-2 && xrzi>=0){
+				if (xrzi<xr_pixels-2 && xrzi>=0) {
 					tmpf[xri]=data[xrzi]+r*(data[xrzi+1]-data[xrzi]);
 				}
 				else tmpf[xri]=0;
@@ -2471,7 +2471,7 @@ void zoom_proj_short_reduce(short ***largeprj3,float zoom)
 	float *normal;
 	tmpf=(float *) calloc(xr_pixels,sizeof(float));
 	normal=(float *) calloc(xr_pixels,sizeof(float));
-	if(zoom>=1){
+	if (zoom>=1) {
 		printf(" Zoom should be smaller than 1\n");
 		return;
 	}
@@ -2479,28 +2479,28 @@ void zoom_proj_short_reduce(short ***largeprj3,float zoom)
 
 	for(k=0;k<xr_pixels;k++) normal[k]=0;
 	xrz=-xr_pixels/2*zoomf+xr_pixels/2;
-	for(xri=0;xri<xr_pixels;xri++){
+	for(xri=0;xri<xr_pixels;xri++) {
 		xrzi=(int)xrz;
 		r=xrz-xrzi;
-		if(xrzi<xr_pixels-2 && xrzi>=0){
+		if (xrzi<xr_pixels-2 && xrzi>=0) {
 			normal[xrzi]+=(1-r);
 			normal[xrzi+1]+=r;
 		}
 		xrz+=zoomf;
 	}
-	for(k=0;k<xr_pixels;k++) if(normal[k]!=0) normal[k]=1/normal[k];
+	for(k=0;k<xr_pixels;k++) if (normal[k]!=0) normal[k]=1/normal[k];
 
 
-	for(i=0;i<segmentsize;i++){
-		for(j=0;j<views;j++){
+	for(i=0;i<segmentsize;i++) {
+		for(j=0;j<views;j++) {
 			xr=xrz=0;
 			memset(tmpf,0,xr_pixels*sizeof(float));
 			data=largeprj3[i][j];
 			xrz=-xr_pixels/2*zoomf+xr_pixels/2;
-			for(xri=0;xri<xr_pixels;xri++){
+			for(xri=0;xri<xr_pixels;xri++) {
 				xrzi=(int)xrz;
 				r=xrz-xrzi;
-				if(xrzi<xr_pixels-2 && xrzi>=0){
+				if (xrzi<xr_pixels-2 && xrzi>=0) {
 					tmpf[xrzi]+=data[xri]*(1-r);
 					tmpf[xrzi+1]+=data[xri]*r;
 				}
@@ -2538,14 +2538,14 @@ FUNCPTR pt_update_est_w012(void *ptarg)
 	int totalcount=0;
 	int zerocount=0;
 
-	for(i=start;i<end;i++){
+	for(i=start;i<end;i++) {
 		ptr1 = est[i];
 		ptr2 = prj[i];
 		for( xr=0; xr<size; xr++ ) {
-//			if(ptr1[xr] > epsilon3) ptr1[xr] = (ptr2[xr]-ptr1[xr])/ptr1[xr];
-			if(ptr1[xr] > epsilon3) ptr1[xr] = ptr2[xr]/ptr1[xr];
+//			if (ptr1[xr] > epsilon3) ptr1[xr] = (ptr2[xr]-ptr1[xr])/ptr1[xr];
+			if (ptr1[xr] > epsilon3) ptr1[xr] = ptr2[xr]/ptr1[xr];
 			else  {
-				if(ptr2[xr]==0) ptr1[xr] = 0.0;
+				if (ptr2[xr]==0) ptr1[xr] = 0.0;
 				else ptr1[xr]=0.0;
 			}
 		}
@@ -2562,12 +2562,12 @@ void update_estimate_w012(float **estimate,float **prj,int nplanes,int xr_pixels
 	unsigned int threadID;
 
 	inc=nplanes/nthreads;
-	for(thr=0;thr<nthreads;thr++){
+	for(thr=0;thr<nthreads;thr++) {
 		updatestruct[thr].est=estimate;
 		updatestruct[thr].prj=prj;
 		updatestruct[thr].size=xr_pixels;
 		updatestruct[thr].plane_start=thr*inc;
-		if(thr!=nthreads-1) updatestruct[thr].plane_end=(thr+1)*inc;
+		if (thr!=nthreads-1) updatestruct[thr].plane_end=(thr+1)*inc;
 		else updatestruct[thr].plane_end=nplanes;
 		START_THREAD(threads[thr],pt_update_est_w012,updatestruct[thr],threadID);
 	}
@@ -2595,27 +2595,27 @@ FUNCPTR pt_update_est_w3(void *ptarg)
 	int totalcount=0;
 	int zerocount=0;
 
-	if(floatFlag==0){
-		for(i=start;i<end;i++){
+	if (floatFlag==0) {
+		for(i=start;i<end;i++) {
 			ptr1 = est[i];
 			ptr2 = prj[i];
 			ptr3 = prjshort[i];
 			ptr4 = prjfloat[i];
 			for( xr=0; xr<size; xr++ ) {
 				den = ptr1[xr] + ptr2[xr];
-				if(ptr3[xr]==0) ptr1[xr]=0;
-				else if(den > epsilon3) ptr1[xr] = ptr3[xr]/den;
+				if (ptr3[xr]==0) ptr1[xr]=0;
+				else if (den > epsilon3) ptr1[xr] = ptr3[xr]/den;
 				else	ptr1[xr] = 1.0;
 			}
 		}
 	} else {
-		for(i=start;i<end;i++){
+		for(i=start;i<end;i++) {
 			ptr1 = est[i];
 			ptr2 = prj[i];
 			ptr4 = prjfloat[i];
 			for( xr=0; xr<size; xr++ ) {
 				den = ptr1[xr] + ptr2[xr];
-				if(den > epsilon3) ptr1[xr] = ptr4[xr]/den;
+				if (den > epsilon3) ptr1[xr] = ptr4[xr]/den;
 				else ptr1[xr] = 1.0;
 			}
 		}
@@ -2635,7 +2635,7 @@ void update_estimate_w3(float **estimate,float **prj,short **prjshort,float **pr
 	unsigned int threadID;
 
 	inc=nplanes/nthreads;
-	for(thr=0;thr<nthreads;thr++){
+	for(thr=0;thr<nthreads;thr++) {
 		updatestruct[thr].est=estimate;
 		updatestruct[thr].prj=prj;
 		updatestruct[thr].prjshort=prjshort;
@@ -2644,7 +2644,7 @@ void update_estimate_w3(float **estimate,float **prj,short **prjshort,float **pr
 		updatestruct[thr].plane_start=thr*inc;
 		updatestruct[thr].view=xr_pixel;
 
-		if(thr!=nthreads-1) updatestruct[thr].plane_end=(thr+1)*inc;
+		if (thr!=nthreads-1) updatestruct[thr].plane_end=(thr+1)*inc;
 		else updatestruct[thr].plane_end=nplanes;
 		START_THREAD(threads[thr],pt_update_est_w3,updatestruct[thr],threadID);
 	}
@@ -2657,7 +2657,7 @@ void update_estimate_w3(float **estimate,float **prj,short **prjshort,float **pr
 void alloc_tmprprj1()
 {
 	tmp_prj1  = (float ***) matrix3dm128(0,yr_pixels-1,0,views-1,0,xr_pixels/4-1); // for one theta.
-	if(tmp_prj1==NULL){
+	if (tmp_prj1==NULL) {
 		fprintf(stderr,"  Error allocating tmpprj1\n");
 		exit(1);
 	}
@@ -2667,7 +2667,7 @@ void alloc_tmprprj1()
 void alloc_tmprprj2()
 {
 	tmp_prj2  = (float ***) matrix3dm128(0,yr_pixels-1,0,views-1,0,xr_pixels/4-1); // for one theta.
-	if(tmp_prj2==NULL){
+	if (tmp_prj2==NULL) {
 		fprintf(stderr,"  Error allocating tmpprj2\n"); 
 		exit(1);
 	}
@@ -2689,21 +2689,21 @@ void free_tmpprj2()
 void alloc_correction()
 {
 	correction= (float ***) matrix3dm128(0,x_pixels-1, 0,y_pixels-1, 0,z_pixels_simd-1);
-	if( correction == NULL ) crash1("  Error allocating correction !\n");
+	if ( correction == NULL ) crash1("  Error allocating correction !\n");
 	else if (verbose & 0x0040) fprintf(stdout,"  Allocate correction    : %d kbytes \n", imagesize/256);
 }
 
 void alloc_normfac()
 {
 	normfac = (float ***) matrix3dm128(0,x_pixels-1,0,y_pixels-1,0,z_pixels_simd-1); 
-	if( normfac == NULL ) crash1("  Error allocating normfac !\n");
+	if ( normfac == NULL ) crash1("  Error allocating normfac !\n");
 	else if (verbose & 0x0040) fprintf(stdout,"  Allocate normfac       : %d kbytes \n", imagesize/256);    
 }
 
 void alloc_imagemask()
 {
 	imagemask = (char ***) matrix3dchar(0,x_pixels-1,0,y_pixels-1,0,z_pixels_simd*4-1); 
-	if( imagemask == NULL ) crash1("  Error allocating imagemask !\n");
+	if ( imagemask == NULL ) crash1("  Error allocating imagemask !\n");
 	else if (verbose & 0x0040) fprintf(stdout,"  Allocate imagemask      : %d kbytes \n", imagesize/1024);    
 }
 
@@ -2730,28 +2730,28 @@ float *** alloc_imagexyzf_thread()
 	float ***image;
 	image=(float ***) _mm_malloc( (size_t) ( x_pixels*sizeof(float **) ),16 );
 
-	for(x=0;x<x_pixels;x++){
+	for(x=0;x<x_pixels;x++) {
 			image[x]=(float **) _mm_malloc( (size_t) ( y_pixels*sizeof(float *) ),16 );
 		memset(image[x],0,y_pixels*sizeof(float *));
 	}
-	for(x=0;x<x_pixels;x++){
-		for(y=0;y<y_pixels;y++){
+	for(x=0;x<x_pixels;x++) {
+		for(y=0;y<y_pixels;y++) {
 			image[x][y]=(float *) _mm_malloc( (size_t) ( z_pixels_simd*sizeof(__m128) ),16 );
 			memset(image[x][y],0,z_pixels_simd*sizeof(__m128));
 		}
 	}
 
-/*	for(x=0;x<x_pixels;x++){
-		if(cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
-		for(y=cylwiny[x][0]-2;y<cylwiny[x][1]+2;y++){
+/*	for(x=0;x<x_pixels;x++) {
+		if (cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
+		for(y=cylwiny[x][0]-2;y<cylwiny[x][1]+2;y++) {
 			image[x][y]=(float *) _mm_malloc( (size_t) ( z_pixels_simd*sizeof(__m128) ),64 );
 			memset(image[x][y],0,z_pixels_simd*sizeof(__m128));
 		}
 	}
-	for(x=0;x<x_pixels;x++){
-		if(cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
-		for(y=cylwiny[x][0]-2;y<cylwiny[x][1]+2;y++){
-			if(image[y][x]==NULL){
+	for(x=0;x<x_pixels;x++) {
+		if (cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
+		for(y=cylwiny[x][0]-2;y<cylwiny[x][1]+2;y++) {
+			if (image[y][x]==NULL) {
 				image[y][x]=(float *) _mm_malloc( (size_t) ( z_pixels_simd*sizeof(__m128) ),64 );
 				memset(image[y][x],0,z_pixels_simd*sizeof(__m128));
 			}
@@ -2768,22 +2768,22 @@ float *** alloc_imagepack()
 	float ***image;
 	image=(float ***) _mm_malloc( (size_t) ( x_pixels*sizeof(float **) ),16 );
 
-	for(x=0;x<=x_pixels/2;x++){
+	for(x=0;x<=x_pixels/2;x++) {
 			image[x]=(float **) _mm_malloc( (size_t) ( y_pixels*sizeof(float *) ),16 );
 			memset(image[x],0,y_pixels*sizeof(float *));
 	}
 
-	for(x=0;x<=x_pixels/2;x++){
-		if(cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
-		for(y=cylwiny[x][0]-2;y<=y_pixels/2;y++){
+	for(x=0;x<=x_pixels/2;x++) {
+		if (cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
+		for(y=cylwiny[x][0]-2;y<=y_pixels/2;y++) {
 			image[x][y]=(float *) _mm_malloc( (size_t) ( z_pixels_simd*4*sizeof(__m128) ),64 );
 			memset(image[x][y],0,z_pixels_simd*4*sizeof(__m128));
 		}
 	}
-	for(x=0;x<x_pixels;x++){
-		if(cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
-		for(y=cylwiny[x][0]-2;y<=y_pixels/2;y++){
-			if(image[y][x]==NULL){
+	for(x=0;x<x_pixels;x++) {
+		if (cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
+		for(y=cylwiny[x][0]-2;y<=y_pixels/2;y++) {
+			if (image[y][x]==NULL) {
 				image[y][x]=(float *) _mm_malloc( (size_t) ( z_pixels_simd*4*sizeof(__m128) ),64 );
 				memset(image[y][x],0,z_pixels_simd*4*sizeof(__m128));
 			}
@@ -2799,14 +2799,14 @@ float *** alloc_imagexyzf_thread2()
 	float *ptr;
 	image=(float ***) _mm_malloc( (size_t) ( x_pixels*sizeof(float **) ),16 );
 
-	for(x=0;x<x_pixels;x++){
+	for(x=0;x<x_pixels;x++) {
 			image[x]=(float **) _mm_malloc( (size_t) ( y_pixels*sizeof(float *) ),16 );
 		memset(image[x],0,y_pixels*sizeof(float *));
 	}
 
-	for(x=0;x<x_pixels/2;x++){
-		if(cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
-		for(y=cylwiny[x][0]-2;y<y_pixels/2;y++){
+	for(x=0;x<x_pixels/2;x++) {
+		if (cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
+		for(y=cylwiny[x][0]-2;y<y_pixels/2;y++) {
 //			image[x][y]=(float *) _mm_malloc( (size_t) ( z_pixels_simd*sizeof(__m128) ),16 );
 			ptr=(float *)_mm_malloc((size_t)(z_pixels_simd*4*sizeof(__m128)),16);
 			memset(ptr,0,z_pixels_simd*sizeof(__m128)*4);
@@ -2816,10 +2816,10 @@ float *** alloc_imagexyzf_thread2()
 			image[x_pixels-x][y_pixels-y]=&ptr[z_pixels_simd*12];
 		}
 	}
-	for(x=0;x<x_pixels/2;x++){
-		if(cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
-		for(y=cylwiny[x][0]-2;y<y_pixels/2;y++){
-			if(image[y][x]==NULL){
+	for(x=0;x<x_pixels/2;x++) {
+		if (cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
+		for(y=cylwiny[x][0]-2;y<y_pixels/2;y++) {
+			if (image[y][x]==NULL) {
 				ptr=(float *)_mm_malloc((size_t)(z_pixels_simd*4*sizeof(__m128)),16);
 				memset(ptr,0,z_pixels_simd*sizeof(__m128)*4);
 				image[y][x]=&ptr[0];
@@ -2830,19 +2830,19 @@ float *** alloc_imagexyzf_thread2()
 		}
 	}
 	x=x_pixels/2;
-	if(cylwiny[x][0]==0 && cylwiny[x][1]==0){
+	if (cylwiny[x][0]==0 && cylwiny[x][1]==0) {
 	} else {
-		for(y=cylwiny[x][0]-2;y<cylwiny[x][1]+2;y++){
+		for(y=cylwiny[x][0]-2;y<cylwiny[x][1]+2;y++) {
 			image[x][y]=(float *) _mm_malloc( (size_t) ( z_pixels_simd*sizeof(__m128) ),16 );
 			memset(image[x][y],0,z_pixels_simd*sizeof(__m128));
 		}
 	}
 
 	x=x_pixels/2;
-	if(cylwiny[x][0]==0 && cylwiny[x][1]==0){
+	if (cylwiny[x][0]==0 && cylwiny[x][1]==0) {
 	} else {
-		for(y=cylwiny[x][0]-2;y<cylwiny[x][1]+2;y++){
-			if(image[y][x]==NULL){
+		for(y=cylwiny[x][0]-2;y<cylwiny[x][1]+2;y++) {
+			if (image[y][x]==NULL) {
 				image[y][x]=(float *) _mm_malloc( (size_t) ( z_pixels_simd*sizeof(__m128) ),16 );
 				memset(image[y][x],0,z_pixels_simd*sizeof(__m128));
 			}
@@ -2857,12 +2857,12 @@ float *** alloc_prjxyf_thread()
 	int xr,theta;
 //	prj=(float ***) matrix3dm128(0,xr_pixels,0,th_pixels/2,0,yr_pixels-1);
 	prj=(float ***) _mm_malloc((size_t)(xr_pixels+1)*sizeof(float **),16);
-	for(xr=0;xr<xr_pixels+1;xr++){
+	for(xr=0;xr<xr_pixels+1;xr++) {
 		prj[xr]=(float **) _mm_malloc((size_t)(th_pixels/2+1)*sizeof(float *),16);
 		theta=0;
 		prj[xr][0]=(float *) _mm_malloc((size_t)(yr_pixels)*sizeof(__m128),16);
 		memset(prj[xr][0],0,(yr_pixels)*sizeof(__m128));
-		for(theta=1;theta<th_pixels/2+1;theta++){
+		for(theta=1;theta<th_pixels/2+1;theta++) {
 //			prj[xr][theta]=(float *) _mm_malloc((size_t)(yr_pixels+1)*sizeof(__m128),16);
 			prj[xr][theta]=(float *) _mm_malloc((size_t)(yr_top[theta*2]-yr_bottom[theta*2]+13)*sizeof(__m128),16);
 			memset(prj[xr][theta],0,(yr_top[theta*2]-yr_bottom[theta*2]+13)*sizeof(__m128));
@@ -2878,17 +2878,17 @@ void pack_image()
 	int x,y,z,z4;
 	int xi,yi;
 	float *optr,*ptr1,*ptr2,*ptr3,*ptr4;;
-	for(x=0;x<=x_pixels/2;x++){
+	for(x=0;x<=x_pixels/2;x++) {
 		xi=x_pixels-x;
-		if(cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
-		for(y=cylwiny[x][0];y<=y_pixels/2;y++){
+		if (cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
+		for(y=cylwiny[x][0];y<=y_pixels/2;y++) {
 			yi=y_pixels-y;
 			ptr1=image[x][y];
 			ptr2=image[xi][yi];
 			ptr3=image[yi][x];
 			ptr4=image[y][xi];
 			optr=imagepack[x][y];
-			for(z=0,z4=0;z<z_pixels;z++,z4+=4){
+			for(z=0,z4=0;z<z_pixels;z++,z4+=4) {
 				optr[z4]=ptr1[z];
 				optr[z4+1]=ptr2[z];
 				optr[z4+2]=ptr3[z];
@@ -2907,21 +2907,21 @@ void alloc_thread_buf()
 //	memset(&imagepack[0][0][0],0,(x_pixels/2+1)*(y_pixels/2+1)*z_pixels_simd*4*sizeof(__m128));
 	imagexyzf_thread=(float ****) malloc(nthreads*sizeof(float ***));
 	prjxyf_thread=(float ****) malloc(nthreads*sizeof(float ***));
-	for(i=0;i<nthreads;i++){
+	for(i=0;i<nthreads;i++) {
 		imagexyzf_thread[i]= (float ***) alloc_imagexyzf_thread();
 //		imagexyzf_thread[i]=matrix3dm128(0,x_pixels-1,0,y_pixels-1,0,z_pixels_simd*4);
-	if( imagexyzf_thread[i] == NULL ) crash1("  Error allocating thread recon buffer !\n");
+	if ( imagexyzf_thread[i] == NULL ) crash1("  Error allocating thread recon buffer !\n");
 		prjxyf_thread[i]=(float ***) alloc_prjxyf_thread();
 //		prjxyf_thread[i]=(float ***) matrix3dm128(0,xr_pixels,0,th_pixels/2,0,yr_pixels);
-		if( prjxyf_thread[i] == NULL ) crash1("  Error allocating thread recon buffer2 !\n");
+		if ( prjxyf_thread[i] == NULL ) crash1("  Error allocating thread recon buffer2 !\n");
 	}
 }
 void free_prjxyf_thread(float ***prj)
 {
 	int xr,theta;
-	for(xr=0;xr<xr_pixels+1;xr++){
+	for(xr=0;xr<xr_pixels+1;xr++) {
 		_mm_free(prj[xr][0]);
-		for(theta=1;theta<th_pixels/2+1;theta++){
+		for(theta=1;theta<th_pixels/2+1;theta++) {
 			prj[xr][theta]=prj[xr][theta]+yr_bottom[theta*2]*4-4;
 			_mm_free(prj[xr][theta]);
 		}
@@ -2934,25 +2934,25 @@ void free_imagexyzf_thread2(float ***image)
 {
 	int x,y;
 
-	for(x=0;x<x_pixels/2;x++){
-		for(y=0;y<y_pixels/2;y++){
-			if(image[x][y]!=NULL) _mm_free(image[x][y]);
+	for(x=0;x<x_pixels/2;x++) {
+		for(y=0;y<y_pixels/2;y++) {
+			if (image[x][y]!=NULL) _mm_free(image[x][y]);
 		}
 	}
 	printf("free done\n");
 	x=x_pixels/2;
-	for(y=0;y<y_pixels;y++){
-		if(image[x][y]!=NULL) _mm_free(image[x][y]);
+	for(y=0;y<y_pixels;y++) {
+		if (image[x][y]!=NULL) _mm_free(image[x][y]);
 	}
 
 	x=x_pixels/2;
-	for(y=0;y<y_pixels;y++){
-		if(image[y][x]!=NULL) _mm_free(image[y][x]);
+	for(y=0;y<y_pixels;y++) {
+		if (image[y][x]!=NULL) _mm_free(image[y][x]);
 	}
 
-	for(x=0;x<x_pixels;x++){
-		if(cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
-		if(image[x]!=NULL) _mm_free(image[x]);
+	for(x=0;x<x_pixels;x++) {
+		if (cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
+		if (image[x]!=NULL) _mm_free(image[x]);
 	}
 	_mm_free(image);
 }
@@ -2960,15 +2960,15 @@ void free_imagexyzf_thread(float ***image)
 {
 	int x,y;
 
-	for(x=0;x<x_pixels;x++){
-		for(y=0;y<y_pixels;y++){
-			if(image[x][y]!=NULL) _mm_free(image[x][y]);
+	for(x=0;x<x_pixels;x++) {
+		for(y=0;y<y_pixels;y++) {
+			if (image[x][y]!=NULL) _mm_free(image[x][y]);
 		}
 	}
 
-	for(x=0;x<x_pixels;x++){
-		if(cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
-		if(image[x]!=NULL) _mm_free(image[x]);
+	for(x=0;x<x_pixels;x++) {
+		if (cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
+		if (image[x]!=NULL) _mm_free(image[x]);
 	}
 	_mm_free(image);
 }
@@ -2976,11 +2976,11 @@ void free_thread_buf()
 {
 	int i;
 //	free_matrix3dm128(imagepack, 0,x_pixels/2,0,y_pixels,0,z_pixels_simd*4-1);
-	for(i=0;i<nthreads;i++){
-//		if(imagexyzf_thread[i]!=NULL) free_matrix3dm128(imagexyzf_thread[i], 0,x_pixels-1,0,y_pixels-1,0,z_pixels_simd*4);
-//		if(prjxyf_thread[i]!=NULL) free_matrix3dm128(prjxyf_thread[i], 0, xr_pixels, 0, th_pixels/2 ,0 ,yr_pixels);
-		if(imagexyzf_thread[i]!=NULL) free_imagexyzf_thread(imagexyzf_thread[i]);
-		if(prjxyf_thread[i]!=NULL) free_prjxyf_thread(prjxyf_thread[i]);
+	for(i=0;i<nthreads;i++) {
+//		if (imagexyzf_thread[i]!=NULL) free_matrix3dm128(imagexyzf_thread[i], 0,x_pixels-1,0,y_pixels-1,0,z_pixels_simd*4);
+//		if (prjxyf_thread[i]!=NULL) free_matrix3dm128(prjxyf_thread[i], 0, xr_pixels, 0, th_pixels/2 ,0 ,yr_pixels);
+		if (imagexyzf_thread[i]!=NULL) free_imagexyzf_thread(imagexyzf_thread[i]);
+		if (prjxyf_thread[i]!=NULL) free_prjxyf_thread(prjxyf_thread[i]);
 	}
 	free(imagexyzf_thread);
 	free(prjxyf_thread);
@@ -2989,7 +2989,7 @@ void free_thread_buf()
 void alloc_imagexyzf()
 {
 	imagexyzf =(float ***) matrix3dm128(0,x_pixels-1,0,y_pixels-1,0,z_pixels_simd-1);//test
-	if( imagexyzf == NULL ) crash1("  Memory allocation failure for imagexyzf !\n");
+	if ( imagexyzf == NULL ) crash1("  Memory allocation failure for imagexyzf !\n");
 	else if (verbose & 0x0040) fprintf(stdout,"  Allocate imagexyzf       : %d kbytes \n", imagesize/256);  
 	memset(&imagexyzf[0][0][0],0,x_pixels*y_pixels*z_pixels_simd*sizeof(__m128));
 }
@@ -2997,7 +2997,7 @@ void alloc_imagexyzf()
 void alloc_prjxyf()
 {
 	prjxyf=(float ***) matrix3dm128(0,xr_pixels,0,th_pixels/2,0,yr_pixels-1);
-	if( prjxyf == NULL ) crash1("  Memory allocation failure for prjxyf !\n");
+	if ( prjxyf == NULL ) crash1("  Memory allocation failure for prjxyf !\n");
 	else if (verbose & 0x0040) fprintf(stdout,"  Allocate prjxyf       : %d kbytes \n", xr_pixels*(th_pixels/2+1)*yr_pixels*16/1024);    
 }
 
@@ -3016,18 +3016,18 @@ void free_prjxyf()
 void alloc_normfac_infile(int weighting,int span)
 {
 	int i,j;
-	if(normfac_in_file_flag==-1) return ;
+	if (normfac_in_file_flag==-1) return ;
 
 	normfac_infile=(float ****) malloc(subsets*sizeof(float *));
-	for(i=0;i<subsets;i++){
+	for(i=0;i<subsets;i++) {
 		normfac_infile[i]=(float ***) matrix3dm128_check(0,x_pixels-1,0,y_pixels-1,0,z_pixels_simd-1);//x_pixels*y_pixels*z_pixels_simd*4*sizeof(float));
-		if(normfac_infile[i]==NULL){
+		if (normfac_infile[i]==NULL) {
 			normfac_in_file_flag=-1;
 		}
 	}
 
-	if(normfac_in_file_flag==-1 && i>0){
-		for(j=0;j<i;j++){
+	if (normfac_in_file_flag==-1 && i>0) {
+		for(j=0;j<i;j++) {
 			free_matrix3dm128(normfac_infile[j],0,x_pixels-1,0,y_pixels-1,0,z_pixels_simd-1);
 		}
 		free(normfac_infile);
@@ -3052,29 +3052,29 @@ void swap_xr_yr()
 	printf("start\n");
 
 	ptr=(float ***) calloc(views/2,sizeof(float **));
-	for(v=0;v<views/2;v++){
+	for(v=0;v<views/2;v++) {
 		ptr[v]=(float **) calloc(xr_pixels,sizeof(float *));
-		for(xr=0;xr<xr_pixels;xr++){
+		for(xr=0;xr<xr_pixels;xr++) {
 			ptr[v][xr]=(float *) _mm_malloc(segmentsize*2*sizeof(float),16);
-			if(ptr[v][xr]==NULL) {
+			if (ptr[v][xr]==NULL) {
 				printf("error swapping memory %d\t%d\n",v,xr);
 				exit(1);
 			}
 		}
 		ptr2=ptr[v];
-		for(yr=0,yr2=segmentsize;yr<segmentsize;yr++,yr2++){
+		for(yr=0,yr2=segmentsize;yr<segmentsize;yr++,yr2++) {
 			memcpy(&tmpbuf[yr][0],largeprj3[yr][v],xr_pixels*sizeof(float));
 			memcpy(&tmpbuf[yr2][0],largeprj3[yr][v+views/2],xr_pixels*sizeof(float));
 		}
-		for(yr=0,yr2=segmentsize;yr<segmentsize;yr++,yr2++){
+		for(yr=0,yr2=segmentsize;yr<segmentsize;yr++,yr2++) {
 			ptr11=tmpbuf[yr];//largeprj3[yr][v];
 			ptr12=tmpbuf[yr2];//largeprj3[yr][v+views/2];
-			for(xr=0;xr<xr_pixels;xr++){
+			for(xr=0;xr<xr_pixels;xr++) {
 				ptr2[xr][yr]=ptr11[xr];
 				ptr2[xr][yr2]=ptr12[xr];
 			}
 		}
-		for(yr=0;yr<segmentsize;yr++){
+		for(yr=0;yr<segmentsize;yr++) {
 			_mm_free(largeprj3[yr][v]);
 			_mm_free(largeprj3[yr][v+views/2]);
 		}
@@ -3082,9 +3082,9 @@ void swap_xr_yr()
 	free_matrix(tmpbuf,0,segmentsize*2-1,0,xr_pixels/4-1);
 
 	largeprj_swap=ptr;
-//	for(v=0;v<views;v++){
-//		for(yr=0;yr<segmentsize;yr++){
-//			if(largeprj3[yr][v]!=NULL) printf("error free %d\t%d\n",yr,v);
+//	for(v=0;v<views;v++) {
+//		for(yr=0;yr<segmentsize;yr++) {
+//			if (largeprj3[yr][v]!=NULL) printf("error free %d\t%d\n",yr,v);
 //		}
 //	}
 
@@ -3102,25 +3102,25 @@ void swap_xr_yr_short()
 	printf("start\n");
 
 	ptr=(short***) calloc(views/2,sizeof(short**));
-	for(v=0;v<views/2;v++){
+	for(v=0;v<views/2;v++) {
 		ptr[v]=(short**) calloc(xr_pixels,sizeof(short *));
-		for(xr=0;xr<xr_pixels;xr++){
+		for(xr=0;xr<xr_pixels;xr++) {
 			ptr[v][xr]=(short *) _mm_malloc(segmentsize*2*sizeof(short),16);
-			if(ptr[v][xr]==NULL) {
+			if (ptr[v][xr]==NULL) {
 				printf("error swapping memory %d\t%d\n",v,xr);
 				exit(1);
 			}
 		}
 		ptr2=ptr[v];
-		for(yr=0,yr2=segmentsize;yr<segmentsize;yr++,yr2++){
+		for(yr=0,yr2=segmentsize;yr<segmentsize;yr++,yr2++) {
 			ptr11=largeprjshort3[yr][v];
 			ptr12=largeprjshort3[yr][v+views/2];
-			for(xr=0;xr<xr_pixels;xr++){
+			for(xr=0;xr<xr_pixels;xr++) {
 				ptr2[xr][yr]=ptr11[xr];
 				ptr2[xr][yr2]=ptr12[xr];
 			}
 		}
-		for(yr=0;yr<segmentsize;yr++){
+		for(yr=0;yr<segmentsize;yr++) {
 			_mm_free(largeprjshort3[yr][v]);
 			_mm_free(largeprjshort3[yr][v+views/2]);
 		}
@@ -3258,11 +3258,11 @@ void GetParameter(int argc,char **argv)
 
 	for(i=0;i<argc;i++) {
 
-		if(argv[i][0]!='-') continue;
+		if (argv[i][0]!='-') continue;
 		c=argv[i][1];
-		if(argv[i][2]==0){
-			if(i<argc-1 ){
-				if(argv[i+1][0]!='-') i++;
+		if (argv[i][2]==0) {
+			if (i<argc-1 ) {
+				if (argv[i+1][0]!='-') i++;
 			}
 			optarg=argv[i];
 		}    
@@ -3384,11 +3384,11 @@ void GetParameter(int argc,char **argv)
 					 crash2("error decoding -m %s\n",optarg);
 				 break;
 			 case 'w' :
-				 if (sscanf(optarg,"%d",&osem3dpar->positFlag) != 1){
+				 if (sscanf(optarg,"%d",&osem3dpar->positFlag) != 1) {
 					 osem3dpar->positFlag=1;
 //					 crash2("error decoding -w %s\n",optarg);
 				 } else {
-					 if(osem3dpar->positFlag>3 ||osem3dpar->positFlag<0 ) {
+					 if (osem3dpar->positFlag>3 ||osem3dpar->positFlag<0 ) {
 						 crash2("error decoding -w %s\n",optarg);
 					 } 
 				 }
@@ -3411,7 +3411,7 @@ void GetParameter(int argc,char **argv)
 			 case 'M':
 				 if (sscanf(optarg,"%d",&osem3dpar->iModel) != 1)
 					 crash2("error decoding -M %s\n",optarg);
-				 if(osem3dpar->iModel==0) {
+				 if (osem3dpar->iModel==0) {
 					 i++;
 					 osem3dpar->imodeldefname=argv[i];
 				 }
@@ -3449,106 +3449,109 @@ void GetParameter(int argc,char **argv)
   }
 }
 
-void CheckParameterAndPrint()
-{
-	/* check mandatory arguments & conflicting arguments, calculate dependency-parameters */
-	fprintf(stdout,"OSEM3D weighted reconstruction for parallel projections in flat file format\n");
+void CheckParameterAndPrint() {
+// check mandatory arguments & conflicting arguments, calculate dependency-parameters
+	fprintf(stdout, "OSEM3D weighted reconstruction for parallel projections in flat file format\n");
 
-	if (out_img_file==NULL && num_em_frames<2) /* automatic image filenames for multiframe recon */
-		if ( ! ( oFlag || o3Flag || iterations == 0 ) ) 
-			usage(); /* !sv  might be OK if forward proj only */
+	// automatic image filenames for multiframe recon
+	if (out_img_file == NULL && num_em_frames < 2 )
+		if ( ! ( oFlag || o3Flag || iterations == 0 ) )
+			usage();
 
-	if (iFlag) { 
-		fprintf                (stdout,"  Input image          : %s\n",in_img_file);
-		if (inflipFlag) fprintf(stdout,"  Input image will be flipped x-y \n");
+	if (iFlag) {
+		fprintf                (stdout, "  Input image          : %s\n", in_img_file);
+		if (inflipFlag) fprintf(stdout, "  Input image will be flipped x-y \n");
+	} else {
+		fprintf(stdout, "  Starting from a uniform image \n");
 	}
-	else                fprintf(stdout,"  Starting from a uniform image \n");
 
-	if (sFlag)          LogMessage("  Input scatter scan   : %s\n",scat_scan_file);
-
-	if (tFlag)          fprintf(stdout,"  Input true scan      : %s\n",true_file);
+	if (sFlag)
+		LogMessage("  Input scatter scan   : %s\n", scat_scan_file);
+	if (tFlag)
+		fprintf(stdout, "  Input true scan      : %s\n", true_file);
 	if (pFlag) {
-		LogMessage("  Input prompt scan    : %s\n",prompt_file);
-		if (delayed_file) LogMessage("  Input delayed scan   : %s\n",delayed_file);
-    else {
-      fprintf(stdout,"\n\n***********  Input delayed scan  file is missing****\n\n");
-      usage();
-    }
+		LogMessage("  Input prompt scan    : %s\n", prompt_file);
+		if (delayed_file) {
+			LogMessage("  Input delayed scan   : %s\n", delayed_file);
+		} else {
+			fprintf(stdout, "\n\n***********  Input delayed scan  file is missing****\n\n");
+			usage();
+		}
 	}
 
-	if(floatFlag)       LogMessage("  Input scan is in float format \n");
+	if (floatFlag)
+		LogMessage("  Input scan is in float format \n");
+	if (nFlag)
+		LogMessage("  Normalization        : %s\n", norm_file);
+	else
+		LogMessage("  Assuming uniform normalization \n");
+	if (noattenFlag)
+		LogMessage("  Assuming attenuation is 1...\n");
+	else
+		LogMessage("  Attenuation          : %s\n", atten_file);
+	LogMessage("  Output image         : %s\n", out_img_file);
+	if (outflipFlag)
+		LogMessage("  Output image will be flipped x-y \n");
+	if (o3Flag)
+		LogMessage("  Output corrected 3D scan: %s\n", out_scan3D_file);
 
-	if(nFlag)           LogMessage("  Normalization        : %s\n",norm_file);
-	else                LogMessage("  Assuming uniform normalization \n");
-
-	if(noattenFlag)     LogMessage("  Assuming attenuation is 1...\n");
-	else                LogMessage("  Attenuation          : %s\n",atten_file);
-
-	LogMessage("  Output image         : %s\n",out_img_file);
-
-	if (outflipFlag)    LogMessage("  Output image will be flipped x-y \n");
-	//  if (oFlag)          fprintf(stdout,"  Output corrected 2D scan: %s\n",out_scan_file);
-	if (o3Flag)         LogMessage("  Output corrected 3D scan: %s\n",out_scan3D_file);
-
-	switch(weighting) {
-	  case 0:
-		  LogMessage("  Method               : UWO3D\n");
-		  break;
-	  case 1:
-		  LogMessage("  Method               : AWO3D\n");
-		  break;
-	  case 2:
-		  LogMessage("  Method               : ANWO3D\n");
-		  break;
-	  case 3:
-		  LogMessage("  Method               : OPO3D\n");
-		  if (tFlag) crash1("  ... it requires data acquired in Prompt and separate Delayed mode\n");
-		  break;
+	switch (weighting) {
+	case 0:
+		LogMessage("  Method               : UWO3D\n"); break;
+	case 1:
+		LogMessage("  Method               : AWO3D\n");	break;
+	case 2:
+		LogMessage("  Method               : ANWO3D\n"); break;
+	case 3:
+		LogMessage("  Method               : OPO3D\n");
+		if (tFlag) crash1("  ... it requires data acquired in Prompt and separate Delayed mode\n");
+		break;
 	}
 
-	if (positFlag==1) {
+	if (positFlag == 1) {
 		LogMessage("  Positivity constraint in image space (maybe useful for UW-AW-ANW schemes only) \n");
 		weighting += 5;
 	} else {
 		LogMessage("  Positivity constraint in sinogram space\n");
 	}
-	LogMessage("  Max of sensitivity image      : %e\n",1./epsilon1);
-	LogMessage("  Threshold for missing data    : %e\n",epsilon2);
-	LogMessage("  Threshold for image update    : %e\n",epsilon3);
-	LogMessage("  Maximum of image      	: %f\n",image_max);
+	LogMessage("  Max of sensitivity image      : %e\n", 1. / epsilon1);
+	LogMessage("  Threshold for missing data    : %e\n", epsilon2);
+	LogMessage("  Threshold for image update    : %e\n", epsilon3);
+	LogMessage("  Maximum of image      	: %f\n", image_max);
 
 	/* verbosity */
 	if (verbose > 0) {
-		fprintf(stdout,"  Verbosity level : %d \n", verbose);
-		if (verbose & 0x0001) fprintf(stdout,"   - Scanner info requested \n");
-		if (verbose & 0x0002) fprintf(stdout,"   - Write numerator of update equation and sensitivity \n");
-		if (verbose & 0x0004) fprintf(stdout,"   - Normalisation factor info requested \n");
-		if (verbose & 0x0008) fprintf(stdout,"   - Reconstruction info requested \n");
-		if (verbose & 0x0010) fprintf(stdout,"   - I/O info requested \n");
-		if (verbose & 0x0020) fprintf(stdout,"   - Processing info requested \n");
-		if (verbose & 0x0040) fprintf(stdout,"   - Memory allocation info requested \n");
+		fprintf(stdout, "  Verbosity level : %d \n", verbose);
+		if (verbose & 0x0001) fprintf(stdout, "   - Scanner info requested \n");
+		if (verbose & 0x0002) fprintf(stdout, "   - Write numerator of update equation and sensitivity \n");
+		if (verbose & 0x0004) fprintf(stdout, "   - Normalisation factor info requested \n");
+		if (verbose & 0x0008) fprintf(stdout, "   - Reconstruction info requested \n");
+		if (verbose & 0x0010) fprintf(stdout, "   - I/O info requested \n");
+		if (verbose & 0x0020) fprintf(stdout, "   - Processing info requested \n");
+		if (verbose & 0x0040) fprintf(stdout, "   - Memory allocation info requested \n");
 	}
-	if (blur) LogMessage("  Reconstruction with %d subsets and %d iteration(s) with PSF\n",
-                        subsets, iterations );
-  else LogMessage("  Reconstruction with %d subsets and %d iteration(s)\n",
-                        subsets, iterations );
-	if(saveFlag) LogMessage("  ... an image will be saved after each iteration ! \n");
+	if (blur)
+		LogMessage("  Reconstruction with %d subsets and %d iteration(s) with PSF\n", subsets, iterations );
+	else
+		LogMessage("  Reconstruction with %d subsets and %d iteration(s)\n", subsets, iterations );
+	if (saveFlag)
+		LogMessage("  ... an image will be saved after each iteration ! \n");
 }
 
-void GetScannerParameter()
+	void GetScannerParameter()
 {
 	FILE *tmpfp;
 	/* sets mosts global variables from ecat_model and 3D scan header*/
 	/* set data from scanner_model */
 	//    model_info    = scanner_model(iModel);           /* assumed code for HRRT */
-	if(iModel!=0){
+	if (iModel!=0) {
     LogMessage("Model %d \n", iModel);
 		model_info    = scanner_model(iModel);     /* assumed code for HRRT */
 	} else {
     LogMessage("Model %s \n", imodeldefname);	
     model_info=(ScannerModel *) malloc(sizeof(ScannerModel));
 		tmpfp=fopen(imodeldefname,"rt");
-		if(tmpfp==NULL){
+		if (tmpfp==NULL) {
 			fprintf(stderr,"Error open %s, iModel=0, please try again with right scanner definition file\n",imodeldefname);
 			exit(1);
 		}
@@ -3586,12 +3589,12 @@ void GetScannerParameter()
 
 	z_pixels      = rings*2-1;                        /* 104 direct planes => 207 planes */
 	//  simd operations on 4 pixels at a time
-	if(z_pixels%4==0) z_pixels_simd=z_pixels/4;
+	if (z_pixels%4==0) z_pixels_simd=z_pixels/4;
 	else              z_pixels_simd=z_pixels/4+1;     // when remainder is 1..3 pixels 
 
 	ring_spacing  = 2.0f*z_size;                      /* ring spacing in mm */    
-	if(span==0) span=model_info->span;
-	if(maxdel==0) maxdel=model_info->maxdel;
+	if (span==0) span=model_info->span;
+	if (maxdel==0) maxdel=model_info->maxdel;
 
 	groupmax      = (maxdel - (span-1)/2)/span;       /* should be 7 */
 	radial_pixels = def_elements/x_rebin;                     /* global variable */
@@ -3628,11 +3631,11 @@ void GetScannerParameter()
 	/* update variables according to requested parameters */
 	if (max_g >=0) {
 		groupmax = max_g;
-		if(verbose) fprintf(stdout,"  New maximum group %d\n",groupmax);
+		if (verbose) fprintf(stdout,"  New maximum group %d\n",groupmax);
 	} 
 	if (min_g >=0) {
 		groupmin = min_g;
-		if(verbose) fprintf(stdout,"  New minimum group %d\n",groupmin);
+		if (verbose) fprintf(stdout,"  New minimum group %d\n",groupmin);
 	}
 }
 
@@ -3640,46 +3643,47 @@ void CheckFileValidate()
 {
 	FILE *tmpfp;
 
-	if ( iterations > 0 ){// !sv  we need only image to generate fully corrected 3D scans by forward projection 
+	if ( iterations > 0 ) {// !sv  we need only image to generate fully corrected 3D scans by forward projection 
 		/* open input files  */
 		if (tFlag) {            
-			tsinofp = file_open(true_file,"rb");
-			if(tsinofp == FOPEN_ERROR) crash2("  Error: cannot open input true sinogram file %s\n",true_file);
+			// char *true_file, FILEPTR tsinofp
+			tsinofp = fopen(true_file,"rb");
+			if (tsinofp == FOPEN_ERROR) crash2("  Error: cannot open input true sinogram file %s\n",true_file);
 		} 
 		else {            
-			psinofp = file_open(prompt_file,"rb");
-			if(psinofp == FOPEN_ERROR) LogMessage("  Error: cannot open input prompt sinogram file '%s'\n",prompt_file);
-			if(psinofp == FOPEN_ERROR) crash2("  Error: cannot open input prompt sinogram file %s\n",prompt_file);
-			dsinofp = file_open(delayed_file,"rb");
-			if(dsinofp == FOPEN_ERROR) LogMessage("  Error: cannot open input delayed sinogram file %s\n",delayed_file);
-			if(dsinofp == FOPEN_ERROR) crash2("  Error: cannot open input delayed sinogram file %s\n",delayed_file);
+			psinofp = fopen(prompt_file,"rb");
+			if (psinofp == FOPEN_ERROR) LogMessage("  Error: cannot open input prompt sinogram file '%s'\n",prompt_file);
+			if (psinofp == FOPEN_ERROR) crash2("  Error: cannot open input prompt sinogram file %s\n",prompt_file);
+			dsinofp = fopen(delayed_file,"rb");
+			if (dsinofp == FOPEN_ERROR) LogMessage("  Error: cannot open input delayed sinogram file %s\n",delayed_file);
+			if (dsinofp == FOPEN_ERROR) crash2("  Error: cannot open input delayed sinogram file %s\n",delayed_file);
 		}
 
-		if(nFlag) {            
-			normfp = file_open(norm_file,"rb");
-			if(normfp == FOPEN_ERROR) LogMessage("  Error: cannot open normalization file %s\n",norm_file);
-			if(normfp == FOPEN_ERROR) crash2("  Error: cannot open normalization file %s\n",norm_file);
+		if (nFlag) {            
+			normfp = fopen(norm_file,"rb");
+			if (normfp == FOPEN_ERROR) LogMessage("  Error: cannot open normalization file %s\n",norm_file);
+			if (normfp == FOPEN_ERROR) crash2("  Error: cannot open normalization file %s\n",norm_file);
 		}
 
 		if (noattenFlag == 0) {            
-			attenfp = file_open(atten_file,"rb");
-			if(attenfp == FOPEN_ERROR) LogMessage("  Error: cannot open attenuation file %s\n",atten_file);    /* attenfp could be null */
-			if(attenfp == FOPEN_ERROR) crash2("  Error: cannot open attenuation file %s\n",atten_file);    /* attenfp could be null */
+			attenfp = fopen(atten_file,"rb");
+			if (attenfp == FOPEN_ERROR) LogMessage("  Error: cannot open attenuation file %s\n",atten_file);    /* attenfp could be null */
+			if (attenfp == FOPEN_ERROR) crash2("  Error: cannot open attenuation file %s\n",atten_file);    /* attenfp could be null */
 		}
 
-		if(sFlag) {            
-			ssinofp = file_open(scat_scan_file,"rb");
-			if(ssinofp == FOPEN_ERROR) LogMessage("  Error: cannot open input scatter sinogram file %s\n",scat_scan_file);
-			if(ssinofp == FOPEN_ERROR) crash2("  Error: cannot open input scatter sinogram file %s\n",scat_scan_file);
+		if (sFlag) {            
+			ssinofp = fopen(scat_scan_file,"rb");
+			if (ssinofp == FOPEN_ERROR) LogMessage("  Error: cannot open input scatter sinogram file %s\n",scat_scan_file);
+			if (ssinofp == FOPEN_ERROR) crash2("  Error: cannot open input scatter sinogram file %s\n",scat_scan_file);
 		}
 	}
 	/* check initial image file existence */
 	if (iFlag) {
 		tmpfp=fopen(in_img_file,"rb");
-		if(tmpfp==NULL) crash2("  Main(): error when opening the initial image from %s \n", in_img_file );
+		if (tmpfp==NULL) crash2("  Main(): error when opening the initial image from %s \n", in_img_file );
 		else fclose(tmpfp);
 	}
-  if((normfacfp = file_open(normfac_img,"rb")) == FOPEN_ERROR) {
+  if ((normfacfp = fopen(normfac_img,"rb")) == FOPEN_ERROR) {
      calnormfacFlag=1;
   }
 	else {
@@ -3696,7 +3700,7 @@ void Output_CorrectedScan()
 	int yr,v,yr2,theta;
 
 
-	if(o3Flag){
+	if (o3Flag) {
 			alloc_tmprprj1();
 			alloc_tmprprj2();
 
@@ -3705,28 +3709,28 @@ void Output_CorrectedScan()
 
 		time(&t1);
 		ClockA=clock();
-		if(iterations==0){
+		if (iterations==0) {
 			image = (float ***) matrix3dm128(0,x_pixels-1, 0,y_pixels-1, 0,z_pixels_simd-1);        
-			if( image == NULL ) crash1("  Main(): error! memory allocation failure for image !\n");
+			if ( image == NULL ) crash1("  Main(): error! memory allocation failure for image !\n");
 			else if (verbose & 0x0008) fprintf(stdout,"  Allocate initial image : %d kbytes \n", imagesize/256);
 		}
 		if (iFlag && iterations==0) {
 			tmpfp=fopen(in_img_file,"rb");
-			if(tmpfp==NULL) 
+			if (tmpfp==NULL) 
 				crash2("  Main(): error in read_flat_image() when reading the initial image from %s \n", in_img_file );
 			tmpfptr2d=matrixfloat(0,x_pixels-1,0,y_pixels-1);
-			for(z=0;z<z_pixels;z++){
+			for(z=0;z<z_pixels;z++) {
 				fread(&tmpfptr2d[0][0],x_pixels*y_pixels,sizeof(float),tmpfp);
-				if(inflipFlag){
+				if (inflipFlag) {
 					/* Flip x<->y (in place, since first time) */
-					for(x=0;x<x_pixels;x++){
-						for(y=0;y<y_pixels;y++){
+					for(x=0;x<x_pixels;x++) {
+						for(y=0;y<y_pixels;y++) {
 							image[y][x][z]=tmpfptr2d[x][y];
 						}
 					}
 				} else {
-					for(x=0;x<x_pixels;x++){
-						for(y=0;y<y_pixels;y++){
+					for(x=0;x<x_pixels;x++) {
+						for(y=0;y<y_pixels;y++) {
 							image[x][y][z]=tmpfptr2d[y][x];
 						}
 					}
@@ -3735,10 +3739,10 @@ void Output_CorrectedScan()
 
 			free_matrix(tmpfptr2d,0,x_pixels-1,0,y_pixels-1);
 			fclose(tmpfp);
-		} else if(iterations==0){ // no image => forward project the cylindrical mask
-			for( x=0; x<x_pixels; x++ ){ 
+		} else if (iterations==0) { // no image => forward project the cylindrical mask
+			for( x=0; x<x_pixels; x++ ) { 
 				memset(&image[x][0][0],0,y_pixels*z_pixels_simd*sizeof(__m128));
-				for( y=cylwiny[x][0]; y<cylwiny[x][1];y++){ 
+				for( y=cylwiny[x][0]; y<cylwiny[x][1];y++) { 
 					for( z=z_min; z<z_max; z++ ) image[x][y][z] =  1.0;
 				}
 			}
@@ -3747,16 +3751,16 @@ void Output_CorrectedScan()
 		alloc_prjxyf();
 		printf("%d %d %d\n",z_pixels,x_pixels,y_pixels);
 //		memset(&largeprj3[0][0][0],0,xr_pixels*views*segmentsize*sizeof(float));
-		for(yr=0;yr<segmentsize;yr++){
-			for(v=0;v<views;v++){
+		for(yr=0;yr<segmentsize;yr++) {
+			for(v=0;v<views;v++) {
 				memset(largeprj3[yr][v],0,xr_pixels*sizeof(float));
 			}
 		}
-		for(v=0;v<views/2;v++){
+		for(v=0;v<views/2;v++) {
 			printf("  Progress %d %d %%\r",v,(int)((v+0.0)/views*2.0*100));
-//			if( !forward_proj3d2_compress(image, estimate, v,nthreads,imagexyzf,prjxyf))
-			if( !forward_proj3d2(image, estimate, v,nthreads,imagexyzf,prjxyf))
-//				if(!forward_proj3d_thread1_compress(image,estimate,v,1,imagexyzf,prjxyf))
+//			if ( !forward_proj3d2_compress(image, estimate, v,nthreads,imagexyzf,prjxyf))
+			if ( !forward_proj3d2(image, estimate, v,nthreads,imagexyzf,prjxyf))
+//				if (!forward_proj3d_thread1_compress(image,estimate,v,1,imagexyzf,prjxyf))
 				crash1("  Main(): error occurs in forward_proj3d!\n");
 			for(yr2=0;yr2<segmentsize*2;yr2++) memcpy(largeprj[v][yr2],estimate[yr2],xr_pixels*4);
 		}
@@ -3770,9 +3774,9 @@ void Output_CorrectedScan()
 			fprintf(stdout,"  Calculating attenuation correction mu in cm-1 and FP in mm\n");
 			p = &largeprj3[0][0][0];
 //			for (i=0; i<xr_pixels*views*segmentsize; i++, p++) *p = exp(*p/10.);
-			for(yr=0;yr<segmentsize;yr++){
-				for(v=0;v<views;v++){
-					for(xr=0;xr<xr_pixels;xr++){
+			for(yr=0;yr<segmentsize;yr++) {
+				for(v=0;v<views;v++) {
+					for(xr=0;xr<xr_pixels;xr++) {
 						largeprj3[yr][v][xr]=exp(largeprj3[yr][v][xr]/10);
 					}
 				}
@@ -3780,17 +3784,17 @@ void Output_CorrectedScan()
 		} 
 		// 	write line by line in sinogram mode 
 		yr2=0;
-		for(theta=0;theta<th_pixels;theta++){
+		for(theta=0;theta<th_pixels;theta++) {
 			//			yr2=segment_offset[theta];
 			printf("yr2=%d\n",yr2);
 			for( yr=yr_bottom[theta]; yr<=yr_top[theta]; yr++, yr2++) {
 				for( v=0; v<views; v++ ) {
-					if(fwrite( &largeprj3[yr2][v][0], radial_pixels*sizeof(float), 1, tmpfp) != 1 ){
+					if (fwrite( &largeprj3[yr2][v][0], radial_pixels*sizeof(float), 1, tmpfp) != 1 ) {
 						fprintf(stdout,"   write error at plane %d view %d \n", yr2,v);
 					}
 				}
 				//			for( v=0; v<views/2; v++ ) {
-				//				if(fwrite( &largeprj3[yr2][v][radial_pixels], radial_pixels*sizeof(float), 1, tmpfp) != 1 ){
+				//				if (fwrite( &largeprj3[yr2][v][radial_pixels], radial_pixels*sizeof(float), 1, tmpfp) != 1 ) {
 				//					fprintf(stdout,"   write error at plane %d view %d \n", yr2,v);
 				//				}
 				//			}
@@ -3822,7 +3826,7 @@ void GetSystemInformation()
 		siSysInfo.lpMinimumApplicationAddress); 
 	printf("  Maximum application address: %lx\n", 
 		siSysInfo.lpMaximumApplicationAddress); 
-	if(nthreads==0) nthreads=siSysInfo.dwNumberOfProcessors;
+	if (nthreads==0) nthreads=siSysInfo.dwNumberOfProcessors;
 #else
     /* ahc */
     /*
@@ -3844,8 +3848,8 @@ void PrepareNormfac()
 	alloc_tmprprj1();
 	prepare_norm(largeprj3,nFlag,weighting,normfp,attenfp);
 	free_tmpprj1();
-	if(newzoom!=1) {
-		if(newzoom<1) zoom_proj_reduce(largeprj3,newzoom);
+	if (newzoom!=1) {
+		if (newzoom<1) zoom_proj_reduce(largeprj3,newzoom);
 		else  zoom_proj_zoomup(largeprj3,newzoom);
 	}
 	time(&t0);
@@ -3855,11 +3859,11 @@ void PrepareNormfac()
 		tmpfp=fopen("sensitivity.scn","wb");
 		fprintf(stdout,"  Writing sensitivity.scn \n");
 		// write line by line in sinogram mode 
-		for(theta=0;theta<th_pixels;theta++){
+		for(theta=0;theta<th_pixels;theta++) {
 			yr2=segment_offset[theta];
 			for( yr=yr_bottom[theta]; yr<=yr_top[theta]; yr++, yr2++) {
 				for( v=0; v<views; v++ ) {
-					if( fwrite( &largeprj3[yr2][v][0], radial_pixels*sizeof(float), 1, tmpfp) != 1 )
+					if ( fwrite( &largeprj3[yr2][v][0], radial_pixels*sizeof(float), 1, tmpfp) != 1 )
 					{ fprintf(stdout,"   write error at plane %d view %d \n", yr2,v);}
 				}
 			}
@@ -3879,7 +3883,7 @@ void CalculateNormfac()
 	int calnormfac[MAXTHREADS];
 	clock_t ClockB;
 
-	if(verbose & 0x0004) {
+	if (verbose & 0x0004) {
 		fprintf(stdout,"  Calculating Normalization (sensitivity) image.... \n");
 		fprintf(stdout,"  ... preparation will take a minute.. depends on HDD speed\n");
 	}
@@ -3888,25 +3892,25 @@ void CalculateNormfac()
 	alloc_thread_buf();
 	alloc_normfac();
 
-	if(blur){
-		if(image_psf==NULL) image_psf= (float ***) alloc_imagexyzf_thread();
+	if (blur) {
+		if (image_psf==NULL) image_psf= (float ***) alloc_imagexyzf_thread();
 	}
 
 	normstructure.normfac     = correction;
 	normstructure.normfac_img = normfac_img;
 	normstructure.verbose     = verbose;
 
-	for( isubset=0; isubset<subsets; isubset++ ){  
-		if(verbose & 0x0004) fprintf(stdout,"  subset %d \n", isubset );
+	for( isubset=0; isubset<subsets; isubset++ ) {  
+		if (verbose & 0x0004) fprintf(stdout,"  subset %d \n", isubset );
 		memset( &normfac[0][0][0], 0, x_pixels*y_pixels*z_pixels_simd*sizeof(__m128));//(z_pixels+1)*sizeof(float) );
 		ClockNormfacTheta = clock ();
-		if(normfac_in_file_flag!=-1) correction=normfac_infile[isubset];
+		if (normfac_in_file_flag!=-1) correction=normfac_infile[isubset];
 
 		//must use 16 subsets, because of using 90 degree symmetry in this loop.
 		// we should find a way to test if the 90 deg projection is in same subset.
 
-		for(v=0;v<sviews/2-nthreads+1;v+=nthreads){
-			for(thr=0;thr<nthreads;thr++){
+		for(v=0;v<sviews/2-nthreads+1;v+=nthreads) {
+			for(thr=0;thr<nthreads;thr++) {
 				view=vieworder[isubset][v+thr];
 				bparg[thr].prj=largeprj[view];//estimate_thread[thr];
 				bparg[thr].ima=normfac;
@@ -3925,32 +3929,32 @@ void CalculateNormfac()
 		}
 
 		ClockB=clock();
-		if(((sviews/2)%nthreads)!=0){
-			for(v=sviews/2-(sviews/2)%nthreads;v<sviews/2;v++){
+		if (((sviews/2)%nthreads)!=0) {
+			for(v=sviews/2-(sviews/2)%nthreads;v<sviews/2;v++) {
 				view=vieworder[isubset][v];
 				//			for(yr2=0;yr2<segmentsize*2;yr2++) memcpy(estimate_thread[0][yr2],largeprj[view][yr2],xr_pixels*4);
-				//			if( !back_proj3d2(estimate_thread[0],normfac, view, nthreads,imagexyzf_thread[0],prjxyf_thread[0])) 
-				if( !back_proj3d2(largeprj[view],normfac, view, nthreads,imagexyzf_thread[0],prjxyf_thread[0])) 
+				//			if ( !back_proj3d2(estimate_thread[0],normfac, view, nthreads,imagexyzf_thread[0],prjxyf_thread[0])) 
+				if ( !back_proj3d2(largeprj[view],normfac, view, nthreads,imagexyzf_thread[0],prjxyf_thread[0])) 
 					crash3("  Main(): error occurs in back_proj3d, for subset %d \n ", isubset); 
 			}
 		}
 
 		if (verbose &0x0008) fprintf(stdout," Residual parts done in %3.4f sec\n",(clock()-ClockB+0.0)/CLOCKS_PER_SEC);
 
-		if(verbose & 0x0004) fprintf(stdout,"calculating normalization with isubset = %1d/%1d done in %1.4fs.\n",
+		if (verbose & 0x0004) fprintf(stdout,"calculating normalization with isubset = %1d/%1d done in %1.4fs.\n",
 			isubset, subsets, 1.0 * ( clock () - ClockNormfacTheta  ) / CLOCKS_PER_SEC );
-		if(normfac_in_file_flag==-1){
-      if(isubset!=0) Wait_thread( threads[Wnormfact]);
+		if (normfac_in_file_flag==-1) {
+      if (isubset!=0) Wait_thread( threads[Wnormfact]);
     }
 
-		if(blur){
-//			for(x=0;x<x_pixels;x++){
+		if (blur) {
+//			for(x=0;x<x_pixels;x++) {
 //				for(y=cylwiny[x][0];y<cylwiny[x][1];y++) memcpy(image_psf[x][y],normfac[x][y],z_pixels_simd*16);
 //			convolve3d(normfac,image_psf,imagexyzf_thread[0]);
 			convolve3d(normfac,normfac,imagexyzf_thread[0]);
 //			convolve3d(image_psf,,imagexyzf_thread[0]);
 		}
-		for(thr=0;thr<2;thr++){
+		for(thr=0;thr<2;thr++) {
 			calnormfac[thr]=thr;
 			START_THREAD(threads[Cal1+thr],pt_normfac_calculate,calnormfac[thr],threadID);
 		}
@@ -3958,16 +3962,16 @@ void CalculateNormfac()
 		for(thr=0;thr<2;thr++)Wait_thread( threads[Cal1+thr]);
 
 		normstructure.isubset=isubset;
-		if(normfac_in_file_flag==-1){
+		if (normfac_in_file_flag==-1) {
 			START_THREAD(threads[Wnormfact],pt_write_norm,normstructure,threadID);
-			if(isubset==subsets-1)    Wait_thread( threads[Wnormfact]);
+			if (isubset==subsets-1)    Wait_thread( threads[Wnormfact]);
 		}
 		if (verbose & 0x0004) fprintf(stdout," Normfac %d/%d done in %3.2f sec\n",isubset,subsets,(clock()-ClockNormfacTheta+0.0)/CLOCKS_PER_SEC);
 	} /* end subset */
 
 	free_normfac();
 
-	if(normfac_in_file_flag==-1) free_correction();
+	if (normfac_in_file_flag==-1) free_correction();
 	free_thread_buf();
 
 	time(&t1);
@@ -4000,23 +4004,23 @@ void PrepareOsem3dFiles()
 	alloc_tmprprj1();
 	alloc_tmprprj2();
 
-		if(weighting==0 || weighting==5) 
+		if (weighting==0 || weighting==5) 
 			prepare_osem3dw0(nFlag,noattenFlag,tFlag,floatFlag,sFlag,weighting,normfp,attenfp,tsinofp,psinofp,dsinofp,ssinofp);
-		else if(weighting==1 || weighting==6) 
+		else if (weighting==1 || weighting==6) 
 			prepare_osem3dw1(nFlag,noattenFlag,tFlag,floatFlag,sFlag,weighting,normfp,attenfp,tsinofp,psinofp,dsinofp,ssinofp);
-		else if(weighting==2 || weighting==7) 
+		else if (weighting==2 || weighting==7) 
 			prepare_osem3dw2(nFlag,noattenFlag,tFlag,floatFlag,sFlag,weighting,normfp,attenfp,tsinofp,psinofp,dsinofp,ssinofp);
-		else if(weighting==3 || weighting==8) 
+		else if (weighting==3 || weighting==8) 
 			prepare_osem3dw3(nFlag,noattenFlag,tFlag,floatFlag,sFlag,weighting,normfp,attenfp,tsinofp,psinofp,dsinofp,ssinofp);
 	time(&t1);
 
 	// if (verbose & 0x0008)
 	LogMessage("  Preparation done in %d sec\n",t1-t0);
-	if(newzoom!=1) { // apply zoom on numerator or prompt and shift in update equation 
-		if(newzoom<1) zoom_proj_reduce(largeprj3,newzoom);
+	if (newzoom!=1) { // apply zoom on numerator or prompt and shift in update equation 
+		if (newzoom<1) zoom_proj_reduce(largeprj3,newzoom);
 		else	      zoom_proj_zoomup(largeprj3,newzoom);
-		if(weighting==3 && newzoom<1)      zoom_proj_short_reduce(largeprjshort3,newzoom);
-		else if(weighting==3 && newzoom>1) zoom_proj_short_zoomup(largeprjshort3,newzoom);
+		if (weighting==3 && newzoom<1)      zoom_proj_short_reduce(largeprjshort3,newzoom);
+		else if (weighting==3 && newzoom>1) zoom_proj_short_zoomup(largeprjshort3,newzoom);
 	}
 
 	free_tmpprj1();
@@ -4036,11 +4040,11 @@ void PrepareOsem3dFiles()
 		tmpfp=fopen("largeprj3.scn","wb");
 		fprintf(stdout,"  Writing largeprj3.scn \n");
 		// write line by line in sinogram mode 
-		for(theta=0;theta<th_pixels;theta++){
+		for(theta=0;theta<th_pixels;theta++) {
 			yr2=segment_offset[theta];
 			for( yr=yr_bottom[theta]; yr<=yr_top[theta]; yr++, yr2++) {
 				for( v=0; v<views; v++ ) {
-					if( fwrite( &largeprj3[yr2][v][0], radial_pixels*sizeof(float), 1, tmpfp) != 1 )
+					if ( fwrite( &largeprj3[yr2][v][0], radial_pixels*sizeof(float), 1, tmpfp) != 1 )
 					{ fprintf(stdout,"   write error at plane %d view %d \n", yr2,v);}
 				}
 			}
@@ -4048,24 +4052,24 @@ void PrepareOsem3dFiles()
 		fclose(tmpfp);    
 	}
 
-	if(CompressFlag==1){
-		if(weighting!=3) make_compress_mask(largeprj3);
-		else if(weighting==3) make_compress_mask_short(largeprjshort3);
+	if (CompressFlag==1) {
+		if (weighting!=3) make_compress_mask(largeprj3);
+		else if (weighting==3) make_compress_mask_short(largeprjshort3);
 		compress_sinogram_and_alloc_mem(largeprj3,compress_prj);
 		printf("compress mask flag setted!\n");
 //		free_matrixm128(largeprj3,0,segmentsize-1,0,views-1,0,xr_pixels/4-1);
 	}
 
 
-	if ( iterations > 0 ){ // close input files  
+	if ( iterations > 0 ) { // close input files  
 		if (tFlag) file_close(tsinofp);
 		else{
 			file_close(psinofp);
 			file_close(dsinofp);
 		}
-		if(nFlag) file_close(normfp);
+		if (nFlag) file_close(normfp);
 		if (noattenFlag == 0) file_close(attenfp);
-		if(sFlag) file_close(ssinofp);            
+		if (sFlag) file_close(ssinofp);            
 	}
 		/*  read initial image or initialize it in a cylindrical window */
 	/*---------------------------------------------------------------
@@ -4083,27 +4087,27 @@ void Init_Image()
 
 //	image= (float ***) alloc_imagexyzf_thread();
 	image= (float ***) matrix3dm128(0,x_pixels-1,0,y_pixels-1,0,z_pixels_simd-1);
-	if(image_psf==NULL) image_psf= (float ***) alloc_imagexyzf_thread();
-	if( image == NULL ) crash1("  Main(): error! memory allocation failure for image !\n");
+	if (image_psf==NULL) image_psf= (float ***) alloc_imagexyzf_thread();
+	if ( image == NULL ) crash1("  Main(): error! memory allocation failure for image !\n");
 	else if (verbose & 0x0008) fprintf(stdout,"  Allocate initial image : %d kbytes \n", imagesize/256);
 
 	if (iFlag) {
 		tmpfp=fopen(in_img_file,"rb");
-		if(tmpfp==NULL) crash2("  Main(): error when opening initial image from %s \n", in_img_file );
+		if (tmpfp==NULL) crash2("  Main(): error when opening initial image from %s \n", in_img_file );
 		tmpfptr2d=matrixfloat(0,x_pixels-1,0,y_pixels-1);
 
-		for(z=0;z<z_pixels;z++){
+		for(z=0;z<z_pixels;z++) {
 			fread(&tmpfptr2d[0][0],x_pixels*y_pixels,sizeof(float),tmpfp);
-			if(inflipFlag){
+			if (inflipFlag) {
 				/* Flip x<->y (in place, since first time) */
-				for(x=0;x<x_pixels;x++){
-					for(y=cylwiny[x][0];y<cylwiny[x][1];y++){
+				for(x=0;x<x_pixels;x++) {
+					for(y=cylwiny[x][0];y<cylwiny[x][1];y++) {
 						image[x][y][z]=tmpfptr2d[x][y];
 					}
 				}
 			} else {
-				for(x=0;x<x_pixels;x++){
-					for(y=cylwiny[x][0];y<cylwiny[x][1];y++){
+				for(x=0;x<x_pixels;x++) {
+					for(y=cylwiny[x][0];y<cylwiny[x][1];y++) {
 						image[y][x][z]=tmpfptr2d[x][y];
 					}
 				}
@@ -4113,10 +4117,10 @@ void Init_Image()
 		fclose(tmpfp);
 	} 
 	else { 
-		for( x=0; x<x_pixels; x++ ){ 
+		for( x=0; x<x_pixels; x++ ) { 
 			memset(&image[x][0][0],0,y_pixels*z_pixels_simd*sizeof(__m128));
-			if(cylwiny[x][0]==cylwiny[x][1]) continue;
-			for( y=cylwiny[x][0]; y<cylwiny[x][1];y++){ 
+			if (cylwiny[x][0]==cylwiny[x][1]) continue;
+			for( y=cylwiny[x][0]; y<cylwiny[x][1];y++) { 
 				for( z=z_min; z<z_max; z++ ) image[x][y][z] =  1.0;
 			}
 		}
@@ -4126,10 +4130,10 @@ void Init_Image()
 // Re-initialize image for next frame reconstruction
 void ResetImage()
 {
-		for( int x=0; x<x_pixels; x++ ){ 
+		for( int x=0; x<x_pixels; x++ ) { 
 			memset(&image[x][0][0],0,y_pixels*z_pixels_simd*sizeof(__m128));
-			if(cylwiny[x][0]==cylwiny[x][1]) continue;
-			for( int y=cylwiny[x][0]; y<cylwiny[x][1];y++){ 
+			if (cylwiny[x][0]==cylwiny[x][1]) continue;
+			for( int y=cylwiny[x][0]; y<cylwiny[x][1];y++) { 
 				for( int z=z_min; z<z_max; z++ ) image[x][y][z] =  1.0f;
 			}
 		}
@@ -4142,7 +4146,7 @@ void SaveImage(char *out_img_file,int iter, int frame)
 	ImageHeaderInfo *Info;
 
 	tmpimage = (float ***) matrix3d(0,z_pixels-1, 0,y_pixels-1, 0,x_pixels-1);        
-	if( tmpimage == NULL ) crash1("  Main(): memory allocation failure for tmp image !\n");
+	if ( tmpimage == NULL ) crash1("  Main(): memory allocation failure for tmp image !\n");
 	else if (verbose & 0x0008) fprintf(stdout,"  Allocate tmpimage     : %d kbytes \n", imagesize/256);
 	memset(&tmpimage[0][0][0],0, x_pixels*y_pixels*z_pixels*sizeof(float));
 
@@ -4158,7 +4162,7 @@ void SaveImage(char *out_img_file,int iter, int frame)
 	}
 
   if (!ecat_flag) {
-    if( !write_flat_image(tmpimage, out_img_file, 0, verbose) )
+    if ( !write_flat_image(tmpimage, out_img_file, 0, verbose) )
       crash1("  Main(): error occurs in write_flat_image !\n");
   }
 
@@ -4181,12 +4185,12 @@ void SaveImage(char *out_img_file,int iter, int frame)
 	Info->delayedfile[0] = Info->normfile   [0] = '\0';
 	Info->attenfile  [0] = Info->scatterfile[0] = '\0';
 	strcpy(Info->imagefile, out_img_file);
-	if( true_file	 != NULL ) strcpy( Info->truefile    ,true_file    );
-	if( prompt_file	 != NULL ) strcpy( Info->promptfile  ,prompt_file  );
-	if( delayed_file != NULL ) strcpy( Info->delayedfile ,delayed_file );
-	if( norm_file	 != NULL ) strcpy( Info->normfile    ,norm_file	   );
-	if( atten_file	 != NULL ) strcpy( Info->attenfile   ,atten_file   );
-	if( scat_scan_file != NULL ) strcpy( Info->scatterfile ,scat_scan_file );
+	if ( true_file	 != NULL ) strcpy( Info->truefile    ,true_file    );
+	if ( prompt_file	 != NULL ) strcpy( Info->promptfile  ,prompt_file  );
+	if ( delayed_file != NULL ) strcpy( Info->delayedfile ,delayed_file );
+	if ( norm_file	 != NULL ) strcpy( Info->normfile    ,norm_file	   );
+	if ( atten_file	 != NULL ) strcpy( Info->attenfile   ,atten_file   );
+	if ( scat_scan_file != NULL ) strcpy( Info->scatterfile ,scat_scan_file );
 
 	Info->subsets = subsets;
 	//	strcpy(Info->BuildTime,BuildTime());
@@ -4195,7 +4199,7 @@ void SaveImage(char *out_img_file,int iter, int frame)
   if (!ecat_flag) {
     write_image_header(Info, blur, sw_version, sw_build_id);
   } else
-      if( !write_ecat_image(tmpimage, out_img_file, frame, Info, blur, sw_version, sw_build_id) )
+      if ( !write_ecat_image(tmpimage, out_img_file, frame, Info, blur, sw_version, sw_build_id) )
         crash1("  Main(): error occurs in write_ecat_image !\n");
 #else
     if (!write_image_header(Info, blur, sw_version, sw_build_id))
@@ -4227,15 +4231,15 @@ void CalculateOsem3d(int frame)
 
   if (frame == 0) {
     order = (short int *) calloc( subsets, sizeof(short int) );
-    if( !sequence(subsets, order) ) crash1("  Main(): error occurs in sequence() !\n");
+    if ( !sequence(subsets, order) ) crash1("  Main(): error occurs in sequence() !\n");
 
-    if(normfac_in_file_flag==-1){
+    if (normfac_in_file_flag==-1) {
       alloc_normfac();
     }
     alloc_correction();
     alloc_thread_buf();
 
-    if(positFlag==1){
+    if (positFlag==1) {
       alloc_imagemask();
       memset(&imagemask[0][0][0],0,x_pixels*y_pixels*z_pixels_simd*4);
     }
@@ -4243,7 +4247,7 @@ void CalculateOsem3d(int frame)
 
 //	swap_xr_yr(largeprj3,largeprj_swap);
 //	swap_xr_yr();
-//	if(weighting==3 || weighting==8){
+//	if (weighting==3 || weighting==8) {
 //		swap_xr_yr_short(largeprjshort3,largeprjshort_swap);
 //	}
 	normstructure.normfac     = normfac;
@@ -4258,8 +4262,8 @@ void CalculateOsem3d(int frame)
       pext = iter_file + strlen(iter_file);
     }
   }
-	for( iter=0; iter<iterations; iter++ ){  
-		if( verbose & 0x0008) LogMessage("  Starting iteration %d \n", iter+1);
+	for( iter=0; iter<iterations; iter++ ) {  
+		if ( verbose & 0x0008) LogMessage("  Starting iteration %d \n", iter+1);
 		if ( saveFlag ) {         /* form the filename for intermediate images */
 			if (iter+1<10) sprintf(pext,"i0%d.i",iter+1);
       else sprintf(pext,"i%d.i",iter+1);
@@ -4267,29 +4271,29 @@ void CalculateOsem3d(int frame)
 		}
 		time(&t0);
 		ClockA=clock();
-		if(normfac_in_file_flag==2){
-			if(iter!=0) normfac_in_file_flag=1;
+		if (normfac_in_file_flag==2) {
+			if (iter!=0) normfac_in_file_flag=1;
 		}
-		for( i=0; i<subsets; i++ ){
+		for( i=0; i<subsets; i++ ) {
 			normstructure.normfac     = normfac;
 			normstructure.normfac_img = normfac_img;
 			normstructure.verbose     = verbose;
 			//read normfac.i file!!
 			isubset = order[i];
 			normstructure.isubset=isubset;
-			if(normfac_in_file_flag==-1 || normfac_in_file_flag==2){
+			if (normfac_in_file_flag==-1 || normfac_in_file_flag==2) {
 				START_THREAD(threads[Rnormfact],pt_read_norm,normstructure,threadID);
 			} 
 			ClockNormfacTheta = clock ();                /* reuse previous timing variable */
 
-			if(blur) convolve3d(image,image_psf,imagexyzf_thread[0]);
+			if (blur) convolve3d(image,image_psf,imagexyzf_thread[0]);
 
-			for(v=0;v<sviews/2-nthreads+1;v+=nthreads){
-				for(thr=0;thr<nthreads;thr++){
+			for(v=0;v<sviews/2-nthreads+1;v+=nthreads) {
+				for(thr=0;thr<nthreads;thr++) {
 					
 					view=vieworder[isubset][v+thr];
 					bparg[thr].prj=estimate_thread[thr];
-					if(blur) bparg[thr].ima=image_psf;
+					if (blur) bparg[thr].ima=image_psf;
 					else  bparg[thr].ima=image;
 					bparg[thr].imagepack=imagepack;
 					bparg[thr].view=view;
@@ -4298,7 +4302,7 @@ void CalculateOsem3d(int frame)
 					bparg[thr].prjbuf=prjxyf_thread[thr];
 					bparg[thr].volumeprj=largeprj[view];
 					
-						if (pFlag && (weighting == 3 || weighting==8) && floatFlag==0){
+						if (pFlag && (weighting == 3 || weighting==8) && floatFlag==0) {
 							bparg[thr].volumeprjshort=largeprjshort[view];
 						}
 						else if (pFlag && (weighting == 3 || weighting==8) && floatFlag==1)	bparg[thr].volumeprjfloat=largeprjfloat[view];
@@ -4308,43 +4312,43 @@ void CalculateOsem3d(int frame)
 				for(thr=0;thr<nthreads;thr++) Wait_thread( threads[Cal1+thr]);
 				rotate_image_buf(imagexyzf_thread,correction,nthreads,&vieworder[isubset][v]);
 			} 		
-			if(((sviews/2)%nthreads)!=0){
-				for(v=sviews/2-(sviews/2)%nthreads;v<sviews/2;v++){
+			if (((sviews/2)%nthreads)!=0) {
+				for(v=sviews/2-(sviews/2)%nthreads;v<sviews/2;v++) {
 					view=vieworder[isubset][v];
-					if(blur){
-						if( !forward_proj3d2(image_psf, estimate_thread[0], view,verbose,imagexyzf_thread[0],prjxyf_thread[0]))
+					if (blur) {
+						if ( !forward_proj3d2(image_psf, estimate_thread[0], view,verbose,imagexyzf_thread[0],prjxyf_thread[0]))
 							crash3("  Main(): error occurs in forward_proj3d at subset %d !\n",isubset );        
 					} else {
-						if( !forward_proj3d2(image, estimate_thread[0], view,verbose,imagexyzf_thread[0],prjxyf_thread[0]))
+						if ( !forward_proj3d2(image, estimate_thread[0], view,verbose,imagexyzf_thread[0],prjxyf_thread[0]))
 							crash3("  Main(): error occurs in forward_proj3d at subset %d !\n",isubset );        
 					}
 					// UW, AW, ANW scheme
 					if (weighting ==0 || weighting ==1 || weighting ==2 || weighting ==5 || weighting ==6 || weighting ==7 ) { 
 						update_estimate_w012(estimate_thread[0],largeprj[view],segmentsize*2,xr_pixels,nthreads);
 					}  else if (pFlag && (weighting == 3 || weighting==8)) {  
-						if(floatFlag==0) update_estimate_w3(estimate_thread[0],largeprj[view],largeprjshort[view],NULL,segmentsize*2,xr_pixels,nthreads);
-						else if(floatFlag==1) update_estimate_w3(estimate_thread[0],largeprj[view],NULL,largeprjfloat[view],segmentsize*2,xr_pixels,nthreads);
+						if (floatFlag==0) update_estimate_w3(estimate_thread[0],largeprj[view],largeprjshort[view],NULL,segmentsize*2,xr_pixels,nthreads);
+						else if (floatFlag==1) update_estimate_w3(estimate_thread[0],largeprj[view],NULL,largeprjfloat[view],segmentsize*2,xr_pixels,nthreads);
 					}
-					if( !back_proj3d2( estimate_thread[0], correction, view,verbose,imagexyzf_thread[0],prjxyf_thread[0])) 
+					if ( !back_proj3d2( estimate_thread[0], correction, view,verbose,imagexyzf_thread[0],prjxyf_thread[0])) 
 						crash3("  Main(): error occurs in back_proj3d for subset %d \n ", isubset);
 				}
 			}
 			if (verbose & 0x0008) fprintf(stdout," Calculating isubset = %1d/%1d in %1.2fs.\n",isubset, subsets, 1.0 * ( clock () - ClockNormfacTheta  ) / CLOCKS_PER_SEC );        
 
-			if(normfac_in_file_flag==-1){		Wait_thread(threads[Rnormfact]);}
+			if (normfac_in_file_flag==-1) {		Wait_thread(threads[Rnormfact]);}
 			else normfac=normfac_infile[order[i]];
 
-			if(positFlag==0 || positFlag==2){
+			if (positFlag==0 || positFlag==2) {
 				count=0;
 				x=0;
 				y=0;
 				
-				if(blur) convolve3d(correction,correction,imagexyzf_thread[0]);
-				if(mapemflag){
+				if (blur) convolve3d(correction,correction,imagexyzf_thread[0]);
+				if (mapemflag) {
 					calculate_derivative_mapem(image,gradient,laplacian);
 				}
 				
-				for(thr=0;thr<nthreads;thr++){
+				for(thr=0;thr<nthreads;thr++) {
 					x+=start_x__per_thread[thr];
 					y+=start_x__per_thread[thr+1];
 					normarg[thr].image=image;
@@ -4352,7 +4356,7 @@ void CalculateOsem3d(int frame)
 					normarg[thr].prj=normfac;
 					normarg[thr].start=x;
 					normarg[thr].end=y;
-					if(thr==nthreads-1) normarg[thr].end=x_pixels;
+					if (thr==nthreads-1) normarg[thr].end=x_pixels;
 					START_THREAD(threads[Cal1+thr],pt_cal_updateimage,normarg[thr],threadID);
 				} 
 				for(thr=0;thr<nthreads;thr++) Wait_thread( threads[Cal1+thr]);
@@ -4363,21 +4367,21 @@ void CalculateOsem3d(int frame)
 						fptr1=image[x][y];
 						fptr2=correction[x][y];
 						fptr3=normfac[x][y];
-						if(iter>6){
-							for( z=0; z<z_pixels; z++ ){
-								if(fptr2[z]>0.0) fptr1[z]*=fptr2[z]*fptr3[z];
-								if( fptr1[z]> image_max) {
+						if (iter>6) {
+							for( z=0; z<z_pixels; z++ ) {
+								if (fptr2[z]>0.0) fptr1[z]*=fptr2[z]*fptr3[z];
+								if ( fptr1[z]> image_max) {
 									count++;
 									fptr1[z] = image_max;		/* truncate - CJM Sept 2002 */
 								}
 							}
 						} else {
-							for( z=0; z<z_pixels; z++ ){
-								if(fptr2[z]>0.0){
+							for( z=0; z<z_pixels; z++ ) {
+								if (fptr2[z]>0.0) {
 									fptr1[z]*=fptr2[z]*fptr3[z];
 									imagemask[x][y][z]=1;
 								}
-								if( fptr1[z]> image_max) {
+								if ( fptr1[z]> image_max) {
 									count++;
 									fptr1[z] = image_max;		/* truncate - CJM Sept 2002 */
 								}
@@ -4403,20 +4407,20 @@ void CalculateOsem3d(int frame)
 		for( x=0; x<x_pixels; x++ ) {
 			for( y=cylwiny[x][0]; y<cylwiny[x][1]; y++ ) {
 				fptr1=(float *) image[x][y];
-				for( z=z_min; z<z_max; z++){
+				for( z=z_min; z<z_max; z++) {
 					sum_image+=fptr1[z];
-					if(fptr1[z]<1e-16) fptr1[z]=0;
+					if (fptr1[z]<1e-16) fptr1[z]=0;
 				}
 			}
 		}
-		if(iter<1 && positFlag==1){
+		if (iter<1 && positFlag==1) {
 			count=0;
 			for( x=0; x<x_pixels; x++ ) {
 				for( y=cylwiny[x][0]; y<cylwiny[x][1]; y++ ) {
 					fptr1=image[x][y];
-					for( z=0; z<z_pixels; z++){
+					for( z=0; z<z_pixels; z++) {
 						fptr1[z]*=((float) imagemask[x][y][z]);
-						if(imagemask[x][y][z]==0) count++;
+						if (imagemask[x][y][z]==0) count++;
 						imagemask[x][y][z]=0;		
 					}
 				}
@@ -4427,15 +4431,15 @@ void CalculateOsem3d(int frame)
 
     //Use old output file name convention when intermediate image are requested
 		/* save intermediate image as long as it is not the last iteration   */
-		if( saveFlag && (iter!=(iterations-1)) ) {    
+		if ( saveFlag && (iter!=(iterations-1)) ) {    
 			/* we need a temporary image, keep original untouched */
 			free_correction();
-			if(normfac_in_file_flag==-1) free_normfac();
+			if (normfac_in_file_flag==-1) free_normfac();
 
 			SaveImage(iter_file,iter+1,0);
 			
 			alloc_correction();
-			if(normfac_in_file_flag==-1) alloc_normfac();
+			if (normfac_in_file_flag==-1) alloc_normfac();
 		} 
 	}  /* end iteration loop */
   
@@ -4519,7 +4523,7 @@ int main(int argc, char* argv[])
 	GetScannerParameter();
 
 	/* calculate depended variables and some frequently used arrays and constants  - see HRRT_osem3d_sbrt.c */
-	if( !dependencies(nprojs, nviews, verbose) ) crash1("  Main(): Error occur in dependencies() !");
+	if ( !dependencies(nprojs, nviews, verbose) ) crash1("  Main(): Error occur in dependencies() !");
 
   
   /* Get scatter file format : 3D or unscaled 2D and scale factors*/
@@ -4576,8 +4580,8 @@ int main(int argc, char* argv[])
                     osem3dpar->span, osem3dpar->maxdel);
         // close ch file and open created smoothed random file
         fclose(dsinofp);
-        dsinofp = file_open(ra_smo_file,"rb");
-        if(dsinofp == FOPEN_ERROR) 
+        dsinofp = fopen(ra_smo_file,"rb");
+        if (dsinofp == FOPEN_ERROR) 
           crash2("  Error: cannot open input delayed sinogram file %s\n",ra_smo_file);
 #endif     
       } else {
@@ -4623,7 +4627,7 @@ int main(int argc, char* argv[])
 
   /* Start processing */
 	LogMessage("  Reconstruction with %d subsets and %d iteration(s) \n", subsets, iterations );
-	if(saveFlag) fprintf(stdout,"  ... an image will be saved after each iteration ! \n");
+	if (saveFlag) fprintf(stdout,"  ... an image will be saved after each iteration ! \n");
 
 	time(&t1);
 	t0 = t1;
@@ -4641,7 +4645,7 @@ int main(int argc, char* argv[])
 		exit(EXIT_SUCCESS);
 	}
 
-	if(blur){
+	if (blur) {
 		printf("fwhm1 %f %f %f\n",blur_fwhm1,blur_fwhm2,blur_ratio);
 		psfx=(Psf1D *) malloc(sizeof(Psf1D));
 		psfy=(Psf1D *) malloc(sizeof(Psf1D));
@@ -4665,12 +4669,12 @@ int main(int argc, char* argv[])
 
 	if (calnormfacFlag) {
 		PrepareNormfac();
-		if(normfac_in_file_flag!=-1) alloc_normfac_infile(weighting,span);
-		if(normfac_in_file_flag==-1) alloc_correction();
+		if (normfac_in_file_flag!=-1) alloc_normfac_infile(weighting,span);
+		if (normfac_in_file_flag==-1) alloc_correction();
 		CalculateNormfac();
 	} else {
-		if(normfac_in_file_flag!=-1)alloc_normfac_infile(weighting,span);
-		if(normfac_in_file_flag==1) normfac_in_file_flag=2;
+		if (normfac_in_file_flag!=-1)alloc_normfac_infile(weighting,span);
+		if (normfac_in_file_flag==1) normfac_in_file_flag=2;
 		LogMessage("  *** WARNING *** Reuse normfac (sensitivity) previously created ; Care should be taken that it contains the correct information \n");
 	}
 
@@ -4694,11 +4698,11 @@ int main(int argc, char* argv[])
     if (!ecat_flag)
       sprintf(out_img_file,"%s_frame%d%s.i",em_file_prefix,em_frame,em_file_postfix);
 
-    if ((tsinofp = file_open(true_file,"rb")) == FOPEN_ERROR) 
+    if ((tsinofp = fopen(true_file,"rb")) == FOPEN_ERROR) 
       crash2("  Error: cannot open input true sinogram file %s\n",true_file);
     
-    if(nFlag) {  // reopen normalization          
-      if ((normfp = file_open(norm_file,"rb")) == FOPEN_ERROR) 
+    if (nFlag) {  // reopen normalization          
+      if ((normfp = fopen(norm_file,"rb")) == FOPEN_ERROR) 
         crash2("  Error: cannot open normalization file %s\n",norm_file);
     }
 
