@@ -28,7 +28,7 @@ Modification History (HRRT User Community):
 #define		E_NOT_A_FLOAT		-8
 #define		E_NOT_A_DOUBLE		-9
 
-static char *HdrErrors[] =
+static const char *HdrErrors[] =
 {
 	"OK",
 	"Attempt to read a file that is not open as read",
@@ -49,9 +49,9 @@ public:
 	int Readfloat(char *tag, float *val);	// Get a float value from memory table
 	int Readlong(char* tag, long* val);		// Get a long value from memory table
 	int Readint(char* tag, int* val);		// Get a int value from memory table
-	int WriteTag(char* tag, const char* val);		// Put a string value in memory table
-	int WriteTag(char* tag, double val);	// Put a double value in memory table
-	int WriteTag(char* tag, int val);		// Put a int value in memory table
+	int WriteTag(const char* tag, const char* val);		// Put a string value in memory table
+	int WriteTag(const char* tag, double val);	// Put a double value in memory table
+	int WriteTag(const char* tag, int val);		// Put a int value in memory table
 #ifdef WIN32
 	int WriteTag(char* tag, __int64);		// Put a int64 value in memory table
 #endif

@@ -103,8 +103,7 @@ interfile_load(char *filename, IFH_Table *table)
     Find specified key from memory table.
     Returns 1 if found or 0 otherwise.
  */
-int 
-interfile_find(IFH_Table *table, const char *key, char* val, int len)
+int interfile_find(IFH_Table *table, const char *key, char* val, int len)
 {
   size_t i;
 	for (i = 0; i < table->size; i++)

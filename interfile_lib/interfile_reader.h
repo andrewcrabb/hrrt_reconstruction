@@ -42,8 +42,7 @@ extern "C" {
 int interfile_load(char* in_filename, IFH_Table *out_table);
 
         /*! Find the value corresponding to a tag */
-int interfile_find(IFH_Table *in_table,  char *in_tag,
-                   char *out_str, int in_str_len);
+int interfile_find(IFH_Table *in_table,  const char *in_tag, char *out_str, int in_str_len);
 
         /*! free table memory allocated by interfile_open */
 int interfile_clear(IFH_Table *in_table);

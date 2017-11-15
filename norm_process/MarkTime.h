@@ -50,8 +50,8 @@ void PrintMarkList();
 void PrintfMark(struct Mark *M);
 void PrintfMarkList();
 
-struct Timer *StartTimer(char *name);
-struct Timer *StopTimer(char *name);
+struct Timer *StartTimer(const char *name);
+struct Timer *StopTimer(const char *name);
 
 void PrintTimer(struct Timer *T);
 void PrintTimerList();

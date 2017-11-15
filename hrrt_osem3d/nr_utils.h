@@ -13,7 +13,7 @@
 //   float m128_f32[4];
 //} __m128;
 
-void 	nrerror(char error_text[]);
+void 	nrerror(const char *error_text);
 float	*vector(int nl, int nh);
 float   **matrixfloat(int nrl, int nrh, int ncl, int nch);
 __m128  **matrixm128(int nrl, int nrh, int ncl, int nch);

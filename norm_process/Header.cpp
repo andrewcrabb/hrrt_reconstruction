@@ -220,14 +220,14 @@ bool CHeader::SortData(char *HdrLine, char *tag, char *Data)
 		return FALSE;
 }
 
-int CHeader::WriteTag(char *tag, double val)
+int CHeader::WriteTag(const char *tag, double val)
 {
 	char buffer[256];
 	sprintf(buffer,"%f",val);
 	return WriteTag(tag,buffer);
 }
 
-int CHeader::WriteTag(char *tag, int val)
+int CHeader::WriteTag(const char *tag, int val)
 {
 	char buffer[256];
 	sprintf(buffer,"%d",val);
@@ -235,7 +235,7 @@ int CHeader::WriteTag(char *tag, int val)
 }
 
 #ifdef WIN32
-int CHeader::WriteTag(char *tag, __int64 val)
+int CHeader::WriteTag(const char *tag, __int64 val)
 {
 	char buffer[256];
 	sprintf(buffer,"%I64d",val);
@@ -243,7 +243,7 @@ int CHeader::WriteTag(char *tag, __int64 val)
 }
 #endif
 
-int CHeader::WriteTag(char *tag, const char *val)
+int CHeader::WriteTag(const char *tag, const char *val)
 {
 	for (int i = 0; i < numtags; i++)
 		if (!strcmp(tag,tags[i])) // match?

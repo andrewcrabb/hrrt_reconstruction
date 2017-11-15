@@ -46,9 +46,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-/* ahc */
-#define __linux__ 1
-
 #ifdef __linux__
 #define _MAX_PATH 256
 #define _MAX_DRIVE 0
@@ -162,7 +159,10 @@ float normal_irad  [8] = {5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0};
 float *head_lthick = NULL;
 float *head_irad   = NULL;
 
-inline void crash(char *args) { fprintf(stderr,args); exit(1);}
+inline void crash(const char *args) { 
+  fprintf(stderr,args); 
+  exit(1);
+}
 
 inline int mp_num(int ahead, int bhead)
 {

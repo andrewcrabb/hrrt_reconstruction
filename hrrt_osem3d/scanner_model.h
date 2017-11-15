@@ -2,8 +2,8 @@
 #define ScannerModel_h
 
 typedef struct _ScannerModel {
-	char *number;  		/* model number as an ascii string */
-	char *model_name;	/* model name as an ascii string  sept 2002   */	
+	const char *number;  		/* model number as an ascii string */
+	const char *model_name;	/* model name as an ascii string  sept 2002   */	
 	int dirPlanes;		/* number of direct planes */
 	int defElements;	/* default number of elements */
 	int defAngles;		/* default number of angles */

@@ -25,7 +25,7 @@ Mdofication dates:
 
 #define		LINESIZE 1024
 #define		IN_DIR_SEPARATOR '/'
-static char *data_types[] = {"Error", "unsigned integer", "signed integer", "float"};
+static const char *data_types[] = {"Error", "unsigned integer", "signed integer", "float"};
 static char line[LINESIZE];
 
 static int data_bytes[] = {0, 1, 2, 4};
