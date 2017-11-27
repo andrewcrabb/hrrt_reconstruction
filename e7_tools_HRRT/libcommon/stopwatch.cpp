@@ -35,7 +35,11 @@ StopWatch::StopWatch()
 /*---------------------------------------------------------------------------*/
 StopWatch::~StopWatch()
  { if (watches.size() > 0)
-    throw Exception(REC_STOPWATCH_RUN, "Stop watch is still running.");
+  // ahc 11/27/17 Destructors should not throw.
+  // Since C++ 2011 this generates warning:
+  // warning: throw will always call terminate() [-Wterminate]
+    // throw Exception(REC_STOPWATCH_RUN, "Stop watch is still running.");
+  std::cerr << "ERROR: " << watches.size() << " Stopwatches still exist!" << std::endl;
  }
 
 /*---------------------------------------------------------------------------*/

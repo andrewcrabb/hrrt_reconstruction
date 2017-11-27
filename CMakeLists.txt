@@ -46,7 +46,8 @@ add_subdirectory(je_hrrt_osem3d)
 add_subdirectory(norm_process)
 add_subdirectory(air_ecat)
 add_subdirectory(motion_distance)
-add_subdirectory(gsmooth)
+# add_subdirectory(gsmooth)   # Come back to this after e7_tools_HRRT
+add_subdirectory(e7_tools_HRRT)
 
 # # add the MathFunctions library?
 # if (USE_MYMATH)

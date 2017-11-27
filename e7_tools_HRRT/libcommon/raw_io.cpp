@@ -301,7 +301,10 @@ RawIO <T>::~RawIO()
                                                             // delete semaphore
    if (block_finished_sem != NULL) delete block_finished_sem;
    if (file != NULL) fclose(file);                                // close file
-   if (thread_result != NULL) throw (Exception *)thread_result;
+   // ahc 11/27/17 C++11 warns about throw in destructors
+   // if (thread_result != NULL) throw (Exception *)thread_result;
+   if (thread_result != NULL) 
+    std::cerr << "ERROR: thread_result not NULL!" << std::endl;
  }
 
 /*---------------------------------------------------------------------------*/
