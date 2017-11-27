@@ -1,8 +1,14 @@
 add_subdirectory(libatten)
 add_subdirectory(libcommon)
+add_subdirectory(libconvert)
+add_subdirectory(libecat7)
+add_subdirectory(libexception)
+add_subdirectory(libfft)
+add_subdirectory(libfilter)
+add_subdirectory(libimage)
 
-# target_include_directories (libatten PUBLIC
-# include_directories (
+# Note that all subdirs inherit this very long list.
+# Might be worth doing them individually in each subdir
 set (LIB_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}
 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libcommon
@@ -12,12 +18,22 @@ set (LIB_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libinterfile
 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libparser
 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libsinogram
+	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libfft
+	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libipc
+	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libatten
+	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libfilter
 	)
 
 message("LIB_INCLUDE_DIRS are ${LIB_INCLUDE_DIRS}")
 
-target_include_directories (libatten PUBLIC ${LIB_INCLUDE_DIRS})
-target_include_directories (libcommon PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (libatten     PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (libcommon    PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (libconvert   PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (libecat7     PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (libexception PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (libfft       PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (libfilter    PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (libimage     PUBLIC ${LIB_INCLUDE_DIRS})
 
 # list(APPEND includePath 	${CMAKE_SOURCE_DIR}
 # 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libcommon
