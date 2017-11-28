@@ -6,6 +6,9 @@ add_subdirectory(libexception)
 add_subdirectory(libfft)
 add_subdirectory(libfilter)
 add_subdirectory(libimage)
+add_subdirectory(libinterfile)
+add_subdirectory(libipc)
+add_subdirectory(libparser)
 
 # Note that all subdirs inherit this very long list.
 # Might be worth doing them individually in each subdir
@@ -34,6 +37,9 @@ target_include_directories (libexception PUBLIC ${LIB_INCLUDE_DIRS})
 target_include_directories (libfft       PUBLIC ${LIB_INCLUDE_DIRS})
 target_include_directories (libfilter    PUBLIC ${LIB_INCLUDE_DIRS})
 target_include_directories (libimage     PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (libinterfile PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (libipc PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (libparser PUBLIC ${LIB_INCLUDE_DIRS})
 
 # list(APPEND includePath 	${CMAKE_SOURCE_DIR}
 # 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libcommon
