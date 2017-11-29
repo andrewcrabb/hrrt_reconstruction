@@ -14,6 +14,7 @@ set (LIB_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libatten
 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libfilter
 	)
+# message("LIB_INCLUDE_DIRS are ${LIB_INCLUDE_DIRS}")
 
 add_subdirectory(libatten)
 add_subdirectory(libcommon)
@@ -28,8 +29,21 @@ add_subdirectory(libipc)
 add_subdirectory(libparser)
 add_subdirectory(libsinogram)
 add_subdirectory(e7_atten_prj)
+add_subdirectory(e7_fwd_prj)
 
-message("LIB_INCLUDE_DIRS are ${LIB_INCLUDE_DIRS}")
+find_library (LIBCOMMON    NAME common    PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libcommon")
+find_library (LIBEXCEPTION NAME exception PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libexception")
+find_library (LIBSINOGRAM  NAME sinogram  PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libsinogram")
+find_library (LIBECAT7     NAME ecat7     PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libecat7")
+find_library (LIBINTERFILE NAME interfile PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libinterfile")
+find_library (LIBPARSER    NAME parser    PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libparser")
+find_library (LIBFFT       NAME fft       PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libfft")
+find_library (LIBIPC       NAME ipc       PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libipc")
+find_library (LIBCONVERT   NAME convert   PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libconvert")
+find_library (LIBIMAGE     NAME image     PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libimage")
+find_library (LIBATTEN     NAME atten     PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libatten")
+find_library (LIBFILTER    NAME filter    PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libfilter")
+find_library (LIBSCATTER   NAME scatter    PATHS "${CMAKE_BINARY_DIR}/libscatter")
 
 target_include_directories (atten     PUBLIC ${LIB_INCLUDE_DIRS})
 target_include_directories (common    PUBLIC ${LIB_INCLUDE_DIRS})
