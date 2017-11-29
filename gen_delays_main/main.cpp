@@ -15,7 +15,7 @@ static const char *sw_version = "HRRT_U 1.2";
 int main(int argc, char* argv[])
 {
 	printf("\ngen_delays, Version %s, build %s %s\n\n",sw_version, __DATE__,__TIME__);
-	gen_delays(argc-1,argv+1, 0, 0.0f, NULL, NULL, NULL);
+	gen_delays(argc-1, argv+1, 0, 0.0f, NULL, NULL, NULL);
 	return 0;
 }
 

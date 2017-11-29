@@ -313,7 +313,7 @@ static int add_slice(const char * fname, int serie_id, Tslices &slices)
 }
 
 #ifdef unix
-static int split_dir(const char *path, int serie_id, TSlices &slices) {
+static int split_dir(const char *path, int serie_id, Tslices &slices) {
   DIR *dir;
   char fname[256];
   struct dirent *item;

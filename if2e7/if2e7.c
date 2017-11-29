@@ -1612,11 +1612,7 @@ int main(int argc, char *argv[])
        /* (big endians) are different. If data are written on one system and  */
        /* read on the other, then the bytes ahve to be swaped while reading   */
 
-#if defined(WIN32)|| defined(_LINUX) 
   is_little = 1;
-#else
-  is_little=little_endian();   /* Is byte order little endian on this system? */
-#endif
   if (is_little) {
     Logging("byte order on this system is little endian \n");
   } else {
@@ -2235,13 +2231,13 @@ int main(int argc, char *argv[])
     fclose(inputImage);
       /* float byte order in HRRT interfile images is little endian. If       */
       /* conversion is done on a big endian sytem the bytes have to be swaped */
-    if (!strcmp(scannerModel,"HRRT") && is_little == 0) {
-#if !defined(WIN32) && !defined(_LINUX)
-      Logging("  swapping bytes\n");
-      for (j=0; j<dimx*dimy*dimz; j++) 
-        swawbip(&matrix_float[j], sizeof(float));
-#endif
-      }
+    // if (!strcmp(scannerModel,"HRRT") && is_little == 0) {
+// #if !defined(WIN32) && !defined(_LINUX)
+//       Logging("  swapping bytes\n");
+//       for (j=0; j<dimx*dimy*dimz; j++) 
+//         swawbip(&matrix_float[j], sizeof(float));
+// #endif
+      // }
 
   /****************************************************************************/
   /*               correction/manipulation of matrix data                     */
