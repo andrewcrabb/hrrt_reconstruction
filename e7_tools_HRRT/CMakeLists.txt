@@ -13,6 +13,7 @@ set (LIB_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libipc
 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libatten
 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libfilter
+	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libconvert
 	)
 # message("LIB_INCLUDE_DIRS are ${LIB_INCLUDE_DIRS}")
 
@@ -30,6 +31,7 @@ add_subdirectory(libparser)
 add_subdirectory(libsinogram)
 add_subdirectory(e7_atten_prj)
 add_subdirectory(e7_fwd_prj)
+add_subdirectory(e7_sino_prj)
 
 find_library (LIBCOMMON    NAME common    PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libcommon")
 find_library (LIBEXCEPTION NAME exception PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libexception")

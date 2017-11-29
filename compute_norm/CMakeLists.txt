@@ -14,11 +14,13 @@ set (LIB_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libconvert
 	)
 
-add_executable (gsmooth_ps gsmooth.cpp image_filter.cpp )
-target_link_libraries (gsmooth_ps LINK_PUBLIC ecatx)
+add_executable (compute_norm compute_norm.cpp gantryinfo.cpp matrix.cpp self_norm.cpp det_to_ve.cpp 
+	gapfill.cpp plot.cpp  sino_to_crys.cpp dwell_sino.cpp global_tmpl.cpp polyfit.cpp fit_dwell.cpp make_norm.cpp polyfitw.cpp)
 
-add_definitions(-D GSMOOTH)
-target_include_directories (gsmooth_ps PUBLIC ${LIB_INCLUDE_DIRS})
-install(TARGETS gsmooth_ps
+target_link_libraries (compute_norm LINK_PUBLIC )
+
+# add_definitions(-D GSMOOTH)
+target_include_directories (compute_norm PUBLIC ${LIB_INCLUDE_DIRS})
+install(TARGETS compute_norm
     RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

@@ -25,7 +25,6 @@ include_directories(/usr/include ${PROJECT_BINARY_DIR})
  # ahc https://goo.gl/hHNWmc for strdup (else it's undefined and assume int so complains about type)
 add_definitions(-D_XOPEN_SOURCE=600 -D _GLIBCXX_USE_CXX11_ABI=0)
 
-
 # add_definitions(-D_LINUX -D__LINUX__ ${GCC_COMPILE_FLAGS})
 # Removed definition: Test for Linux defined at https://sourceforge.net/p/predef/wiki/OperatingSystems/: __linux__
 # add_definitions(-D_LINUX -D__LINUX__)
@@ -46,8 +45,11 @@ add_subdirectory(je_hrrt_osem3d)
 add_subdirectory(norm_process)
 add_subdirectory(air_ecat)
 add_subdirectory(motion_distance)
-# add_subdirectory(gsmooth)   # Come back to this after e7_tools_HRRT
 add_subdirectory(e7_tools_HRRT)
+add_subdirectory(gsmooth)
+add_subdirectory(compute_norm)
+# add_subdirectory(TX_TV3DReg)  # Uses X11 and I can't be fagged installing it
+add_subdirectory(ecat2DICOM)
 
 # # add the MathFunctions library?
 # if (USE_MYMATH)

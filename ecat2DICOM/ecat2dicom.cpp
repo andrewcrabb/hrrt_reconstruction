@@ -53,6 +53,9 @@
 #include <unistd.h>
 #endif
 
+// ahc
+#include <cstring>
+
 static void usage(const char *pgm) {
   fprintf(stderr,"%s Build %s %s\n", pgm,  __DATE__, __TIME__);
   fprintf(stderr,

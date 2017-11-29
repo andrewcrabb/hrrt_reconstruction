@@ -88,7 +88,7 @@ static int model_number = 328;
 #endif
 static char line[LINESIZE];
 
-static char *pgm_id = "V1.1 ";
+const char *pgm_id = "V1.1 ";
 
 // Error messages
 static const char *malloc_error = "Memory allocation error";

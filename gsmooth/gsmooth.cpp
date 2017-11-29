@@ -94,12 +94,11 @@ int main(int argc, char **argv)
 		}
 		gauss_fwhm_z = gauss_fwhm_xy;
 	}
-	if (argc > 3) strcpy(out_fname, argv[3]);
-	else 
-	{
+	if (argc > 3) {
+    strcpy(out_fname, argv[3]);
+	} else {
 		strcpy(out_fname, in_fname);
-		if ((p = strrchr(out_fname,'.')) != NULL)
-		{
+		if ((p = strrchr(out_fname,'.')) != NULL)	{
 			sprintf(ext,"_%dmm",(int)gauss_fwhm_xy);
 			strcat(ext,p);
 			*p = '\0';
@@ -107,38 +106,36 @@ int main(int argc, char **argv)
 		}
 	}
 	
-  if (argc > 4) 
-  {
-    if (tolower(argv[4][0]) == 'm') multi_frame_movie_mode = 1;
-    else if (tolower(argv[4][0]) == 's') simd_mode = 0;
-    else if (tolower(argv[4][0]) == 'i') cubic_flag = 1;
+  if (argc > 4) {
+    if (tolower(argv[4][0]) == 'm') 
+      multi_frame_movie_mode = 1;
+    else if (tolower(argv[4][0]) == 's') 
+      simd_mode = 0;
+    else if (tolower(argv[4][0]) == 'i') 
+      cubic_flag = 1;
   }
-	strcpy(in_hdr_fname, in_fname);
+  strcpy(in_hdr_fname, in_fname);
 	strcat(in_hdr_fname,".hdr");
   clock_t c1=clock();
-	if (access(in_hdr_fname, F_OK) == 0)
-	{
+	if (access(in_hdr_fname, F_OK) == 0) {
 		if ((in = matrix_open(in_hdr_fname,MAT_READ_ONLY,MAT_UNKNOWN_FTYPE)) == NULL)
 			crash("Error opening %s\n", in_hdr_fname);
-	}
-	else 
-	{
+	} else {
 		if ((in = matrix_open(in_fname,MAT_READ_ONLY,MAT_UNKNOWN_FTYPE)) == NULL)
 			crash("Error opening %s\n", in_fname);
-		 int pos = strlen(in_fname)-6;
-		if (pos>0 && strcasecmp(in_fname+pos, ".i.hdr")== 0)
-		{
+		 int pos = strlen(in_fname) - 6;
+		if (pos>0 && strcasecmp(in_fname+pos, ".i.hdr")== 0) {
 			strncpy(out_fname,in_fname, pos);
 			sprintf(&out_fname[pos], "_%dmm.i",(int)gauss_fwhm_xy);
 		}
 	}
-	if (in->dirlist->nmats == 0) crash("Error: %s is empty\n", in_fname);
+	if (in->dirlist->nmats == 0)
+    crash("Error: %s is empty\n", in_fname);
   clock_t c2=clock();  
   // printf("matrix_open: \t%f sec\n",(c2-c1+0.0)/CLOCKS_PER_SEC);   
   MatDirNode *node = in->dirlist->first;
   int frame=0;
-  while (node)
-  {
+  while (node) {
     struct Matval mat;
     int matnum = node->matnum;
     mat_numdoc(matnum, &mat);
@@ -239,12 +236,11 @@ int main(int argc, char **argv)
     delete filter;
     filter=NULL;
     
-    if (simd_mode) sz = volume->zdim; // restore zsize
+    if (simd_mode)
+      sz = volume->zdim; // restore zsize
 
-    if (cubic_flag) 
-    {  // simple implementation for HRRT 128x128x207
-      if (volume->xdim==128 && volume->zdim==207)
-      {
+    if (cubic_flag) {  // simple implementation for HRRT 128x128x207
+      if (volume->xdim==128 && volume->zdim==207) {
         for (i=2; i<sz; i += 2) 
           memcpy(&image[(i/2)*sx*sy], &image[i*sx*sy], sx*sy*sizeof(float));
         volume->zdim = sz = sz/2+1;
@@ -256,12 +252,10 @@ int main(int argc, char **argv)
 
     c1 =clock();
 	  char **interfile_header = in->interfile_header;
-    if (in->analyze_hdr==NULL && interfile_header!=NULL)
-    { // Interfile format: use float
+    if (in->analyze_hdr==NULL && interfile_header!=NULL) {
+     // Interfile format: use float
       volume->data_type = IeeeFloat;
-    }
-    else 
-    {   // ECAT format: convert to Short
+    } else {   // ECAT format: convert to Short
       Image_subheader* imh = (Image_subheader*)volume->shptr;
          // update z dimension in case it changed
       imh->z_dimension = volume->zdim;
@@ -300,10 +294,8 @@ int main(int argc, char **argv)
 		  free(image);
 	  }
   	
-	  if (in->analyze_hdr==NULL && interfile_header != NULL)
-    {
-		  if ((p = strrchr(out_fname,'.')) != NULL)
-		  {
+	  if (in->analyze_hdr==NULL && interfile_header != NULL) {
+		  if ((p = strrchr(out_fname,'.')) != NULL) {
 			  char data_file[FILENAME_MAX];
 			  strcpy(p+1,"i");
 			  strcpy(data_file, out_fname);
@@ -316,7 +308,8 @@ int main(int argc, char **argv)
 			  fclose(fp);
 			  strcpy(p+1,"i.hdr");
 			  FILE *in_hdr = fopen(in->fname,"rb");
-			  if (fp==NULL) crash("Error opening input header %s\n", in->fname);
+			  if (fp==NULL)
+          crash("Error opening input header %s\n", in->fname);
 			  if ((fp = fopen(out_fname,"wb")) == NULL)
 				  crash("Error creating %s\n", out_fname);
 			  const char *endianess = "BIGENDIAN";

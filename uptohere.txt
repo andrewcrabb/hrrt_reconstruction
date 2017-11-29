@@ -1,3 +1,0 @@
-11/15  Time to do e7_tools because I renamed e7_tools_const.h from const.h.  Actually
-working on gsmooth, but it links to fft.h which is within e7_tools.  So do e7_tools
-first then come back to gsmooth.
