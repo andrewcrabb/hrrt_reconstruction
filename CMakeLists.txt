@@ -23,7 +23,7 @@ include_directories(/usr/include ${PROJECT_BINARY_DIR})
 # set (GCC_COMPILE_FLAGS "-std=c99")
 
  # ahc https://goo.gl/hHNWmc for strdup (else it's undefined and assume int so complains about type)
-add_definitions(-D_XOPEN_SOURCE=600)
+add_definitions(-D_XOPEN_SOURCE=600 -D _GLIBCXX_USE_CXX11_ABI=0)
 
 
 # add_definitions(-D_LINUX -D__LINUX__ ${GCC_COMPILE_FLAGS})

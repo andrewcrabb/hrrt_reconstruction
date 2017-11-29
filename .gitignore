@@ -47,6 +47,7 @@ bin/
 /bin/
 !/lib/hrrt_rebinner.lut
 build/
+build_ninja/
 
 # Compiled Libraries #
 ######################
