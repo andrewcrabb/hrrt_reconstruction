@@ -1,8 +1,6 @@
-# add_subdirectory(e7_atten_prj)
-
-add_library (libinterfile SHARED 
+add_library (interfile
 		interfile.cpp kv.cpp)
 
-install(TARGETS libinterfile
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+install(TARGETS interfile
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

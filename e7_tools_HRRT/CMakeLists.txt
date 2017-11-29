@@ -1,15 +1,3 @@
-add_subdirectory(libatten)
-add_subdirectory(libcommon)
-add_subdirectory(libconvert)
-add_subdirectory(libecat7)
-add_subdirectory(libexception)
-add_subdirectory(libfft)
-add_subdirectory(libfilter)
-add_subdirectory(libimage)
-add_subdirectory(libinterfile)
-add_subdirectory(libipc)
-add_subdirectory(libparser)
-
 # Note that all subdirs inherit this very long list.
 # Might be worth doing them individually in each subdir
 set (LIB_INCLUDE_DIRS
@@ -27,19 +15,34 @@ set (LIB_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libfilter
 	)
 
+add_subdirectory(libatten)
+add_subdirectory(libcommon)
+add_subdirectory(libconvert)
+add_subdirectory(libecat7)
+add_subdirectory(libexception)
+add_subdirectory(libfft)
+add_subdirectory(libfilter)
+add_subdirectory(libimage)
+add_subdirectory(libinterfile)
+add_subdirectory(libipc)
+add_subdirectory(libparser)
+add_subdirectory(libsinogram)
+add_subdirectory(e7_atten_prj)
+
 message("LIB_INCLUDE_DIRS are ${LIB_INCLUDE_DIRS}")
 
-target_include_directories (libatten     PUBLIC ${LIB_INCLUDE_DIRS})
-target_include_directories (libcommon    PUBLIC ${LIB_INCLUDE_DIRS})
-target_include_directories (libconvert   PUBLIC ${LIB_INCLUDE_DIRS})
-target_include_directories (libecat7     PUBLIC ${LIB_INCLUDE_DIRS})
-target_include_directories (libexception PUBLIC ${LIB_INCLUDE_DIRS})
-target_include_directories (libfft       PUBLIC ${LIB_INCLUDE_DIRS})
-target_include_directories (libfilter    PUBLIC ${LIB_INCLUDE_DIRS})
-target_include_directories (libimage     PUBLIC ${LIB_INCLUDE_DIRS})
-target_include_directories (libinterfile PUBLIC ${LIB_INCLUDE_DIRS})
-target_include_directories (libipc PUBLIC ${LIB_INCLUDE_DIRS})
-target_include_directories (libparser PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (atten     PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (common    PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (convert   PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (ecat7     PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (exception PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (fft       PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (filter    PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (image     PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (interfile PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (ipc       PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (parser    PUBLIC ${LIB_INCLUDE_DIRS})
+target_include_directories (sinogram  PUBLIC ${LIB_INCLUDE_DIRS})
 
 # list(APPEND includePath 	${CMAKE_SOURCE_DIR}
 # 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libcommon

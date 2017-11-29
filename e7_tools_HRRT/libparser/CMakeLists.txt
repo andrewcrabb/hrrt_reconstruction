@@ -1,8 +1,6 @@
-# add_subdirectory(e7_atten_prj)
-
-add_library (libparser SHARED 
+add_library (parser
 	parser.cpp getopt_wrapper.cpp)
 
-install(TARGETS libparser
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+install(TARGETS parser
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

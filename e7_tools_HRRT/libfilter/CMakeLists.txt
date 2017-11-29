@@ -1,8 +1,6 @@
-# add_subdirectory(e7_atten_prj)
-
-add_library (libfilter SHARED 
+add_library (filter
 		image_filter.cpp)
 
-install(TARGETS libfilter
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+install(TARGETS filter
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
