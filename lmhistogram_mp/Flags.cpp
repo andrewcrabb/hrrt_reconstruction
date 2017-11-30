@@ -3,7 +3,7 @@
 #define strcasecmp _stricmp
 #endif
 
-int flagset(char *flag, int *argc, char **argv, bool case_sensitive)
+int flagset(const char *flag, int *argc, char **argv, bool case_sensitive)
 {
    int i, c;
 
@@ -26,7 +26,7 @@ int flagset(char *flag, int *argc, char **argv, bool case_sensitive)
    return (0);
 }
 
-int flagval(char *flag, int *argc, char **argv, char *result, bool case_sensitive)
+int flagval(const char *flag, int *argc, char **argv, char *result, bool case_sensitive)
 {
    int i, c=0;
 

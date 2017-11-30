@@ -74,7 +74,7 @@
 #define strdup _strdup
 #define access _access
 #endif
-static char *pgm_id = "V2.1 ";  // Revision changed from 2.0 to 2.1 for LR and P39 support
+static const char *pgm_id = "V2.1 ";  // Revision changed from 2.0 to 2.1 for LR and P39 support
 
 #define MAX_FRAMES 256
 #define MAX_THREADS 4
@@ -118,7 +118,7 @@ int P39_nsinos[] = {
     0,// span 9
 };
 static int p39_nsegs = 25;
-static  char *p39_seg_table = "{239,231,231,217,217,203,203,189,189,175,175,161,161,147,147,133,133,119,119,105,105,91,91,77,77}";
+static const char *p39_seg_table = "{239,231,231,217,217,203,203,189,189,175,175,161,161,147,147,133,133,119,119,105,105,91,91,77,77}";
 
 static char in_fname[FILENAME_MAX];  // input listmode file name
 static char in_fname_hdr[FILENAME_MAX]; // input listmode header file name
@@ -1206,18 +1206,18 @@ int main(int argc, char *argv[])
         // update the header with sinogram info for HRRT
         // BUT not for P39 where the header contains the main header information
         if (check_model(model_number, MODEL_HRRT)) {
-            hdr.WriteTag("!originating system", "HRRT");
-            hdr.WriteTag("!name of data file", outfname_sino);
-            hdr.WriteTag("number of dimensions", "3");
-            hdr.WriteTag("matrix size [1]", num_projs(LR_type));
-            hdr.WriteTag("matrix size [2]", num_views(LR_type));
-            hdr.WriteTag("matrix size [3]", LR_type == LR_0 ? nsinos[span] : LR_nsinos[span]);
-            hdr.WriteTag("data format", "sinogram");
-            hdr.WriteTag("number format", "signed integer");
+            hdr.WriteTag("!originating system"      , "HRRT");
+            hdr.WriteTag("!name of data file"       , outfname_sino);
+            hdr.WriteTag("number of dimensions"     , "3");
+            hdr.WriteTag("matrix size [1]"          , num_projs(LR_type));
+            hdr.WriteTag("matrix size [2]"          , num_views(LR_type));
+            hdr.WriteTag("matrix size [3]"          , LR_type == LR_0 ? nsinos[span] : LR_nsinos[span]);
+            hdr.WriteTag("data format"              , "sinogram");
+            hdr.WriteTag("number format"            , "signed integer");
             hdr.WriteTag("number of bytes per pixel", (int)elem_size);
-            hdr.WriteTag("!lmhistogram version", sw_version);
-            hdr.WriteTag("!lmhistogram build ID", sw_build_id);
-            hdr.WriteTag("!histogrammer revision", "2.0");
+            hdr.WriteTag("!lmhistogram version"     , sw_version);
+            hdr.WriteTag("!lmhistogram build ID"    , sw_build_id);
+            hdr.WriteTag("!histogrammer revision"   , "2.0");
         }
 
         if (l64_flag && check_model(model_number, MODEL_HRRT)) {
@@ -1239,9 +1239,11 @@ int main(int argc, char *argv[])
 
         cout << "Span: " << span << endl;
 
-        static char *sino_mode_txt[3] = { "Net Trues", "Prompts & Randoms", "prompts only"};
-        if (hist_mode == 7) cout << "Mode: Transmission" << endl;
-        else cout << "Mode: " << sino_mode_txt[hist_mode] << endl;
+        static const char *sino_mode_txt[3] = { "Net Trues", "Prompts & Randoms", "prompts only"};
+        if (hist_mode == 7) 
+            cout << "Mode: Transmission" << endl;
+        else 
+            cout << "Mode: " << sino_mode_txt[hist_mode] << endl;
 
         // remove the '.s' extension if it exists
         if (out_fname[strlen(out_fname) - 1] == 's')

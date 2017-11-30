@@ -36,6 +36,7 @@ if (APPLE)
 	add_compile_options(-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys)
 endif()
 
+# add_subdirectory(libscatter)
 add_subdirectory(gen_delays_lib)
 # add_subdirectory(gen_delays_main)  # Calls gen_delays with 7 params not 10 as required
 add_subdirectory(interfile_lib)
@@ -50,6 +51,7 @@ add_subdirectory(e7_tools_HRRT)
 add_subdirectory(gsmooth)
 add_subdirectory(compute_norm)
 add_subdirectory(if2e7)
+add_subdirectory(lmhistogram_mp)
 # add_subdirectory(TX_TV3DReg)  # Uses X11 and I can't be fagged installing it
 # add_subdirectory(ecat2DICOM)  # Has errors/omits
 

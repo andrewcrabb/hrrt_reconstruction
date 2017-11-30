@@ -3,18 +3,16 @@
     \brief Implement access Interfile header.
     \author Merence Sibomana (sibomana@gmail.com)
     \date 2008/03/07 initial version
+    \date 2009/07/20 Clean \r when loading 
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 #include "interfile_reader.h"
 
-#ifdef WIN32
-#define strcasecmp _stricmp
-#define strdup _strdup
-#endif
+// ahc
+#include <strings.h>
 
 #define MAX_LINE_LENGTH 1024
 #define MAX_TABLE_SIZE 2048
@@ -33,8 +31,10 @@ insert_tag(IFH_Table *table, char *buffer)
 	char *cptr,*cptr1;
 
     if (table->size >= MAX_TABLE_SIZE-1) return 0;
-	// remove trailing newline
+	// remove trailing newline and carriage return
 	if ((cptr = strchr(buffer,'\n')))
+		*cptr = '\0';
+	if ((cptr = strchr(buffer,'\r')))
 		*cptr = '\0';
 
 	// if this is not a comment
@@ -68,7 +68,7 @@ do_load(FILE *fp, IFH_Table *table)
 	char buffer[MAX_LINE_LENGTH];
 	while (fgets(buffer,MAX_LINE_LENGTH,fp))
 		table->size += insert_tag(table, buffer);
-	return (int) table->size;
+	return table->size;
 }
 
 /*! \brief Load specified Interfile header in memory table.
@@ -103,8 +103,7 @@ interfile_load(char *filename, IFH_Table *table)
     Find specified key from memory table.
     Returns 1 if found or 0 otherwise.
  */
-int interfile_find(IFH_Table *table, const char *key, char* val, int len)
-{
+int interfile_find(IFH_Table *table, const char *key, char* val, int len) {
   size_t i;
 	for (i = 0; i < table->size; i++)
 	{

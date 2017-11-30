@@ -192,7 +192,6 @@ int CHeader::Readchar(const char *tag, char* val, int len)
 
 bool CHeader::SortData(char *HdrLine, char *tag, char *Data)
 {
-	// 
 	char str[256], sep[3];
 	int str1len, str2len, x,i;
 	str1len = strlen(HdrLine);
@@ -206,17 +205,21 @@ bool CHeader::SortData(char *HdrLine, char *tag, char *Data)
 	for(x=0;x<str2len;x++)
 		str[x] = HdrLine[x];	
 	str[x] = '\0';
-	if (strcmp(str,tag) == 0)
-	{
+	if (strcmp(str,tag) == 0) {
 		// find the ":"
-		char* pCol = strchr(HdrLine,':=');
-		x = str1len-strlen(pCol) - 1;
+		// char *pCol = strchr(HdrLine,":=");
+		// ahc strchr must take an int not a string.
+		// I think you should search for '=' not ':'
+		char *pCol = strchr(HdrLine, '=');
+		std::cerr << "================================================================================" << endl;
+		std::cerr << "*** NOTE Cheader::SortData check correct pcol " << pCol << ", tag " << tag << endl;
+		std::cerr << "================================================================================" << endl;
+		x = str1len - strlen(pCol) - 1;
 		//  the next text should be ":= "
-		for (i=x;i<x+3;i++)
-			sep[i-x] = HdrLine[i];
-		sep[i-x] = '\0';
-		if(strcmp(sep,":= ") == 0)
-		{
+		for (i = x; i < x + 3; i++)
+			sep[i - x] = HdrLine[i];
+		sep[i - x] = '\0';
+		if(strcmp(sep, ":= ") == 0) {
 			for(x=i;x<str1len;x++)
 				Data[x-i] = HdrLine[x];
 			// get rid of carraige return and replace with NULL

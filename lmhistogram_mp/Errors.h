@@ -11,7 +11,7 @@
 #define		E_NOT_A_FLOAT		-8
 #define		E_NOT_A_DOUBLE		-9
 
-static char *HdrErrors[] =
+static const char *HdrErrors[] =
 {
 	"OK",
 	"Attempt to read a file that is not open as read",
