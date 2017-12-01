@@ -61,6 +61,7 @@ Purpose B usage:
 #include "frame_info.h"
 #include <ecatx/matrix.h>
 #include <unistd.h>
+// #include <getopt.h>
 #define		DIR_SEPARATOR '/'
 
 #include <vector>
@@ -762,7 +763,7 @@ int main(int argc, char **argv)
           fprintf(log_fp,"Reusing existing %s\n",em_dyn_file);
         } else {
           sprintf(program_name, "%s/%s", program_path, prog_lmhistogram);
-          sprintf("%s -o %s.s -PR", em_file, em_prefix);
+          sprintf(cmd_line, "%s -o %s.s -PR", em_file, em_prefix);
           if (do_exec)
             if (run_system_command(program_name, cmd_line, log_fp))
               exit(1);

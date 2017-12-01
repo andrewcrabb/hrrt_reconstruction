@@ -34,19 +34,6 @@ add_subdirectory(e7_atten_prj)
 add_subdirectory(e7_fwd_prj)
 add_subdirectory(e7_sino_prj)
 
-# find_library (LIBCOMMON    NAME common    PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libcommon")
-# find_library (LIBEXCEPTION NAME exception PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libexception")
-# find_library (LIBSINOGRAM  NAME sinogram  PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libsinogram")
-# find_library (LIBECAT7     NAME ecat7     PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libecat7")
-# find_library (LIBINTERFILE NAME interfile PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libinterfile")
-# find_library (LIBPARSER    NAME parser    PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libparser")
-# find_library (LIBFFT       NAME fft       PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libfft")
-# find_library (LIBIPC       NAME ipc       PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libipc")
-# find_library (LIBCONVERT   NAME convert   PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libconvert")
-# find_library (LIBIMAGE     NAME image     PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libimage")
-# find_library (LIBATTEN     NAME atten     PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libatten")
-# find_library (LIBFILTER    NAME filter    PATHS "${CMAKE_BINARY_DIR}/e7_tools_HRRT/libfilter")
-
 target_include_directories (atten     PUBLIC ${LIB_INCLUDE_DIRS})
 target_include_directories (common    PUBLIC ${LIB_INCLUDE_DIRS})
 target_include_directories (convert   PUBLIC ${LIB_INCLUDE_DIRS})
@@ -60,17 +47,3 @@ target_include_directories (ipc       PUBLIC ${LIB_INCLUDE_DIRS})
 target_include_directories (parser    PUBLIC ${LIB_INCLUDE_DIRS})
 target_include_directories (sinogram  PUBLIC ${LIB_INCLUDE_DIRS})
 
-# list(APPEND includePath 	${CMAKE_SOURCE_DIR}
-# 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libcommon
-# 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libexception
-# 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libecat7
-# 	)
-
-
-
-# add_library (motion_distance SHARED motion_distance.cpp )
-
-# target_include_directories (motion_distance PUBLIC ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ../AIR5.3.0/src)
-# install(TARGETS motion_distance
-#     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-#     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

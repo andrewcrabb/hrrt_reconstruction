@@ -37,6 +37,7 @@ if (APPLE)
 endif()
 
 # add_subdirectory(libscatter)
+add_subdirectory(hrrt_common)
 add_subdirectory(gen_delays_lib)
 # add_subdirectory(gen_delays_main)  # Calls gen_delays with 7 params not 10 as required
 add_subdirectory(interfile_lib)
@@ -52,6 +53,7 @@ add_subdirectory(gsmooth)
 add_subdirectory(compute_norm)
 add_subdirectory(if2e7)
 add_subdirectory(lmhistogram_mp)
+add_subdirectory(motion_correction)
 # add_subdirectory(TX_TV3DReg)  # Uses X11 and I can't be fagged installing it
 # add_subdirectory(ecat2DICOM)  # Has errors/omits
 
