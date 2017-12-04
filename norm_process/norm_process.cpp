@@ -55,7 +55,7 @@
 #include <pthread.h>
 #define _stricmp strcasecmp
 #define _splitpath splitpath
-#include <getopt.h>
+
 #else
 #include <direct.h>
 #include <winsock2.h>
@@ -64,10 +64,6 @@
 #include <process.h>
 #include <conio.h>
 #include <tlhelp32.h>
-extern int getopt(int argc, char *argv[], char *opstring);
-extern char *optarg;
-extern int   optind;
-extern int   opterr;
 #endif
 
 #include <gen_delays_lib/lor_sinogram_map.h>

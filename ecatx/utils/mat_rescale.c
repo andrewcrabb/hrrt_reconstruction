@@ -18,9 +18,6 @@
 #ifndef FILENAME_MAX 
 #define FILENAME_MAX 256
 #endif
-#ifdef WIN32
-#include "getopt.h"
-#endif
 #include "matrix.h"
 #define HISTOGRAM_SIZE 32768
 #define IMAGE_MAX 32766

@@ -7,14 +7,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <AIR/AIR.h>
+// ahc 11/15/17 This was including hrrt_open_2011/include/AIR/AIR.h
+// But this was an old version of AIR.h from 2002
+// Current AIR 5.3.0 is 2011, so set -I in CMake to AIR src dir.
+// #include <AIR/AIR.h>
+#include <AIR.h>
 #include <ecatx/matrix.h>
 #include <ecatx/matpkg.h>
-#ifdef WIN32
-#include <ecatx/getopt.h>
-#else
 #include <unistd.h>
-#endif
+
 #define MIN_MU_VALUE 0.035f
 #define MAX_MU_VALUE 0.5f
 

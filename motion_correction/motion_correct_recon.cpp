@@ -291,7 +291,7 @@ int main(int argc, char **argv)
   const char *units = "Bq/ml";
   const char *athr=NULL;
   char line[80];
-  char *normfac_img="normfac.i";
+  const char *normfac_img = "normfac.i";
   
   const char *calib_dir = NULL;
   const char *submit_dir="D:\\Recon-Jobs\\Jobs-Submitted";

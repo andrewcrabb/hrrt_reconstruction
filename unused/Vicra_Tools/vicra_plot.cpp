@@ -10,21 +10,11 @@ Modification history:
 #include <string.h>
 #include "listmode_table.h"
 #include <ecatx/matpkg.h>
-#ifdef WIN32
-#include <direct.h>
-#include <windows.h>
-#include <ecatx/getopt.h>
-#define GNUPLOT "pgnuplot"
-#define SEPARATOR '\\'
-#define chdir _chdir
-#define strdup _strdup
-#define unlink _unlink
-#else
 #include <unistd.h>
 #define GNUPLUT "gnuplot"
 #define FILENAME_MAX 256
 #define SEPARATOR '/'
-#endif
+
 #define MAX_FRAMES 256
 #define XDIM 256
 #define NPLANES 207

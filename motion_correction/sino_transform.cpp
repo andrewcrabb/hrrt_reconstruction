@@ -11,16 +11,14 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <AIR/AIR.h>
+// ahc 11/15/17 This was including hrrt_open_2011/include/AIR/AIR.h
+// But this was an old version of AIR.h from 2002
+// Current AIR 5.3.0 is 2011, so set -I in CMake to AIR src dir.
+// #include <AIR/AIR.h>
+#include <AIR.h>
 #include <ecatx/matrix.h>
-#ifdef WIN32
-#include <ecatx/getopt.h>
-#define M_PI            3.14159265358979323846
-inline int round(double d) { return d<0? -(int)(-d+0.5) : (int)(d+0.5); }
-#define stat _stat
-#else
 #include <unistd.h>
-#endif
+
 #define MAX_SEG 45
 
 static char *in_file=NULL, *out_file=NULL;

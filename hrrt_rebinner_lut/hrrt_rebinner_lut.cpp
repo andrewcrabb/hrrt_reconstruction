@@ -12,14 +12,7 @@
 #include <gen_delays_lib/lor_sinogram_map.h>
 #include <gen_delays_lib/segment_info.h>
 #include <gen_delays_lib/geometry_info.h>
-#ifdef WIN32
-  extern int getopt(int argc, char *argv[], char *opstring);
-  extern char *optarg;
-  extern int   optind;
-  extern int   opterr;
-#else
-  #include <getopt.h>
-#endif
+#include <unistd.h>
 
 static void usage()
 {

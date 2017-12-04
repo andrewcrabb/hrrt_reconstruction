@@ -61,7 +61,6 @@ Purpose B usage:
 #include "frame_info.h"
 #include <ecatx/matrix.h>
 #include <unistd.h>
-// #include <getopt.h>
 #define		DIR_SEPARATOR '/'
 
 #include <vector>

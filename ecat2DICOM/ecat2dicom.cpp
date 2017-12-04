@@ -37,23 +37,11 @@
 #include "DICOM.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <ecatx/getopt.h>
 #include <ecatx/matrix.h>
 #include <sys/stat.h>
 
-#ifdef WIN32
-#include <io.h>
-#include <direct.h>
-#define stat _stat
-#define access _access
-#define unlink _unlink
-#define F_OK 0
-#else
 #include <dirent.h>
 #include <unistd.h>
-#endif
-
-// ahc
 #include <cstring>
 
 static void usage(const char *pgm) {

@@ -484,6 +484,11 @@ struct AIR_Air168{					/* Allows AIR 4.0 and later to read AIR 3.0 .warp files *
 
 /* Function prototypes */
 
+// ahc my addition
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 double **AIR_align(const unsigned int, double *, void (*uvfN )(const double *, double **, double ***, double ****, const struct AIR_Key_info *, const struct AIR_Key_info *, const AIR_Boolean ), const unsigned int, double (*uvderivsN )(const unsigned int, double **, double ***, double ****, const unsigned int, AIR_Pixels ***, const struct AIR_Key_info *, AIR_Pixels ***, const struct AIR_Key_info *, const AIR_Pixels, double *, double **, unsigned int *, double *, double *, double **, double **, double ***, double ***, const unsigned int, AIR_Pixels, double, const AIR_Boolean, unsigned int *), AIR_Pixels ***, /*@null@*/ AIR_Pixels ***, const struct AIR_Key_info *, const AIR_Pixels, AIR_Pixels ***, /*@null@*/ AIR_Pixels ***, const struct AIR_Key_info *, const AIR_Pixels, unsigned int, const unsigned int, unsigned int, const double, const unsigned int, const unsigned int, const AIR_Boolean, const unsigned int, const unsigned int, const AIR_Boolean, const AIR_Boolean, const unsigned int, const unsigned int, const unsigned int, const AIR_Boolean, const AIR_Boolean, const AIR_Boolean, /*@out@*/AIR_Error *);
 
 double **AIR_alignwarp(double *, double (*)(const unsigned int, double **, const unsigned int, AIR_Pixels ***, const struct AIR_Key_info *, const AIR_Pixels, AIR_Pixels ***, const struct AIR_Key_info *, const AIR_Pixels, AIR_Pixels ***, double *, double **, double *, const double, unsigned int *), AIR_Pixels ***, const struct AIR_Key_info *, const AIR_Pixels, AIR_Pixels ***, const struct AIR_Key_info *, const AIR_Pixels, AIR_Pixels ***, unsigned int, const unsigned int, unsigned int, const double, const unsigned int, const unsigned int, const unsigned int, const unsigned int, const AIR_Boolean, const AIR_Boolean, /*@out@*/ AIR_Error *);
@@ -1313,6 +1318,9 @@ void AIR_free_5i(/*@null@*/ /*@out@*/ /*@only@*/ int *****);
 void AIR_free_6i(/*@null@*/ /*@out@*/ /*@only@*/ int ******);
 void AIR_free_7i(/*@null@*/ /*@out@*/ /*@only@*/ int *******);
 
+#ifdef __cplusplus
+}
+#endif
 
 /* Error code */
 /* These codes are arbitrary, but must be unique */

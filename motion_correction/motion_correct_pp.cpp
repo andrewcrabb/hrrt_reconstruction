@@ -36,14 +36,6 @@ Example: 36 frames scan with frame 16 as reference frame using hrrt_osem3d_v1.2_
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
-#ifdef WIN32
-#include <ecatx/getopt.h>
-#include <io.h>
-#define R_OK 4
-#define access _access
-#define popen _popen
-#define pclose _pclose
-#endif
 #include "frame_info.h"
 
 static char cmd_line[2048];

@@ -9,7 +9,7 @@
 */
 
 #include "ecat2air.h"
-#include <ecatx/getopt.h>
+#include <unistd.h>
 #include <ecatx/matpkg.h>
 #ifndef min
 #define min(a,b) ((a)<(b) ? (a) : (b))

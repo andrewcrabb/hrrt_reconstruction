@@ -29,7 +29,7 @@
 #ifndef unix
 /* #include <io.h> */
 /* #include <direct.h> */
-#include "ecatx/getopt.h"
+#include <getopt.h>
 #define access _access
 #define my_mkdir _mkdir
 #define F_OK 0x0
@@ -74,7 +74,8 @@ int main(int argc, char **argv)
 	char *in_fname=NULL, *out_fname=NULL, *MAF_file=NULL;
 	MatrixFile *in = NULL, *out=NULL;
   Main_header proto;
-	char *p=NULL, *log_file="MAF_join.log";
+	char *p = NULL;
+  const char *log_file = "MAF_join.log";
   std::vector<int> sub_frames;
   MatrixData *mat=NULL;
   Image_subheader *imh=NULL;

@@ -6,7 +6,7 @@
 
 unsigned int memoryused=0;
 
-void nrerror( char error_text[])
+void nrerror( const char error_text[])
 {
 	fprintf(stderr,"run-time error ... \n");
 	fprintf(stderr,"%s\n",error_text);

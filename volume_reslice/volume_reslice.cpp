@@ -15,12 +15,11 @@
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
-#ifndef WIN32
+
 #include <unistd.h>
-#endif
+
 #include "matrix_resize.h"
 #include "Volume.h"
-#include <ecatx/getopt.h>
 #include <air_ecat/ecat2air.h>
 
 #define host_data_to_file file_data_to_host

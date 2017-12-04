@@ -12,11 +12,7 @@
 #include "AIR.h"
 #include <ecatx/matrix.h>
 #include <ecatx/matpkg.h>
-#ifdef WIN32
-#include <ecatx/getopt.h>
-#else
 #include <unistd.h>
-#endif
 
 static float vicra2hrrt[16] = {
   -0.0243298f, -0.999692f,    0.00485205f, 159.682f,

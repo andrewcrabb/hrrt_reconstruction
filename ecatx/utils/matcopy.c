@@ -8,7 +8,7 @@ static char sccsid[]="(#)matcopy.c 1.4 7/10/92 Copyright 1990 CTI Pet Systems, I
 #include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
-#include <getopt.h>
+#include <unistd.h>
 #include "matrix.h"
 extern MatrixData *matrix_read_scan();
 
