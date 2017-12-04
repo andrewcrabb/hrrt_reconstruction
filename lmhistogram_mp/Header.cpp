@@ -55,29 +55,24 @@ CHeader::~CHeader()
  * Error codes:
  * HdrErrors[-ERR_CODE] contains the text error message.
  */
-int CHeader::OpenFile(char *filename)
-{
+int CHeader::OpenFile(char *filename) {
 	// Check to see if the file is open
-	if (m_FileOpen == 0)
-	{
+	if (m_FileOpen == 0) {
 		hdr_file = fopen(filename, "r");
 		if (hdr_file != NULL)
 			m_FileOpen = 1;
 
-		if (m_FileOpen != 0)
-		{
+		if (m_FileOpen != 0) {
 			sprintf(m_FileName, "%s",filename);
 			ReadFile();  // load the database
 			return m_FileOpen;
-		}
-		else
-		{
+		} else {
 			return E_COULD_NOT_OPEN_FILE;
 		}
-	}
+	} else {
 	// the file is open
-	else
 		return E_FILE_ALREADY_OPEN;
+	}
 }
 
 int CHeader::InsertTag(char *buffer)
@@ -176,14 +171,14 @@ int CHeader::CloseFile()
 }
 
 
-int CHeader::Readchar(const char *tag, char* val, int len)
-{
-	for (int i = 0; i < numtags; i++)
-	{
-		if (strstr(tags[i],tag))
-		{
-			strncpy(val,data[i],len);
+int CHeader::Readchar(const char *tag, char* val, int len) {
+	for (int i = 0; i < numtags; i++) {
+		std::cout << "XXX tag " << tag << " comparing to " << tags[i] << std::endl;
+		if (strstr(tags[i],tag)) {
+			std::cout << "XXX tag " << tag << " found " << tags[i] << std::endl;
+			strncpy(val, data[i], len);
 			val[len-1] = '\0';
+			std::cout << "XXX Readchar(" << tag << ") returning '" << val << "'" << std::endl;
 			return 0;
 		}
 	}
