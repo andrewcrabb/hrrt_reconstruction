@@ -15,6 +15,11 @@
 
 #include <stdio.h>
 
+// ahc
+#include <iostream>
+#include <fstream>
+#include <string>
+
 #define TRUE 1
 #define FALSE 0
 
@@ -44,11 +49,14 @@ public:
 
 protected:
 	int ReadFile();
-	int InsertTag(char *buffer);
+	// int InsertTag(char *buffer);
+	int InsertTag(std::string buffer);
 	bool SortData(char*HdrLine, char *tag, char* Data);
-	int m_FileOpen;	// 0 = close, 1 = openread, 2 = openwrite
-	char m_FileName[256];
-	FILE* hdr_file;
+	// int m_FileOpen;	// 0 = close, 1 = openread, 2 = openwrite
+	// char m_FileName[256];
+	std::string m_FileName;
+	// FILE* hdr_file;
+	std::ifstream hdr_file;
 	char *tags[2048];
 	char *data[2048];
 	long numtags;

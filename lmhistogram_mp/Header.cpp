@@ -11,12 +11,21 @@ Modification history:
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string>
+#include <cstring>
 #include <ctype.h>
 #include <iostream>
-using namespace std;
 #include "Header.h"
 #include "Errors.h"
+#include <hrrt_util.h>
+
+#include <boost/xpressive/xpressive.hpp>
+
+
+using std::cin;
+using std::cout;
+using std::endl;
+using std::string;
 
 #ifdef WIN32
 #define strcasecmp _stricmp
@@ -36,8 +45,8 @@ static char THIS_FILE[]=__FILE__;
 CHeader::CHeader()
 {
 	// initialize the file flag to zero
-	m_FileOpen = 0;
-	hdr_file = 0;
+	// m_FileOpen = 0;
+	// hdr_file = 0;
 	numtags = 0;
 	
 }
@@ -45,8 +54,10 @@ CHeader::CHeader()
 CHeader::~CHeader()
 {
 	// close the file if user forgot to do so...
-	if ((m_FileOpen != 0)&& (hdr_file != NULL))
-		fclose(hdr_file);
+	// if ((m_FileOpen != 0)&& (hdr_file != NULL))
+	// 	fclose(hdr_file);
+	if (hdr_file.is_open())
+		hdr_file.close();
 }
 
 /**
@@ -55,117 +66,177 @@ CHeader::~CHeader()
  * Error codes:
  * HdrErrors[-ERR_CODE] contains the text error message.
  */
-int CHeader::OpenFile(char *filename) {
-	// Check to see if the file is open
-	if (m_FileOpen == 0) {
-		hdr_file = fopen(filename, "r");
-		if (hdr_file != NULL)
-			m_FileOpen = 1;
+// int CHeader::OpenFile(char *filename) {
+// 	// Check to see if the file is open
+// 	if (m_FileOpen == 0) {
+// 		hdr_file = fopen(filename, "r");
+// 		if (hdr_file != NULL)
+// 			m_FileOpen = 1;
 
-		if (m_FileOpen != 0) {
-			sprintf(m_FileName, "%s",filename);
-			ReadFile();  // load the database
-			return m_FileOpen;
-		} else {
-			return E_COULD_NOT_OPEN_FILE;
-		}
-	} else {
-	// the file is open
-		return E_FILE_ALREADY_OPEN;
-	}
+// 		if (m_FileOpen != 0) {
+// 			sprintf(m_FileName, "%s",filename);
+// 			ReadFile();  // load the database
+// 			return m_FileOpen;
+// 		} else {
+// 			return E_COULD_NOT_OPEN_FILE;
+// 		}
+// 	} else {
+// 	// the file is open
+// 		return E_FILE_ALREADY_OPEN;
+// 	}
+// }
+
+int CHeader::OpenFile(char *filename) {
+	if (hdr_file.is_open())
+		return(E_FILE_ALREADY_OPEN);
+	hdr_file.open(filename, std::ifstream::in);
+	if (!hdr_file.is_open())
+		return(E_COULD_NOT_OPEN_FILE);
+	m_FileName.assign(filename);
+	return ReadFile();
 }
 
-int CHeader::InsertTag(char *buffer)
-{
-	char *cptr,*cptr1;
+// int CHeader::InsertTag(char *buffer)
+// {
+// 	char *cptr,*cptr1;
 
-	// remove trailing newline
-	if ((cptr = strchr(buffer,'\n')))
-		*cptr = '\0';
+// 	// remove trailing newline
+// 	if ((cptr = strchr(buffer,'\n')))
+// 		*cptr = '\0';
 
-	// if this is not a comment
-	if ((cptr = strstr(buffer,":=")))
-	{
-		cptr1 = cptr - 1;
-		while (*cptr1 == ' ')
-			cptr1--;
-		cptr1++;
-		*cptr1 = '\0';
-		if (strcasecmp(buffer,"!Interfile") != 0)
-		{
-			tags[numtags] = strdup(buffer);
-			cptr += 2;
-			while (*cptr == ' ')
-				cptr++;
-			data[numtags] = strdup(cptr);
-			numtags++;
-		}
-	}
+// 	// if this is not a comment
+// 	if ((cptr = strstr(buffer,":=")))
+// 	{
+// 		cptr1 = cptr - 1;
+// 		while (*cptr1 == ' ')
+// 			cptr1--;
+// 		cptr1++;
+// 		*cptr1 = '\0';
+// 		if (strcasecmp(buffer,"!Interfile") != 0)
+// 		{
+// 			tags[numtags] = strdup(buffer);
+// 			cptr += 2;
+// 			while (*cptr == ' ')
+// 				cptr++;
+// 			data[numtags] = strdup(cptr);
+// 			numtags++;
+// 		}
+// 	}
+
+// 	return 0;
+// }
+
+int CHeader::InsertTag(string t_buffer) {
+	cout << "CHeader::Inserttag(" << t_buffer << ")" << endl;
+  using namespace boost::xpressive;
+
+  smatch m_matches;
+  sregex m_reg = sregex::compile("^\\s*(?P<tag>.+)\\s+:=\\s+(?P<val>.+)\\s*$");
+  if (regex_match(t_buffer, m_matches, m_reg)) {
+    cout << "tag: '" << m_matches["tag"] << "'" << endl;
+    cout << "val: '" << m_matches["val"] << "'" << endl;
+    string m_tag{m_matches["tag"]};
+    string m_val{m_matches["val"]};
+    tags[numtags] = strdup(m_tag.c_str());
+    data[numtags] = strdup(m_val.c_str());
+    numtags++;
+}
+
+	// char *cptr,*cptr1;
+	// if ((cptr = strstr(buffer,":="))) {
+	// 	// this is not a comment
+	// 	cptr1 = cptr - 1;
+	// 	while (*cptr1 == ' ')
+	// 		cptr1--;
+	// 	cptr1++;
+	// 	*cptr1 = '\0';
+	// 	if (strcasecmp(buffer,"!Interfile") != 0)
+	// 	{
+	// 		tags[numtags] = strdup(buffer);
+	// 		cptr += 2;
+	// 		while (*cptr == ' ')
+	// 			cptr++;
+	// 		data[numtags] = strdup(cptr);
+	// 		numtags++;
+	// 	}
+	// }
 
 	return 0;
 }
 
 int CHeader::ReadFile()
 {
-	char buffer[1024];
-	while (fgets(buffer,1024,hdr_file))
+	// char buffer[1024];
+	// while (fgets(buffer,1024,hdr_file))
+	// 	InsertTag(buffer);
+	string buffer;
+	while (safeGetline(hdr_file, buffer))
 		InsertTag(buffer);
 
 	return 0;
 }
 
-int CHeader::WriteFile(char *fname, int p39_flag)
-{
-	FILE *fp;
+// int CHeader::WriteFile(char *fname, int p39_flag)
+// {
+// 	FILE *fp;
 
-	if (fname)  // new name has been selected
-		fp = fopen(fname,"w");
-	else
-		fp = hdr_file;
+// 	if (fname)  // new name has been selected
+// 		fp = fopen(fname,"w");
+// 	else
+// 		fp = hdr_file;
 
-	if (!fp)
-	{
+// 	if (!fp) {
+// 		return 1;
+// 	}
+
+// 	fprintf(fp,"!INTERFILE := \n");
+// 	for (int i = 0; i < numtags; i++) {
+// 		// Ignore Frame definition in P39 headers b/c unsupported by e7_tools
+// 		if (p39_flag && strcmp(tags[i], "Frame definition")==0) continue;
+// 		fprintf(fp,"%s := %s\n",tags[i],data[i]);
+// 	}
+// 	fclose(fp);
+
+// 	return 0;
+// }
+
+int CHeader::WriteFile(char *fname, int p39_flag) {
+	string outname = (fname) ? fname : m_FileName;
+	std::ofstream fp;
+
+	fp.open(outname, std::ofstream::out);
+	if (!fp.is_open()) {
 		return 1;
 	}
 
-	fprintf(fp,"!INTERFILE := \n");
-	for (int i = 0; i < numtags; i++)
-	{
+	fp << "!INTERFILE := \n";
+	for (int i = 0; i < numtags; i++) {
 		// Ignore Frame definition in P39 headers b/c unsupported by e7_tools
-		if (p39_flag && strcmp(tags[i], "Frame definition")==0) continue;
-		fprintf(fp,"%s := %s\n",tags[i],data[i]);
+		if (p39_flag && strcmp(tags[i], "Frame definition") == 0) 
+			continue;
+		fp << tags[i] << " := " << data[i] << endl;
 	}
-
-	fclose(fp);
+	fp.close();
 
 	return 0;
 }
 
-int CHeader::IsFileOpen()
-{
-	// return the file flag
-	return m_FileOpen;
+int CHeader::IsFileOpen() {
+	return hdr_file.is_open();
 }
 
-void CHeader::GetFileName(char *filename)
-{
+void CHeader::GetFileName(char *filename) {
 	// return the file name only if a file is open
-	if (m_FileOpen != 0)
-		sprintf(filename, "%s",m_FileName);
-
+	// if (m_FileOpen != 0)
+	// 	sprintf(filename, "%s",m_FileName);
+	if (IsFileOpen())
+		strcpy(filename, m_FileName.c_str());
 }
 
-int CHeader::CloseFile()
-{
-	// close the file
-	if ((m_FileOpen != 0)&& (hdr_file != NULL))
-	{
-		fclose(hdr_file);
-		// ahc this was set to NULL
-		*m_FileName = '\0';
-		// ahc my addition 1/27/15
-		// They forgot to set this flag?  Seems odd.
-		m_FileOpen = 0;
+int CHeader::CloseFile() {
+	if (IsFileOpen()) {
+		hdr_file.close();
+		m_FileName.erase();
 	}
 	return OK;
 }
