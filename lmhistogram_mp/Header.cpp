@@ -38,6 +38,8 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
+enum KEYVAL { KEY, VAL };
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -47,7 +49,7 @@ CHeader::CHeader()
 	// initialize the file flag to zero
 	// m_FileOpen = 0;
 	// hdr_file = 0;
-	numtags = 0;
+	// numtags = 0;
 	
 }
 
@@ -130,16 +132,18 @@ int CHeader::InsertTag(string t_buffer) {
 	cout << "CHeader::Inserttag(" << t_buffer << ")" << endl;
   using namespace boost::xpressive;
 
-  smatch m_matches;
-  sregex m_reg = sregex::compile("^\\s*(?P<tag>.+)\\s+:=\\s+(?P<val>.+)\\s*$");
-  if (regex_match(t_buffer, m_matches, m_reg)) {
-    cout << "tag: '" << m_matches["tag"] << "'" << endl;
-    cout << "val: '" << m_matches["val"] << "'" << endl;
-    string m_tag{m_matches["tag"]};
-    string m_val{m_matches["val"]};
-    tags[numtags] = strdup(m_tag.c_str());
-    data[numtags] = strdup(m_val.c_str());
-    numtags++;
+  smatch match;
+  sregex m_reg = sregex::compile("^\\s*(?P<key>.+)\\s+:=\\s+(?P<value>.+)\\s*$");
+  if (regex_match(t_buffer, match, m_reg)) {
+    tags.push_back({match["key"], match["value"]});
+    // cout << "tag: '" << match["tag"] << "'" << endl;
+    // cout << "val: '" << match["val"] << "'" << endl;
+    // string m_val{match["val"]};
+    // tags.push_back(string{match["tag"]});
+    // data.push_back(string{match["val"]});
+    // tags[numtags] = strdup(m_tag.c_str());
+    // data[numtags] = strdup(m_val.c_str());
+    // numtags++;
 }
 
 	// char *cptr,*cptr1;
@@ -210,11 +214,11 @@ int CHeader::WriteFile(char *fname, int p39_flag) {
 	}
 
 	fp << "!INTERFILE := \n";
-	for (int i = 0; i < numtags; i++) {
+	for (auto &tag : tags) {
 		// Ignore Frame definition in P39 headers b/c unsupported by e7_tools
-		if (p39_flag && strcmp(tags[i], "Frame definition") == 0) 
+		if (p39_flag && !(tag[KEY].compare("Frame definition")))
 			continue;
-		fp << tags[i] << " := " << data[i] << endl;
+		fp << tag[KEY] << " := " << tag[VAL] << endl;
 	}
 	fp.close();
 
@@ -241,100 +245,129 @@ int CHeader::CloseFile() {
 	return OK;
 }
 
+// Locate tag having given key
 
-int CHeader::Readchar(const char *tag, char* val, int len) {
-	for (int i = 0; i < numtags; i++) {
-		std::cout << "XXX tag " << tag << " comparing to " << tags[i] << std::endl;
-		if (strstr(tags[i],tag)) {
-			std::cout << "XXX tag " << tag << " found " << tags[i] << std::endl;
-			strncpy(val, data[i], len);
-			val[len-1] = '\0';
-			std::cout << "XXX Readchar(" << tag << ") returning '" << val << "'" << std::endl;
-			return 0;
-		}
-	}
-	return E_TAG_NOT_FOUND;
+std::vector<Tag>::iterator FindTag(const string key) {
+	auto pred = [key](const Tag & tag) { return tag.key == key; };
+	return std::find_if(std::begin(tags), std::end(tags), pred);
 }
 
-bool CHeader::SortData(char *HdrLine, char *tag, char *Data)
-{
-	char str[256], sep[3];
-	int str1len, str2len, x,i;
-	str1len = strlen(HdrLine);
-	str2len = strlen(tag);
+// Fill in val if tag is found.
 
-	// is the tag longer than the line
-	if (str1len<=str2len)
-		return FALSE;
-	//str = (char *)calloc(str2len,sizeof( char ));
+int CHeader::Readchar(const char *key, char* val, int len) {
+	int ret = 0;
+	std::vector<Tag>::iterator it = FindTag(key);
+	if (it == std::end(tags)) {
+		ret = E_TAG_NOT_FOUND;
+	} else {
+		strcpy(val, it->value.c_str());
+	}
+	return ret;
+}
+
+// int CHeader::Readchar(const char *tag, char* val, int len) {
+// 	for (int i = 0; i < numtags; i++) {
+// 		std::cout << "XXX tag " << tag << " comparing to " << tags[i] << std::endl;
+// 		if (strstr(tags[i],tag)) {
+// 			std::cout << "XXX tag " << tag << " found " << tags[i] << std::endl;
+// 			strncpy(val, data[i], len);
+// 			val[len-1] = '\0';
+// 			std::cout << "XXX Readchar(" << tag << ") returning '" << val << "'" << std::endl;
+// 			return 0;
+// 		}
+// 	}
+// 	return E_TAG_NOT_FOUND;
+// }
+
+// As far as I can tell, this awful method is never called.
+
+// bool CHeader::SortData(char *HdrLine, char *tag, char *Data)
+// {
+// 	char str[256], sep[3];
+// 	int hdr_len, tag_len, x,i;
+// 	hdr_len = strlen(HdrLine);
+// 	tag_len = strlen(tag);
+
+// 	// is the tag longer than the line
+// 	if (hdr_len<=tag_len)
+// 		return FALSE;
+// 	//str = (char *)calloc(tag_len,sizeof( char ));
 	
-	for(x=0;x<str2len;x++)
-		str[x] = HdrLine[x];	
-	str[x] = '\0';
-	if (strcmp(str,tag) == 0) {
-		// find the ":"
-		// char *pCol = strchr(HdrLine,":=");
-		// ahc strchr must take an int not a string.
-		// I think you should search for '=' not ':'
-		char *pCol = strchr(HdrLine, '=');
-		std::cerr << "================================================================================" << endl;
-		std::cerr << "*** NOTE Cheader::SortData check correct pcol " << pCol << ", tag " << tag << endl;
-		std::cerr << "================================================================================" << endl;
-		x = str1len - strlen(pCol) - 1;
-		//  the next text should be ":= "
-		for (i = x; i < x + 3; i++)
-			sep[i - x] = HdrLine[i];
-		sep[i - x] = '\0';
-		if(strcmp(sep, ":= ") == 0) {
-			for(x=i;x<str1len;x++)
-				Data[x-i] = HdrLine[x];
-			// get rid of carraige return and replace with NULL
-			Data[x-i-1] = '\0';
-			return TRUE;
-		}
-		else
-			return FALSE;
-	}
-	else
-		return FALSE;
-}
+// 	for(x=0;x<tag_len;x++)
+// 		str[x] = HdrLine[x];	
+// 	str[x] = '\0';
+// 	if (strcmp(str,tag) == 0) {
+// 		// find the ":"
+// 		// char *pCol = strchr(HdrLine,":=");
+// 		// ahc strchr must take an int not a string.
+// 		// I think you should search for '=' not ':'
+// 		char *pCol = strchr(HdrLine, '=');
+// 		std::cerr << "================================================================================" << endl;
+// 		std::cerr << "*** NOTE Cheader::SortData check correct pcol " << pCol << ", tag " << tag << endl;
+// 		std::cerr << "================================================================================" << endl;
+// 		x = hdr_len - strlen(pCol) - 1;
+// 		//  the next text should be ":= "
+// 		for (i = x; i < x + 3; i++)
+// 			sep[i - x] = HdrLine[i];
+// 		sep[i - x] = '\0';
+// 		if(strcmp(sep, ":= ") == 0) {
+// 			for(x=i;x<hdr_len;x++)
+// 				Data[x-i] = HdrLine[x];
+// 			// get rid of carraige return and replace with NULL
+// 			Data[x-i-1] = '\0';
+// 			return TRUE;
+// 		}
+// 		else
+// 			return FALSE;
+// 	}
+// 	else
+// 		return FALSE;
+// }
 
-int CHeader::WriteTag(const char *tag, double val)
-{
+int CHeader::WriteTag(const char *key, double val) {
 	char buffer[256];
 	sprintf(buffer,"%f",val);
-	return WriteTag(tag,buffer);
+	return WriteTag(key,buffer);
 }
 
-int CHeader::WriteTag(const char *tag, int val)
-{
+int CHeader::WriteTag(const char *key, int val) {
 	char buffer[256];
 	sprintf(buffer,"%d",val);
-	return WriteTag(tag,buffer);
+	return WriteTag(key,buffer);
 }
 
-int CHeader::WriteTag(const char *tag, __int64 val)
-{
+int CHeader::WriteTag(const char *key, __int64 val) {
 	char buffer[256];
 	sprintf(buffer,"%I64d",val);
-	return WriteTag(tag,buffer);
+	return WriteTag(key,buffer);
 }
 
-int CHeader::WriteTag(const char *tag, const char *val)
-{
-	for (int i = 0; i < numtags; i++)
-		if (!strcmp(tag,tags[i])) // match?
-		{
-			free(data[i]);
-			data[i] = strdup(val);
-			return 0;
-		}
+// If tag with given key is found, update its value.
+// Else append new tag with given key and value.
 
-	data[numtags] = strdup(val);
-	tags[numtags] = strdup(tag);
-	numtags++;
+int CHeader::WriteTag(const char *key, const char *val) {
+	int ret = 0;
+	std::vector<Tag>::iterator it = FindTag(key);
+	if (it == std::end(tags)) {
+		tags.push_back(key, val);
+		ret = 1;
+	} else {
+		it->value.assign(val);
+	}
+	return ret;
 
-	return 1;
+	// for (int i = 0; i < numtags; i++)
+	// 	if (!strcmp(key,tags[i])) {
+	// 		free(data[i]);
+	// 		data[i] = strdup(val);
+	// 		return 0;
+	// 	}
+
+	// data[numtags] = strdup(val);
+	// tags[numtags] = strdup(key);
+	// numtags++;
+
+	// return 1;
 }
 
 int CHeader::Readint(const char *tag, int *val)

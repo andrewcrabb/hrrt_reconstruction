@@ -27,18 +27,22 @@
 typedef long long __int64;
 #endif
 
-class CHeader  
-{
+typedef struct {
+	std::string key;
+	std::string value;
+} Tag;
+
+class CHeader {
 public:
-	int Readdouble(const char *tag, double *val); // Get a double value from memory table
-	int Readfloat(const char *tag, float *val);	// Get a float value from memory table
-	int Readlong(const char* tag, long* val);		// Get a long value from memory table
-	int Readint(const char* tag, int* val);		// Get a int value from memory table
-	int WriteTag(const char* tag, const char* val);		// Put a string value in memory table
-	int WriteTag(const char* tag, double val);	// Put a double value in memory table
-	int WriteTag(const char* tag, int val);		// Put a int value in memory table
-	int WriteTag(const char* tag, __int64);		// Put a int64 value in memory table
-	int Readchar(const char* tag, char* val, int len); // Get a string value from memory table 
+	int Readdouble(const char *key, double *val);          // Get a double value from memory table
+	int Readfloat( const char *key, float *val);	       // Get a float  value from memory table
+	int Readlong(  const char *key, long* val);		       // Get a long   value from memory table
+	int Readint(   const char *key, int* val);		       // Get a int    value from memory table
+	int WriteTag(  const char *key, const char* val);	   // Put a string value in memory table
+	int WriteTag(  const char *key, double val);	       // Put a double value in memory table
+	int WriteTag(  const char *key, int val);		       // Put a int    value in memory table
+	int WriteTag(  const char *key, __int64);		       // Put a int64  value in memory table
+	int Readchar(  const char *key, char* val, int len);   // Get a string value from memory table 
 	int CloseFile();
 	void GetFileName(char* filename);
 	int IsFileOpen();
@@ -46,19 +50,25 @@ public:
 	int WriteFile(char *filename = 0, int p39_flag=0);
 	CHeader();
 	virtual ~CHeader();
+	// ahc
+	std::vector<Tag>::iterator FindTag(const string key);
 
 protected:
 	int ReadFile();
 	// int InsertTag(char *buffer);
 	int InsertTag(std::string buffer);
-	bool SortData(char*HdrLine, char *tag, char* Data);
+	// bool SortData(char*HdrLine, char *tag, char* Data);
 	// int m_FileOpen;	// 0 = close, 1 = openread, 2 = openwrite
 	// char m_FileName[256];
 	std::string m_FileName;
 	// FILE* hdr_file;
 	std::ifstream hdr_file;
-	char *tags[2048];
-	char *data[2048];
+	// char *tags[2048];
+	// char *data[2048];
+	// std::vector<std::string> tags;
+	// std::vector<std::string> data;
+	// std::vector<std::array<std::string, 2>> tagpairs;
+	std::vector<Tag> tags;
 	long numtags;
 };
 
