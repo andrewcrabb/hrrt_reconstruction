@@ -23,26 +23,24 @@
 #define TRUE 1
 #define FALSE 0
 
-#ifndef WIN32
-typedef long long __int64;
-#endif
-
 typedef struct {
 	std::string key;
 	std::string value;
 } Tag;
+typedef std::vector<Tag>           tag_vector;
+typedef std::vector<Tag>::iterator tag_iterator;
 
 class CHeader {
 public:
-	int Readdouble(const char *key, double *val);          // Get a double value from memory table
-	int Readfloat( const char *key, float *val);	       // Get a float  value from memory table
-	int Readlong(  const char *key, long* val);		       // Get a long   value from memory table
-	int Readint(   const char *key, int* val);		       // Get a int    value from memory table
-	int WriteTag(  const char *key, const char* val);	   // Put a string value in memory table
-	int WriteTag(  const char *key, double val);	       // Put a double value in memory table
-	int WriteTag(  const char *key, int val);		       // Put a int    value in memory table
-	int WriteTag(  const char *key, __int64);		       // Put a int64  value in memory table
-	int Readchar(  const char *key, char* val, int len);   // Get a string value from memory table 
+	int Readdouble(const string &key, double *val);          // Get a double value from memory table
+	int Readfloat( const string &key, float *val);	       // Get a float  value from memory table
+	int Readlong(  const string &key, long* val);		       // Get a long   value from memory table
+	int Readint(   const string &key, int* val);		       // Get a int    value from memory table
+	int WriteTag(  const string &key, const std::string &val);	   // Put a string value in memory table
+	int WriteTag(  const string &key, double val);	       // Put a double value in memory table
+	int WriteTag(  const string &key, int val);		       // Put a int    value in memory table
+	int WriteTag(  const string &key, int64_t);		       // Put a int64  value in memory table
+	int Readchar(  const string &key, char* val, int len);   // Get a string value from memory table 
 	int CloseFile();
 	void GetFileName(char* filename);
 	int IsFileOpen();
@@ -51,7 +49,7 @@ public:
 	CHeader();
 	virtual ~CHeader();
 	// ahc
-	std::vector<Tag>::iterator FindTag(const string key);
+	std::vector<Tag>::iterator FindTag(const string &key);
 
 protected:
 	int ReadFile();
@@ -68,7 +66,7 @@ protected:
 	// std::vector<std::string> tags;
 	// std::vector<std::string> data;
 	// std::vector<std::array<std::string, 2>> tagpairs;
-	std::vector<Tag> tags;
+	tag_vector tags;
 	long numtags;
 };
 

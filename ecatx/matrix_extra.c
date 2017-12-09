@@ -40,18 +40,7 @@
 #include	"machine_indep.h"
 #include	"matrix.h"
 #include	"num_sort.h"
-
-
-#if defined(_WIN32) && !defined(__CYGWIN__)
-#include <io.h>
-#define stat _stat
-#define access _access
-#define F_OK 0
-#define fseek64 _lseeki64
-#define fileno _fileno
-#else
 #include	<unistd.h>
-#endif
 
 // ahc
 #include <stdbool.h>
@@ -786,11 +775,7 @@ matrix_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment)
   Attn_subheader *attnsub;
   int status, group;
   unsigned z_elements;
-#ifdef _WIN32
-  __int64 file_pos=0;
-#else 
   long file_pos=0;
-#endif
 
   /* Scan3D and Atten storage:
      storage_order = 0 : (((projs x z_elements)) x num_angles) x Ringdiffs
@@ -858,13 +843,10 @@ matrix_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment)
 
                                     
     if ((data->data_ptr = (void *)calloc(nblks,512)) == NULL ||
-#ifdef _WIN32
-        fseek64(fileno(mptr->fptr),file_pos,0) == -1 ||
-#else
         fseek(mptr->fptr,file_pos,0) == -1 ||
         /* ahc all Linux fseek now 64 bits */
         /* fseeko(mptr->fptr,file_pos,0) == -1 || */
-#endif
+
         fread(data->data_ptr, plane_size, z_elements, mptr->fptr)
         != z_elements ||
         file_data_to_host(data->data_ptr,nblks,data->data_type) == ECATX_ERROR) {
@@ -919,13 +901,10 @@ matrix_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment)
 
 
     if ((data->data_ptr = (void *)calloc(nblks,512)) == NULL ||
-#ifdef _WIN32
-        fseek64(fileno(mptr->fptr),file_pos,0) == -1 ||
-#else
         /* ahc */
         /*         fseeko64(mptr->fptr,file_pos,0) == -1 || */
         fseeko(mptr->fptr,file_pos,0) == -1 ||
-#endif
+
         fread(data->data_ptr,plane_size,z_elements,mptr->fptr) !=
         z_elements ||
         file_data_to_host(data->data_ptr,nblks,data->data_type) == ECATX_ERROR) {
@@ -1096,9 +1075,8 @@ mat_read_directory(MatrixFile *mptr)
 MatrixFile *
 matrix_open(const char* fname, int fmode, int mtype)
 {
-#ifndef _WIN32
+
   int status;
-#endif
   MatrixFile *mptr ;
   char *omode;
 

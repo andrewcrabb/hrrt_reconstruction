@@ -1,7 +1,4 @@
 #include <string.h>
-#ifdef WIN32
-#define strcasecmp _stricmp
-#endif
 
 int flagset(const char *flag, int *argc, char **argv, bool case_sensitive)
 {

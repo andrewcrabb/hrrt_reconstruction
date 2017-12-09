@@ -49,10 +49,8 @@
 #include <string.h>
 #include <iostream>
 #include <sys/stat.h>
+#include <cstdint>
 using namespace std;
-#ifdef WIN32
-#define stat _stat64
-#endif
 
 L64EventPacket *l64_container=NULL;
 L32EventPacket *l32_container=NULL;
@@ -140,7 +138,7 @@ void lm64_reader (void *arg)
   l64_container = new L64EventPacket[2];
   l32_container = new L32EventPacket;
   
-  int events_read = fread(l64_container[0].events, sizeof(__int64), 
+  int events_read = fread(l64_container[0].events, sizeof(int64_t), 
     L64EventPacket::packet_size, L64EventPacket::in_fp);
   if (events_read<0) {
 		cerr << "lm64_reader: error reading " << L64EventPacket::in_fname << endl;
@@ -218,11 +216,11 @@ L64EventPacket *load_buffer_64()
 		if (l64_container[1].status == L64EventPacket::used) 
 		{
 			memcpy(l64_container[0].events, l64_container[1].events, 
-        l64_container[1].num_events * sizeof(__int64));
+        l64_container[1].num_events * sizeof(int64_t));
       l64_container[1].status = L64EventPacket::empty;
 		} else {
       // Read in new buffer
-      int events_read = fread(l64_container[0].events, sizeof(__int64), 
+      int events_read = fread(l64_container[0].events, sizeof(int64_t), 
         L64EventPacket::packet_size, L64EventPacket::in_fp);
       if (events_read<0) {
 		    cerr << "lm64_reader: error reading " << L64EventPacket::in_fname << endl;
@@ -248,7 +246,7 @@ L64EventPacket *load_buffer_64()
       l64_container[1].num_events = l64_container[0].num_events - (eof_pos+1);
       l64_container[0].num_events = eof_pos+1;
       memcpy(l64_container[1].events, l64_container[0].events+(2*(eof_pos+1)),
-        l64_container[1].num_events*sizeof(__int64));
+        l64_container[1].num_events*sizeof(int64_t));
 		}
   }
 	return &l64_container[0];

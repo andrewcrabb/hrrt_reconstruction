@@ -12,12 +12,14 @@ Modification history:
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <cstdint>
 #include <cstring>
 #include <ctype.h>
 #include <iostream>
+
 #include "Header.h"
 #include "Errors.h"
-#include <hrrt_util.h>
+#include "hrrt_util.h"
 
 #include <boost/xpressive/xpressive.hpp>
 
@@ -26,17 +28,6 @@ using std::cin;
 using std::cout;
 using std::endl;
 using std::string;
-
-#ifdef WIN32
-#define strcasecmp _stricmp
-#define strdup _strdup
-#endif
-
-#ifdef _DEBUG
-#undef THIS_FILE
-static char THIS_FILE[]=__FILE__;
-#define new DEBUG_NEW
-#endif
 
 enum KEYVAL { KEY, VAL };
 
@@ -247,16 +238,16 @@ int CHeader::CloseFile() {
 
 // Locate tag having given key
 
-std::vector<Tag>::iterator FindTag(const string key) {
+tag_iterator FindTag(const string &key) {
 	auto pred = [key](const Tag & tag) { return tag.key == key; };
 	return std::find_if(std::begin(tags), std::end(tags), pred);
 }
 
 // Fill in val if tag is found.
 
-int CHeader::Readchar(const char *key, char* val, int len) {
+int CHeader::Readchar(const string &key, char* val, int len) {
 	int ret = 0;
-	std::vector<Tag>::iterator it = FindTag(key);
+	tag_iterator it = FindTag(key);
 	if (it == std::end(tags)) {
 		ret = E_TAG_NOT_FOUND;
 	} else {
@@ -324,30 +315,38 @@ int CHeader::Readchar(const char *key, char* val, int len) {
 // 		return FALSE;
 // }
 
-int CHeader::WriteTag(const char *key, double val) {
-	char buffer[256];
-	sprintf(buffer,"%f",val);
-	return WriteTag(key,buffer);
+// TODO: Rename these silent overloads.  They invite trouble.
+
+int CHeader::WriteTag(const string &key, double val) {
+	string str = fmt::format("{:f}", val);
+	return WriteTag(key, str);
+	// char buffer[256];
+	// sprintf(buffer,"%f",val);
+	// return WriteTag(key,buffer);
 }
 
-int CHeader::WriteTag(const char *key, int val) {
-	char buffer[256];
-	sprintf(buffer,"%d",val);
-	return WriteTag(key,buffer);
+int CHeader::WriteTag(const string &key, int val) {
+	string str = fmt::format("{:d}", val);
+	return WriteTag(key, str);
+	// char buffer[256];
+	// sprintf(buffer,"%d",val);
+	// return WriteTag(key,buffer);
 }
 
-int CHeader::WriteTag(const char *key, __int64 val) {
-	char buffer[256];
-	sprintf(buffer,"%I64d",val);
-	return WriteTag(key,buffer);
+int CHeader::WriteTag(const string &key, int64_t val) {
+	string str = fmt::format("{:d}", val);
+	return WriteTag(key, str);
+	// char buffer[256];
+	// sprintf(buffer,"%I64d",val);
+	// return WriteTag(key,buffer);
 }
 
 // If tag with given key is found, update its value.
 // Else append new tag with given key and value.
 
-int CHeader::WriteTag(const char *key, const char *val) {
+int CHeader::WriteTag(const string &key, const string &val) {
 	int ret = 0;
-	std::vector<Tag>::iterator it = FindTag(key);
+	tag_iterator it = FindTag(key);
 	if (it == std::end(tags)) {
 		tags.push_back(key, val);
 		ret = 1;
@@ -396,7 +395,6 @@ int CHeader::Readint(const char *tag, int *val)
 
 int CHeader::Readlong(const char *tag, long *val)
 {
-	
 	int result;
 	char str[256];
 	result = Readchar(tag, str,256 );

@@ -67,13 +67,6 @@
 
 #define DEFAULT_LLD 400 // assume a value of 400 if not specified in listmode header
 #define RW_MODE "wb+"
-#ifdef WIN32
-#include <io.h>
-#include <process.h>
-#define strcasecmp _stricmp
-#define strdup _strdup
-#define access _access
-#endif
 static const char *pgm_id = "V2.1 ";  // Revision changed from 2.0 to 2.1 for LR and P39 support
 
 #define MAX_FRAMES 256

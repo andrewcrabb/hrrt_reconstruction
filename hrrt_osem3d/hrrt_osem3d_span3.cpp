@@ -141,18 +141,13 @@ For commercial use, please contact zcho@gachon.ac.kr or isslhong@kpu.ac.kr
 */
 
 
-// IS_WIN32 and IS__linux__ will be defined by compilation switches
-//#define IS_WIN32
 #include "compile.h" 	
 
-#ifdef IS_WIN32
-#else
 #define _REENTRANT
 #define _POSIX_SOURCE
 #define _P __P
 #include <pthread.h>
 #include <pmmintrin.h>
-#endif
 
 #include <ctype.h>
 #include <stdio.h>

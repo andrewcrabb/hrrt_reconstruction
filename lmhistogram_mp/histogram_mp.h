@@ -84,10 +84,6 @@ void lmscan(FILE *out, long *duration);
  */
 head_curve *lmsplit(FILE *out, long *duration);
 
-#ifdef unix
-typedef long long __int64;
-#endif
-
 /**
  * get block singles count
  */
@@ -95,13 +91,13 @@ int singles_rate(int block);
 /**
  * get frame prompts count
  */
-__int64 total_prompts();
-__int64 total_tx_prompts(); // TX events for P39 simultaneous TX+EM
+int64_t total_prompts();
+int64_t total_tx_prompts(); // TX events for P39 simultaneous TX+EM
 /**
  * get frame randoms count
  */
-__int64 total_randoms();
-__int64 total_tx_randoms(); // TX events for P39 simultaneous TX+EM
+int64_t total_randoms();
+int64_t total_tx_randoms(); // TX events for P39 simultaneous TX+EM
 
 //
 // Global variables

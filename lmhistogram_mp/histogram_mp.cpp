@@ -35,13 +35,10 @@
 #include <iostream>
 #include <math.h>
 #include <string.h>
+#include <cstdint>
 #include "histogram_mp.h"
 #include "LM_Reader_mp.h"
 #include "LM_Rebinner_mp.h"
-
-#ifdef WIN32
-#include <io.h>
-#endif
 
 #ifdef HRRT_REBINNER_LUT
 #include <gen_delays_lib/gen_delays.h>
@@ -51,7 +48,7 @@
 #endif
 
 typedef struct {
-    __int64 total_singles;
+    int64_t total_singles;
     long average_rate;
     int nsamples;
     long last_sample;
@@ -97,12 +94,12 @@ static long randoms = 0;        // In FOV randoms event counter
 //
 // Global counters for 1 frame period
 //
-static __int64 event_counter = 0;   // Events (prompts and randoms) counter
-static __int64 tag_counter = 0;     // Tags counter
-static __int64 t_prompts = 0;       // In FOV prompts event counter
-static __int64 t_randoms = 0;       // In FOV randoms event counter
-static __int64 tx_prompts = 0;      // In FOV TX prompts event counter
-static __int64 tx_randoms = 0;      // In FOV TX randoms event counter
+static int64_t event_counter = 0;   // Events (prompts and randoms) counter
+static int64_t tag_counter = 0;     // Tags counter
+static int64_t t_prompts = 0;       // In FOV prompts event counter
+static int64_t t_randoms = 0;       // In FOV randoms event counter
+static int64_t tx_prompts = 0;      // In FOV TX prompts event counter
+static int64_t tx_randoms = 0;      // In FOV TX randoms event counter
 static singles_record singles[NBLOCKS]; // Block singles
 
 //
@@ -137,21 +134,21 @@ int singles_rate(int block)
 {
     return (singles[block].average_rate);
 }
-__int64 total_prompts()
+int64_t total_prompts()
 {
     return t_prompts;
 }
 
-__int64 total_randoms()
+int64_t total_randoms()
 {
     return t_randoms;
 }
-__int64 total_tx_prompts()
+int64_t total_tx_prompts()
 {
     return tx_prompts;
 }
 
-__int64 total_tx_randoms()
+int64_t total_tx_randoms()
 {
     return tx_randoms;
 }
@@ -426,7 +423,7 @@ static int goto_event_64(int target)
 {
     unsigned int ew1, ew2, type, tag;
     int tmp_time = 0, prev_time = 0;
-    __int64 tot_events = 0;
+    int64_t tot_events = 0;
     int terminate = 0;
 
     printf("Skipping To %d secs (goto_event_64)...\n", target);
