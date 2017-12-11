@@ -33,19 +33,19 @@ typedef std::vector<Tag>::iterator tag_iterator;
 class CHeader {
 public:
 	int Readdouble(const string &key, double &val);        // Get a double value from memory table
-	int Readfloat( const string &key, float &val);	       // Get a float  value from memory table
-	int Readlong(  const string &key, long &val);		   // Get a long   value from memory table
-	int Readint(   const string &key, int &val);		   // Get a int    value from memory table
+	int Readfloat (const string &key, float  &val);	       // Get a float  value from memory table
+	int Readlong  (const string &key, long   &val);		   // Get a long   value from memory table
+	int Readint   (const string &key, int    &val);		   // Get a int    value from memory table
 	int WriteTag(  const string &key, const string &val);  // Put a string value in memory table
 	int WriteTag(  const string &key, double val);	       // Put a double value in memory table
 	int WriteTag(  const string &key, int val);		       // Put a int    value in memory table
 	int WriteTag(  const string &key, int64_t);		       // Put a int64  value in memory table
 	int Readchar(  const string &key, string &val);        // Get a string value from memory table 
 	int CloseFile();
-	void GetFileName(char* filename);
+	void GetFileName(string &filename);
 	int IsFileOpen();
-	int OpenFile(char* filename);			// Loads specified filename in memory table
-	int WriteFile(char *filename = 0, int p39_flag=0);
+	int OpenFile(const string &filename);			// Loads specified filename in memory table
+	int WriteFile(const string &filename, int p39_flag=0);
 	CHeader();
 	virtual ~CHeader();
 	// ahc

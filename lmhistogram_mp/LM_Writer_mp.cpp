@@ -113,6 +113,7 @@ void lm32_writer(void *arg)
 		{
 			// complete and write buffer
 			size = sizeof(unsigned)*L32EventPacket::packet_size;
+			// Dunno where HANDLE comes from.  Hope it assigns to a std::string!
 			WriteFile(handle, buf->events, size, &count, NULL);
 			if (count != size)
 			{

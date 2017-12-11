@@ -300,7 +300,7 @@ template <class T> int init_sino(T *&sino, char *&delayed, int span, const char 
             return 0;
         }
         sprintf(hdr_fname, "%s.hdr", prev_sino);
-        if (hdr.OpenFile(hdr_fname) < 0) {
+        if (hdr.OpenFile(hdr_fname) != OK) {
             cout << "Error opening " << hdr_fname << endl;
             free(sino);
             return 0;

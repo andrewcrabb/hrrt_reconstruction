@@ -79,7 +79,7 @@ CHeader::~CHeader()
 // 	}
 // }
 
-int CHeader::OpenFile(char *filename) {
+int CHeader::OpenFile(const string &filename) {
 	if (hdr_file.is_open())
 		return(E_FILE_ALREADY_OPEN);
 	hdr_file.open(filename, std::ifstream::in);
@@ -159,16 +159,14 @@ int CHeader::InsertTag(string t_buffer) {
 	return 0;
 }
 
-int CHeader::ReadFile()
-{
+int CHeader::ReadFile() {
 	// char buffer[1024];
 	// while (fgets(buffer,1024,hdr_file))
 	// 	InsertTag(buffer);
 	string buffer;
 	while (safeGetline(hdr_file, buffer))
 		InsertTag(buffer);
-
-	return 0;
+	return OK;
 }
 
 // int CHeader::WriteFile(char *fname, int p39_flag)
@@ -195,8 +193,8 @@ int CHeader::ReadFile()
 // 	return 0;
 // }
 
-int CHeader::WriteFile(char *fname, int p39_flag) {
-	string outname = (fname) ? fname : m_FileName;
+int CHeader::WriteFile(const string &fname, int p39_flag) {
+	string outname = (fname.length()) ? fname : m_FileName;
 	std::ofstream fp;
 
 	fp.open(outname, std::ofstream::out);
@@ -220,12 +218,12 @@ int CHeader::IsFileOpen() {
 	return hdr_file.is_open();
 }
 
-void CHeader::GetFileName(char *filename) {
+void CHeader::GetFileName(string &filename) {
 	// return the file name only if a file is open
 	// if (m_FileOpen != 0)
 	// 	sprintf(filename, "%s",m_FileName);
 	if (IsFileOpen())
-		strcpy(filename, m_FileName.c_str());
+		filename = m_FileName;
 }
 
 int CHeader::CloseFile() {
