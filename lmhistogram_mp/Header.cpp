@@ -22,7 +22,7 @@ Modification history:
 #include "hrrt_util.h"
 
 #include <boost/xpressive/xpressive.hpp>
-
+#include <fmt/format.h>
 
 using std::cin;
 using std::cout;
@@ -243,18 +243,6 @@ tag_iterator FindTag(const string &key) {
 	return std::find_if(std::begin(tags), std::end(tags), pred);
 }
 
-// Fill in val if tag is found.
-
-int CHeader::Readchar(const string &key, char* val, int len) {
-	int ret = 0;
-	tag_iterator it = FindTag(key);
-	if (it == std::end(tags)) {
-		ret = E_TAG_NOT_FOUND;
-	} else {
-		strcpy(val, it->value.c_str());
-	}
-	return ret;
-}
 
 // int CHeader::Readchar(const char *tag, char* val, int len) {
 // 	for (int i = 0; i < numtags; i++) {
@@ -369,95 +357,143 @@ int CHeader::WriteTag(const string &key, const string &val) {
 	// return 1;
 }
 
-int CHeader::Readint(const char *tag, int *val)
-{
-	int result;
-	char str[256];
-	strcpy(str,"");
-	result = Readchar(tag, str,256 );
-	if (result == 0)
-	{
-		int a = isdigit(str[0]);
-		if (a != 0)
-		{
-			*val = atoi(str);
-			return OK;
-		}
-		else
-		{
-			*val = 0;
-			return E_NOT_AN_INIT;
-		}
+// Fill in val if tag is found.
+
+// int CHeader::Readchar(const string &key, char* val, int len) {
+int CHeader::Readchar(const string &key, string &val) {
+	int ret = OK;
+	tag_iterator it = FindTag(key);
+	if (it == std::end(tags)) {
+		ret = E_TAG_NOT_FOUND;
+	} else {
+		// strcpy(val, it->value.c_str());
+		val = it->value;
 	}
-	else
-		return result;
+	return ret;
 }
 
-int CHeader::Readlong(const char *tag, long *val)
-{
-	int result;
-	char str[256];
-	result = Readchar(tag, str,256 );
-	if (result == 0)
-	{
-		int a = isdigit(str[0]);
-		if (a != 0)
-		{
-			*val = atol(str);
-			return OK;
-		}
-		else
-		{
-			*val = 0;
-			return E_NOT_A_LONG;
-		}
-	}
-	else
-		return result;
+/**
+ * @brief      Convert string buffer to numeric value of type T
+ *
+ * @param[in]  str   string to convert
+ * @param      val   numeric return value
+ *
+ * @tparam     T     Numeric type to convert to: int, float, int64_t
+ *
+ * @return     0 on success, else 1
+ */
+template <typename T> int convertString(const string &str, T &val) {
+    int ret = OK;
+	cout << "convertString<" << typeid(T).name() << ">(" << str << "): ";
+  try {
+    t = boost::lexical_cast<T>(str);
+    // cout << t << endl;
+  }
+  catch (const boost::bad_lexical_cast &e) {
+    std::cerr << e.what() << endl;
+    ret = 1;
+  }
+  return ret;
 }
 
-int CHeader::Readfloat(const char *tag, float *val)
-{
-	int result;
-	char str[256];
-	result = Readchar(tag, str,256 );
-	if (result == 0)
-	{
-		int a = isdigit(str[0]);
-		if (a != 0)
-		{
-			*val = (float)atof(str);
-			return OK;
-		}
-		else
-		{
-			*val = 0;
-			return E_NOT_A_FLOAT;
-		}
+// Read given tag and return its numeric value
+// Return 0 on success, else 1
+
+template <typename T>int CHeader::ReadNum(const string &tag, T &val) {
+	string str;
+	int result = Readchar(tag, str);
+	if (result == OK) {
+		result = convertString(str, val)
 	}
-	else
-		return result;
+	return result;
+	
 }
 
-int CHeader::Readdouble(const char *tag, double *val)
-{
-	int result;
-	char str[256];
-	result = Readchar(tag, str,256 );
-	if (result == 0)
-	{
-		int a = isdigit(str[0]);
-		if (a != 0)
-		{
-			*val = atof(str);
-			return OK;
-		}
-		else
-		{
-			*val = 0;
-			return E_NOT_A_DOUBLE;
-		}
-	}
-	else
-		return result;
+int CHeader::Readint(const string &tag, int &val) {
+	return ReadNum<int>(tag, val) ? E_NOT_AN_INIT : OK;
 }
+
+int CHeader::Readlong(const string &tag, long &val) {
+	return ReadNum<long>(tag, val) ? E_NOT_A_LONG : OK;
+}
+
+int CHeader::Readfloat(const string &tag, float &val) {
+	return ReadNum<float>(tag, val) ? E_NOT_A_FLOAT : OK;
+}
+
+int CHeader::Readdouble(const string &tag, double &val) {
+	return ReadNum<double>(tag, val) ? E_NOT_A_DOUBLE : OK;
+}
+
+// int CHeader::Readint(const char *tag, int *val) {
+// 	int result;
+// 	char str[256];
+// 	strcpy(str,"");
+// 	result = Readchar(tag, str,256 );
+// 	if (result == 0) {
+// 		int a = isdigit(str[0]);
+// 		if (a != 0) {
+// 			*val = atoi(str);
+// 			return OK;
+// 		} else {
+// 			*val = 0;
+// 			return E_NOT_AN_INIT;
+// 		}
+// 	} else {
+// 		return result;
+// 	}
+// }
+
+// int CHeader::Readlong(const char *tag, long *val) {
+// 	int result;
+// 	char str[256];
+// 	result = Readchar(tag, str,256 );
+// 	if (result == 0) {
+// 		int a = isdigit(str[0]);
+// 		if (a != 0) {
+// 			*val = atol(str);
+// 			return OK;
+// 		} else {
+// 			*val = 0;
+// 			return E_NOT_A_LONG;
+// 		}
+// 	} else {
+// 		return result;
+// 	}
+// }
+
+// int CHeader::Readfloat(const char *tag, float *val) {
+// 	int result;
+// 	char str[256];
+// 	result = Readchar(tag, str,256 );
+// 	if (result == 0) {
+// 		int a = isdigit(str[0]);
+// 		if (a != 0) {
+// 			*val = (float)atof(str);
+// 			return OK;
+// 		} else {
+// 			*val = 0;
+// 			return E_NOT_A_FLOAT;
+// 		}
+// 	} else {
+// 		return result;
+// 	}
+// }
+
+// int CHeader::Readdouble(const char *tag, double *val) {
+// 	int result;
+// 	char str[256];
+// 	result = Readchar(tag, str,256 );
+// 	if (result == 0) {
+// 		int a = isdigit(str[0]);
+// 		if (a != 0) {
+// 			*val = atof(str);
+// 			return OK;
+// 		} else {
+// 			*val = 0;
+// 			return E_NOT_A_DOUBLE;
+// 		}
+// 	} else {
+// 		return result;
+// 	}
+// }

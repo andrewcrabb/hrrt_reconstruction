@@ -305,7 +305,7 @@ template <class T> int init_sino(T *&sino, char *&delayed, int span, const char 
             free(sino);
             return 0;
         }
-        int ok = hdr.Readint("image duration", &duration);
+        int ok = hdr.Readint("image duration", duration);
         hdr.CloseFile();
         if (ok != 0) {
             cout << hdr_fname << ": image duration not found" << endl;
@@ -1083,7 +1083,7 @@ int main(int argc, char *argv[])
             span = 0;
             hist_mode = 7;
             cout << "Data Type: " << datatype << ", hist_mode: " << hist_mode << endl;
-            if (hdr.Readfloat("axial velocity", &axial_velocity) == 0) {
+            if (hdr.Readfloat("axial velocity", axial_velocity) == 0) {
                 // tx speed=6msec/crystal for axial velocity=100%
                 float scale_factor = axial_velocity / 100.0f;
                 tx_source_speed = 6.25f / scale_factor;
@@ -1169,13 +1169,13 @@ int main(int argc, char *argv[])
             strcat(out_fname, ".s");
         }
 
-        if (hdr.Readint("lower level", &LLD))
+        if (hdr.Readint("lower level", LLD))
             LLD = DEFAULT_LLD;
         cout << "LLD: " << LLD << endl;
 
         // Build the headers
         int sino_mode = 0;  // by default use net trues
-        if (!hdr.Readint("Sinogram Mode", &sino_mode)) {
+        if (!hdr.Readint("Sinogram Mode", sino_mode)) {
             cout << "Using Sinogram Mode from header: " << sino_mode << endl;
             if (sino_mode != 0 && prev_sino != NULL) {
                 cout << "Adding to existing sinogram only supported in Trues mode"  << endl;
@@ -1184,12 +1184,12 @@ int main(int argc, char *argv[])
             hist_mode = sino_mode;
         }
 
-        hdr.Readfloat("isotope halflife", &isotope_halflife);
+        hdr.Readfloat("isotope halflife", isotope_halflife);
         if (isotope_halflife != 0.0)
             decay_rate = (float)isotope_halflife;
 
         get_dose_delay(hdr, dose_delay);
-        if (!hdr.Readint("axial compression", &axial_comp)) {
+        if (!hdr.Readint("axial compression", axial_comp)) {
             if (!span_override && axial_comp > 0)
                 span = axial_comp;
             else
