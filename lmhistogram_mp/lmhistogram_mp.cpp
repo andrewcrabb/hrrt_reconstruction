@@ -53,13 +53,16 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
+#include "Errors.h"
 #include "LM_Rebinner_mp.h"
 #include "histogram_mp.h"
 #include "LM_Reader_mp.h"
 #include "convert_span9.h"
+#include "hrrt_util.hpp"
 #include <gen_delays_lib/lor_sinogram_map.h>
 #include <gen_delays_lib/segment_info.h>
 #include <gen_delays_lib/geometry_info.h>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 // ahc
 #include <unistd.h>
@@ -71,6 +74,10 @@ static const char *pgm_id = "V2.1 ";  // Revision changed from 2.0 to 2.1 for LR
 
 #define MAX_FRAMES 256
 #define MAX_THREADS 4
+
+namespace bt = boost::posix_time;
+namespace bg = boost::gregorian;
+// namespace bx = boost::xpressive;
 
 int nsinos[] = {
     207, // span 0 (specific to transmission)
@@ -942,50 +949,68 @@ static void p39_write_sino(char *sino,  char *b_delayed, int sino_size,
     p39_mhdr.WriteFile(fname_p39_mhdr, 1);
 }
 
-inline int extract_date(const char *str, struct tm &tm)
-{
-    int ret = 0;
-    printf("extract date %s\n", str);
-    if (sscanf(str, "%d:%d:%d", &tm.tm_mday, &tm.tm_mon, &tm.tm_year) == 3) {
-        printf("%d:%d:%d\n", tm.tm_mday, tm.tm_mon, tm.tm_year);
-        // "12:00:00 AM" = unknown date
-        if (tm.tm_year > 1900) {
-            tm.tm_year -= 1900;
-            tm.tm_mon -= 1;
-            ret = 1;
-            tm.tm_isdst = -1; // don't use daylight saving
+// !study date (dd:mm:yryr) := 18:09:2017
+
+// inline int extract_date(const string &str, struct tm &tm)
+// {
+//     int ret = 0;
+//     printf("extract date %s\n", str);
+//     if (sscanf(str, "%d:%d:%d", &tm.tm_mday, &tm.tm_mon, &tm.tm_year) == 3) {
+//         printf("%d:%d:%d\n", tm.tm_mday, tm.tm_mon, tm.tm_year);
+//         // "12:00:00 AM" = unknown date
+//         if (tm.tm_year > 1900) {
+//             tm.tm_year -= 1900;
+//             tm.tm_mon -= 1;
+//             ret = 1;
+//             tm.tm_isdst = -1; // don't use daylight saving
+//         }
+//     }
+//     return ret;
+// }
+
+// !study time (hh:mm:ss) := 15:26:00
+
+// inline int extract_time(const char *str, struct tm &tm)
+// {
+//     int ret = 0;
+//     tm.tm_isdst = -1; // don't use daylight saving
+//     if (sscanf(str, "%d:%d:%d", &tm.tm_hour, &tm.tm_min, &tm.tm_sec) == 3)
+//         ret = 1;
+//     return ret;
+// }
+
+// static int get_dose_delay(CHeader &hdr, int &t)
+// {
+//     struct tm tm;
+//     time_t t0, t1;
+//     string str;
+//     if (hdr.Readchar("dose assay date (dd:mm:yryr)", str) != 0 || !extract_date(buf, tm))
+//         return 0;
+//     if (hdr.Readchar("dose assay time (hh:mm:ss)"  , str) != 0 || !extract_time(buf, tm))
+//         return 0;
+//     t0 = mktime(&tm);
+//     if (hdr.Readchar("study date (dd:mm:yryr)"     , str) != 0 || !extract_date(buf, tm))
+//         return 0;
+//     if (hdr.Readchar("study time (hh:mm:ss)"       , str) != 0 || !extract_time(buf, tm))
+//         return 0;
+//     t1 = mktime(&tm);
+//     if (t1 <= t0) return 0;
+//     t = (int)(t1 - t0);
+//     return 1;
+// }
+
+static int get_dose_delay(CHeader &hdr, int &t) {
+    bt::ptime assay_time, study_time;
+    int ret = 1;
+
+    if (!hdr.ReadTime(HDR_DOSE_ASSAY_TIME, assay_time)) {
+        if (!hdr.ReadTime(HDR_STUDY_TIME, study_time)) {
+            bt::time_duration diff = study_time - assay_time;
+            t = diff.total_seconds();
+            ret = 0;
         }
     }
     return ret;
-}
-
-inline int extract_time(const char *str, struct tm &tm)
-{
-    int ret = 0;
-    tm.tm_isdst = -1; // don't use daylight saving
-    if (sscanf(str, "%d:%d:%d", &tm.tm_hour, &tm.tm_min, &tm.tm_sec) == 3)
-        ret = 1;
-    return ret;
-}
-
-static int get_dose_delay(CHeader &hdr, int &t)
-{
-    struct tm tm;
-    time_t t0, t1;
-    char buf[80];
-    if (hdr.Readchar("dose assay date (dd:mm:yryr)", buf, sizeof(buf)) != 0 || !extract_date(buf, tm))
-        return 0;
-    if (hdr.Readchar("dose assay time (hh:mm:ss)", buf, sizeof(buf)) != 0 || !extract_time(buf, tm))
-        return 0;
-    t0 = mktime(&tm);
-    if (hdr.Readchar("study date (dd:mm:yryr)", buf, sizeof(buf)) != 0 || !extract_date(buf, tm))
-        return 0;
-    if (hdr.Readchar("study time (hh:mm:ss)", buf, sizeof(buf)) != 0 || !extract_time(buf, tm))
-        return 0;
-    t1 = mktime(&tm);
-    if (t1 <= t0) return 0;
-    t = (int)(t1 - t0);
-    return 1;
 }
 
 // Current time formating
@@ -1036,7 +1061,8 @@ int main(int argc, char *argv[])
     short *ssino = NULL;
     int current_time = -1;
     char *cptr = NULL;
-    char datatype[32];
+    // char datatype[32];
+    string datatype;
     CHeader hdr;
     char msg[FILENAME_MAX];
 
@@ -1073,12 +1099,12 @@ int main(int argc, char *argv[])
 
     //
     // for transmission scans, always override span to 0 (segment 0 only)
-    if (!hdr.Readchar("!PET data type", datatype, 32)) {
+    if (!hdr.Readchar("!PET data type", datatype)) {
         cout << "Data Type: '" << datatype << "'" << endl;
 				// ahc this was failing because of trailing CR on DOS format hdr file.
 				//        if (strcasecmp(datatype, "transmission") == 0) {
-				cout << "XXX: " << strstr(datatype, "transmission") << endl;
- 				if (strstr(datatype, "transmission")) {
+				cout << "XXX: " << (datatype == "transmission") << endl;
+ 				if (datatype == "transmission") {
             float axial_velocity = 0.0;
             span = 0;
             hist_mode = 7;
@@ -1097,10 +1123,14 @@ int main(int argc, char *argv[])
     //
     if (duration[0] == 0) {
         // Frame duration not specified at command line; Use header
-        char framedef[256];
-        strcpy(framedef, "");
-        hdr.Readchar("Frame definition", framedef, 256);
-        if (strlen(framedef)) {
+        // char framedef[256];
+        // Need to convert this to C++ strings.
+        cout << "COME BACK TO THIS" << endl;
+        string framedef_str;
+        hdr.Readchar("Frame definition", framedef_str);
+        if (framedef_str.length()) {
+            char framedef[1024];
+            strcpy(framedef, framedef_str.c_str());
             nframes = 0;
             cout << "Frame definition: [" << framedef << "]" << endl;
             cptr = strtok(framedef, ", ");

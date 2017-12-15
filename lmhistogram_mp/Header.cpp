@@ -19,17 +19,16 @@ Modification history:
 
 #include "Header.h"
 #include "Errors.h"
-#include "hrrt_util.h"
+#include "hrrt_util.hpp"
 
 #include <boost/xpressive/xpressive.hpp>
+#include <boost/lexical_cast.hpp>
 #include <fmt/format.h>
 
 using std::cin;
 using std::cout;
 using std::endl;
 using std::string;
-
-enum KEYVAL { KEY, VAL };
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -205,9 +204,9 @@ int CHeader::WriteFile(const string &fname, int p39_flag) {
 	fp << "!INTERFILE := \n";
 	for (auto &tag : tags) {
 		// Ignore Frame definition in P39 headers b/c unsupported by e7_tools
-		if (p39_flag && !(tag[KEY].compare("Frame definition")))
+		if (p39_flag && !(tag.key.compare("Frame definition")))
 			continue;
-		fp << tag[KEY] << " := " << tag[VAL] << endl;
+		fp << tag.key << " := " << tag.value << endl;
 	}
 	fp.close();
 
@@ -236,7 +235,7 @@ int CHeader::CloseFile() {
 
 // Locate tag having given key
 
-tag_iterator FindTag(const string &key) {
+tag_iterator CHeader::FindTag(const string &key) {
 	auto pred = [key](const Tag & tag) { return tag.key == key; };
 	return std::find_if(std::begin(tags), std::end(tags), pred);
 }
@@ -334,7 +333,7 @@ int CHeader::WriteTag(const string &key, const string &val) {
 	int ret = 0;
 	tag_iterator it = FindTag(key);
 	if (it == std::end(tags)) {
-		tags.push_back(key, val);
+		tags.push_back({key, val});
 		ret = 1;
 	} else {
 		it->value.assign(val);
@@ -380,18 +379,36 @@ int CHeader::Readchar(const string &key, string &val) {
  *
  * @return     0 on success, else 1
  */
-template <typename T> int convertString(const string &str, T &val) {
+template <typename T>int CHeader::convertString(const string &str, T &val) {
     int ret = OK;
 	cout << "convertString<" << typeid(T).name() << ">(" << str << "): ";
   try {
-    t = boost::lexical_cast<T>(str);
-    // cout << t << endl;
+    val = boost::lexical_cast<T>(str);
   }
   catch (const boost::bad_lexical_cast &e) {
     std::cerr << e.what() << endl;
     ret = 1;
   }
   return ret;
+}
+
+/**
+ * @brief      Read time from element with given tag
+ *
+ * @param[in]  tag   Tag to read
+ * @param      time  Time stored in the tag
+ *
+ * @return     0 on success, else 1
+ */
+int CHeader::ReadTime(const string &tag, boost::posix_time::ptime &time) {
+	string line, key, value;
+	int ret = 0;
+	if (Readchar(tag, line) == OK) {
+		if (!parse_interfile_line(line, key, value)) {
+			ret = parse_interfile_time(value, time) ? 1 : 0;
+		}
+	}
+	return ret;
 }
 
 // Read given tag and return its numeric value
@@ -401,7 +418,7 @@ template <typename T>int CHeader::ReadNum(const string &tag, T &val) {
 	string str;
 	int result = Readchar(tag, str);
 	if (result == OK) {
-		result = convertString(str, val)
+		result = convertString<T>(str, val);
 	}
 	return result;
 	

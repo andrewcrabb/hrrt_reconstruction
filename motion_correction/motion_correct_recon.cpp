@@ -72,7 +72,7 @@
 
 #include "frame_info.h"
 #include "qmatrix.h"
-#include "hrrt_util.h"
+#include "hrrt_util.hpp"
 
 // ahc
 #include <iostream>

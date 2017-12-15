@@ -1,15 +1,15 @@
-#ifndef HdrErrors_h
-#define HdrErrors_h
-#define		OK	0
-#define		E_FILE_NOT_READ	-1
-#define		E_TAG_NOT_FOUND -2
-#define		E_FILE_ALREADY_OPEN -3
-#define		E_COULD_NOT_OPEN_FILE -4
-#define		E_FILE_NOT_WRITE	-5
-#define		E_NOT_AN_INIT		-6
-#define		E_NOT_A_LONG		-7
-#define		E_NOT_A_FLOAT		-8
-#define		E_NOT_A_DOUBLE		-9
+#pragma once
+
+const int OK                    =  0;
+const int E_FILE_NOT_READ	    = -1;
+const int E_TAG_NOT_FOUND       = -2;
+const int E_FILE_ALREADY_OPEN   = -3;
+const int E_COULD_NOT_OPEN_FILE = -4;
+const int E_FILE_NOT_WRITE	    = -5;
+const int E_NOT_AN_INIT		    = -6;
+const int E_NOT_A_LONG		    = -7;
+const int E_NOT_A_FLOAT		    = -8;
+const int E_NOT_A_DOUBLE		= -9;
 
 static const char *HdrErrors[] =
 {
@@ -24,4 +24,3 @@ static const char *HdrErrors[] =
 	"Attempt to read a none decimal digit in readfloat function",
 	"Attempt to read a none decimal digit in readdouble function"
 };
-#endif

@@ -67,7 +67,7 @@ Purpose B usage:
 // ahc
 #include <iostream>
 #include <sys/stat.h>
-#include "hrrt_util.h"
+#include "hrrt_util.hpp"
 
 static char cmd_line[2048];
 static int ref_frame=-1, start_frame=-1, end_frame=-1, num_frames=0;

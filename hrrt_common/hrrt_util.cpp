@@ -4,14 +4,83 @@
   ahc 11/2/17
   */
 
+#include <cstdio>
 #include <iostream>
 #include <cstddef>
 #include <cstdlib>
-#include <cstdio>
 #include <unistd.h>
 #include <fstream>
+#include <sstream>
+#include <string>
+#include <regex>
+#include <boost/xpressive/xpressive.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
-#include "hrrt_util.h"
+#include "hrrt_util.hpp"
+
+namespace bt = boost::posix_time;
+namespace bg = boost::gregorian;
+namespace bx = boost::xpressive;
+
+const std::string ECAT_DATE_FORMAT = "%d:%m:%Y";  // !study date (dd:mm:yryr) := 18:09:2017
+const std::string ECAT_TIME_FORMAT = "%H:%M:%S";  // !study time (hh:mm:ss) := 15:26:00
+
+using std::cout;
+using std::endl;
+using std::string;
+
+/**
+ * @brief      Parse ECAT-format date into Boost ptime
+ *
+ * @param[in]  str   Date string in format '18:09:2017'
+ * @param[in]  pt    boost::posix_time::ptime object to set to date
+ *
+ * @return     false on success, else true
+ */
+bool parse_interfile_datetime(const string &datestr, const string &format, boost::posix_time::ptime &pt) {
+  bt::time_input_facet * facet = new bt::time_input_facet(format);
+  const std::locale loc(std::locale::classic(), facet);
+
+  std::istringstream iss(datestr);
+  iss.imbue(loc);
+  // iss.exceptions(std::ios_base::failbit);
+
+  iss >> pt;
+  // cout << iss.fail() << endl;
+  // cout << pt << endl;
+  return pt.is_not_a_date_time();
+}
+
+bool parse_interfile_date(const string &datestr, boost::posix_time::ptime &pt) {
+  return parse_interfile_datetime(datestr, ECAT_DATE_FORMAT, pt);
+}
+
+bool parse_interfile_time(const string &timestr, boost::posix_time::ptime &pt) {
+  return parse_interfile_datetime(timestr, ECAT_TIME_FORMAT, pt);
+}
+
+/**
+ * @brief      Parse Interfile line into its key and value
+ *             !study date (dd:mm:yryr) := 18:09:2017
+ *
+ * @param[in]  line  Line from Interfile header
+ * @param[out] key   Key of Interfile line
+ * @param[out] value Value of Interfile line
+ *
+ * @return     false on success, else true
+ */
+bool parse_interfile_line(const string &line, string &key, string &value) {
+  bool ret = true;
+  bx::smatch match;
+  // using namespace boost::xpressive;
+  bx::sregex reg = bx::sregex::compile("^\\s*(?P<key>.+)\\s+:=\\s+(?P<value>.+)\\s*$");
+  if (bx::regex_match(line, match, reg)) {
+    key   = match["key"];
+    value = match["value"];
+    ret = false;
+  }
+  return ret;
+}
 
 bool file_exists (const std::string& name) {
   bool ret = false;
