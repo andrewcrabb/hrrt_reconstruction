@@ -74,7 +74,6 @@ int quiet = 0;
 int hist_mode = 0;              // 0=Trues (Default), 1=Prompts and Randoms, 2=Prompts only, 7=transmission
 int timetag_processing = 1;     // 0=Use timetag count for time, 1=decode time from timetag event
 unsigned rebinner_method = SW_REBINNER;
-int l64_flag = 0;
 int max_rd = 67;
 unsigned stop_count = 0, start_countrate = 0;
 
@@ -239,7 +238,6 @@ long process_tagword(long tagword, long duration, FILE *out_hc)
     }
 
     else if ((tagword & 0xE0000000) == 0xc0000000) { // Gantry Motions & positions
-        if (check_model(model_number, MODEL_HRRT)) { // HRRT
             int head = (tagword & 0x000f0000) >> 16;
             int tx_y = (tagword & 0x0000ff00) >> 8;
             int tx_x = tagword & 0x000000ff;
@@ -258,7 +256,6 @@ long process_tagword(long tagword, long duration, FILE *out_hc)
             // keep tx_low positive to allow comparison with unsigned
             if (tx_source.z_low < 0) tx_source.z_low = 0;
             if (tx_mock.z_low < 0) tx_mock.z_low = 0;
-        }
     }
     return current_time > 0 ? current_time : 0;
 }
@@ -1212,7 +1209,7 @@ template <class T> int histogram(T *sino, char *delayed,
         break;
 
     case 1: // separate randoms/prompts
-        if (check_model(model_number, MODEL_HRRT)) {
+
             while (next_event_32(cew, 0) == 0) {
                 if (cew.type == Event_32::TAG) {
                     process_tagword(cew.value, duration, out_hc);
@@ -1237,44 +1234,7 @@ template <class T> int histogram(T *sino, char *delayed,
                 }
                 if (stop_count > 0 && event_counter >= stop_count) break;
             }
-        } else {
-            // P39
-            while (next_event_32(cew, 0) == 0) {
-                if (cew.type == Event_32::TAG) {
-                    if ((cew.value & 0xE0000000) != 0xc0000000)
-                        process_tagword(cew.value, duration, out_hc);
-                } else {
-                    // use the prompt/random bit as the MSB of the
-                    // address to create a virtual address space twice
-                    // as large as normal.   Lower half is randoms, upper
-                    // half is prompts
-                    address = cew.value & 0x1fffffff;
-                    if (address >= sino_size) {
-                        // assume transmission
-                        address -= sino_size;
-                        if (address >= 0 && address < tx_sino_size) {
-                            if (cew.type == Event_32::PROMPT) {
-                                sino[address + sino_size]++;
-                                tx_prompts++;
-                                prompts--; // remove the event from the emission count
-                            } else {
-                                sino[address + sino_size]--;
-                                tx_randoms++;
-                                randoms--; // remove the event from the emission count
-                            }
-                        }
-                    } else {
-                        // emission
-                        if (address >= 0  && address < sino_size) {
-                            if (cew.type == Event_32::PROMPT) sino[address]++;
-                            else delayed[address]++; // delayed stored in separate array as prompts
-                        }
-                    }
-                }
-                if (stop_count > 0 && event_counter >= stop_count) break;
-            }
 
-        }
 
         break;
     case 7: // Transmission
@@ -1404,8 +1364,8 @@ static void lmscan_64(FILE *out, long *duration)
 void lmscan(FILE *out, long *duration)
 
 {
-    if (!l64_flag) lmscan_32(out, duration);
-    else lmscan_64(out, duration);
+
+    lmscan_64(out, duration);
 }
 head_curve *lmsplit(FILE *out, long *duration)
 {

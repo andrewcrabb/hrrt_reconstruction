@@ -229,9 +229,6 @@ template <class T> int init_sino(T *&sino, char *&delayed, int init_span, const 
     int sinogram_subsize = 0;
     int r_size = sizeof(T);
 
-    if (check_model(model_number, MODEL_HRRT)) {
-        // HRRT
-    		cout << "XX Using HRRT model" << endl;
         if (hist_mode != 7) {
             // emission
    	    		cout << "XX Using HRRT Emission: hist_mode = " << hist_mode << endl;
@@ -248,10 +245,6 @@ template <class T> int init_sino(T *&sino, char *&delayed, int init_span, const 
             sinogram_size = m_nprojs * m_nviews * num_sino;
             sinogram_subsize = sinogram_size; // mock memory
         }
-    } else { // P39
-        num_sino = P39_nsinos[init_span];
-        sinogram_size = m_nprojs * m_nviews * num_sino;
-    }
 
     if (num_sino == 0) {
         cout << "Unsupported span : " << init_span << endl;
@@ -264,26 +257,6 @@ template <class T> int init_sino(T *&sino, char *&delayed, int init_span, const 
     cout << "bits per register: " << r_size * 8 << endl;
     cout << "sinogram size: " << sinogram_size << endl;
     cout << "sinogram subsize: " << sinogram_subsize << endl;
-    if (!check_model(model_number, MODEL_HRRT)) {
-        // P39 : always prompt and separate delayed
-        // add transmission sinogram size to prompt sinogram
-        // allocate or clear memory for prompt and TX sinogram
-        int tx_size =  m_nprojs * m_nviews * P39_nsinos[0];
-        cout << " TX sinogram size: " << tx_size << endl;
-        if (sino == NULL) sino = (T *)calloc((sinogram_size + tx_size), r_size);
-        else memset(sino, 0, sinogram_size * r_size); // keep transmission events
-        if (sino == NULL) {
-            cout << "Unable to allocate sinogram memory: " << sinogram_size << " + " << tx_size << endl;
-            return 0;
-        }
-        // allocate or clear memory for delayed sinogram
-        if (delayed == NULL) delayed = (char *)calloc(sinogram_size, 1);
-        else memset(delayed, 0, sinogram_size);
-        if (delayed == NULL) {
-            cout << "Unable to allocate delayed sinogram memory: " << sinogram_size << endl;
-            return 0;
-        }
-    } else {   // HRRT
         if (sino == NULL)
             sino = (T *)calloc(sinogram_size + sinogram_subsize, r_size);
         else
@@ -293,7 +266,6 @@ template <class T> int init_sino(T *&sino, char *&delayed, int init_span, const 
             cout << "Unable to allocate sinogram memory: " << (sinogram_size + sinogram_subsize) * r_size << endl;
             return 0;
         }
-    }
 
     // load previous scan if any
     if (prev_sino) {
@@ -493,16 +465,6 @@ void parse_valid(int argc, char **argv)
     if (argc > 1)
         strcpy(in_fname, argv[1]);
 
-    if (strstr(in_fname, ".l64")) {
-        //      cerr << "ERROR:  Histogrammer only functions with rebinned data" << endl;
-        //      cerr << "Press Enter to continue" << endl;
-        //      getchar();
-        l64_flag = 1;
-    } else if (strstr(in_fname, ".l32") == NULL) {
-        cerr << in_fname << "extension should be .l32 or .l64\n" << endl;
-        exit(1);
-    }
-
     // set skip to specified countrate
 }
 
@@ -514,16 +476,13 @@ void start_reader_thread()
     // Create container synchronization event and
     // start reader thread and wait for container ready (half full)
     //
-    if (l64_flag) {
+
         L64EventPacket::frame_duration = (int *)calloc(nframes, sizeof(int));
         memcpy(L64EventPacket::frame_duration, duration, nframes * sizeof(int));
         L64EventPacket::frame_skip = (int *)calloc(nframes, sizeof(int));
         memcpy(L64EventPacket::frame_skip, skip, nframes * sizeof(int));
         lm64_reader(in_fname);
 
-    } else {
-        lm32_reader(in_fname);
-    }
 }
 
 inline void start_rebinner_thread() // Start thread and wait until it is ready
@@ -1227,8 +1186,6 @@ int main(int argc, char *argv[])
         }
 
         // update the header with sinogram info for HRRT
-        // BUT not for P39 where the header contains the main header information
-        if (check_model(model_number, MODEL_HRRT)) {
             hdr.WriteTag("!originating system"      , "HRRT");
             hdr.WriteTag("!name of data file"       , outfname_sino);
             hdr.WriteTag("number of dimensions"     , "3");
@@ -1241,9 +1198,8 @@ int main(int argc, char *argv[])
             hdr.WriteTag("!lmhistogram version"     , sw_version);
             hdr.WriteTag("!lmhistogram build ID"    , sw_build_id);
             hdr.WriteTag("!histogrammer revision"   , "2.0");
-        }
 
-        if (l64_flag && check_model(model_number, MODEL_HRRT)) {
+
             int span_bak = g_span, rd_bak = max_rd;
             // ahc: lut_file now passed to init_rebinner instead of finding it there.
             // init_rebinner(g_span, max_rd);
@@ -1258,7 +1214,7 @@ int main(int argc, char *argv[])
             hdr.WriteTag("scaling factor (mm/pixel) [1]", 10.0f * m_binsize); // cm to mm
             hdr.WriteTag("scaling factor [2]", 1); // angle
             hdr.WriteTag("scaling factor (mm/pixel) [3]", 10.0f * m_plane_sep); // cm to mm
-        }
+
 
         cout << "Span: " << g_span << endl;
 
@@ -1305,7 +1261,7 @@ int main(int argc, char *argv[])
 
         //start reader and rebinner threads
         start_reader_thread();
-        if (l64_flag)   start_rebinner_thread();        // start lm64_rebinner thread  and wait until ready
+        start_rebinner_thread();        // start lm64_rebinner thread  and wait until ready
 
         // process each frame
         frame = 0;
@@ -1318,21 +1274,15 @@ int main(int argc, char *argv[])
                 sprintf(outfname_sino, "%s_frame%d.s", out_fname, frame);
                 FILE *fp = fopen(outfname_dyn, "a");
                 if (fp) {
-                    if (check_model(model_number, MODEL_HRRT)) {
-                        // HRRT
                         fprintf(fp, "%s_frame%d.s\n", out_fname_stripped, frame);
-                    } else {
-                        //P39
-                        fprintf(fp, "%s_frame%d.mhdr\n", out_fname_stripped, frame);
-                    }
                     fclose(fp);
                 }
-            } else
+            } else {
                 sprintf(outfname_sino, "%s.s", out_fname);
+            }
 
             // Create output files; exit if fail
-            if (check_model(model_number, MODEL_HRRT)) create_files();
-            else p39_create_files();
+            create_files();
 
             if (elem_size == 2) {
                 if (!init_sino<short>(ssino, delayed, g_span, prev_sino, prev_duration)) exit(1);
@@ -1384,12 +1334,10 @@ int main(int argc, char *argv[])
             scan_duration += duration[frame];
 
             // Write sinogram and header files
-            if (check_model(model_number, MODEL_HRRT))
+
                 write_sino(sinogram, sinogram_size, hdr, frame);
-            else
-                p39_write_sino(sinogram, delayed, sinogram_size, hdr, frame);
             close_files();
-            if (l64_flag && hist_mode != 7)
+            if (hist_mode != 7)
                 write_coin_map(outfname_sino);
             if (nframes > 1)
                 sprintf(msg, "Frame time histogrammed = %d sec", duration[frame]);
