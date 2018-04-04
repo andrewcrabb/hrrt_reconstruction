@@ -146,7 +146,7 @@ static int prev_duration = 0;        // Previous sinogram duration (when -add op
 static long scan_duration = 0;          // P39 TX duration is total time scan duration
 
 // Parameters which default may be overrided in lmhistogram.ini
-static int span = 9;                // Default span=9 for l64 if not specified in header
+static int g_span = 9;                // Default span=9 for l64 if not specified in header
 static size_t elem_size = 2;        // sinogram elem size: 1 for byte, 2 for short (default)
 static int num_sino, sinogram_size;  // number of sinogram and size
 static int compression = 0;         // 0=no compression (default), 1=ER (Efficient Representation)
@@ -154,7 +154,7 @@ static int output_ra = 0;           // output randoms
 
 static int span_override = 0;       // Flag set span when span specified at command line
 static int nframes = 0;             // Number of frames
-static int scan = 0;                // scan option , default=no
+static int do_scan = 0;                // scan option , default=no
 static int split = 0;               // split option, default=no
 static int out_l32 = 0;             // Output 32-bit listmode (output file extension .l32)
 static int out_l64 = 0;             // Output 64-bit listmode (output file extension .l64)
@@ -225,9 +225,7 @@ void lmhistogram_usage(char *pgm_name)
  * Sets the duration with prev_sino duration value from prev_sino header.
  * Returns 1 if success and 0 otherwise
  */
-template <class T> int init_sino(T *&sino, char *&delayed, int span, const char *prev_sino, int &duration)
-
-{
+template <class T> int init_sino(T *&sino, char *&delayed, int init_span, const char *prev_sino, int &duration) {
     int sinogram_subsize = 0;
     int r_size = sizeof(T);
 
@@ -237,7 +235,7 @@ template <class T> int init_sino(T *&sino, char *&delayed, int span, const char 
         if (hist_mode != 7) {
             // emission
    	    		cout << "XX Using HRRT Emission: hist_mode = " << hist_mode << endl;
-            num_sino = LR_type == 0 ? nsinos[span] : LR_nsinos[span];
+            num_sino = LR_type == 0 ? nsinos[init_span] : LR_nsinos[init_span];
             sinogram_size = m_nprojs * m_nviews * num_sino;
             if (hist_mode == 1) {
                 // prompts and delayed
@@ -251,12 +249,12 @@ template <class T> int init_sino(T *&sino, char *&delayed, int span, const char 
             sinogram_subsize = sinogram_size; // mock memory
         }
     } else { // P39
-        num_sino = P39_nsinos[span];
+        num_sino = P39_nsinos[init_span];
         sinogram_size = m_nprojs * m_nviews * num_sino;
     }
 
     if (num_sino == 0) {
-        cout << "Unsupported span : " << span << endl;
+        cout << "Unsupported span : " << init_span << endl;
         return 0;
     }
 
@@ -375,14 +373,14 @@ void parse_valid(int argc, char **argv)
             lmhistogram_usage(argv[0]);
             exit(0);
         }
-        span = 7;  // default span in LR mode
+        g_span = 7;  // default span in LR mode
         max_rd = 38; // default max_rd  in LR mode
     }
 
     if (flagval("-span", &argc, argv, buffer)) {
         span_override = 1;
-        span = atoi(buffer);
-        if (span < 0 || span > 9 || (span > 0 && (span % 2) == 0)) {
+        g_span = atoi(buffer);
+        if (g_span < 0 || g_span > 9 || (g_span > 0 && (g_span % 2) == 0)) {
             cerr << "Invalid span argument: -span " << buffer << endl;
             exit(0);
         }
@@ -403,7 +401,7 @@ void parse_valid(int argc, char **argv)
     //      elem_size = 1;
 
     if (flagset("-scan", &argc, argv))
-        scan = 1;
+        do_scan = 1;
 
     //  if (flagset("-split", &argc, argv))
     //      split = 1;
@@ -782,21 +780,21 @@ static void write_sino(char *sino, int sino_size, CHeader &hdr, int frame)
             hdr.WriteTag("sinogram data type", "true");
             // convert span3 prompt sinogram to span9 and substract delayed
             for (i = 0; i < sino_size; i++) ssino[i] =  ssino[i] - delayed[i];
-            if (span == 3) {
+            if (g_span == 3) {
                 printf ("Converting true sino to span9\n");
                 convert_span9(ssino, max_rd, 104);
                 hdr.WriteTag("axial compression", 9);
                 hdr.WriteTag("matrix size [3]", nsinos[9]);
             }
             printf("Writing Trues Sinogram: %s\n", outfname_tr);
-            if (fwrite(ssino, span == 3 ? span9_sino_size : sino_size, elem_size, out3) == elem_size) {
+            if (fwrite(ssino, g_span == 3 ? span9_sino_size : sino_size, elem_size, out3) == elem_size) {
                 hdr.WriteFile(outfname_hdr);
             } else {
                 printf("Error writing %s\n", outfname_tr);
                 write_error++;
             }
             // Restore span3 header
-            if (span == 3) {
+            if (g_span == 3) {
                 hdr.WriteTag("axial compression", 3);
                 hdr.WriteTag("matrix size [3]", nsinos[3]);
             }
@@ -857,7 +855,7 @@ static void p39_write_sino(char *sino,  char *b_delayed, int sino_size,
 
     hdr.WriteTag("image data byte order", "LITTLEENDIAN");
     hdr.WriteTag("!PET data type", "emission");
-    hdr.WriteTag("%CPS data type", "sinogram subheader");
+    hdr.WriteTag("CPS data type", "sinogram subheader");
     hdr.WriteTag("!name of data file", data_file);
     hdr.WriteTag("data format", "sinogram");
     hdr.WriteTag("number format", "signed integer");
@@ -878,10 +876,10 @@ static void p39_write_sino(char *sino,  char *b_delayed, int sino_size,
     hdr.WriteTag("data offset in bytes [2]", 644710400);
     hdr.WriteTag("!image duration (sec)", prev_duration + duration[frame]);
     hdr.WriteTag("image relative start time (sec)", relative_start);
-    hdr.WriteTag("%axial compression", span);
+    hdr.WriteTag("axial compression", g_span);
     hdr.WriteTag("%maximum ring difference", max_rd);
-    hdr.WriteTag("%number of segments", p39_nsegs);
-    hdr.WriteTag("%segment table", p39_seg_table);
+    hdr.WriteTag("number of segments", p39_nsegs);
+    hdr.WriteTag("segment table", p39_seg_table);
     int decay_time = relative_start + dose_delay;
     float dcf1 = 1.0f;
     float dcf2 = 1.0f;
@@ -999,6 +997,8 @@ static void p39_write_sino(char *sino,  char *b_delayed, int sino_size,
 //     return 1;
 // }
 
+// Move this to Header.cpp and remove Boost dependency from this translation unit.
+
 static int get_dose_delay(CHeader &hdr, int &t) {
     bt::ptime assay_time, study_time;
     int ret = 1;
@@ -1106,7 +1106,7 @@ int main(int argc, char *argv[])
 				cout << "XXX: " << (datatype == "transmission") << endl;
  				if (datatype == "transmission") {
             float axial_velocity = 0.0;
-            span = 0;
+            g_span = 0;
             hist_mode = 7;
             cout << "Data Type: " << datatype << ", hist_mode: " << hist_mode << endl;
             if (hdr.Readfloat("axial velocity", axial_velocity) == 0) {
@@ -1163,7 +1163,7 @@ int main(int argc, char *argv[])
             cout << "Using commandline frame definition" << endl;
     }
 
-    if (scan) {
+    if (do_scan) {
         // transmission tag processing uses parameters that need to be initialized
         // reset frame duration otherwise lm_reader splits data into frames and waits
         // for the frame to be written.
@@ -1221,9 +1221,9 @@ int main(int argc, char *argv[])
         get_dose_delay(hdr, dose_delay);
         if (!hdr.Readint("axial compression", axial_comp)) {
             if (!span_override && axial_comp > 0)
-                span = axial_comp;
+                g_span = axial_comp;
             else
-                hdr.WriteTag("axial compression", span);
+                hdr.WriteTag("axial compression", g_span);
         }
 
         // update the header with sinogram info for HRRT
@@ -1234,7 +1234,7 @@ int main(int argc, char *argv[])
             hdr.WriteTag("number of dimensions"     , "3");
             hdr.WriteTag("matrix size [1]"          , num_projs(LR_type));
             hdr.WriteTag("matrix size [2]"          , num_views(LR_type));
-            hdr.WriteTag("matrix size [3]"          , LR_type == LR_0 ? nsinos[span] : LR_nsinos[span]);
+            hdr.WriteTag("matrix size [3]"          , LR_type == LR_0 ? nsinos[g_span] : LR_nsinos[g_span]);
             hdr.WriteTag("data format"              , "sinogram");
             hdr.WriteTag("number format"            , "signed integer");
             hdr.WriteTag("number of bytes per pixel", (int)elem_size);
@@ -1244,23 +1244,23 @@ int main(int argc, char *argv[])
         }
 
         if (l64_flag && check_model(model_number, MODEL_HRRT)) {
-            int span_bak = span, rd_bak = max_rd;
+            int span_bak = g_span, rd_bak = max_rd;
             // ahc: lut_file now passed to init_rebinner instead of finding it there.
-            // init_rebinner(span, max_rd);
-            init_rebinner(span, max_rd, lut_file);
+            // init_rebinner(g_span, max_rd);
+            init_rebinner(g_span, max_rd, lut_file);
             sprintf(msg, "using rebinner LUT %s", rebinner_lut_file);
             log_message(msg);
 
             hdr.WriteTag("!LM rebinner method", (int)rebinner_method);
-            hdr.WriteTag("axial compression", span);
+            hdr.WriteTag("axial compression", g_span);
             hdr.WriteTag("maximum ring difference", max_rd);
-            span = span_bak; max_rd = rd_bak;
+            g_span = span_bak; max_rd = rd_bak;
             hdr.WriteTag("scaling factor (mm/pixel) [1]", 10.0f * m_binsize); // cm to mm
             hdr.WriteTag("scaling factor [2]", 1); // angle
             hdr.WriteTag("scaling factor (mm/pixel) [3]", 10.0f * m_plane_sep); // cm to mm
         }
 
-        cout << "Span: " << span << endl;
+        cout << "Span: " << g_span << endl;
 
         static const char *sino_mode_txt[3] = { "Net Trues", "Prompts & Randoms", "prompts only"};
         if (hist_mode == 7) 
@@ -1335,10 +1335,10 @@ int main(int argc, char *argv[])
             else p39_create_files();
 
             if (elem_size == 2) {
-                if (!init_sino<short>(ssino, delayed, span, prev_sino, prev_duration)) exit(1);
+                if (!init_sino<short>(ssino, delayed, g_span, prev_sino, prev_duration)) exit(1);
                 sinogram = (char *)ssino;
             } else {
-                if (!init_sino<char>(bsino, delayed, span, prev_sino, prev_duration)) exit(1);
+                if (!init_sino<char>(bsino, delayed, g_span, prev_sino, prev_duration)) exit(1);
                 sinogram = bsino;
             }
 

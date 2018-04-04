@@ -96,6 +96,10 @@ DESCRIPTION:
    set from the command line with the -t switch.
    (just to fill the header correctly)
 
+  ahc 3/13/18
+  This is why field study_type has patient surname at Hopkins.
+  Also why 'frame00' is not recognised, rather 'frame0' is.
+
    This program makes some assumptions about the input image filenames.
    It expects something of the form A_B_C_(...).Z with A = study name.
    HRRT: If the filename contains one field Y of the form '_framex_'

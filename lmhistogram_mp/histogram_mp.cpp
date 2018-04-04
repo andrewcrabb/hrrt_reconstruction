@@ -625,11 +625,15 @@ void write_coin_map(const char *datafile)
     }
 
     int error_flag = 0;
-    if (fwrite(coinh_p, sizeof(unsigned), ncrystals, fp) != ncrystals) error_flag++;
-    else {
+    if (fwrite(coinh_p, sizeof(unsigned), ncrystals, fp) != ncrystals) {
+        error_flag++;
+    } else {
         cout << "Writing coincidence histogram prompts " <<  out_file << " OK" << endl;
-        if (fwrite(coinh_d, sizeof(unsigned), ncrystals, fp) != ncrystals) error_flag++;
-        else cout << "Writing coincidence histogram delayed " <<  out_file << " OK"  << endl;
+        if (fwrite(coinh_d, sizeof(unsigned), ncrystals, fp) != ncrystals) {
+            error_flag++;
+        } else {
+            cout << "Writing coincidence histogram delayed " <<  out_file << " OK"  << endl;
+        }
     }
     fclose(fp);
 
@@ -923,7 +927,7 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
     }
 
     while ((src_pos + 1) < count && dst_pos < L32EventPacket::packet_size) {
-      if (! src_pos % 10000)
+      // if (! src_pos % 10000)
 	//	cerr << "xxx src_pos " << src_pos << endl;
         ew1 = in_buf[src_pos];
         ew2 = in_buf[src_pos + 1];
