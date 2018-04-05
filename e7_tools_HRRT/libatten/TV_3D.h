@@ -1,5 +1,4 @@
-#ifndef _TV_3D_H
-#define _TV_3D_H
+#pragma once
 
 class TV_3D
  { private:
@@ -17,5 +16,3 @@ class TV_3D
     float der_U(const int, const float * const) const;
     float term_U(const int, const float * const) const;
  };
-
-#endif

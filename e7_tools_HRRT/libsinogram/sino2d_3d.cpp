@@ -26,14 +26,6 @@
 #include <iostream>
 #include <stdexcept>
 #include <algorithm>
-#ifdef XEON_HYPERTHREADING_BUG
-#if defined(__linux__) || defined(__SOLARIS__)
-#include <alloca.h>
-#endif
-#ifdef WIN32
-#include <malloc.h>
-#endif
-#endif
 #include "sino2d_3d.h"
 #include "e7_tools_const.h"
 #include "exception.h"
@@ -65,15 +57,6 @@ void *executeThread_CalcSino3D_Axis(void *param)
    { Sino2D_3D::tthread_params *tp;
 
      tp=(Sino2D_3D::tthread_params *)param;
-#ifdef XEON_HYPERTHREADING_BUG
-      // allocate some padding memory on the stack in front of the thread-stack
-#if defined(__linux__) || defined(__SOLARIS__)
-     alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#ifdef WIN32
-     _alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#endif
      tp->object->CalcSino3D_Axis(tp->sino_3d_axis, tp->axis_size,
                                  tp->startplane, tp->axis_planes, tp->rd,
                                  tp->axis, tp->sino_2d_fft, tp->transmission,

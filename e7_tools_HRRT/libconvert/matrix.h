@@ -7,8 +7,7 @@
     \date 2004/05/18 improved documentation
  */
 
-#ifndef _MATRIX_H
-#define _MATRIX_H
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -62,9 +61,3 @@ template <typename T> class Matrix
     unsigned long int rows() const;         // request number of rows in matrix
     void transpose();                                       // transpose matrix
  };
-
-#ifndef _MATRIX_CPP
-#include "matrix.cpp"
-#endif
-
-#endif

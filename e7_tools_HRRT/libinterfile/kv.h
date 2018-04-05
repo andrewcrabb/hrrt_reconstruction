@@ -11,8 +11,7 @@
     \date 2009/08/28 Port to Linux (peter.bloomfield@camhpet.ca)
  */
 
-#ifndef _KV_H
-#define _KV_H
+#pragma once
 
 #include <ostream>
 #include <string>
@@ -341,10 +340,3 @@ class KV
                    const std::string);
     ttoken_type Type() const;                          // request type of value
  };
-
-#ifndef _KV_CPP
-#define _KV_TMPL_CPP
-#include "kv.cpp"
-#endif
-
-#endif

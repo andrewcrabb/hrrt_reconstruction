@@ -2082,22 +2082,11 @@ void Interfile::time2UTC(TIMEDATE::tdate const d, TIMEDATE::ttime const t,
    tf.tm_hour=t.hour;
    tf.tm_min=t.minute;
    tf.tm_sec=t.second;
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    tzset();
    tf.tm_gmtoff=t.gmt_offset_h*3600+t.gmt_offset_m*60;
-#endif
-#if defined(__linux__) || defined(__SOLARIS__)
    tf.tm_isdst=-1;
-#endif
-#ifdef WIN32
-   _tzset();
-   _timezone=t.gmt_offset_h*3600+t.gmt_offset_m*60;
-   tf.tm_isdst=-1;
-#endif
    *utc=mktime(&tf);
-#ifndef __MACOSX__
    (*utc)-=timezone;
-#endif
    if (tf.tm_isdst) (*utc)+=3600;
    (*utc)+=t.gmt_offset_h*3600+t.gmt_offset_m*60;
  }
@@ -2122,15 +2111,8 @@ void Interfile::timeUTC2local(time_t utc, TIMEDATE::tdate * const d,
    t->hour=tf->tm_hour;
    t->minute=tf->tm_min;
    t->second=tf->tm_sec;
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    t->gmt_offset_h=tf->tm_gmtoff/3600;
    t->gmt_offset_m=(tf->tm_gmtoff-t->gmt_offset_h*3600)/60;
-#endif
-#ifdef WIN32
-   _tzset();
-   t->gmt_offset_h=(signed short int)(-_timezone/3600);
-   t->gmt_offset_m=(signed short int)(-_timezone-t->gmt_offset_h*3600)/60;
-#endif
  }
 
 /*---------------------------------------------------------------------------*/

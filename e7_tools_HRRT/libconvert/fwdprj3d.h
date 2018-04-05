@@ -16,8 +16,7 @@
     \date 2005/03/29 LUT2 was using twice as much memory as required
  */
 
-#ifndef _FWDPRJ3D_H
-#define _FDWPRJ3D_H
+#pragma once
 
 #include <vector>
 #include "e7_tools_const.h"
@@ -209,4 +208,3 @@ class FwdPrj3D
                   const unsigned short int);
  };
 
-#endif

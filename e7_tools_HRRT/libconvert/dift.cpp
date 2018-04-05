@@ -17,14 +17,6 @@
  */
 
 #include <algorithm>
-#ifdef XEON_HYPERTHREADING_BUG
-#if defined(__linux__) || defined(__SOLARIS__)
-#include <alloca.h>
-#endif
-#ifdef WIN32
-#include <malloc.h>
-#endif
-#endif
 #include "e7_tools_const.h"
 #include "dift.h"
 #include "exception.h"
@@ -67,15 +59,6 @@ void *executeThread_DIFT(void *param)
    { DIFT::tthread_params *tp;
 
      tp=(DIFT::tthread_params *)param;
-#ifdef XEON_HYPERTHREADING_BUG
-      // allocate some padding memory on the stack in front of the thread-stack
-#if defined(__linux__) || defined(__SOLARIS__)
-     alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#ifdef WIN32
-     _alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#endif
      tp->object->calc_dift(tp->sinogram, tp->image, tp->slices,
                            tp->fov_diameter, tp->max_threads,
                            tp->thread_number, true);

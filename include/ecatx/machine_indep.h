@@ -28,15 +28,12 @@
    * along with this software; if not, write to the Free Software
    * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-#ifndef machine_indep_h
-#define machine_indep_h
+# pragma once
 
 #include <stdio.h>
 
 
-#if defined(__cplusplus)
 extern "C" {
-#endif
 void SWAB(void *from, void *to, int length);
 int file_data_to_host(char *dptr, int nblks, int dtype);
 int read_matrix_data( FILE *fptr, int strtblk, int nblks,
@@ -53,8 +50,4 @@ void bufRead_s(short*, char* buf, int* i);
 void bufRead_i(int*, char* buf, int* i);
 void bufRead_u(unsigned int*, char* buf, int* i);
 void bufRead_f(float*, char* buf, int* i);
-#if defined(__cplusplus)
 }
-#endif /* __cpluplus */
-
-#endif  /* machine_indep_h */

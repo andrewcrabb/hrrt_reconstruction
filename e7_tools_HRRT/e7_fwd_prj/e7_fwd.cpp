@@ -12,12 +12,6 @@
 #include <string>
 #include <limits>
 #include <vector>
-#if defined(__linux__) || defined(__SOLARIS__)
-#include <new>
-#endif
-#ifdef WIN32
-#include <new.h>
-#endif
 #include "convert.h"
 #include "e7_common.h"
 #include "exception.h"
@@ -186,19 +180,8 @@ void calculate3DSinogram(Parser::tparam * const v)
 /*---------------------------------------------------------------------------*/
 bool validate(Parser::tparam * const v)
  { bool ret=true;
-   std::string mu;
-   {
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-     char c[2];
+   std::string mu('mu');
 
-     c[1]=0;
-     c[0]=(char)181;
-     mu=std::string(c);
-#endif
-#ifdef WIN32
-     mu='u';
-#endif
-   }
    if (v->image_filename.empty() && v->umap_filename.empty() &&
        v->acf_filename.empty())
     { std::cerr << "An image, " << mu << "-map or acf input file needs to be "
@@ -466,22 +449,17 @@ int main(int argc, char **argv)
  { Parser *cpar=NULL;
    StopWatch sw;
 
-#if __linux__
-        if ( getenv( "GMINI" ) == NULL )
-        {
+
+        if ( getenv( "GMINI" ) == NULL ) {
                 printf( "Environment variable 'GMINI' not set\n" ) ;
                 exit( EXIT_FAILURE ) ;
         }
-#endif
+
 
    try
    {                                     // set new handler for "out of memory"
-#ifdef WIN32
-     _set_new_handler(OutOfMemory);
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
+
      std::set_new_handler(OutOfMemory);
-#endif
                                                            // initialize parser
      cpar=new Parser("e7_fwd",
                      "calculate a 2d or 3d sinogram from an image",

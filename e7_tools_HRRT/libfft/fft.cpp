@@ -23,20 +23,9 @@
 #include <iostream>
 #include <algorithm>
 #include <limits>
-#ifdef XEON_HYPERTHREADING_BUG
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-#include <alloca.h>
-#endif
-#ifdef WIN32
-#include <malloc.h>
-#endif
-#endif
 #include "fastmath.h"
 #include "fft.h"
 #include "exception.h"
-#ifdef WIN32
-#include "global_tmpl.h"
-#endif
 #include "thread_wrapper.h"
 #include "vecmath.h"
 
@@ -81,16 +70,6 @@ void *executeThread_FFT_block(void *param)
    { FFT::tFFTthread_params *tp;
 
      tp=(FFT::tFFTthread_params *)param;
-#ifdef XEON_HYPERTHREADING_BUG
-      // allocate some padding memory on the stack in front of the thread-stack
-      // to avoid cache conflicts while accessing local variables
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-     alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#ifdef WIN32
-     _alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#endif
       tp->object->FFT_block_thread(tp->real, tp->imaginary, tp->buffer,
                                    tp->num, tp->loffs, tp->offs,
                                    tp->forward, tp->table_number);
@@ -122,16 +101,6 @@ void *executeThread_rFFT_block(void *param)
    { FFT::trFFTthread_params *tp;
 
      tp=(FFT::trFFTthread_params *)param;
-#ifdef XEON_HYPERTHREADING_BUG
-      // allocate some padding memory on the stack in front of the thread-stack
-      // to avoid cache conflicts while accessing local variables
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-     alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#ifdef WIN32
-     _alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#endif
      tp->object->rFFT_block_thread(tp->data, tp->buffer, tp->num, tp->loffs,
                                    tp->offs, tp->forward, tp->table_number,
                                    tp->type2);

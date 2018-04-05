@@ -15,8 +15,7 @@
     \date 2005/01/04 added progress reporting
  */
 
-#ifndef _FBP_H
-#define _FBP_H
+#pragma once
 
 #include <vector>
 #include "bckprj3d.h"
@@ -94,4 +93,3 @@ class FBP
                        const unsigned short int);
  };
 
-#endif

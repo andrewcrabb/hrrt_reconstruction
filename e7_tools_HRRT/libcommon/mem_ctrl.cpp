@@ -96,23 +96,9 @@
 #include <mach/mach_host.h>
 #include <mach-o/arch.h>
 #endif
-#if defined(__linux__) || defined(__SOLARIS__)
-/* ahc */
-/* #include <sys/sysinfo.h> */
-#endif
-#ifdef WIN32
-#include <direct.h>
-#include <lmcons.h>
-#endif
-#ifndef _MEM_CTRL_CPP
-#define _MEM_CTRL_CPP
 #include "mem_ctrl.h"
-#endif
 #include "e7_common.h"
 #include "exception.h"
-#ifdef WIN32
-#include "global_tmpl.h"
-#endif
 #include "logging.h"
 #include "raw_io.h"
 #include "stopwatch.h"
@@ -129,12 +115,7 @@ const unsigned short int MemCtrl::MAX_BLOCK=200;
 const unsigned short int MemCtrl::MAX_PATTERN_RESYNC=4;
 
                                      /*! path for memory access pattern file */
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 const std::string MemCtrl::pattern_path="~";
-#endif
-#ifdef WIN32
-const std::string MemCtrl::pattern_path="C:\\Documents and Settings\\";
-#endif
 
 MemCtrl *MemCtrl::instance=NULL;     /*!< pointer to only instance of object */
 
@@ -180,23 +161,12 @@ MemCtrl::MemCtrl()
       }
                               // create filename for memory access pattern file
      pattern_filename=pattern_path;
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      char *ptr;
                                                        // convert '~' into path
      if ((ptr=getenv("HOME")) == NULL)
       throw Exception(REC_HOME_UNKNOWN, "Environment variable HOME not set.");
      pattern_filename.replace(pattern_filename.find("~"), 1, std::string(ptr));
      pattern_filename+="/.";
-#endif
-#ifdef WIN32
-     LPTSTR lpszSystemInfo;
-     DWORD cchBuff=256;
-     TCHAR tchBuffer[UNLEN+1];
-
-     lpszSystemInfo=tchBuffer;
-     GetUserName(lpszSystemInfo, &cchBuff);
-     pattern_filename+=std::string(lpszSystemInfo)+"\\";
-#endif
      pattern_filename+="ma_pattern.dat";
    }
    catch (...)
@@ -1446,10 +1416,6 @@ void MemCtrl::savePattern(const unsigned short int loglevel) const
    unsigned short int len;
    bool append;
 
-#ifdef WIN32
-                                                            // create directory
-   if (!PathExist(pattern_path)) CreateDirectory(pattern_path.c_str(), NULL);
-#endif
    append=FileExist(pattern_filename);           // create new file or append ?
    file.open(pattern_filename.c_str(),
              std::ios::out|std::ios::app|std::ios::binary);
@@ -1581,9 +1547,6 @@ void MemCtrl::setMemLimit(const float factor)
      phys_mem = hinfo.memory_size / 1024;
    }
 #endif
-#ifdef __SOLARIS__
-   phys_mem=1024*1024;
-#endif
 #ifdef __linux__
    {
      /* ahc */
@@ -1596,13 +1559,6 @@ void MemCtrl::setMemLimit(const float factor)
      else
        phys_mem = si.mem_unit / 1024 * si.totalram;
      */
-   }
-#endif
-#ifdef WIN32
-   { MEMORYSTATUS lp;
-
-     GlobalMemoryStatus(&lp);
-     phys_mem=lp.dwTotalPhys/1024;
    }
 #endif
                                          // set memory threshold for swapping

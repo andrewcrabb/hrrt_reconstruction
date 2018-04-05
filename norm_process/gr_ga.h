@@ -2,8 +2,8 @@
 Modification History (HRRT User Community):
         04/30/09: Integrate Peter Bloomfield __linux__ support
 -------------------------------------------------------------------*/
-#ifndef gr_ga_h
-#define gr_ga_h
+# pragma once
+
 static float def_gr_ga[] = {
 0.623144f,	0.196232f,	// frontf,back -65 degree
 0.70182f,	  0.305267f,	// frontf,back -60 degree
@@ -34,4 +34,3 @@ static float def_gr_ga[] = {
 0.70182f,	  0.305267f,	// frontf,back 60 degree
 0.623144f,	0.196232f	// frontf,back 65 degree
 };
-#endif

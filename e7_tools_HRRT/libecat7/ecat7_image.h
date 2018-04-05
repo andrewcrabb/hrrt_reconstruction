@@ -5,8 +5,7 @@
     \date 2005/01/19 added Doxygen style comments
  */
 
-#ifndef _ECAT7_IMAGE_H
-#define _ECAT7_IMAGE_H
+#pragma once
 
 #include <fstream>
 #include <list>
@@ -117,4 +116,3 @@ class ECAT7_IMAGE:public ECAT7_MATRIX
     void ScaleMatrix(const float);                              // scale matrix
  };
 
-#endif

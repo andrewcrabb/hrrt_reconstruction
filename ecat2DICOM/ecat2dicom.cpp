@@ -300,7 +300,6 @@ static int add_slice(const char * fname, int serie_id, Tslices &slices)
   return 1;
 }
 
-#ifdef unix
 static int split_dir(const char *path, int serie_id, Tslices &slices) {
   DIR *dir;
   char fname[256];
@@ -321,46 +320,6 @@ static int split_dir(const char *path, int serie_id, Tslices &slices) {
     }
   }
 }
-#endif
-#ifdef WIN32
-#include <io.h>
-#include <direct.h>
-#include <time.h>
-
-static int split_dir(const char *path, int serie_id, Tslices &slices)
-{
-  struct _finddata_t c_file;
-  int hFile=0;
-  char cwd[_MAX_PATH];
-  char full_path[_MAX_PATH];
-  char fname[_MAX_PATH];
-  int num_slices=0;
-
-	if (!is_dir(path)) {
-		return add_slice(path, serie_id, slices);
-	}
-	if (_getcwd(cwd, _MAX_PATH) == NULL) return 0;
-	if (_chdir(path) == -1) return 0;
-	_getcwd(full_path, _MAX_PATH);
-    /* Find first file in current directory */
-  if( (hFile = _findfirst( "*", &c_file )) == -1 ) return 0;
-	if ((c_file.attrib & _A_SUBDIR) == 0) { // normal file
-		sprintf(fname, "%s\\%s", full_path, c_file.name);
-		num_slices += add_slice(fname, serie_id, slices);
-	}
-	/* Find the rest of the .c files */
-	while( _findnext(hFile, &c_file ) == 0 )
-	{
-		if ((c_file.attrib & _A_SUBDIR) == 0) { // normal file
-			sprintf(fname, "%s\\%s", full_path, c_file.name);
-			num_slices += add_slice(fname, serie_id, slices);
-		}
-	}
-	_findclose(hFile);
-	_chdir(cwd);
-	return num_slices;
-}
-#endif
 
 static const char *def_study_descr = "HRRT";
 static const char *def_series_descr = "3D";

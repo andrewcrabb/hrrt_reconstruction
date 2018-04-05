@@ -28,9 +28,6 @@
 #include <limits>
 #include "image_io.h"
 #include "e7_tools_const.h"
-#ifdef WIN32
-#include "global_tmpl.h"
-#endif
 #include "e7_common.h"
 #include "ecat7.h"
 #include "ecat7_image.h"

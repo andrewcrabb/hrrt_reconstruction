@@ -8,8 +8,8 @@
   24-MAR-2009: changed filenames extensions to .cpp
   02-JUL-2009: Add Transmission(TX) LUT
 */
-#ifndef lor_sinogram_map_h
-#define lor_sinogram_map_h
+# pragma once
+
 typedef struct {
 	int    nsino;
 	float d;
@@ -31,4 +31,3 @@ extern int save_lut_sol(const char* lut_filename);
 extern int init_lut_sol_tx(const char* lut_filename);
 extern int save_lut_sol_tx(const char* lut_filename);
 
-#endif

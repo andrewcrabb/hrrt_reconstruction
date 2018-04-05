@@ -28,12 +28,8 @@ static const char *r_file = "radius.dat";
 static const char *off_file = "offset_amplitude.dat";
 static const char *offd_file = "offset_direction.dat";
 
-#ifdef WIN32
-#define SEPARATOR '\\'
-#else
 #define _MAX_PATH 256
 #define SEPARATOR '/'
-#endif
 
 struct RotationParam
 {

@@ -38,28 +38,8 @@
 #include <errno.h>
 #include <memory.h>
 #include <strings.h>
-#ifdef __unix__
 #include <unistd.h>
-#endif
 #include "DICOM.h"
-
-#ifdef _WIN32
-#define R_MODE "rb"
-#define RW_MODE "rb+"
-#define W_MODE "wb"
-#define swab _swab
-#define strdup _strdup
-typedef char *void *;
-typedef unsigned char unsigned char ;
-typedef unsigned short u_short;
-#include <winsock.h>
-#else  /* WIN32 */
-#define R_MODE "r"
-#define RW_MODE "r+"
-#define W_MODE "w"
-#include <netinet/in.h>
-#endif  /* WIN32 */
-
 
 int sequence_number = 1;
 extern int verbose;
@@ -166,19 +146,6 @@ static int DICOM10_scan_elem(unsigned char  *buf, unsigned count, unsigned offse
   return 1;
 }
 
-#ifdef WIN32
-static int strncasecmp(const char* s1, const char *s2, int len)
-{
-  int i=0;
-  for (i=0; i<len && (s1[i] != '\0') && (s2[i] != '\0'); i++ ) {
-    if (tolower(s1[i]) < tolower(s2[i]))
-      return -1; 
-    if (tolower(s1[i]) > tolower(s2[i]))
-      return 1; 
-  }
-  return 0;
-}
-#endif
  
 static int DICOM_get_elem(unsigned my_group, unsigned my_elem,  unsigned char  *buf, int count,
                           DICOMElem *dcm_elem)

@@ -11,7 +11,7 @@
    * data format provided by CTI to customers. CTI or its legal successors
    * should not be held responsible for the accuracy of this software.
    * CTI, hereby disclaims all copyright interest in this software.
-   * In no event CTI shall be liable for any claim, or any special indirect or 
+   * In no event CTI shall be liable for any claim, or any special indirect or
    * consequential damage whatsoever resulting from the use of this software.
    *
    * This is a free software; you can redistribute it and/or
@@ -28,8 +28,7 @@
    * along with this software; if not, write to the Free Software
    * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#ifndef interfile_h
-#define interfile_h
+# pragma once
 
 #include "matrix.h"
 
@@ -72,9 +71,9 @@ typedef enum {
 	LABEL,
 	MAXIMUM_PIXEL_COUNT,
 	TOTAL_COUNTS,
-/*
- My Extensions
-*/
+	/*
+	 My Extensions
+	*/
 	QUANTIFICATION_UNITS,	/* scale_factor units; eg 10e-3 counts/seconds */
 	COLORTAB,
 	DISPLAY_RANGE,
@@ -88,9 +87,9 @@ typedef enum {
 	ATLAS_ORIGIN_2,
 	ATLAS_ORIGIN_3,
 	TRANSFORMER,
-/*
- Sinograms Support
-*/
+	/*
+	 Sinograms Support
+	*/
 	NUM_Z_ELEMENTS,   /* 3D Elements number of planes (array)
 					      Number of grous = 2*(#num_z_elements)-1 */
 	STORAGE_ORDER,
@@ -109,7 +108,7 @@ typedef enum {
 	CURVE,
 	ROI,
 	OTHER,
-/* My Externsion */
+	/* My Externsion */
 	MULTIBED,
 	CLICHE			/* with a fixed colormap */
 }	TypeOfData;
@@ -119,7 +118,7 @@ typedef enum {
 	SIGNED_INTEGER,
 	SHORT_FLOAT,
 	LONG_FLOAT,
-/* My Extension */
+	/* My Extension */
 	COLOR_PIXEL
 } NumberFormat;
 
@@ -129,31 +128,20 @@ typedef struct _InterfileItem {
 } InterfileItem;
 
 
-#if defined(__cplusplus)
-extern "C" {
-/*
- * high level user functions
- */
-#endif
-int interfile_write_volume(MatrixFile* mptr, char *image_name,char *header_name,
-		unsigned char* data_matrix, int size);
-char *is_interfile(const char*);
-int interfile_open(MatrixFile*);
-MatrixData *interfile_read_slice(FILE*, char** ifh, MatrixData*, int slice,
-	int u_flag);
-int interfile_read(MatrixFile *mptr,int matnum, MatrixData  *data, int dtype);
-MatrixData *interfile_read_scan(MatrixFile *mptr,int matnum,
-	int dtype, int segment);
-int free_interfile_header(char** ifh);
-void flip_x(void * line, int data_type, int xdim);
-void flip_y(void * plane, int data_type, int xdim, int ydim);
-#if defined(__cplusplus)
-}
-#endif
 
-#if defined(__cplusplus)
+extern "C" {
+	int interfile_write_volume(MatrixFile* mptr, char *image_name, char *header_name,
+	                           unsigned char* data_matrix, int size);
+	char *is_interfile(const char*);
+	int interfile_open(MatrixFile*);
+	MatrixData *interfile_read_slice(FILE*, char** ifh, MatrixData*, int slice,
+	                                 int u_flag);
+	int interfile_read(MatrixFile *mptr, int matnum, MatrixData  *data, int dtype);
+	MatrixData *interfile_read_scan(MatrixFile *mptr, int matnum,
+	                                int dtype, int segment);
+	int free_interfile_header(char** ifh);
+	void flip_x(void * line, int data_type, int xdim);
+	void flip_y(void * plane, int data_type, int xdim, int ydim);
+}
+
 extern "C" InterfileItem used_keys[];
-#else
-extern InterfileItem used_keys[];
-#endif /* __cplusplus */
-#endif

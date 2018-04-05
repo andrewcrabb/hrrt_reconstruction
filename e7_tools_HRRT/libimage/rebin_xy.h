@@ -5,8 +5,7 @@
     \date 2004/12/20 support image zoom
  */
 
-#ifndef _REBIN_XY_H
-#define _REBIN_XY_H
+#pragma once
 
 /*- class definitions -------------------------------------------------------*/
 
@@ -33,4 +32,3 @@ class RebinXY
                        const unsigned short int) const;
  };
 
-#endif

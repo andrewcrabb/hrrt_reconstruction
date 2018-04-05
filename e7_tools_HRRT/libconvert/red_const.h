@@ -17,8 +17,7 @@
 -----------------------------------------------------------------------------*/
 
 
-#ifndef _RED_CONST_H
-#define _RED_CONST_H
+#pragma once
 
 /*- constants ---------------------------------------------------------------*/
                   // port number for communication with remote execution daemon
@@ -29,4 +28,3 @@ const unsigned short int RD_CMD_PING=42,
                          RD_CMD_INSTALL=44,
                          RD_CMD_EXEC=45;
 
-#endif

@@ -15,17 +15,11 @@
 
 #include <cstdlib>
 #include <fstream>
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <dirent.h>
 #include <sys/utsname.h>
-#endif
+
 #include <sys/types.h>
 #include <ctime>
-#ifdef WIN32
-#include <windows.h>
-#include <comutil.h>
-#pragma comment(lib, "comsupp.lib")
-#endif
 #include "e7_common.h"
 #include "ecat7_global.h"
 #include "exception.h"
@@ -217,107 +211,6 @@ bool checkExtension(std::string * const str, const std::string s)
    return(false);
  }
 
-#ifdef WIN32
-/*---------------------------------------------------------------------------*/
-/*! \brief Delete directory.
-    \param[in] path   name of directory
-
-    Delete directory including all files in this directory. The directory may
-    not have subdirectories.
- */
-/*---------------------------------------------------------------------------*/
-void deleteDirectory(std::string path)
- { WIN32_FIND_DATAA data;
-   HANDLE handle;
-   std::string p;
-
-   if (path.substr(path.length()-4) == "\\*.*") path.erase(path.length()-4);
-   p=path+"\\*.*";
-   handle=FindFirstFile(p.c_str(), &data);      // find first file in directory
-   if (handle != INVALID_HANDLE_VALUE)
-    { std::string fname;
-      bool eod=false, directory=false;
-                                           // don't care for "." and ".." files
-      do { fname=std::string(data.cFileName);
-           directory=(data.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY);
-           if (!FindNextFile(handle, &data)) { eod=true;
-                                               break;
-                                             }
-         }
-         while ((fname == ".") || (fname == ".."));
-      if (!eod)                           // delete all files in this directory
-       { fname=path+"\\"+fname;
-         if (directory) deleteDirectory(fname);
-          else _unlink(fname.c_str());
-         do { fname=path+"\\"+std::string(data.cFileName);
-              if (data.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY)
-               deleteDirectory(fname);
-               else _unlink(fname.c_str());
-            }
-            while (FindNextFile(handle, &data));
-       }
-      FindClose(handle);
-    }
-   _rmdir(path.c_str());                                    // delete directory
- }
-
-/*---------------------------------------------------------------------------*/
-/*! \brief Delete files.
-    \param[in] filename   name of file (may include wildcard at end)
-
-    Delete files. The filename may include a '*' at the end.
- */
-/*---------------------------------------------------------------------------*/
-void deleteFiles(std::string filename)
- { WIN32_FIND_DATAA data;
-   HANDLE handle;
-   std::string path, path_cpl, pattern;
-   std::string::size_type p;
-
-   if ((p=filename.rfind('\\')) != std::string::npos)
-    { path=filename.substr(0, p);
-      filename.erase(0, p+1);
-    }
-    else path=std::string();
-   if (!filename.empty() && (filename.at(filename.length()-1) == '*'))
-    pattern=filename.substr(0, filename.length()-1);
-    else pattern=std::string();
-   path_cpl=path+"\\*.*";
-                                                // find first file in directory
-   handle=FindFirstFile(path_cpl.c_str(), &data);
-   if (handle != INVALID_HANDLE_VALUE)
-    { std::string fname;
-      bool eod=false, directory=false;
-                                           // don't care for "." and ".." files
-      do { fname=std::string(data.cFileName);
-           directory=(data.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY);
-           if (!FindNextFile(handle, &data)) { eod=true;
-                                               break;
-                                             }
-         }
-         while ((fname == ".") || (fname == ".."));
-      if (!eod)   // delete all files in this directory that match the filename
-       { if (!pattern.empty() &&
-             (fname.substr(0, pattern.length()) == pattern))
-          { fname=path+"\\"+fname;
-            if (directory) deleteDirectory(fname);
-             else _unlink(fname.c_str());
-          }
-         do { fname=std::string(data.cFileName);
-              if (!pattern.empty() &&
-                  (fname.substr(0, pattern.length()) == pattern))
-               { fname=path+"\\"+fname;
-                 if (data.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY)
-                  deleteDirectory(fname);
-                  else _unlink(fname.c_str());
-               }
-            }
-            while (FindNextFile(handle, &data));
-       }
-      FindClose(handle);
-    }
- }
-#endif
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Check if a file exists.
@@ -446,102 +339,6 @@ unsigned short int findMNR(const std::string filename,
     }
  }
 
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-/*---------------------------------------------------------------------------*/
-/*! \brief Notify COM event handler about error or status of job.
-   Notify COM event handler about error or status of job.
- */
-/*---------------------------------------------------------------------------*/
-void fireCOMEvent(const unsigned long int, const unsigned short int,
-                  const COM_EVENT::tnotify, const std::string,
-                  const unsigned short int, const unsigned long int,
-                  const std::string)
- {
- }
-#endif
-#ifdef WIN32
-/*---------------------------------------------------------------------------*/
-/*! \brief Notify COM event handler about error or status of job.
-    \param[in] info_id       info id for message
-    \param[in] jid           job id
-    \param[in] status        status of job
-    \param[in] status_msg    status message of job
-    \param[in] error_group   subsystem that produced the error
-    \param[in] error_id      error id of job
-    \param[in] error_msg     error message of job
-
-    Notify COM event handler about error or status of job. The source of the
-    event will be "ARS_REC" and the information ID is the one that is passed
-    into this function. The event will also contain a string of the following
-    format:
-
-    JobId:623,Status:1:FORE,ErrorID:0:0:no error
-
-    The job ID is the ID of the job, the status value is 0 for "waiting",
-    1 for "processing", 2 for "error" and 3 for "finished". The status string
-    after this value contains a more detailed description of the current
-    situation. The error id is 0 if no error occured. Otherwise the value will
-    be possitive and the number of the subsystem that produced the error and a
-    description of the error is given.
-    The subsystem can be one of the following:
-     - 0: other/no error
-     - 1: umap/acf calculation
-     - 2: reconstruction
-     - 3: DB export
-     - 4: DB import
- */
-/*---------------------------------------------------------------------------*/
-void fireCOMEvent(const unsigned long int info_id,
-                  const unsigned short int jid,
-                  const COM_EVENT::tnotify status,
-                  const std::string status_msg,
-                  const unsigned short int error_group,
-                  const unsigned long int error_id,
-                  const std::string error_msg)
- { CErrorEventSupport *pErrEvtSup=NULL;
-
-   try
-   { std::string str;
-                              // create string that will be send to COM handler
-     str="JobId:"+toString(jid)+",Status:";
-     switch (status)
-      { case COM_EVENT::WAITING:
-         str+="0";
-         break;
-        case COM_EVENT::PROCESSING:
-         str+="1";
-         break;
-        case COM_EVENT::ERROR_STATUS:
-         str+="2";
-         break;
-        case COM_EVENT::FINISHED:
-         str+="3";
-         break;
-      }
-     str+=":"+status_msg;
-     str+=",ErrorId:"+toString(error_id)+":"+//+toString(error_group)+":"+
-          error_msg;
-     sem_fire.wait();
-                                              // open connection to COM handler
-                   // initialization is different at first and subsequent times
-     pErrEvtSup=new CErrorEventSupport(!fired_once, !fired_once);
-     if (!fired_once) fired_once=true;
-     sem_fire.signal();
-                                                                // send message
-     pErrEvtSup->Fire((unsigned char *)"ARS_REC", info_id,
-                      (unsigned char *)str.c_str(), NULL, NULL, true);
-     delete pErrEvtSup;
-     pErrEvtSup=NULL;
-   }
-   catch (...)
-    { if (pErrEvtSup != NULL) delete pErrEvtSup;
-      throw;
-    }
- }
-
-bool fired_once=false; /*! already one message fired through COM interface ? */
-Semaphore sem_fire=Semaphore(1);       /*! semaphore for COM interface usage */
-#endif
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Request the gantry model number from a file.
@@ -691,22 +488,6 @@ unsigned short int numberOfMatrices(const std::string filename)
  }
 
 /*---------------------------------------------------------------------------*/
-/*! \brief Error-handler for \em new command.
-    \exception REC_OUT_OF_MEMORY memory exhausted
-
-    Error-handler for \em new command.
- */
-/*---------------------------------------------------------------------------*/
-#ifdef WIN32
-int OutOfMemory(size_t)
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-void OutOfMemory()
-#endif
- { throw Exception(REC_OUT_OF_MEMORY, "Memory exhausted.");
- }
-
-/*---------------------------------------------------------------------------*/
 /*! \brief Check if path exists
     \param[in] path   name of path
     \return does path exist ?
@@ -714,25 +495,8 @@ void OutOfMemory()
     Check if path exists.
  */
 /*---------------------------------------------------------------------------*/
-bool PathExist(const std::string path)
- {
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
+bool PathExist(const std::string path) {
    return(opendir(path.c_str()) != NULL);
-#endif
-#ifdef WIN32
-   HANDLE handle;
-   std::string p;
-
-   p=path+"/a.tst";
-   handle=CreateFile(p.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ,
-                     NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-   if (handle != INVALID_HANDLE_VALUE)
-    { CloseHandle(handle);
-      unlink(p.c_str());
-      return(true);
-    }
-   return(false);
-#endif
  }
 
 /*---------------------------------------------------------------------------*/
@@ -781,19 +545,9 @@ std::string segStr(const unsigned short int segment)
     Convert STL string into COM BSTR. The COM BSTR is allocated.
  */
 /*---------------------------------------------------------------------------*/
-#ifdef WIN32
-BSTR string2BSTR(std::string str)
- { USES_CONVERSION;
-
-   if (str.empty()) return(SysAllocString(A2OLE("<empty>")));
-   return(SysAllocString(A2OLE(str.c_str())));
+std::string string2BSTR(std::string str) { 
+  return(str);
  }
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-std::string string2BSTR(std::string str)
- { return(str);
- }
-#endif
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Remove path from filename.

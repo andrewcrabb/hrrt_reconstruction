@@ -6,8 +6,7 @@
     \date 2004/05/18 added Doxygen style comments
  */
 
-#ifndef _DATA_CHANGER_H
-#define _DATA_CHANGER_H
+#pragma once
 
 #include <fstream>
 
@@ -48,4 +47,3 @@ class DataChanger
     void Value(const unsigned short int, const unsigned char * const);
  };
 
-#endif

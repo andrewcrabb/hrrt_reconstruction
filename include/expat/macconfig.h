@@ -8,9 +8,7 @@
 **
 */
 
-#ifndef MACCONFIG_H
-#define MACCONFIG_H
-
+# pragma once
 
 /* 1234 = LIL_ENDIAN, 4321 = BIGENDIAN */
 #define BYTEORDER  4321
@@ -48,6 +46,3 @@
 
 /* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t
-
-
-#endif /* ifndef MACCONFIG_H */

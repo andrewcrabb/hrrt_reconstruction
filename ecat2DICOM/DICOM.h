@@ -34,8 +34,8 @@
    05-AUG-2008: Add DICOM_dump()
 */
 
-#ifndef DICOM_h
-#define DICOM_h
+#pragma once
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <map>
@@ -54,4 +54,3 @@ extern int DICOM_open(const char *filename, unsigned char *&buf, int &bufsize,
 extern int DICOM_get_elem(unsigned group, unsigned elem, DICOMMap &dcm_map,
 						  DICOMElem &dcm_elem);
 extern void DICOM_dump(DICOMMap &dcm_map, const unsigned char *buf, const char *filename);
-#endif

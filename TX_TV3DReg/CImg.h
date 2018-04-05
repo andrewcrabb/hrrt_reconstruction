@@ -2602,7 +2602,6 @@ namespace cimg_library {
     const unsigned int keyPADDIV     = 87U;
 #endif
 
-    const double valuePI = 3.14159265358979323846;   //!< Definition of the mathematical constant PI
 
     // Definition of a 7x11 font, used to return a default font for drawing text.
     const unsigned int font7x11[7*11*256/32] = {
@@ -13423,7 +13422,7 @@ namespace cimg_library {
     CImg<T> get_rotate(const float angle, const unsigned int cond=3) const {
       if (is_empty()) return CImg<T>();
       CImg<T> dest;
-      const float nangle = cimg::mod(angle,360.0f), rad = (float)((nangle*cimg::valuePI)/180.0),
+      const float nangle = cimg::mod(angle,360.0f), rad = (float)((nangle*M_PI)/180.0),
         ca=(float)std::cos(rad), sa=(float)std::sin(rad);
       if (cond!=1 && cimg::mod(nangle,90.0f)==0) { // optimized version for orthogonal angles
         const int wm1 = dimx()-1, hm1 = dimy()-1;
@@ -13500,7 +13499,7 @@ namespace cimg_library {
     CImg<T> get_rotate(const float angle, const float cx, const float cy, const float zoom=1, const unsigned int cond=3) const {
       if (is_empty()) return CImg<T>();
       CImg<T> dest(width,height,depth,dim);
-      const float nangle = cimg::mod(angle,360.0f), rad = (float)((nangle*cimg::valuePI)/180.0),
+      const float nangle = cimg::mod(angle,360.0f), rad = (float)((nangle*M_PI)/180.0),
         ca=(float)std::cos(rad)/zoom, sa=(float)std::sin(rad)/zoom;
       if (cond!=1 && zoom==1 && cimg::mod(nangle,90.0f)==0) { // optimized version for orthogonal angles
         const int iangle = (int)nangle/90;
@@ -15744,7 +15743,7 @@ namespace cimg_library {
             nG = (G<0?0:(G>255?255:G))/255.0f,
             nB = (B<0?0:(B>255?255:B))/255.0f,
             m = cimg::min(nR,nG,nB),
-            theta = std::acos(0.5f*((nR-nG)+(nR-nB))/std::sqrt(std::pow(nR-nG,2)+(nR-nB)*(nG-nB)))*180/cimg::valuePI,
+            theta = std::acos(0.5f*((nR-nG)+(nR-nB))/std::sqrt(std::pow(nR-nG,2)+(nR-nB)*(nG-nB)))*180/M_PI,
             sum = nR + nG + nB;
           float H = 0, S = 0, I = 0;
           if (theta>0) H = (nB<=nG)?theta:360-theta;
@@ -15777,17 +15776,17 @@ namespace cimg_library {
           float R = 0, G = 0, B = 0, a = I*(1-S);
           if (H<120) {
             B = a;
-            R = I*(1+S*std::cos(H*cimg::valuePI/180)/std::cos((60-H)*cimg::valuePI/180));
+            R = I*(1+S*std::cos(H*M_PI/180)/std::cos((60-H)*M_PI/180));
             G = 3*I-(R+B);
           } else if (H<240) {
             H-=120;
             R = a;
-            G = I*(1+S*std::cos(H*cimg::valuePI/180)/std::cos((60-H)*cimg::valuePI/180));
+            G = I*(1+S*std::cos(H*M_PI/180)/std::cos((60-H)*M_PI/180));
             B = 3*I-(R+G);
           } else {
             H-=240;
             G = a;
-            B = I*(1+S*std::cos(H*cimg::valuePI/180)/std::cos((60-H)*cimg::valuePI/180));
+            B = I*(1+S*std::cos(H*M_PI/180)/std::cos((60-H)*M_PI/180));
             R = 3*I-(G+B);
           }
           R*=255; G*=255; B*=255;
@@ -17428,7 +17427,7 @@ namespace cimg_library {
                           const float opacity=1.0f, const unsigned int pattern=~0U) {
       if (!is_empty()) {
         const float u = (float)(x0-x1), v = (float)(y0-y1), sq = u*u+v*v,
-          deg = (float)(angle*cimg::valuePI/180), ang = (sq>0)?(float)std::atan2(v,u):0.0f,
+          deg = (float)(angle*M_PI/180), ang = (sq>0)?(float)std::atan2(v,u):0.0f,
           l = (length>=0)?length:-length*(float)std::sqrt(sq)/100;
         if (sq>0) {
           const double cl = std::cos(ang-deg), sl = std::sin(ang-deg), cr = std::cos(ang+deg), sr = std::sin(ang+deg);
@@ -21605,13 +21604,13 @@ namespace cimg_library {
           // 3D version of the algorithm
           for (float phi=(180%(int)da)/2.0f; phi<=180; phi+=da) {
             const float
-              phir = (float)(phi*cimg::valuePI/180),
+              phir = (float)(phi*M_PI/180),
               datmp = (float)(da/std::cos(phir)),
               da2 = datmp<1?360.0f:datmp;
 
             for (float theta=0; theta<360; (theta+=da2),++N) {
               const float
-                thetar = (float)(theta*cimg::valuePI/180),
+                thetar = (float)(theta*M_PI/180),
                 vx = (float)(std::cos(thetar)*std::cos(phir)),
                 vy = (float)(std::sin(thetar)*std::cos(phir)),
                 vz = (float)std::sin(phir);
@@ -21768,7 +21767,7 @@ namespace cimg_library {
             // 2D version of the algorithm
             for (float theta=(360%(int)da)/2.0f; theta<360; (theta+=da),++N) {
               const float
-                thetar = (float)(theta*cimg::valuePI/180),
+                thetar = (float)(theta*M_PI/180),
                 vx = (float)(std::cos(thetar)),
                 vy = (float)(std::sin(thetar));
               const t
@@ -29280,7 +29279,7 @@ namespace cimg_library {
           const unsigned int delta2 = (delta>>1);
           for (unsigned int i=0; i<N; i+=delta) {
             float wr = 1, wi = 0;
-            const float angle = (float)((invert?+1:-1)*2*cimg::valuePI/delta),
+            const float angle = (float)((invert?+1:-1)*2*M_PI/delta),
                         ca = (float)std::cos(angle),
                         sa = (float)std::sin(angle);
             for (unsigned int k=0; k<delta2; ++k) {
@@ -29318,7 +29317,7 @@ namespace cimg_library {
           const unsigned int delta2 = (delta>>1);
           for (unsigned int i=0; i<N; i+=delta) {
             float wr = 1, wi = 0;
-            const float angle = (float)((invert?+1:-1)*2*cimg::valuePI/delta),
+            const float angle = (float)((invert?+1:-1)*2*M_PI/delta),
                         ca = (float)std::cos(angle), sa = (float)std::sin(angle);
             for (unsigned int k=0; k<delta2; ++k) {
               const unsigned int j = i + k, nj = j + delta2;
@@ -29355,7 +29354,7 @@ namespace cimg_library {
           const unsigned int delta2 = (delta>>1);
           for (unsigned int i=0; i<N; i+=delta) {
             float wr = 1, wi = 0;
-            const float angle = (float)((invert?+1:-1)*2*cimg::valuePI/delta),
+            const float angle = (float)((invert?+1:-1)*2*M_PI/delta),
                         ca = (float)std::cos(angle), sa = (float)std::sin(angle);
             for (unsigned int k=0; k<delta2; ++k) {
               const unsigned int j = i + k, nj = j + delta2;

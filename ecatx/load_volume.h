@@ -28,8 +28,7 @@
    * along with this software; if not, write to the Free Software
    * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-#ifndef load_volume_h
-#define load_volume_h
+#pragma once
 /*
  * The function
  * MatrixData *load_volume(MatrixFile*, int frame, int cubic, int interp)
@@ -60,11 +59,7 @@ typedef struct _Tslice
 
 typedef int (*qsort_func)(const void *, const void *);
 
-#if defined(__cplusplus)
 extern void display_message(const char*);
-#else
-#define display_message(s) 
-#endif
 
 static int compare_zloc(const Tslice *a, const Tslice *b) 
 {
@@ -470,4 +465,3 @@ int interp)
 	return volume;
 }
 
-#endif /*load_volume_h */

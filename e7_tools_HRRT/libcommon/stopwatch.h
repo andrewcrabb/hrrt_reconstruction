@@ -4,8 +4,7 @@
     \date 2004/09/09 initial version
  */
 
-#ifndef _STOPWATCH_H
-#define _STOPWATCH_H
+#pragma once
 
 #include <vector>
 
@@ -23,4 +22,3 @@ class StopWatch
     float stop();                           // stop last stopwatch and get time
  };
 
-#endif

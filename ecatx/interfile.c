@@ -36,14 +36,6 @@
 #include <ctype.h>
 #include "interfile.h"
 #include "machine_indep.h"
-#if defined(_WIN32) && !defined(__CYGWIN__)
-#include <io.h>
-#define stat _stat
-#define access _access
-#define F_OK 0
-#else
-#include	<unistd.h>
-#endif
 
 #define END_OF_KEYS END_OF_INTERFILE+1
 #define MAX_MULTIPLICITY 64

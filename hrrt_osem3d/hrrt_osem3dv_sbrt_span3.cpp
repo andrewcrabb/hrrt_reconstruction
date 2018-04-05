@@ -24,23 +24,6 @@ For commercial use, please contact zcho@gachon.ac.kr or isslhong@kpu.ac.kr
 */
 #include "compile.h"
 
-#ifdef IS_WIN32
-#include <windows.h>
-#include <process.h>
-#include <xmmintrin.h>
-#include <emmintrin.h>
-#else
-#define _REENTRANT
-#define _POSIX_SOURCE
-#define _P __P
-#include <pthread.h>
-#include <pmmintrin.h>
-#include <math.h>
-#include <alloca.h>
-#define _alloca alloca
-#include <stdarg.h>
-#define _MAX_PATH 256
-#endif
 #include "mm_malloc.h"
 #include <time.h>
 

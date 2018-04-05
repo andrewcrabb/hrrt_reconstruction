@@ -1,5 +1,4 @@
-#ifndef nr_utils_h
-#define nr_utils_h
+# pragma once
 
 #include <stdio.h>
 #include <stddef.h>
@@ -32,4 +31,3 @@ void	free_matrix3dshortm128(short ***t, int nrl, int nrh, int ncl, int nch, int 
 void	free_matrix_i(short int **m, int nrl, int nrh, int ncl, int nch);
 void	free_matrixm128(float **m, int nrl, int nrh, int ncl, int nch);
 void	free_matrix3dshort(short ***ptr, int nrl, int nrh, int ncl, int nch, int ndl, int ndh);
-#endif /* nr_utils_h */

@@ -15,15 +15,7 @@
 */
 
 #include "ecat2air.h"
-#ifdef WIN32
-#include "io.h"
-#define access _access
-#define unlink _unlink
-#define F_OK 0
-#define R_OK 4
-#else
 #include <unistd.h>
-#endif
 #include <ecatx/matrix.h>
 #include <ecatx/load_volume.h>
 #include <math.h>

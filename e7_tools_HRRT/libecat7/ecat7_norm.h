@@ -5,8 +5,7 @@
     \date 2005/01/18 added Doxygen style comments
  */
 
-#ifndef _ECAT7_NORM_H
-#define _ECAT7_NORM_H
+#pragma once
 
 #include <fstream>
 #include <list>
@@ -67,5 +66,3 @@ class ECAT7_NORM:public ECAT7_MATRIX
                      const unsigned short int) const;
     void SaveHeader(std::ofstream * const) const;// store header part of matrix
  };
-
-#endif

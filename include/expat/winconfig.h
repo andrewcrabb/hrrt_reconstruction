@@ -7,8 +7,7 @@
 ** with this distribution.)
 */
 
-#ifndef WINCONFIG_H
-#define WINCONFIG_H
+#pragma once
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -26,5 +25,3 @@
 
 /* Windows has memmove() available. */
 #define HAVE_MEMMOVE
-
-#endif /* ndef WINCONFIG_H */

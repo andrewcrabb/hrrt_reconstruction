@@ -1,5 +1,4 @@
-#ifndef Volume_h
-#define Volume_h
+# pragma once
 
 /*
  * static char sccsid[] = "%W% UCL-TOPO %E%";
@@ -323,4 +322,3 @@ inline float mm3_round(float v) {		/* round to mm3 */
 MatrixData *matrix_brightness(const MatrixData* rgb);
 extern MatrixData *matrix_create(const MatrixData* orig);
 
-#endif

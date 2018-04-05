@@ -28,10 +28,6 @@
 #include "exception.h"
 #include "str_tmpl.h"
 
-#ifdef WIN32
-#undef max                        // some comedian in Seattle has defined max()
-#undef min                        // and min()
-#endif
 
 /*- methods -----------------------------------------------------------------*/
 

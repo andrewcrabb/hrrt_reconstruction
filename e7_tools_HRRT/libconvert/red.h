@@ -23,8 +23,7 @@
 
 -----------------------------------------------------------------------------*/
 
-#ifndef _RED_H
-#define _RED_H
+#pragma once
 
 #include "comm_socket.h"
 #include "stream_buffer.h"
@@ -42,4 +41,3 @@ class Red
     bool recvAndInterpretMsg();               // receive and interpret messages
  };
 
-#endif

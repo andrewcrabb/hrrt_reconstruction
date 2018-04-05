@@ -5,8 +5,7 @@
     \date 2004/05/18 added Doxygen style comments
  */
 
-#ifndef _SYNGO_MSG_H
-#define _SYNGO_MSG_H
+#pragma once
 
 #include <string>
 
@@ -14,5 +13,3 @@
 
 bool SyngoCancel();                      // cancel in Syngo interface pressed ?
 void SyngoMsg(std::string msg);              // send message to Syngo interface
-
-#endif

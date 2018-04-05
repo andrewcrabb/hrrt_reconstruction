@@ -12,8 +12,7 @@
     \date 2005/02/08 support negative number of trues
  */
 
-#ifndef _INTERFILE_H
-#define _INTERFILE_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -1059,10 +1058,3 @@ class Interfile
     unsigned long int Sub_bucket_ring_singles_remove(const unsigned short int);
     unsigned long int Sub_bucket_ring_singles_remove();
  };
-
-#ifndef _INTERFILE_CPP
-#define _INTERFILE_TMPL_CPP
-#include "interfile.cpp"
-#endif
-
-#endif

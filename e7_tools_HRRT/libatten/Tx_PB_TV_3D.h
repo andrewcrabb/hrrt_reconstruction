@@ -1,5 +1,4 @@
-#ifndef _TX_PB_TV_3D_H
-#define _TX_PB_TV_3D_H
+#pragma once
 
 #include "TV_3D.h"
 #include "Tx_PB_3D.h"
@@ -13,9 +12,3 @@ template <typename T> class Tx_PB_TV_3D:public Tx_PB_3D <T>
    public :
     Tx_PB_TV_3D(const int, const int, const int, const int, const float);
  };
-
-#ifndef _TX_PB_TV_3D_CPP
-#include "Tx_PB_TV_3D.h"
-#endif
-
-#endif

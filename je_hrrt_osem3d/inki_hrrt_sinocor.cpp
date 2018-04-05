@@ -16,13 +16,6 @@ typedef struct {
 	int weighting;
 } FPBP_thread;
 
-#ifndef WIN32
-#define _REENTRANT
-#define _POSIX_SOURCE
-#define _P __P
-#include <pthread.h>
-#include <pmmintrin.h>
-#endif
 
 #include <stdio.h>
 #include <malloc.h>
@@ -34,16 +27,6 @@ typedef struct {
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#ifdef WIN32
-#include <windows.h>
-#include <process.h>
-#include <io.h>
-#define fstat _fstat
-#define access _access
-#define fileno _fileno
-#define R_OK 4
-#define		DIR_SEPARATOR '\\'
-#else
 #include <pthread.h>
 #include <pmmintrin.h>
 #include <sys/sysinfo.h>
@@ -52,7 +35,6 @@ typedef struct {
 // O_DIRECT defined here because not found otherwise CM + MS
 #define O_DIRECT         040000 /* direct disk access hint */	
 #define		DIR_SEPARATOR '/'
-#endif
 
 //#include "write_image_header.h"
 #include "scanner_model.h"
@@ -202,12 +184,7 @@ typedef struct {
     int   fp;
 } File_structure;
 
-#ifdef WIN32
-File_structure fstruct[16];
-HANDLE threads[16];
-#else
 pthread_t threads[16]; // !sv
-#endif
 
 int back_proj3d_thread1(float ** prj,float *** ima,int view,int numthread,float ***imagebuf,float ***prjbuf);
 int forward_proj3d_thread1(float ***ima,float ** prj,int view,int numthread,float ***imagebuf,float ***prjbuf);	
@@ -238,12 +215,6 @@ static void usage() {
 	fprintf (stdout,"     32: Processing info         64: Memory allocation info\n");
 	exit(1);
 }
-#ifdef WIN32
-#define FOPEN_ERROR NULL
-FILEPTR file_open(char *fn,char *mode){
-	return fopen(fn,mode);
-}
-#else
 #define FOPEN_ERROR -1
 int file_open(char *fn,char *mode){
 	int ret;
@@ -252,17 +223,10 @@ int file_open(char *fn,char *mode){
 		return ret;
 	}
 }
-#endif
 
-#ifdef WIN32
-void file_close(FILEPTR fp){
-	fclose(fp);
-}
-#else
 void file_close(int fp){
 	close(fp);
 }
-#endif
 
 /* get_scan_duration  
 read: sinogram header and sets scan_duration global variable.
@@ -1143,30 +1107,15 @@ void Output_CorrectedScan()
 
 void GetSystemInformation()
 {
-#ifdef WIN32 
-	SYSTEM_INFO siSysInfo;
-#else
 	struct sysinfo sinfo;
-#endif
+
 	LogMessage(" Hardware information: \n");  
-#ifdef WIN32
-	GetSystemInfo(&siSysInfo); 
-	LogMessage("  OEM ID: %u\n", siSysInfo.dwOemId);
-	LogMessage("  Number of processors: %u\n", siSysInfo.dwNumberOfProcessors); 
-	LogMessage("  Page size: %u\n", siSysInfo.dwPageSize); 
-	LogMessage("  Processor type: %u\n", siSysInfo.dwProcessorType); 
-	LogMessage("  Minimum application address: %lx\n", 
-		siSysInfo.lpMinimumApplicationAddress); 
-	LogMessage("  Maximum application address: %lx\n", 
-		siSysInfo.lpMaximumApplicationAddress); 
-	if(nthreads==0) nthreads=siSysInfo.dwNumberOfProcessors;
-#else
 	sysinfo(&sinfo);
 	printf("  Total RAM: %u\n", sinfo.totalram); 
 	printf("  Free RAM: %u\n", sinfo.freeram);
 	// To get n_processors we need to get the result of this command "grep processor /proc/cpuinfo | wc -l"
 	if(nthreads==0) nthreads=2; // for now
-#endif
+
 }
 
 int main(int argc, char* argv[])

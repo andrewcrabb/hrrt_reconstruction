@@ -14,19 +14,12 @@
 
  */
 
-#if defined(__linux__) && defined(__INTEL_COMPILER)
-#include <mathimf.h>
-#else
 #include <cmath>
-#endif
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include "e7_tools_const.h"
-#ifndef _TX_PB_3D_CPP
-#define _TX_PB_3D_CPP
 #include "Tx_PB_3D.h"
-#endif
 #include "gm.h"
 #include "logging.h"
 #include <string.h>

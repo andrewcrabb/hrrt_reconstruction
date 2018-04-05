@@ -22,12 +22,7 @@
 /*---------------------------------------------------------------------------*/
 void Usage()
  { std::cout << "\n                                                  ";
-#ifdef WIN32
-   std::cout << "(c)";
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    std::cout << "  " << (char)169;
-#endif
    std::cout << " 2004-2005 CPS Innovations\n\n"
            "gm_check - check the values of the gantry model\n\n"
            "Usage:\n\n"

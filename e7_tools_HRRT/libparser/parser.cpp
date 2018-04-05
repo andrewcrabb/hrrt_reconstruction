@@ -293,12 +293,7 @@ const std::string Parser::l_str[2]={"output logging information",
       "log file for each day of the month. After one month old log files are "
       "overwritten. The default parameter is \"72\".$"
       " Examples: -l 72          (output very detailed to screen)$"
-#ifdef WIN32
-      "           -l 73,C:\\      (output very detailed to screen and file)$"
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
       "           -l 73,/var/log (output very detailed to screen and file)$"
-#endif
       "           -l 31          (output medium detailed to file in default$"
       "                           directory)"};
                                            /*! description of "--mat" switch */
@@ -839,7 +834,7 @@ Parser::Parser(const std::string _prgname, const std::string _descr,
                const std::string _envvar, const std::string _smoothing,
                const std::string _sinogram, const std::string _acf)
  { try
-   { std::string mu;
+   { std::string mu('mu');
      char c[2];
 
      prgname=_prgname;
@@ -994,13 +989,6 @@ Parser::Parser(const std::string _prgname, const std::string _descr,
      v.patient_name=std::string();
 
      c[1]=0;
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-     c[0]=(char)181;
-     mu=std::string(c);
-#endif
-#ifdef WIN32
-     mu='u';
-#endif
      while (descr.find('@') != std::string::npos)
       descr.replace(descr.find('@'), 1, mu);
    }
@@ -1226,18 +1214,11 @@ bool Parser::checkRule(const std::string used_swi, const std::string swi,
 /*---------------------------------------------------------------------------*/
 bool Parser::checkSemantics(std::string switch_str) const
  { unsigned short int num_rules;
-   std::string used_swi, mu, double_swi;
+   std::string used_swi, mu('mu'), double_swi;
    bool ret=true;
    { char c[2];
 
      c[1]=0;
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-     c[0]=(char)181;
-     mu=std::string(c);
-#endif
-#ifdef WIN32
-     mu='u';
-#endif
    }
 
    double_swi=" ";
@@ -1349,20 +1330,10 @@ bool Parser::parse(int argc, char **argv)
    { char c=0;
      int optindex;
      bool no_error=true;
-     std::string mu, short_options="a:b:c:d:e:hi:k:l:n:p:q:R:r:s:t:u:vw:?",
+     std::string mu('mu'), short_options="a:b:c:d:e:hi:k:l:n:p:q:R:r:s:t:u:vw:?",
                  switch_str;
 
      {
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-       char c[2];
-
-       c[1]=0;
-       c[0]=(char)181;
-       mu=std::string(c);
-#endif
-#ifdef WIN32
-       mu='u';
-#endif
      }
      static struct option long_options[]={ {   "gxy", 1, 0, 0 },
                                            {    "gz", 1, 0, 0 },
@@ -2784,12 +2755,7 @@ bool Parser::parse(int argc, char **argv)
                       { v.debug_path=convertSlash(optstr);
                                   // does file exist and is it a regular file ?
                         if ((stat(v.debug_path.c_str(), &statbuf) != 0) ||
-#ifdef WIN32
-                            (!(statbuf.st_mode & _S_IFDIR)))
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
                             !S_ISDIR(statbuf.st_mode))
-#endif
                          { std::cerr << "Error (-d): path for debug info "
                                         "doesn't exist";
                            no_error=false;
@@ -2917,12 +2883,7 @@ bool Parser::parse(int argc, char **argv)
                       { v.quality_path=convertSlash(optstr);
                                   // does file exist and is it a regular file ?
                         if ((stat(v.quality_path.c_str(), &statbuf) != 0) ||
-#ifdef WIN32
-                            (!(statbuf.st_mode & _S_IFDIR)))
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
                             !S_ISDIR(statbuf.st_mode))
-#endif
                          { std::cerr << "Error (-q): path for quality control "
                                         "data doesn't exist";
                            no_error=false;
@@ -3246,7 +3207,6 @@ void Parser::usage(const bool extended) const
  { std::string mu, beta, cpy;
    unsigned short int count;
 
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    char c[2];
 
    c[1]=0;
@@ -3256,12 +3216,6 @@ void Parser::usage(const bool extended) const
    beta=std::string(c);
    c[0]=(char)169;
    cpy=std::string(c);
-#endif
-#ifdef WIN32
-   mu='u';
-   beta="beta";
-   cpy="(c)";
-#endif
                                 // print copyright information and command line
    std::cout << "\n";
    count=62;
@@ -3490,12 +3444,7 @@ void Parser::usage(const bool extended) const
                       }
                                                // put paramaters into help text
       while (str.find("#10") != std::string::npos)
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
        str.replace(str.find("#10"), 3, "/home/my_directory");
-#endif
-#ifdef WIN32
-       str.replace(str.find("#10"), 3, "C:\\my_directory");
-#endif
       while (str.find("#11") != std::string::npos)
        str.replace(str.find("#11"), 3, acf);
       while (str.find("#1") != std::string::npos)

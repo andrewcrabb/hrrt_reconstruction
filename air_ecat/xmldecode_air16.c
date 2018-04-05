@@ -21,15 +21,7 @@
 #include "ecat2air.h"
 #include <expat/expat.h>
 
-#if defined(_WIN32) && !defined(__CYGWIN__)
-#include <io.h>
-#define stat _stat
-#define access _access
-#define F_OK 0
-#define strcasecmp _stricmp
-#else
 #include	<unistd.h>
-#endif
 
 typedef enum {CLASS_UNKNOWN=0, CLASS_REFERENCE=1, CLASS_RESLICE} ClassCode;
 typedef struct _ClassNameCode { ClassCode code; char *name; } ClassNameCode;

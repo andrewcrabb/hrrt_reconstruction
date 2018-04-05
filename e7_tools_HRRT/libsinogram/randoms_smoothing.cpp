@@ -36,20 +36,9 @@
 #include <cstring>
 #include <algorithm>
 #include <limits>
-#ifdef XEON_HYPERTHREADING_BUG
-#if defined(__linux__) || defined(__SOLARIS__)
-#include <alloca.h>
-#endif
-#ifdef WIN32
-#include <malloc.h>
-#endif
-#endif
 #include "randoms_smoothing.h"
 #include "e7_tools_const.h"
 #include "exception.h"
-#ifdef WIN32
-#include "global_tmpl.h"
-#endif
 #include "logging.h"
 #include "thread_wrapper.h"
 #include "vecmath.h"
@@ -73,15 +62,6 @@ void *executeThread_RS_createSino(void *param)
    { RandomsSmoothing::tthread_cs_params *tp;
 
      tp=(RandomsSmoothing::tthread_cs_params *)param;
-#ifdef XEON_HYPERTHREADING_BUG
-      // allocate some padding memory on the stack in front of the thread-stack
-#if defined(__linux__) || defined(__SOLARIS__)
-     alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#ifdef WIN32
-     _alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#endif
      tp->object->createSmoothedSinogram(tp->first_plane, tp->last_plane,
                                         tp->sinogram, tp->RhoSamples,
                                         tp->ThetaSamples, tp->mash,
@@ -116,15 +96,6 @@ void *executeThread_RS_total(void *param)
    { RandomsSmoothing::tthread_rs_params *tp;
 
      tp=(RandomsSmoothing::tthread_rs_params *)param;
-#ifdef XEON_HYPERTHREADING_BUG
-      // allocate some padding memory on the stack in front of the thread-stack
-#if defined(__linux__) || defined(__SOLARIS__)
-     alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#ifdef WIN32
-     _alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#endif
      tp->object->calculateTotalRandomsRate(tp->first_ring, tp->last_ring,
                                            tp->sinogram, tp->RhoSamples,
                                            tp->ThetaSamples, tp->mash,

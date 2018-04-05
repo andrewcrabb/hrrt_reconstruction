@@ -30,8 +30,7 @@
  */
  	/* Isotope information */
 
-#ifndef isotope_info_h
-#define isotope_info_h
+#pragma once
 
 #include <stdio.h>
 
@@ -41,12 +40,6 @@ struct IsotopeInfoItem{
 	float halflife;                 /* half life in seconds */
 };
 
-#if defined(__cplusplus)
 extern "C" {
-#endif
 struct IsotopeInfoItem *get_isotope_info(char *code);
-#if defined(__cplusplus)
 }
-#endif
-
-#endif /* isotope_info_h */

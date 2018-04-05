@@ -13,8 +13,7 @@
 // R Camp		10-May-02		Created
 //------------------------------------------------------------------------
 
-#ifndef ERROREVENTSUPPORT_CLASS_H
-#define ERROREVENTSUPPORT_CLASS_H
+#pragma once
 
 #include "ErrorEvents.h"					// ErrorEvent class (COM+ event)
 
@@ -102,6 +101,4 @@ public:
 		char bLogIt );					// If TRUE, write error to database
 
 };
-
-#endif
 

@@ -25,8 +25,8 @@
                Copyright (C) CPS Innovations 2004 All Rights Reserved.
 
 ---------------------------------------------------------------------*/
-#ifndef LM_Reader_MP_h
-#define LM_Reader_MP_h
+# pragma once
+
 #include <iostream>
 using namespace std;
 
@@ -86,4 +86,3 @@ extern void lm32_reader(void *p); //const char *in_fname = (const char *)p;
 
 extern L64EventPacket *load_buffer_64();
 extern L32EventPacket *load_buffer_32();
-#endif

@@ -95,20 +95,7 @@
 */
 
 #include <string>
-#ifdef XEON_HYPERTHREADING_BUG
-#if defined(__linux__) || defined(__SOLARIS__)
-#include <alloca.h>
-#endif
-#ifdef WIN32
-#include <malloc.h>
-#endif
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <unistd.h>
-#endif
-#ifdef WIN32
-#include "global_tmpl.h"
-#endif
 #include "bckprj3d.h"
 #include "e7_tools_const.h"
 #include "e7_common.h"
@@ -177,14 +164,6 @@ void *executeThread_Backproject(void *param)
      tp=(BckPrj3D::tthread_params *)param;
       // allocate some padding memory on the stack in front of the thread-stack
       // to avoid cache conflicts while accessing local variables
-#ifdef XEON_HYPERTHREADING_BUG
-#if defined(__linux__) || defined(__SOLARIS__)
-     alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#ifdef WIN32
-     _alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#endif
      switch (tp->lut_mode)                                    // LUT mode
             { case 0:
                if (tp->segment == 0)                       // segment 0, no LUT
@@ -273,14 +252,6 @@ void *executeThread_searchBkp(void *param)
      tp=(BckPrj3D::tthread_params *)param;
       // allocate some padding memory on the stack in front of the thread-stack
       // to avoid cache conflicts while accessing local variables
-#ifdef XEON_HYPERTHREADING_BUG
-#if defined(__linux__) || defined(__SOLARIS__)
-     alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#ifdef WIN32
-     _alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#endif
      tp->object->searchIndicesBkp_oblique(tp->tbp, tp->t, tp->segment,
                                           tp->z_start, tp->z_end);
      return(NULL);

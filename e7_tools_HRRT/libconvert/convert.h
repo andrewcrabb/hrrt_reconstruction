@@ -13,8 +13,7 @@
     \date 2005/03/11 added PSF-AW-OSEM
  */
 
-#ifndef _CONVERT_H
-#define _CONVERT_H
+#pragma once
 
 #include <string>
 #include "image_conversion.h"
@@ -85,4 +84,3 @@ ImageConversion *sinogram2image(SinogramConversion *, SinogramConversion **,
                                 const unsigned short int);
 }
 
-#endif

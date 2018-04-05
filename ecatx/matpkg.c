@@ -35,9 +35,6 @@
 #include <stdio.h>
 #include "matpkg.h"
 
-/* #ifdef WIN32 */
-#define M_PI            3.14159265358979323846
-
 #define MATPKG_SIZE 4
 
 static void sincos(double theta, double *sintheta, double *costheta)
@@ -45,7 +42,6 @@ static void sincos(double theta, double *sintheta, double *costheta)
         *sintheta = sin(theta);
         *costheta = cos(theta);
 }
-/* #endif */
 
 void matmpy(Matrix a, const Matrix b, const Matrix c)
 {	int i,j,k;

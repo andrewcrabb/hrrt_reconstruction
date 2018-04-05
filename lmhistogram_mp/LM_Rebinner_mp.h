@@ -31,8 +31,7 @@
 
 ---------------------------------------------------------------------*/
 
-#ifndef LM_Rebinner_h
-#define LM_Rebinner_h
+# pragma once
 
 #include <stdio.h>
 #define MODEL_HRRT 328
@@ -65,10 +64,4 @@ extern int rebin_event_tx(int mp, int alayer, int ax, int ay, int blayer, int bx
 extern int model_number;
 extern const char *rebinner_lut_file;
 
-// inline int check_model(int model, int value)
-// {
-// 	return (model==value ? 1:0);
-// }
 extern int tx_span;
-
-#endif

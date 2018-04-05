@@ -127,17 +127,7 @@ void ImageConversion::CT2UMAP(const std::vector <float> bed_position,
      unsigned long int umap_slicesize, umap_size, j;
      std::vector <float> xind, yind, ct_zpos, conversion_parms;
      std::vector <unsigned short int> pet_umap_idx;
-     std::string mu;
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-     char c[2];
-
-     c[1]=0;
-     c[0]=(char)181;
-     mu=std::string(c);
-#endif
-#ifdef WIN32
-     mu='u';
-#endif
+     std::string mu('mu');
                  // conversion parameters from Houndsfield units to 511 keV PET
      conversion_parms.resize(4);
      conversion_parms[0]=0.0000961245f;

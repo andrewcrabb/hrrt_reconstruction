@@ -1,5 +1,6 @@
 cmake_minimum_required (VERSION 3.7)
 project (hrrt_recon)
+set (CMAKE_CXX_STANDARD 11)
 # The version number.
 set (hrrt_recon_VERSION_MAJOR 1)
 set (hrrt_recon_VERSION_MINOR 0)
@@ -23,7 +24,7 @@ include_directories(/usr/include ${PROJECT_BINARY_DIR})
 # set (GCC_COMPILE_FLAGS "-std=c99")
 
  # ahc https://goo.gl/hHNWmc for strdup (else it's undefined and assume int so complains about type)
-add_definitions(-D_XOPEN_SOURCE=600 -D _GLIBCXX_USE_CXX11_ABI=0)
+add_definitions(-D_XOPEN_SOURCE=600 -D _GLIBCXX_USE_CXX11_ABI=0 -D_FILE_OFFSET_BITS=64)
 
 # add_definitions(-D_LINUX -D__LINUX__ ${GCC_COMPILE_FLAGS})
 # Removed definition: Test for Linux defined at https://sourceforge.net/p/predef/wiki/OperatingSystems/: __linux__

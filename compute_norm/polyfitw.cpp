@@ -1,8 +1,9 @@
+#include <cstring>
 #include <stdlib.h>
 #include "polyfitw.h"
 #include "matrix.h"
-void polyfitw(float *x, float *y, float *w, int n, int m, float *cof)
-{
+
+void polyfitw(float *x, float *y, float *w, int n, int m, float *cof) {
 	float *b, *z,*rp;
 	double tmp=0.0, sum=0.0;
 	int i,j,k,p;
@@ -75,7 +76,7 @@ void polyfitw(float *x, float *y, float *w, int n, int m, float *cof)
 		for(j=0;j<=m;j++)
 			cof[i] +=rp[i*(m+1) + j] * b[j];
 	}
-		
+	
 	//CORRM->~Matrix();
 	free(b);
 	free(z);

@@ -22,10 +22,7 @@
  */
 
 #include <iostream>
-#ifndef _LOGGING_CPP
-#define _LOGGING_CPP
 #include "logging.h"
-#endif
 #include "e7_tools_const.h"
 #include "e7_common.h"
 #include "exception.h"
@@ -33,21 +30,11 @@
 #include "str_tmpl.h"
 #include "syngo_msg.h"
 #include "timedate.h"
-#ifdef WIN32
-#include <atlstr.h>
-#include "win_registry.h"
-#endif
 #include <stdlib.h>
 
 /*- constants ---------------------------------------------------------------*/
 
                                             // places to output log information
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#if _MSC_VER <= 1200
-const unsigned short int Logging::LOG_FILE=1;               /*!< log to file */
-const unsigned short int Logging::LOG_SCREEN=2;           /*!< log to screen */
-#endif
-#endif
 
 /*- methods -----------------------------------------------------------------*/
 
@@ -62,14 +49,7 @@ Logging *Logging::instance=NULL;     /*!< pointer to only instance of object */
 /*---------------------------------------------------------------------------*/
 Logging::Logging()
  {
-#ifdef WIN32
-   RegistryAccess *ra=NULL;
-#endif
-
    file=NULL;
-#ifdef MEMLOG
-   memfile=NULL;
-#endif
    lock=NULL;
    path=std::string();
    try
@@ -147,9 +127,6 @@ Logging *Logging::arg(T param)
  */
           std::clog << tstr << msg.log_str << std::endl;
          msg.available=false;
-#ifdef MEMLOG
-         saveMemUsage();
-#endif
          lock->signal();
        }
     }
@@ -157,22 +134,6 @@ Logging *Logging::arg(T param)
  }
 
 #ifndef _LOGGING_TMPL_CPP
-#ifdef WIN32
-/*---------------------------------------------------------------------------*/
-/*! \brief Fill GUID into log message.
-    \param[in] param   GUID to fill into log message
-    \return pointer to logging object
-
-    Fill GUID into log message.
- */
-/*---------------------------------------------------------------------------*/
-Logging *Logging::arg(GUID param)
- { OLECHAR gstr[128];
-
-   ::StringFromGUID2(param, gstr, 128);
-   return(arg(std::string((LPCTSTR)CString(gstr))));
- }
-#endif
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Delete instance of object.
@@ -202,12 +163,6 @@ void Logging::close(const bool get_lock)
                        delete file;
                        file=NULL;
                      }
-#ifdef MEMLOG
-   if (memfile != NULL) { memfile->close();
-                          delete memfile;
-                          memfile=NULL;
-                        }
-#endif
    if (get_lock) lock->signal();
  }
 
@@ -235,27 +190,12 @@ Logging *Logging::flog()
 /*---------------------------------------------------------------------------*/
 void Logging::getPath()
  {
-#ifdef WIN32
-   RegistryAccess *ra=NULL;
-#endif
                                                        // get logging directory
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
+
                                   // get logging path from environment variable
    if (getenv(logging_path.c_str()) != NULL)
     path=std::string(getenv(logging_path.c_str()));
-#endif
-#ifdef WIN32
-                                          // get logging path from registry key
-   try
-   { ra=new RegistryAccess(reg_key, true);
-     ra->getKeyValue(logging_path, &path);
-     delete ra;
-     ra=NULL;
-   }
-   catch (const Exception r)
-    { if (ra != NULL) delete ra;
-    }
-#endif
+
  }
 
 /*---------------------------------------------------------------------------*/
@@ -319,12 +259,6 @@ void Logging::init(const std::string name, const unsigned short int level,
                          << toStringZero(dt.year, 4) << " ---" << std::endl;
                  }
               }
-#ifdef MEMLOG
-        filename=path+"/log_"+name+"_"+toStringZero(dt.day, 2)+"_mem.dat";
-        memfile=new std::ofstream(filename.c_str(),
-                                  std::ios::out|std::ios::app);
-        timeoffset=time(NULL);
-#endif
       }
    }
    catch (...)
@@ -332,11 +266,6 @@ void Logging::init(const std::string name, const unsigned short int level,
                           file=NULL;
                         }
       if (ifile != NULL) delete ifile;
-#ifdef MEMLOG
-      if (memfile != NULL) { delete memfile;
-                             memfile=NULL;
-                           }
-#endif
     }
  }
 
@@ -441,9 +370,6 @@ Logging *Logging::logMsg(const std::string msgstr,
     // write to screen
     if (log_destination & LOG_SCREEN)
       std::clog << tstr << msg.log_str << std::endl;
-#ifdef MEMLOG
-    saveMemUsage();
-#endif
     lock->signal();
   }
   return(this);
@@ -460,58 +386,6 @@ unsigned short int Logging::maxLoggingLevel() const
  { return(loglevel);
  }
 
-#ifdef MEMLOG
-/*---------------------------------------------------------------------------*/
-/*! \brief Save information about memory usage to file.
-
-    Save information about memory usage to file.
- */
-/*---------------------------------------------------------------------------*/
-void Logging::saveMemUsage()
- { if (memfile == NULL) return;
-#if defined(__linux__) || defined(WIN32)
-   unsigned long int total_mem, phys_mem, sh_mem, st_mem, usec;
-#endif
-#ifdef __linux__
-   std::ifstream *file=NULL;
-   std::string line;
-   std::string::size_type p;
-   unsigned long int mem[7], ps;
-                                          // get information about memory usage
-   file=new std::ifstream("/proc/self/statm");
-   std::getline(*file, line);
-   file->close();
-   delete file;
-   ps=1;//sysconf(_SC_PAGESIZE);
-   for (unsigned short int i=0; i < 6; i++)
-    { p=line.find(" ");
-      mem[i]=atoi(line.substr(0, p).c_str())*ps;
-      line.erase(0, p+1);
-    }
-   total_mem=mem[0];
-   phys_mem=mem[1];
-   sh_mem=mem[2];
-   st_mem=mem[5];
-
-   TIMEDATE::currentTime(&usec);
-#endif
-#ifdef WIN32
-   MEMORYSTATUS lp;
-                                          // get information about memory usage
-   GlobalMemoryStatus(&lp);
-   total_mem=(unsigned long int)(lp.dwTotalVirtual-lp.dwAvailVirtual);
-   phys_mem=0;
-   sh_mem=0;
-   st_mem=0;
-   usec=0;
-#endif
-#if defined(__linux__) || defined(WIN32)
-   *memfile << (float)(time(NULL)-timeoffset)+(float)usec/1000000.0f << " "
-            << total_mem << " " << phys_mem << " " << sh_mem << " "
-            << st_mem << std::endl;
-#endif
- }
-#endif
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Convert current time into string.
@@ -530,23 +404,10 @@ std::string Logging::timeStr(unsigned short int * const day) const
    ti=TIMEDATE::currentTime(&msec);
    dt=TIMEDATE::currentDate();
    *day=dt.day;
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
                                              // create string with current time
    return(toStringZero(ti.hour, 2) + ":" + toStringZero(ti.minute, 2) + ":" +
           // toStringZero(ti.second, 2) + "." + toStringZero(msec, 6) + " ");
           // ahc: Took out useless 6-digit fraction.
           toStringZero(ti.second, 2) + " ");
-#endif
-#ifdef WIN32
-   std::string vz;
-
-   if ((ti.gmt_offset_h < 0) || (ti.gmt_offset_m < 0)) vz="-";
-    else vz="+";
-                                             // create string with current time
-   return(toStringZero(ti.hour, 2)+":"+toStringZero(ti.minute, 2)+":"+
-          toStringZero(ti.second, 2)+"."+toStringZero(msec, 3)+
-          " (UTC"+vz+toString(abs(ti.gmt_offset_h))+":"+
-          toStringZero(abs(ti.gmt_offset_m), 2)+") ");
-#endif
  }
 #endif

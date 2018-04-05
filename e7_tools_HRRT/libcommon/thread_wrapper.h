@@ -7,15 +7,9 @@
     \date 2004/05/04 added Doxygen style comments
 */
 
-#ifndef _THREAD_WRAPPER_H
-#define _THREAD_WRAPPER_H
+#pragma once
 
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <pthread.h>
-#endif
-#ifdef WIN32
-#include "pthread.h"
-#endif
 
 /*- exported types ----------------------------------------------------------*/
 
@@ -28,5 +22,3 @@ void ThreadCreate(tthread_id * const, void * (*start_routine)(void *),
                   void * const);
                                                 // wait until thread terminates
 void ThreadJoin(const tthread_id, void ** const);
-
-#endif

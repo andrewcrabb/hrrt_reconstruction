@@ -24,9 +24,6 @@
 #include <map>
 #include <iostream>
 
-#ifdef _WIN32
-#define strcasecmp _stricmp
-#endif
 #define LINE_SIZE 256
 
 using namespace std;

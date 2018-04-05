@@ -1,5 +1,4 @@
-#ifndef EcatModel_h
-#define EcatModel_h
+#pragma once
 
 static int MaxBuckets = 56;   		/* maximum number of buckets */
     					/* maximum number of crystals in the axial direction */
@@ -76,15 +75,6 @@ typedef struct _EcatModel {
 
 } EcatModel;
 
-#if defined(__cplusplus)
 extern "C" {
-#endif
-
 EcatModel *ecat_model(int);
-
-#if defined(__cplusplus)
 }
-#endif 
-
-#endif
-

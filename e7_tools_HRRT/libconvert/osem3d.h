@@ -24,8 +24,7 @@
     \date 2005/01/04 added progress reporting
  */
 
-#ifndef _OSEM3D_H
-#define _OSEM3D_H
+#pragma once
 
 #include <list>
 #include <string>
@@ -156,11 +155,6 @@ class OSEM3D
     void initMask(const float, const float);          // initialize image masks
                                              // calculate list of prime numbers
     std::vector <unsigned short int> primes(const unsigned short int) const;
-#ifdef UNUSED
-                         // calculate OSEM reconstruction with multi-processing
-    float *reconstructMP_master(float * const, const unsigned short int,
-                                float * const, const unsigned short int);
-#endif
     void terminateSlave(CommSocket *);                       // terminate slave
    public:
                                                                 // constructors
@@ -257,4 +251,3 @@ class OSEM3D
                               const unsigned short int) const;
  };
 
-#endif

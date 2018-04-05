@@ -16,19 +16,11 @@
   16-Oct-2009: Changed geometric file windows directory to c:\cps\users_sw
 */
 #include <math.h>
-#ifndef M_PI
-#define M_PI        3.14159265358979323846
-#endif
 #define NUM_ANGLES 70
 #define NUM_DISCRETE_ANGLES 14
 #define LINE_SIZE 80
-#ifdef WIN32
-#define SEPARATOR '\\'
-#define INSTALL_DIR "c:\\cps\\users_sw"
-#else
 #define SEPARATOR '/'
 #define _MAX_PATH 256
-#endif
 #include "get_gs.h"
 #include "gr_ga.h"
 #include <string.h>
@@ -135,9 +127,6 @@ int get_gs(const char *geom_fname, FILE *log_fp)
   */
   if (geom_fname == NULL)
     {	// default geometry file
-#ifdef WIN32
-      sprintf(path,"%s%c%s", INSTALL_DIR, SEPARATOR, default_geom_fname);
-#else
       char *gmini_dir = getenv("GMINI");
       if (gmini_dir == NULL) 
 	{
@@ -147,7 +136,6 @@ int get_gs(const char *geom_fname, FILE *log_fp)
 	{
 	  sprintf(path,"%s%c%s", gmini_dir, SEPARATOR, default_geom_fname);
 	}
-#endif
     } 
   else strcpy(path, geom_fname);
 

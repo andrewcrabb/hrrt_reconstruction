@@ -5,12 +5,7 @@
 Modification History (HRRT User Community):
         04/30/09: Integrate Peter Bloomfield __linux__ support
 -------------------------------------------------------------------*/
-#ifndef Header_h
-#define Header_h
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include <stdio.h>
 
@@ -52,15 +47,12 @@ public:
 	int WriteTag(const char* tag, const char* val);		// Put a string value in memory table
 	int WriteTag(const char* tag, double val);	// Put a double value in memory table
 	int WriteTag(const char* tag, int val);		// Put a int value in memory table
-#ifdef WIN32
-	int WriteTag(char* tag, __int64);		// Put a int64 value in memory table
-#endif
 	int Readchar(char* tag, char* val, int len); // Get a string value from memory table 
 	int CloseFile();
 	void GetFileName(char* filename);
 	int IsFileOpen();
 	int OpenFile(char* filename);			// Loads specified filename in memory table
-	int WriteFile(char *filename = 0, int p39_flag=0);
+	int WriteFile(char *filename = 0);
 	CHeader();
 	virtual ~CHeader();
 
@@ -75,5 +67,3 @@ protected:
 	char *data[2048];
 	long numtags;
 };
-
-#endif // Header_h

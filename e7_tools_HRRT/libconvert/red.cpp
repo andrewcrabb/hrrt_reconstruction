@@ -20,10 +20,6 @@ to a ping, terminate, install a program and execute a program.
 
 #include <sys/stat.h>
 #include <sys/types.h>
-#ifdef WIN32
-#include <direct.h>
-#include <io.h>
-#endif
 #include "red.h"
 #include "exception.h"
 #include "logging.h"
@@ -93,12 +89,7 @@ bool Red::recvAndInterpretMsg()
        flog.logMsg("RED received TERM from #1", 1)->arg(name);
        rc->newMessage();
        *rc << RD_CMD_EXIT << std::endl;
-#ifdef WIN32
-       Sleep(1);
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
        sleep(1);
-#endif
        rc->closeConnectionToClient();             // close connection to client
        return(true);
       case RD_CMD_INSTALL:                                // install executable
@@ -121,13 +112,10 @@ bool Red::recvAndInterpretMsg()
               if (p == std::string::npos) break;
               directory+=fname.substr(0, p+1);
               fname=fname.substr(p+1);
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
+
               mkdir(directory.c_str(), S_IXUSR | S_IRUSR | S_IWUSR |
                                        S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-#endif
-#ifdef WIN32
-              _mkdir(directory.c_str());
-#endif
+
             }
                                                 // receive and store executable
            buffer=new unsigned char[size];
@@ -139,13 +127,10 @@ bool Red::recvAndInterpretMsg()
            delete[] buffer;
            buffer=NULL;
                                          // change access rights for executable
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
+
            chmod(filename.c_str(), S_IXUSR | S_IRUSR | S_IWUSR |
                                    S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-#endif
-#ifdef WIN32
-           _chmod(filename.c_str(), _S_IWRITE | _S_IREAD);
-#endif
+
          }
          catch (...)
           { if (buffer != NULL) delete[] buffer;
@@ -160,22 +145,12 @@ bool Red::recvAndInterpretMsg()
          *rc >> name >> filename >> params;
          flog.logMsg("RED received EXEC(#1) from #2", 1)->arg(filename)->
           arg(name);
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
+
          if (fork() == 0) { filename+=" "+params;
                             system(filename.c_str());
                             exit(127);
                           }
-#endif
-#ifdef WIN32
-         STARTUPINFO si;
-         PROCESS_INFORMATION pi;
 
-         ZeroMemory(&si, sizeof(si));
-         si.cb=sizeof(si);
-         ZeroMemory(&pi, sizeof(pi));
-         CreateProcess(filename.c_str(), (char *)params.c_str(), NULL,
-                       NULL, false, 0, NULL, NULL, &si, &pi);
-#endif
        }
        break;
       default:                                                  // can't happen

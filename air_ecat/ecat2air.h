@@ -1,5 +1,4 @@
-#ifndef ecat2air_h
-#define ecat2air_h
+#pragma once
 
 /* created on 30-apr-1996 by Merence Sibomana <Sibomana@topo.ucl.ac.be>
  *
@@ -72,4 +71,3 @@ AIR_Error ecat_AIR_load_probr(const char *specs, const AIR_Boolean decompressabl
 #define AIR_close_header ecat_AIR_close_header
 #define AIR_load_probr ecat_AIR_load_probr
 
-#endif /* ecat_air_h */

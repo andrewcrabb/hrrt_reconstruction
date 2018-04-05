@@ -6,18 +6,12 @@
     \date 2005/01/15 determine correct endianess of local machine
  */
 
-#ifndef _COMM_SOCKET_H
-#define _COMM_SOCKET_H
+#pragma once
 
 #include <iostream>
 #include <string>
-#ifdef WIN32
-#include <windows.h>
-#endif
-#ifdef __linux__
 #include <sys/types.h>
 #include <unistd.h>
-#endif
 #include "sockets.h"
 #include "stream_buffer.h"
 
@@ -34,12 +28,7 @@ class CommSocket
     Socket *so;                                           /*!< TCP/IP socket */
     signed long int sock;                          /*!< ID of message socket */
     char endianess;                          /*!< endianess of local machine */
-#ifdef WIN32
-    PROCESS_INFORMATION pi;    /*!< information about started client process */
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
     pid_t child_pid;           /*!< information about started client process */
-#endif
    public:
                                                 // create server side of socket
     CommSocket(const std::string, const std::string, const std::string,
@@ -79,9 +68,3 @@ class CommSocket
      void writeData(const T * const, const unsigned long int);
  };
 
-#ifndef _COMM_SOCKET_CPP
-#define _COMM_SOCKET_TMPL_CPP
-#include "comm_socket.cpp"
-#endif
-
-#endif

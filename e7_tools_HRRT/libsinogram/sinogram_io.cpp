@@ -26,10 +26,7 @@
 #include <algorithm>
 #include <fstream>
 #include <limits>
-#ifndef _SINOGRAM_IO_CPP
-#define _SINOGRAM_IO_CPP
 #include "sinogram_io.h"
-#endif
 #include "e7_tools_const.h"
 #include "e7_common.h"
 #include "ecat7.h"
@@ -38,9 +35,6 @@
 #include "ecat7_scan3d.h"
 #include "ecat_tmpl.h"
 #include "exception.h"
-#ifdef WIN32
-#include "global_tmpl.h"
-#endif
 #include "gm.h"
 #include "logging.h"
 #include "mem_ctrl.h"

@@ -7,8 +7,7 @@
     \date 2005/02/25 use vectors
  */
 
-#ifndef _REBIN_X_H
-#define _REBIN_X_H
+#pragma once
 
 #include <vector>
 
@@ -51,8 +50,3 @@ template <typename T> class RebinX
     void calcRebinX(T * const, T * const, const unsigned short int) const;
  };
 
-#ifndef _REBIN_X_CPP
-#include "rebin_x.cpp"
-#endif
-
-#endif

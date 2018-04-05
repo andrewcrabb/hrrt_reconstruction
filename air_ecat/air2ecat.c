@@ -17,22 +17,11 @@
 
 #include "ecat2air.h"
 #include <ecatx/matrix.h>
-#ifdef WIN32
-#include "io.h"
-#define access _access
-#define unlink _unlink
-#define F_OK 0
-#define R_OK 4
-#else
 #include <unistd.h>
-#endif
 
 #define AIR_SAVE_ERROR 1
 #define AIR_SAVE_OK 0
 
-#ifndef FILENAME_MAX 			/* for Sun OS 4.1 */
-# define FILENAME_MAX 256
-#endif
 static char line[FILENAME_MAX];
 static char fname[FILENAME_MAX], hdr_fname[FILENAME_MAX];
 

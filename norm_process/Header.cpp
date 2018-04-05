@@ -12,16 +12,7 @@ Modification History (HRRT User Community):
 #include <ctype.h>
 #include "Header.h"
 
-#ifdef WIN32
-#define strcasecmp _stricmp
-#define strdup _strdup
-#endif
 
-#ifdef _DEBUG
-#undef THIS_FILE
-static char THIS_FILE[]=__FILE__;
-#define new DEBUG_NEW
-#endif
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -113,8 +104,7 @@ int CHeader::ReadFile()
 	return 0;
 }
 
-int CHeader::WriteFile(char *fname, int p39_flag)
-{
+int CHeader::WriteFile(char *fname) {
 	FILE *fp;
 
 	if (fname)  // new name has been selected
@@ -123,42 +113,30 @@ int CHeader::WriteFile(char *fname, int p39_flag)
 		fp = hdr_file;
 
 	if (!fp)
-	{
 		return 1;
-	}
 
 	fprintf(fp,"!INTERFILE := \n");
-	for (int i = 0; i < numtags; i++)
-	{
-		// Ignore Frame definition in P39 headers b/c unsupported by e7_tools
-		if (p39_flag && strcmp(tags[i], "Frame definition")==0) continue;
+	for (int i = 0; i < numtags; i++) {
 		fprintf(fp,"%s := %s\n",tags[i],data[i]);
 	}
-
 	fclose(fp);
-
 	return 0;
 }
 
-int CHeader::IsFileOpen()
-{
-	// return the file flag
+int CHeader::IsFileOpen() {
 	return m_FileOpen;
 }
 
-void CHeader::GetFileName(char *filename)
-{
+void CHeader::GetFileName(char *filename) {
 	// return the file name only if a file is open
 	if (m_FileOpen != 0)
 		sprintf(filename, "%s",m_FileName);
 
 }
 
-int CHeader::CloseFile()
-{
+int CHeader::CloseFile() {
 	// close the file
-	if ((m_FileOpen != 0)&& (hdr_file != NULL))
-	{
+	if ((m_FileOpen != 0)&& (hdr_file != NULL)) {
 		fclose(hdr_file);
 		*m_FileName = '\0';
 	}
@@ -166,12 +144,9 @@ int CHeader::CloseFile()
 }
 
 
-int CHeader::Readchar(char *tag, char* val, int len)
-{
-	for (int i = 0; i < numtags; i++)
-	{
-		if (strstr(tags[i],tag))
-		{
+int CHeader::Readchar(char *tag, char* val, int len) {
+	for (int i = 0; i < numtags; i++) {
+		if (strstr(tags[i],tag)) {
 			strncpy(val,data[i],len);
 			val[len-1] = '\0';
 			return 0;
@@ -180,8 +155,7 @@ int CHeader::Readchar(char *tag, char* val, int len)
 	return E_TAG_NOT_FOUND;
 }
 
-bool CHeader::SortData(char *HdrLine, char *tag, char *Data)
-{
+bool CHeader::SortData(char *HdrLine, char *tag, char *Data) {
 	// 
 	char str[256], sep[3];
 	int str1len, str2len, x,i;
@@ -234,14 +208,6 @@ int CHeader::WriteTag(const char *tag, int val)
 	return WriteTag(tag,buffer);
 }
 
-#ifdef WIN32
-int CHeader::WriteTag(const char *tag, __int64 val)
-{
-	char buffer[256];
-	sprintf(buffer,"%I64d",val);
-	return WriteTag(tag,buffer);
-}
-#endif
 
 int CHeader::WriteTag(const char *tag, const char *val)
 {

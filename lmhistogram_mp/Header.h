@@ -65,7 +65,8 @@ public:
 	void GetFileName(string &filename);
 	int IsFileOpen();
 	int OpenFile(const string &filename);			// Loads specified filename in memory table
-	int WriteFile(const string &filename, int p39_flag=0);
+	// int WriteFile(const string &filename, int p39_flag=0);
+	int WriteFile(const string &filename);
 	CHeader();
 	virtual ~CHeader();
 protected:

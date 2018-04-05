@@ -8,8 +8,7 @@
     \date 2004/09/10 mask border bins in norm
  */
 
-#ifndef _GAPFILL_H
-#define _GAPFILL_H
+#pragma once
 
 #include <vector>
 #include "e7_tools_const.h"
@@ -70,6 +69,4 @@ class GapFill
                   const float, const unsigned short int,
                   const unsigned short int, const unsigned short int);
  };
-
-#endif
 

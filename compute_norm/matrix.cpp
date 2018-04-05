@@ -2,15 +2,12 @@
 //** author: Frank Kehren
 
 #include <iostream>
-#ifndef _MATRIX_CPP
-#define _MATRIX_CPP
 #include "matrix.h"
-#endif
 #include <string.h>
 
 //#include "exception.h"
 
-using namespace std;
+// using namespace std;
 
 /*- methods -----------------------------------------------------------------*/
 
@@ -235,10 +232,10 @@ void Matrix <T>::print() const
    mp=mat;
    for (unsigned int r=0; r < _rows; r++)
     { for (unsigned int c=0; c < _columns; c++)
-       cout << *mp++ << " ";
-      cout << endl;
+       std::cout << *mp++ << " ";
+      std::cout << std::endl;
     }
-   cout << endl;
+   std::cout << std::endl;
  }
 
 /*---------------------------------------------------------------------------*/

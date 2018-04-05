@@ -28,8 +28,7 @@
    * along with this software; if not, write to the Free Software
    * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#ifndef ScannerModel_h
-#define ScannerModel_h
+# pragma once
 
 typedef struct _ScannerModel {
 	char *number;  		/* model number as an ascii string */
@@ -46,9 +45,8 @@ typedef struct _ScannerModel {
 	int  maxdel;		/* default ring difference 	sept 2002	*/
 } ScannerModel;
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-ScannerModel *scanner_model(int);
 
-#endif /* ScannerModel_h */
+extern "C" {
+
+ScannerModel *scanner_model(int);
+}

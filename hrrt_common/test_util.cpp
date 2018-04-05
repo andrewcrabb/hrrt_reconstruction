@@ -17,6 +17,7 @@ int test_date(const string &str) {
 	bt::ptime t0;
 	bool ret = parse_interfile_date(str, t0);
 	cout << "parse_interfile_date(" << str << ") returned " << ret << ": " << t0 << endl;
+	return 0;
 }
 
 int test_time (const string &str) {
@@ -26,6 +27,7 @@ int test_time (const string &str) {
 	std::cout.imbue(std::locale(std::cout.getloc(), facet));
 	parse_interfile_time(str, pt);
 	cout << "test_time(" << str << "): " << pt << endl;
+	return 0;
 }
 
 // static int get_dose_delay(CHeader &hdr, int &t) {

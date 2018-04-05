@@ -22,20 +22,11 @@
 
 #include <iostream>
 #include <string>
-#ifdef WIN32
-#include <winsock2.h>
-#include <io.h>
-#endif
-#ifdef __MACOSX__
-#include <netinet/in.h>
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#endif
 #include "sockets.h"
 #include "exception.h"
 #include "swap_tmpl.h"
@@ -44,10 +35,8 @@
 
 /*- definitions -------------------------------------------------------------*/
 
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #define closesocket close
 #define SD_SEND 2
-#endif
 
 /*- methods -----------------------------------------------------------------*/
 
@@ -66,26 +55,13 @@ Socket::Socket(const std::string server_ip,
                const unsigned short int port_number)
  { struct sockaddr_in server;
 
-#ifdef WIN32
-   { WSADATA wsaData;
-                                                      // initialize winsock.dll
-     if (WSAStartup(MAKEWORD(1, 1), &wsaData) == SOCKET_ERROR)
-      throw Exception(REC_SOCKET_ERROR_INIT,
-                      "Initialization of winsock.dll failed.");
-   }
-#endif
                                                                // create socket
    if ((sock=socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
     {
-#ifdef WIN32
-      WSACleanup();
-#endif
       throw Exception(REC_SOCKET_ERROR_CREATE_C,
                       "Client can't create TCP/IP socket.");
     }
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    setBufferSizes(sock);
-#endif
                                                // build TCP/IP socket to server
    memset(&server, 0, sizeof(server));
    server.sin_family=AF_INET;
@@ -95,9 +71,6 @@ Socket::Socket(const std::string server_ip,
    if (connect(sock, (struct sockaddr *)&server,
                sizeof(server)) == SOCKET_ERROR)
     { closesocket(sock);
-#ifdef WIN32
-      WSACleanup();
-#endif
       throw Exception(REC_SOCKET_ERROR_CONNECT, "Client can't establish "
                       "connection to server on TCP/IP socket.");
     }
@@ -122,24 +95,12 @@ Socket::Socket(const std::string server_ip,
 Socket::Socket(unsigned short int * const port_number)
  { struct sockaddr_in server;
 
-#ifdef WIN32
-   { WSADATA wsaData;
-                                                      // initialize winsock.dll
-     if (WSAStartup(MAKEWORD(1, 1), &wsaData) == SOCKET_ERROR)
-      throw Exception(REC_SOCKET_ERROR_INIT,
-                      "Initialization of winsock.dll failed.");
-   }
-#endif
                                                                // create socket
    if ((sock=socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
     {
-#ifdef WIN32
-      WSACleanup();
-#endif
       throw Exception(REC_SOCKET_ERROR_CREATE_S,
                       "Server can't create TCP/IP socket.");
     }
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    setBufferSizes(sock);
    { const int on=1;
 
@@ -147,7 +108,6 @@ Socket::Socket(unsigned short int * const port_number)
                     sizeof(signed long int)) < 0)
       throw Exception(REC_SOCKET_ERROR_CONF, "Can't configure TCP/IP socket.");
    }
-#endif
                                                          // build TCP/IP socket
    memset(&server, 0, sizeof(server));
    server.sin_family=AF_INET;
@@ -157,28 +117,17 @@ Socket::Socket(unsigned short int * const port_number)
                                          // bind socket to a port of the server
    if (bind(sock, (struct sockaddr *)&server, sizeof(server)) == SOCKET_ERROR)
     { closesocket(sock);
-#ifdef WIN32
-      WSACleanup();
-#endif
       throw Exception(REC_SOCKET_ERROR_BIND,
                       "Server can't bind TCP/IP socket to port.");
     }
    {
-#if defined(WIN32) || defined(__MACOSX__) || defined(__SOLARIS__)
-     int length;
-#endif
-#if defined(__linux__)
      socklen_t length;
-#endif
                                                 // request the used port number
      length=sizeof(server);
      // ahc
      // if (getsockname(sock, (struct sockaddr *)&server, &length) == SOCKET_ERROR) { 
      if (getsockname(sock, (struct sockaddr *)&server, (unsigned int *)&length) == SOCKET_ERROR) { 
        closesocket(sock);
-#ifdef WIN32
-        WSACleanup();
-#endif
         throw Exception(REC_SOCKET_ERROR_GETPORT,
 			"Server can't determine port assigned to TCP/IP socket.");
      }
@@ -187,9 +136,6 @@ Socket::Socket(unsigned short int * const port_number)
                                         // listen on port for connecting client
    if (listen(sock, MAX_CONNECT) == SOCKET_ERROR)
     { closesocket(sock);
-#ifdef WIN32
-      WSACleanup();
-#endif
       throw Exception(REC_SOCKET_ERROR_LISTEN,
                       "Server can't listen on TCP/IP socket.");
     }
@@ -213,24 +159,12 @@ Socket::Socket(unsigned short int * const port_number)
 Socket::Socket(const unsigned short int port_number)
  { struct sockaddr_in server;
 
-#ifdef WIN32
-   { WSADATA wsaData;
-                                                      // initialize winsock.dll
-     if (WSAStartup(MAKEWORD(1, 1), &wsaData) == SOCKET_ERROR)
-      throw Exception(REC_SOCKET_ERROR_INIT,
-                      "Initialization of winsock.dll failed.");
-   }
-#endif
                                                                // create socket
    if ((sock=socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
     {
-#ifdef WIN32
-      WSACleanup();
-#endif
       throw Exception(REC_SOCKET_ERROR_CREATE_S,
                       "Server can't create TCP/IP socket.");
     }
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    setBufferSizes(sock);
    { const int on=1;
 
@@ -238,7 +172,6 @@ Socket::Socket(const unsigned short int port_number)
                     sizeof(signed long int)) < 0)
       throw Exception(REC_SOCKET_ERROR_CONF, "Can't configure TCP/IP socket.");
    }
-#endif
                                                          // build TCP/IP socket
    memset(&server, 0, sizeof(server));
    server.sin_family=AF_INET;
@@ -248,18 +181,12 @@ Socket::Socket(const unsigned short int port_number)
                   // assign protocol address (IP number, port number) to socket
    if (bind(sock, (struct sockaddr *)&server, sizeof(server)) == SOCKET_ERROR)
     { closesocket(sock);
-#ifdef WIN32
-      WSACleanup();
-#endif
       throw Exception(REC_SOCKET_ERROR_BIND,
                       "Server can't bind TCP/IP socket to port.");
     }
                                         // listen on port for connecting client
    if (listen(sock, MAX_CONNECT) == SOCKET_ERROR)
     { closesocket(sock);
-#ifdef WIN32
-      WSACleanup();
-#endif
       throw Exception(REC_SOCKET_ERROR_LISTEN,
                       "Server can't listen on TCP/IP socket.");
     }
@@ -280,9 +207,6 @@ Socket::~Socket()
     else { shutdown(msgsock, SD_SEND);                          // stop sending
            closesocket(msgsock);                                   // and close
          }
-#ifdef WIN32
-   WSACleanup();                                         // cleanup winsock.dll
-#endif
  }
 
 /*---------------------------------------------------------------------------*/
@@ -384,12 +308,7 @@ int Socket::openMsgsock()
 void Socket::readFromSock(char *buffer, unsigned long int size)
  {                       // read data until desired number of bytes is received
    do { signed long int rcv_len;
-#ifdef WIN32
-        rcv_len=recv(msgsock, buffer, size, 0);
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
         rcv_len=(signed long int)read(msgsock, buffer, size);
-#endif
         if (rcv_len > 0) { buffer+=rcv_len;
                            size-=rcv_len;
                          }

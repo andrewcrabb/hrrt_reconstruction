@@ -46,7 +46,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-#ifdef __linux__
 #define _MAX_PATH 256
 #define _MAX_DRIVE 0
 #define _MAX_DIR 256
@@ -55,16 +54,6 @@
 #include <pthread.h>
 #define _stricmp strcasecmp
 #define _splitpath splitpath
-
-#else
-#include <direct.h>
-#include <winsock2.h>
-#include <mswsock.h>
-#include <windows.h>
-#include <process.h>
-#include <conio.h>
-#include <tlhelp32.h>
-#endif
 
 #include <gen_delays_lib/lor_sinogram_map.h>
 #include <gen_delays_lib/segment_info.h>
@@ -79,10 +68,6 @@
 #include "rod_dwell.h"
 #include "scanner_params.h"
 #include "rotation_dwell_sino.h"
-
-#ifndef M_PI
-#define M_PI        3.14159265358979323846
-#endif
 
 extern float inter(float x1, float y1, float x2, float y2, float r,
 		   float *xi, float *yi);
@@ -469,11 +454,7 @@ static float sum[NLAYERS][NHEADS][NXCRYS];
 /*---------------------------*/
 /* The Compute Delays Thread */
 
-#ifdef __linux__
 void *CNThread2( void *arglist ) 
-#else
-  unsigned int __stdcall CNThread2( void *arglist ) 
-#endif
 {
   struct CNArgs *args = (struct CNArgs *) arglist;
   int ax, ay, bx, by, mp, ahead, bhead, axx, bxx;
@@ -489,14 +470,10 @@ void *CNThread2( void *arglist )
   SOL *sol;
   float *dptr=NULL;
 
-#ifdef __linux__
-#ifdef _THREADTIME
   char TimeStr[ 32 ] ;
   memset( TimeStr, 0, 32 ) ;
   sprintf( TimeStr, "CNThread_%d", args->mp );
   StartTimer( TimeStr ) ;
-#endif
-#endif
 
   /*----*/
   mp = args->mp;
@@ -587,14 +564,8 @@ void *CNThread2( void *arglist )
 	    } // end ay
 	} // end ax
     } // end alayer
-#ifdef __linux__
-#ifdef _THREADTIME
-  StopTimer( TimeStr ) ;
-#endif
   pthread_exit( NULL ) ;
-#else
   return 0 ;
-#endif
 }
 
 /*---------------------------*/

@@ -1,29 +1,14 @@
 /* @(#)matrix.h	1.5 2/8/93 */
 
-/* prevent recursive definition */
-#ifndef		matrix_h
-#define		matrix_h
+#pragma once
 
 #include <stdio.h>
 #include <sys/types.h>
 
-#ifdef _WIN32
-#define R_MODE "rb"
-#define RW_MODE "rb+"
-#define W_MODE "wb"
-#define swab _swab
-#define strdup _strdup
-typedef char *void *;
-typedef unsigned char unsigned char ;
-typedef unsigned short u_short;
-//extern unsigned short ntohs(unsigned short);
-//extern unsigned long ntohl(unsigned long);
-#else
 #define R_MODE "r"
 #define RW_MODE "r+"
 #define W_MODE "w"
 #include <netinet/in.h>
-#endif
 
 #define		MatBLKSIZE 512
 #define		MatFirstDirBlk 2
@@ -546,17 +531,7 @@ typedef
 	}
 MatrixData ;
 
-#if defined(sun) && !defined(__SVR4)       /* sunos 4.1 */
-#define OLD_C 1
-#endif
-
-#if !defined(OLD_C) || defined(__cplusplus)
-#if defined(__cplusplus)
 extern "C" {
-/*
- * high level user functions
- */
-#endif
 void SWAB(const void *from, void *to, int len);
 void SWAW(const short *from, short *to, int len);
 int find_bmin(const unsigned char *, int size);
@@ -630,19 +605,5 @@ int mat_wblk(FILE *fptr, int blkno, char *bufr,  int nblks);
 void swaw(short *from, short *to, int length);
 int insert_mdir(struct MatDir	matdir,MatDirList	*dirlist);
 
-#if defined(__cplusplus)
 }
-#endif
-#else /* __cplusplus */
-extern float find_fmin(), find_fmax();
-extern MatrixFile *matrix_open(), *matrix_create();
-extern MatrixData *matrix_read(), *matrix_object_create();
-extern MatrixData *matrix_read_slice(), *matrix_read_view();
-extern Main_header *matrix_init_main_header();
-extern FILE* mat_open();
-extern MatDirList *mat_read_directory();
-extern char* is_analyze();
-extern void free_matrix_data();
-#endif	/* __cplusplus */
 extern int ecat_default_version;
-#endif	/* 	matrix_h */

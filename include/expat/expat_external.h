@@ -2,8 +2,7 @@
    See the file COPYING for copying permission.
 */
 
-#ifndef Expat_External_INCLUDED
-#define Expat_External_INCLUDED 1
+# pragma once
 
 /* External API definitions */
 
@@ -109,8 +108,4 @@ typedef long XML_Index;
 typedef unsigned long XML_Size;
 #endif /* XML_LARGE_SIZE */
 
-#ifdef __cplusplus
 }
-#endif
-
-#endif /* not Expat_External_INCLUDED */

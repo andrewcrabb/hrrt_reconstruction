@@ -17,8 +17,7 @@
                       find_start_countrate() to locate histogramming start time
           20-MAY-2009: Use a single fast LUT rebinner
 */
-#ifndef HISTOGRAM_H
-#define HISTOGRAM_H
+#pragma once
 
 #define unix 1
 
@@ -102,7 +101,7 @@ int64_t total_tx_randoms(); // TX events for P39 simultaneous TX+EM
 //
 // Global variables
 //
-extern int l64_flag;				// 1 if 64-bit mode, 0 otherwise
+// extern int l64_flag;				// 1 if 64-bit mode, 0 otherwise
 extern int hist_mode;					// 0=Trues (Default), 1=Prompts and Randoms, 
 									// 2=Prompts only, 7=transmission
 extern int max_rd;					// maximum ring difference, default=67
@@ -126,5 +125,3 @@ typedef enum {HW_REBINNER=0x1, SW_REBINNER=0x2, IGNORE_BORDER_CRYSTAL=0x4, NODOI
 	RebinnerMethodMask;
 extern int frame_start_time;
 extern int frame_duration;
-
-#endif

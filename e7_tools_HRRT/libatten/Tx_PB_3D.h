@@ -13,8 +13,7 @@ Modification History
     \date 2009/08/28 Port to Linux (peter.bloomfield@camhpet.ca)
 */
 
-#ifndef _TX_PB_3D_H
-#define _TX_PB_3D_H
+#pragma once
 
 #include <vector>
 #include "PB_3D.h"
@@ -61,8 +60,3 @@ template <typename T> class Tx_PB_3D:public PB_3D
 */
 extern float hrrt_tx_scatter_a, hrrt_tx_scatter_b;
 extern float hrrt_blank_factor;
-#ifndef _TX_PB_3D_CPP
-#include "Tx_PB_3D.cpp"
-#endif
-
-#endif

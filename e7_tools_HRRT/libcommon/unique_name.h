@@ -5,8 +5,7 @@
     \date 2005/03/29 get IP number only once
  */
 
-#ifndef _UNIQUE_NAME_H
-#define _UNIQUE_NAME_H
+#pragma once
 
 #include <string>
 #include "semaphore_al.h"
@@ -28,4 +27,3 @@ class UniqueName
     static UniqueName *un();               // get pointer to instance of object
  };
 
-#endif

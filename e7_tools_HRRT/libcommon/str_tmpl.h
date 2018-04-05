@@ -5,8 +5,7 @@
     \date 2004/06/01 added Doxygen style comments
  */
 
-#ifndef _STR_TMPL_H
-#define _STR_TMPL_H
+#pragma once
 
 #include <string>
 
@@ -23,10 +22,3 @@ template <typename T> std::string toStringZero(const T,
                                                const unsigned short int);
     // convert integer into hexadecimal string of fixed size with leading zeros
 std::string toStringZeroHex(const unsigned long int, const unsigned short int);
-
-#ifndef _STR_CPP
-#define _STR_TMPL_CPP
-#include "str_tmpl.cpp"
-#endif
-
-#endif

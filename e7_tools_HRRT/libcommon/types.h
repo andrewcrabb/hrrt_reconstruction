@@ -7,12 +7,7 @@
     \date 2005/03/11 added PSF-AW-OSEM
  */
 
-#ifndef _TYPES_H
-#define _TYPES_H
-
-#ifdef WIN32
-#include <windows.h>
-#endif
+#pragma once
 
 /*- type declarations -------------------------------------------------------*/
 
@@ -63,24 +58,14 @@ namespace COM_EVENT
                } tnotify;
 }
 
-#ifdef __SOLARIS__
-typedef uint64_t uint64;                   /*!< 64 bit unsigned integer type */
-typedef int64_t int64;                       /*!< 64 bit signed integer type */
-#endif
-#if defined(__INTEL_COMPILER) || defined(__MACOSX__) || defined(__GNUC__)
+
                                                        // supports C99 standard
 typedef unsigned long long int uint64;     /*!< 64 bit unsigned integer type */
 typedef signed long long int int64;          /*!< 64 bit signed integer type */
-#endif
-#if defined(WIN32) && !defined(__INTEL_COMPILER)
-typedef unsigned hyper uint64;             /*!< 64 bit unsigned integer type */
-typedef hyper int64;                         /*!< 64 bit signed integer type */
-#endif
+
 
 #ifdef CPU64BIT
 typedef unsigned int uint32;               /*!< 32 bit unsigned integer type */
 #else
 typedef unsigned long int uint32;          /*!< 32 bit unsigned integer type */
-#endif
-
 #endif

@@ -10,8 +10,8 @@
                   Integrate Peter Bloomfield __linux__ support
 
 */
-#ifndef fan_sum_h
-#define fan_sum_h
+# pragma once
+
 #define OBLIQUE_C 0x1
 #define RDWELL_C  0x2
 #define OMEGA_C   0x4
@@ -34,5 +34,3 @@ typedef enum {PROMPT_EVENT=0, DELAYED_EVENT=1, TAG_EVENT=2, SYNC_EVENT=3} EventT
 static unsigned int ewtypes[16] = {3,3,1,0,3,3,2,2,3,3,3,3,3,3,3,3};
 extern float *fan_sum_weight;
 static float  eps = 1.0e-4f;
-#endif
-

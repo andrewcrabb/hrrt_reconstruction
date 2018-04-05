@@ -13,33 +13,24 @@
    2/6/13 ahc: Made hrrt_rebinner.lut a required command line argument.
                Took out awful code accepting any hrrt_rebinner found anywhere as the one to use.
 */
-#define _FILE_OFFSET_BITS 64
-#ifndef _LARGEFILE_SOURCE
-#define _LARGEFILE_SOURCE
-#endif
+#include <cstdlib>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <fcntl.h>
 #include <time.h>
 #include <math.h>
-#include <malloc.h>
+// #include <malloc.h>
 #include <string.h>
 #include <time.h>
 #include <xmmintrin.h>
-#ifdef __linux__
+
 #define _MAX_PATH 256
 #include <pthread.h>
 #include <sys/time.h>
 #include <unistd.h>
-#else
-#define _FILE_OFFSET_BITS 64
-#define _LARGEFILE_SOURCE
-#include <process.h>
-#include <windows.h>
-#include <io.h>
-#define access _access
-#endif
+
 #include "gen_delays.h"
 #include "segment_info.h"
 #include "geometry_info.h"
@@ -65,68 +56,8 @@ typedef struct {
 
 static char progid[]="$Id: gen_delays.c,v 1.3 2007/01/08 06:04:55 cvsuser Exp $";
 
-// ahc: No longer search absolutely anywhere for hrrt_rebinner.lut
-/*
-#ifdef __linux__
-static const char *exe_path[] = { ".", "/tmp", NULL};
-#else
-static const char *exe_path[] = { "c:\\cps\\users_sw", "c:\\cps\\cluster_u", NULL};
-#endif
-*/
 
 float koln_lthick[8]   = {0.75f, 0.75f, 1.0f, 0.75f, 0.75f, 0.75f, 1.0f, 0.75f};
-
-// ahc
-
-// const char *hrrt_rebinner_lut_path(int tx_flag)
-// {
-//   int i=0;
-//   static char lut_path[_MAX_PATH];
-
-//   const char *lut_dir=NULL;
-//   // PMB Added
-//   // Use GMINI environment variable as path for hrrt_rebinner.lut
-// #ifdef __linux__
-//   char buf[_MAX_PATH];
-//   exe_path[ 0 ] = getenv( "GMINI" ) ;
-// #endif
-//   for (i=0; exe_path[i]!=NULL; i++)
-//     {
-//       lut_dir = exe_path[i];
-//       if (access(lut_dir,0) == 0) 
-// 	{  // found directory 
-// #ifdef __linux__
-// 	  if (!tx_flag) sprintf(lut_path,"%s/hrrt_rebinner.lut",lut_dir);
-// 	  else sprintf(lut_path,"%s/hrrt_rebinner_tx.lut",lut_dir);
-// #else
-// 	  if (!tx_flag) sprintf(lut_path,"%s\\hrrt_rebinner.lut",lut_dir);
-// 	  else sprintf(lut_path,"%s\\hrrt_rebinner_tx.lut",lut_dir);
-// #endif
-// 	  if (access(lut_path,0) == 0) return lut_path; //exising file
-// 	  // PMB Added
-// 	  //	IFF lut not found; try to locate it using 'which'
-// #ifdef __linux__
-// 	  sprintf( buf, "which hrrt_rebinner.lut"  ) ;
-// 	  FILE *in  = popen( buf, "r" ) ;
-// 	  fscanf( in, "%s", lut_path ) ;
-// 	  pclose( in ) ;
-// 	  // If 'hrrt_rebinner.lut' is not found via 'which'; return NULL and stop execution
-// 	  // If 'hrrt_rebinner.lut' is not found via 'which'; return full path and filename
-// 	  if (access(lut_path,0) != 0) 
-// 	    {
-// 	      printf( "\n\tError:\n\t\tCheck PATH environment variable and file access\n\n\n" ) ;
-// 	      return NULL ; 
-// 	    }
-// 	  else return lut_path ;
-// #else
-// 	  printf( "\n\tError: file '%s' not found\n", lut_path) ;
-// 	  return NULL;
-// #endif
-// 	}
-//     }
-//   return NULL;
-// }
-
 
 static void usage(const char *prog)
 {
@@ -347,20 +278,12 @@ int compute_csings_from_drates( int ncrys, int *dcoins, float tau, float dt, flo
   return(iter);
 }
      
-#ifdef __linux__
 void *pt_compute_delays(void *ptarg)
-#else
-  unsigned __stdcall pt_compute_delays(void *ptarg)
-#endif
 {
   COMPUTE_DELAYS *arg = (COMPUTE_DELAYS *) ptarg;
   //	printf("%x\t%x\t%d\n",delays_data,arg->delaydata,arg->mp);
   compute_delays(arg->mp,arg->delaydata,arg->csings);
-#ifdef __linux__
   pthread_exit( NULL ) ;
-#else
-  return 0;
-#endif
 }
 
 /**
@@ -374,11 +297,7 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
                ) 
 {
   int i, n, mp,j;
-#ifdef __linux__
   struct timeval t0, t1, t2, t3;
-#else
-  clock_t t0, t1, t2, t3;
-#endif
   int dtime1, dtime2, dtime3, dtime4;
   FILE *fptr;
   // ahc
@@ -406,13 +325,9 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
   int kflag=0;	
   float *csings=NULL;
 
-#ifdef __linux__
   int threadnum ;
   pthread_t threads[ 4 ] ;
   pthread_attr_t attr;
-#else
-  HANDLE threads[4];
-#endif
   unsigned int threadID;
 
   COMPUTE_DELAYS comdelay[4];
@@ -479,11 +394,7 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
   if (!csingles_file && !coins_file && p_coins_file==NULL)
     fprintf(stdout,"Input Crystal Singles or Coincidence Histogram file must be specified with -h or -C <filename>\n");
 		
-#ifdef __linux__
   gettimeofday( &t0, NULL ) ;
-#else
-  t0=clock();
-#endif
   
   head_crystal_depth = (float*)calloc(NHEADS, sizeof(float));
   for (i=0; i<NHEADS;i++) 
@@ -579,20 +490,11 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
     n = (int)fread( coins, sizeof(int), nvals*2, fptr);
     if (fptr != p_coins_file) fclose(fptr);
     if (n != 2*nvals) printf("Not enough data in coinsfile '%s' (only %d of %d)\n", coins_file, n, nvals*2);
-#ifdef __linux__
     gettimeofday( &t2, NULL);
-#else
-    t2=clock();
-#endif
     // we only used the delayed coins (coins+nvals)vvvvvv
     niter = compute_csings_from_drates( nvals, coins+nvals, tau, ftime, csings);
-#ifdef __linux__
     gettimeofday( &t3, NULL);
     printf("csings computed from drates in %d iterations (%d msec)\n", niter, ( ( ( t3.tv_sec * 1000 ) + ( int )( (double)t3.tv_usec / 1000.0 ) ) - ( ( t2.tv_sec * 1000 ) + ( int )( (double)t2.tv_usec / 1000.0 ) ) ) );
-#else
-    t3=clock();
-    printf("csings computed from drates in %d iterations (%d msec)\n", niter, t3-t2);
-#endif
     free(coins);
     if (output_csings_file) {
       fptr = fopen( output_csings_file, "wb");
@@ -630,16 +532,11 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
   comdelay[3].csings=csings;
 
   for (mp=0; mp<5; mp++) {
-#ifdef __linux__
     gettimeofday( &t1, NULL );
-#else
-    t1=clock();
-#endif
     comdelay[0].mp=mporder[0][mp];
     comdelay[1].mp=mporder[1][mp];
     comdelay[2].mp=mporder[0][mp+5];
     comdelay[3].mp=mporder[1][mp+5];
-#ifdef __linux__
     /* Initialize and set thread detached attribute */
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -655,33 +552,13 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
       }
     gettimeofday( &t2, NULL);
     fprintf(stdout,"%d\t%d msec   \n",mp+1, ( ( ( t2.tv_sec * 1000 ) + ( int )( (double)t2.tv_usec / 1000.0 ) ) - ( ( t1.tv_sec * 1000 ) + ( int )( (double)t1.tv_usec / 1000.0 ) ) ) );
-#else
-    threads[0] = (HANDLE)_beginthreadex( NULL, 0, &pt_compute_delays,&comdelay[0], 0, &threadID );
-    threads[1] = (HANDLE)_beginthreadex( NULL, 0, &pt_compute_delays,&comdelay[1], 0, &threadID );
-    threads[2] = (HANDLE)_beginthreadex( NULL, 0, &pt_compute_delays,&comdelay[2], 0, &threadID );
-    threads[3] = (HANDLE)_beginthreadex( NULL, 0, &pt_compute_delays,&comdelay[3], 0, &threadID );
-    WaitForSingleObject( threads[0], INFINITE );
-    WaitForSingleObject( threads[1], INFINITE );
-    WaitForSingleObject( threads[2], INFINITE );
-    WaitForSingleObject( threads[3], INFINITE );
-    t2=clock();
-    fprintf(stdout,"%d\t%d msec   \n",mp+1,t2-t1);
-#endif
     fflush(stdout);
   }
-#ifdef __linux__
   gettimeofday( &t1, NULL);
   fprintf(stdout,"Smooth Delays computed in %d msec.\n", ( ( ( t1.tv_sec * 1000 ) + ( int )( (double)t1.tv_usec / 1000.0 ) ) - ( ( t0.tv_sec * 1000 ) + ( int )( (double)t0.tv_usec / 1000.0 ) ) ) );
   gettimeofday( &t2, NULL );
   fprintf(stdout,"...reduced in %d msec   \n",mp+1, ( ( ( t2.tv_sec * 1000 ) + ( int )( (double)t2.tv_usec / 1000.0 ) ) - ( ( t1.tv_sec * 1000 ) + ( int )( (double)t1.tv_usec / 1000.0 ) ) ) );
-#else
-  t1=clock();
-  fprintf(stdout,"Smooth Delays computed in %d msec.\n",t1-t0);
-  t2=clock();
-  fprintf(stdout,"...reduced in %d msec.\n", t2-t1);
-#endif
   fflush(stdout);	
-
 	
   free(m_solution[0]);
   for (i=1;i<21;i++) {
@@ -735,19 +612,11 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
     fclose( fptr);
   }
   
-#ifdef __linux__
   gettimeofday( &t3, NULL);
   dtime1 = ( ( ( t1.tv_sec * 1000 ) + ( int )( (double)t1.tv_usec / 1000.0 ) ) - ( ( t0.tv_sec * 1000 ) + ( int )( (double)t0.tv_usec / 1000.0 ) ) ) ;
   dtime2 = ( ( ( t2.tv_sec * 1000 ) + ( int )( (double)t2.tv_usec / 1000.0 ) ) - ( ( t1.tv_sec * 1000 ) + ( int )( (double)t1.tv_usec / 1000.0 ) ) ) ;
   dtime3 = ( ( ( t3.tv_sec * 1000 ) + ( int )( (double)t3.tv_usec / 1000.0 ) ) - ( ( t2.tv_sec * 1000 ) + ( int )( (double)t2.tv_usec / 1000.0 ) ) ) ;
   dtime4 = ( ( ( t3.tv_sec * 1000 ) + ( int )( (double)t3.tv_usec / 1000.0 ) ) - ( ( t0.tv_sec * 1000 ) + ( int )( (double)t0.tv_usec / 1000.0 ) ) ) ;
-#else
-  t3=clock();
-  dtime1 = t1-t0;//delta_msec( &t0, &t1);
-  dtime2 = t2-t1;//delta_msec( &t1, &t2);
-  dtime3 = t3-t2;//delta_msec( &t2, &t3);
-  dtime4 = t3-t0;//delta_msec( &t0, &t3);
-#endif
   printf("...stored to disk in %d msec.\n", dtime3);
   printf("Total time %d msec.\n", dtime4);
   return 1;

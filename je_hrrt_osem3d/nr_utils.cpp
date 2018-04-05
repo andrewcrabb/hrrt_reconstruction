@@ -1,8 +1,4 @@
 #include "compile.h"
-#ifdef IS_WIN32
-#include <windows.h>
-#else
-#endif
 #include <stdio.h>
 #include "nr_utils.h"
 #include "mm_malloc.h"

@@ -5,8 +5,7 @@
     \date 2004/09/21 added Doxygen style comments
  */
 
-#ifndef _SSR_H
-#define _SSR_H
+#pragma once
 
 #include <vector>
 
@@ -34,4 +33,3 @@ class SSR
     void Rebinning(float * const, const unsigned short int);
  };
 
-#endif

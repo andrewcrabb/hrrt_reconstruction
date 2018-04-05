@@ -28,8 +28,7 @@
    * along with this software; if not, write to the Free Software
    * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#ifndef interfile_h
-#define interfile_h
+#pragma once
 
 #include "matrix.h"
 
@@ -129,12 +128,7 @@ typedef struct _InterfileItem {
 } InterfileItem;
 
 
-#if defined(__cplusplus)
 extern "C" {
-/*
- * high level user functions
- */
-#endif
 int interfile_write_volume(MatrixFile* mptr, char *image_name,char *header_name, unsigned char* data_matrix, int size);
 char *is_interfile(const char*);
 int interfile_open(MatrixFile*);
@@ -146,13 +140,6 @@ MatrixData *interfile_read_scan(MatrixFile *mptr,int matnum,
 int free_interfile_header(char** ifh);
 void flip_x(void *line, int data_type, int xdim);
 void flip_y(void *plane, int data_type, int xdim, int ydim);
-#if defined(__cplusplus)
 }
-#endif
 
-#if defined(__cplusplus)
 extern "C" InterfileItem used_keys[];
-#else
-extern InterfileItem used_keys[];
-#endif /* __cplusplus */
-#endif

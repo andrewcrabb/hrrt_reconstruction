@@ -2,13 +2,9 @@
 
 #define PROG_NAME "if2e7"
 
-
-
 /** Program version. */
 
 #define PROG_VERSION "2.4.3"
-
-
 
 /** Copyright. */
 
@@ -22,16 +18,6 @@
 #include <time.h>
 #include <sys/stat.h>
 
-#ifdef WIN32
-#include <io.h>
-#include <direct.h>
-#include <sys/types.h>
-#define stat _stat
-#define access _access
-#define mkdir _mkdir
-#define F_OK 0
-#define R_OK 4
-#else
 #include <unistd.h>
 #include "splitpath.h"
 #define _MAX_PATH 256
@@ -40,7 +26,6 @@
 #define _MAX_EXT 256
 #define _MAX_FNAME 256
 #define _splitpath splitpath
-#endif
 
 #include "../ecatx/matrix.h"               /* ecatx lib (ms): handling ECAT format     */
 #include "../ecatx/isotope_info.h"         /* ecatx lib (ms): physcal nuklid constants */
@@ -808,10 +793,6 @@ static int copyFile(char *in_fname, char *dest_dir, Main_header *mh)
     sprintf(patient_dir+len, "_%s", study_date_str);
                   /*create patient directory if not existing */
 
-#ifdef WIN32
-  if (access(patient_dir, F_OK) != 0) 
-    mkdir(patient_dir);
-#endif
 
   _splitpath(in_fname, drive, dir, fname, ext);
   sprintf(path,"%s\\%s%s",patient_dir, fname, ext);
@@ -2233,15 +2214,6 @@ int main(int argc, char *argv[])
     }
     fread(&matrix_float[0],sizeof (float),dimx*dimy*dimz,inputImage);
     fclose(inputImage);
-      /* float byte order in HRRT interfile images is little endian. If       */
-      /* conversion is done on a big endian sytem the bytes have to be swaped */
-    // if (!strcmp(scannerModel,"HRRT") && is_little == 0) {
-// #if !defined(WIN32) && !defined(_LINUX)
-//       Logging("  swapping bytes\n");
-//       for (j=0; j<dimx*dimy*dimz; j++) 
-//         swawbip(&matrix_float[j], sizeof(float));
-// #endif
-      // }
 
   /****************************************************************************/
   /*               correction/manipulation of matrix data                     */

@@ -1,5 +1,4 @@
-#ifndef AMIGACONFIG_H
-#define AMIGACONFIG_H
+# pragma once
 
 /* 1234 = LIL_ENDIAN, 4321 = BIGENDIAN */
 #define BYTEORDER 4321
@@ -28,5 +27,3 @@
 
 /* Define to make XML Namespaces functionality available. */
 #define XML_NS
-
-#endif  /* AMIGACONFIG_H */

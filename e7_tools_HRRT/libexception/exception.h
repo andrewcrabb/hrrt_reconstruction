@@ -5,19 +5,14 @@
     \date 2004/05/18 added Doxygen style comments
  */
 
-#ifndef _EXCEPTION_H
-#define _EXCEPTION_H
+#pragma once
 
 #include <string>
 #include "types.h"
 #include "semaphore_al.h"
-#ifdef WIN32
-#include "ArsEventMsgDefs.h"
-#endif
 
 /*- constants ---------------------------------------------------------------*/
 
-#if !defined(WIN32) || defined(ERRCODES)
                                                                    // error ids
                                                       /*! file doesn't exist */
 const unsigned long int REC_FILE_DOESNT_EXIST                    =40100,
@@ -409,11 +404,10 @@ const unsigned long int REC_FILE_DOESNT_EXIST                    =40100,
                         REC_UMAP_RECON_OUT_OF_RANGE=40293,
                          /*! gethostbyname() fails */
                         REC_GETHOSTBYNAME_FAILS = 40294;
-#endif
-#ifndef WIN32
+
+
                                          /*! information ID for event handle */
 const unsigned long int REC_INFO                              =60000;
-#endif
 
 /*- class definitions -------------------------------------------------------*/
 
@@ -426,16 +420,8 @@ class Exception
     Exception(const unsigned long int, const std::string);
     template <typename T>
      Exception arg(T);                       // fill argument into error string
-#ifdef WIN32
-    Exception arg(GUID);                         // fill GUID into error string
-#endif
     unsigned long int errCode() const;                    // request error code
     std::string errStr() const;                    // request error description
  };
-
-#ifndef _EXCEPTION_CPP
-#define _EXCEPTION_TMPL_CPP
-#include "exception.cpp"
-#endif
 
 #endif

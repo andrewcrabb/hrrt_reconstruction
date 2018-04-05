@@ -20,8 +20,7 @@
     \date 2005/03/11 added PSF-AW-OSEM
  */
 
-#ifndef _IMAGE_IO_H
-#define _IMAGE_IO_H
+#pragma once
 
 #include <string>
 #include "ecat7.h"
@@ -196,4 +195,3 @@ class ImageIO
     unsigned short int ZSamples() const;              // request depth of image
  };
 
-#endif

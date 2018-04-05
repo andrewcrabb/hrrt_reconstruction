@@ -11,7 +11,7 @@
    * data format provided by CTI to customers. CTI or its legal successors
    * should not be held responsible for the accuracy of this software.
    * CTI, hereby disclaims all copyright interest in this software.
-   * In no event CTI shall be liable for any claim, or any special indirect or 
+   * In no event CTI shall be liable for any claim, or any special indirect or
    * consequential damage whatsoever resulting from the use of this software.
    *
    * This is a free software; you can redistribute it and/or
@@ -29,63 +29,51 @@
    * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef matpkg_h_defined
-#define matpkg_h_defined
+# pragma once
 #include <math.h>
 
-typedef struct matrix
-	{
-	  int ncols, nrows;
-	  float *data;
-	}
+typedef struct matrix {
+  int ncols, nrows;
+  float *data;
+}
 *Matrix;
 
-typedef struct vol3d
-	{
-	  int xdim, ydim, zdim;
-	  float voxel_size;
-	  float *data;
-	}
+typedef struct vol3d {
+  int xdim, ydim, zdim;
+  float voxel_size;
+  float *data;
+}
 *Vol3d;
 
-typedef struct stack3d
-	{
-	  int xdim, ydim, zdim;
-	  float xy_size, z_size;
-	  float *data;
-	}
+typedef struct stack3d {
+  int xdim, ydim, zdim;
+  float xy_size, z_size;
+  float *data;
+}
 *Stack3d;
 
-typedef struct view2d
-	{
-	  int xdim, ydim;
-	  float x_pixel_size, y_pixel_size;
-	  float *data;
-	}
+typedef struct view2d {
+  int xdim, ydim;
+  float x_pixel_size, y_pixel_size;
+  float *data;
+}
 *View2d;
 
-#if defined(__cplusplus)
 extern "C" {
-#endif
-void matmpy(Matrix out, const Matrix in1, const Matrix in2);
-void mat_print(const Matrix);
-void mat_unity(Matrix);
-Matrix mat_alloc(int ncols, int nrows);
-void mat_copy(Matrix a, const Matrix b);
-void rotate(Matrix a,float rx, float ry, float rz);
-void translate(Matrix a,float tx, float ty, float tz);
-void scale(Matrix a,float sx, float sy, float sz);
-void mat_apply(Matrix a, float *x1, float *x2);
-void mat_invert(Matrix out, Matrix const in);
-int mat_cofactor(Matrix out, int col, int row, const Matrix in);
-double mat_determinant(const Matrix a);
-void mat_invert2(Matrix out, const Matrix in);
-void mat_free(Matrix);
-Vol3d make3d_volume();
-Stack3d make3d_stack();
-#if defined(__cplusplus)
+  void matmpy(Matrix out, const Matrix in1, const Matrix in2);
+  void mat_print(const Matrix);
+  void mat_unity(Matrix);
+  Matrix mat_alloc(int ncols, int nrows);
+  void mat_copy(Matrix a, const Matrix b);
+  void rotate(Matrix a, float rx, float ry, float rz);
+  void translate(Matrix a, float tx, float ty, float tz);
+  void scale(Matrix a, float sx, float sy, float sz);
+  void mat_apply(Matrix a, float *x1, float *x2);
+  void mat_invert(Matrix out, Matrix const in);
+  int mat_cofactor(Matrix out, int col, int row, const Matrix in);
+  double mat_determinant(const Matrix a);
+  void mat_invert2(Matrix out, const Matrix in);
+  void mat_free(Matrix);
+  Vol3d make3d_volume();
+  Stack3d make3d_stack();
 }
-#endif
-
-#endif /* matpkg_h_defined */
-

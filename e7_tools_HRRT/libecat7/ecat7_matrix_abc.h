@@ -5,8 +5,7 @@
     \date 2004/09/22 added Doxygen style comments
  */
 
-#ifndef _ECAT7_MATRIX_ABC_H
-#define _ECAT7_MATRIX_ABC_H
+#pragma once
 
 #include <fstream>
 #include <list>
@@ -50,4 +49,3 @@ class ECAT7_MATRIX
     virtual void Short2Float();   // convert dataset from SunShort to IeeeFloat
  };
 
-#endif

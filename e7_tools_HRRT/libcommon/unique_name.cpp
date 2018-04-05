@@ -8,12 +8,7 @@
  */
 
 #include <time.h>
-#ifdef WIN32
-#include <winsock2.h>
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <netdb.h>
-#endif
 #include "unique_name.h"
 #include "exception.h"
 #include "str_tmpl.h"
@@ -32,19 +27,10 @@ UniqueName *UniqueName::instance=NULL;
 UniqueName::UniqueName()
  { struct hostent *he;
    char buffer[50];
-#ifdef WIN32
-   WSADATA wsaData;
-#endif
    
    count=0;
    lock=new Semaphore(1);
    lock->wait();
-#ifdef WIN32
-                                                     // initialize winsock.dll
-   if (WSAStartup(MAKEWORD(1, 1), &wsaData) == SOCKET_ERROR)
-    throw Exception(REC_SOCKET_ERROR_INIT,
-                    "Initialization of winsock.dll failed.");
-#endif
    if (gethostname(buffer, 50) == 0)
     { if ((he=gethostbyname(buffer)) == NULL)
        throw Exception( REC_GETHOSTBYNAME_FAILS, "gethostbyname() failed.");
@@ -52,9 +38,6 @@ UniqueName::UniqueName()
        for (unsigned short int j=0; j < he->h_length; j++)
         ip[j]=(unsigned short int)he->h_addr_list[0][j];
     }
-#ifdef WIN32
-   WSACleanup();
-#endif
    lock->signal();
  }
 
@@ -91,16 +74,9 @@ void UniqueName::close()
 std::string UniqueName::getName()
  { std::string s;
 
-#ifdef WIN32
-   int mypid;
-
-   mypid=_getpid();
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    pid_t mypid;
 
    mypid=getpid();
-#endif
    s=toStringZeroHex(ip[0], 2)+toStringZeroHex(ip[1], 2)+
      toStringZeroHex(ip[2], 2)+toStringZeroHex(ip[3], 2)+
      toStringZeroHex((unsigned long int)mypid, 4)+

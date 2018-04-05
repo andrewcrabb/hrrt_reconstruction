@@ -29,17 +29,6 @@
 
 #include <iostream>
 #include <algorithm>
-#ifdef XEON_HYPERTHREADING_BUG
-#if defined(__linux__) || defined(__SOLARIS__)
-#include <alloca.h>
-#endif
-#ifdef WIN32
-#include <malloc.h>
-#endif
-#endif
-#ifdef WIN32
-#include "global_tmpl.h"
-#endif
 #include "bckprj3d.h"
 #include "e7_tools_const.h"
 #include "fastmath.h"
@@ -72,15 +61,6 @@ void *executeThread_FBP_Filter_planes(void *param)
    { FBP::tthread_params *tp;
 
      tp=(FBP::tthread_params *)param;
-#ifdef XEON_HYPERTHREADING_BUG
-      // allocate some padding memory on the stack in front of the thread-stack
-#if defined(__linux__) || defined(__SOLARIS__)
-     alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#ifdef WIN32
-     _alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#endif
      tp->object->filter_planes(tp->sinogram, tp->padded_view_sinogram,
                                tp->z_start, tp->z_end);
      return(NULL);

@@ -23,12 +23,9 @@
         25-may-2010: Use SIMD for gaussian smoothing 
 */
 
-#ifndef _FILTER_H
-#define _FILTER_H
+# pragma once
 
-#ifndef GSMOOTH
 #include "fft.h"
-#endif
 
 /*- type declarations -------------------------------------------------------*/
                                                                 // filter names
@@ -119,5 +116,3 @@ class ImageFilter
     void calcFilter_ps(float * const) const;
 #endif
  };
-
-#endif

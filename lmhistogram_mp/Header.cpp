@@ -58,25 +58,6 @@ CHeader::~CHeader()
  * Error codes:
  * HdrErrors[-ERR_CODE] contains the text error message.
  */
-// int CHeader::OpenFile(char *filename) {
-// 	// Check to see if the file is open
-// 	if (m_FileOpen == 0) {
-// 		hdr_file = fopen(filename, "r");
-// 		if (hdr_file != NULL)
-// 			m_FileOpen = 1;
-
-// 		if (m_FileOpen != 0) {
-// 			sprintf(m_FileName, "%s",filename);
-// 			ReadFile();  // load the database
-// 			return m_FileOpen;
-// 		} else {
-// 			return E_COULD_NOT_OPEN_FILE;
-// 		}
-// 	} else {
-// 	// the file is open
-// 		return E_FILE_ALREADY_OPEN;
-// 	}
-// }
 
 int CHeader::OpenFile(const string &filename) {
 	if (hdr_file.is_open())
@@ -88,35 +69,6 @@ int CHeader::OpenFile(const string &filename) {
 	return ReadFile();
 }
 
-// int CHeader::InsertTag(char *buffer)
-// {
-// 	char *cptr,*cptr1;
-
-// 	// remove trailing newline
-// 	if ((cptr = strchr(buffer,'\n')))
-// 		*cptr = '\0';
-
-// 	// if this is not a comment
-// 	if ((cptr = strstr(buffer,":=")))
-// 	{
-// 		cptr1 = cptr - 1;
-// 		while (*cptr1 == ' ')
-// 			cptr1--;
-// 		cptr1++;
-// 		*cptr1 = '\0';
-// 		if (strcasecmp(buffer,"!Interfile") != 0)
-// 		{
-// 			tags[numtags] = strdup(buffer);
-// 			cptr += 2;
-// 			while (*cptr == ' ')
-// 				cptr++;
-// 			data[numtags] = strdup(cptr);
-// 			numtags++;
-// 		}
-// 	}
-
-// 	return 0;
-// }
 
 int CHeader::InsertTag(string t_buffer) {
 	cout << "CHeader::Inserttag(" << t_buffer << ")" << endl;
@@ -126,34 +78,7 @@ int CHeader::InsertTag(string t_buffer) {
   sregex m_reg = sregex::compile("^\\s*(?P<key>.+)\\s+:=\\s+(?P<value>.+)\\s*$");
   if (regex_match(t_buffer, match, m_reg)) {
     tags.push_back({match["key"], match["value"]});
-    // cout << "tag: '" << match["tag"] << "'" << endl;
-    // cout << "val: '" << match["val"] << "'" << endl;
-    // string m_val{match["val"]};
-    // tags.push_back(string{match["tag"]});
-    // data.push_back(string{match["val"]});
-    // tags[numtags] = strdup(m_tag.c_str());
-    // data[numtags] = strdup(m_val.c_str());
-    // numtags++;
-}
-
-	// char *cptr,*cptr1;
-	// if ((cptr = strstr(buffer,":="))) {
-	// 	// this is not a comment
-	// 	cptr1 = cptr - 1;
-	// 	while (*cptr1 == ' ')
-	// 		cptr1--;
-	// 	cptr1++;
-	// 	*cptr1 = '\0';
-	// 	if (strcasecmp(buffer,"!Interfile") != 0)
-	// 	{
-	// 		tags[numtags] = strdup(buffer);
-	// 		cptr += 2;
-	// 		while (*cptr == ' ')
-	// 			cptr++;
-	// 		data[numtags] = strdup(cptr);
-	// 		numtags++;
-	// 	}
-	// }
+  }
 
 	return 0;
 }
@@ -168,31 +93,7 @@ int CHeader::ReadFile() {
 	return OK;
 }
 
-// int CHeader::WriteFile(char *fname, int p39_flag)
-// {
-// 	FILE *fp;
-
-// 	if (fname)  // new name has been selected
-// 		fp = fopen(fname,"w");
-// 	else
-// 		fp = hdr_file;
-
-// 	if (!fp) {
-// 		return 1;
-// 	}
-
-// 	fprintf(fp,"!INTERFILE := \n");
-// 	for (int i = 0; i < numtags; i++) {
-// 		// Ignore Frame definition in P39 headers b/c unsupported by e7_tools
-// 		if (p39_flag && strcmp(tags[i], "Frame definition")==0) continue;
-// 		fprintf(fp,"%s := %s\n",tags[i],data[i]);
-// 	}
-// 	fclose(fp);
-
-// 	return 0;
-// }
-
-int CHeader::WriteFile(const string &fname, int p39_flag) {
+int CHeader::WriteFile(const string &fname) {
 	string outname = (fname.length()) ? fname : m_FileName;
 	std::ofstream fp;
 
@@ -203,9 +104,6 @@ int CHeader::WriteFile(const string &fname, int p39_flag) {
 
 	fp << "!INTERFILE := \n";
 	for (auto &tag : tags) {
-		// Ignore Frame definition in P39 headers b/c unsupported by e7_tools
-		if (p39_flag && !(tag.key.compare("Frame definition")))
-			continue;
 		fp << tag.key << " := " << tag.value << endl;
 	}
 	fp.close();
@@ -255,50 +153,6 @@ tag_iterator CHeader::FindTag(const string &key) {
 // 	return E_TAG_NOT_FOUND;
 // }
 
-// As far as I can tell, this awful method is never called.
-
-// bool CHeader::SortData(char *HdrLine, char *tag, char *Data)
-// {
-// 	char str[256], sep[3];
-// 	int hdr_len, tag_len, x,i;
-// 	hdr_len = strlen(HdrLine);
-// 	tag_len = strlen(tag);
-
-// 	// is the tag longer than the line
-// 	if (hdr_len<=tag_len)
-// 		return FALSE;
-// 	//str = (char *)calloc(tag_len,sizeof( char ));
-	
-// 	for(x=0;x<tag_len;x++)
-// 		str[x] = HdrLine[x];	
-// 	str[x] = '\0';
-// 	if (strcmp(str,tag) == 0) {
-// 		// find the ":"
-// 		// char *pCol = strchr(HdrLine,":=");
-// 		// ahc strchr must take an int not a string.
-// 		// I think you should search for '=' not ':'
-// 		char *pCol = strchr(HdrLine, '=');
-// 		std::cerr << "================================================================================" << endl;
-// 		std::cerr << "*** NOTE Cheader::SortData check correct pcol " << pCol << ", tag " << tag << endl;
-// 		std::cerr << "================================================================================" << endl;
-// 		x = hdr_len - strlen(pCol) - 1;
-// 		//  the next text should be ":= "
-// 		for (i = x; i < x + 3; i++)
-// 			sep[i - x] = HdrLine[i];
-// 		sep[i - x] = '\0';
-// 		if(strcmp(sep, ":= ") == 0) {
-// 			for(x=i;x<hdr_len;x++)
-// 				Data[x-i] = HdrLine[x];
-// 			// get rid of carraige return and replace with NULL
-// 			Data[x-i-1] = '\0';
-// 			return TRUE;
-// 		}
-// 		else
-// 			return FALSE;
-// 	}
-// 	else
-// 		return FALSE;
-// }
 
 // TODO: Rename these silent overloads.  They invite trouble.
 
@@ -339,19 +193,6 @@ int CHeader::WriteTag(const string &key, const string &val) {
 		it->value.assign(val);
 	}
 	return ret;
-
-	// for (int i = 0; i < numtags; i++)
-	// 	if (!strcmp(key,tags[i])) {
-	// 		free(data[i]);
-	// 		data[i] = strdup(val);
-	// 		return 0;
-	// 	}
-
-	// data[numtags] = strdup(val);
-	// tags[numtags] = strdup(key);
-	// numtags++;
-
-	// return 1;
 }
 
 // Fill in val if tag is found.

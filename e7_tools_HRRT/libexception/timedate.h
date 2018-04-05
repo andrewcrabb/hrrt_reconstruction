@@ -5,8 +5,7 @@
     \date 2005/02/02 added convertToLocalTime() method
  */
 
-#ifndef _TIMEDATE_H
-#define _TIMEDATE_H
+#pragma once
 
 namespace TIMEDATE
 {
@@ -22,12 +21,6 @@ namespace TIMEDATE
                    signed short int gmt_offset_h,      /*!< GMT offset hours */
                                     gmt_offset_m;    /*!< GMT offset minutes */
                  } ttime;
-#ifdef WIN32
-                              // convert time and date into local time and date
-  void convertToLocalTime(TIMEDATE::tdate * const, TIMEDATE::ttime * const);
-#endif
   tdate currentDate();                                  // request current date
   ttime currentTime(unsigned short int * const);        // request current time
 }
-
-#endif

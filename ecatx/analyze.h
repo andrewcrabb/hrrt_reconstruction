@@ -12,8 +12,7 @@
  * 20-Nov-1995: Renamed by Sibomana@topo.ucl.ac.be to analyze.h
  */
 
-#ifndef analyze_h
-#define analyze_h
+#pragma once
 
 struct header_key          		/*      header_key       */
     {                                  		/* off + size*/
@@ -107,11 +106,5 @@ typedef struct
  * spm and AIR generated files.
  */
 
-#ifdef __cplusplus
 extern "C" int analyze_orientation; 	/*	0: Neurology convention (spm),
 										1: Radiology convention (AIR) */
-#else
-extern int analyze_orientation; 
-#endif
-
-#endif /* analyze_h */

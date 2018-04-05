@@ -7,8 +7,7 @@
   24-MAR-2009: changed filenames extensions to .cpp
   02-JUL-2009: Add Transmission(TX) LUT
 */
-#ifndef segment_info_h
-#define segment_info_h
+# pragma once
 
 extern double m_d_tan_theta, m_d_tan_theta_tx;
 extern  int m_nsegs, *m_segz0, *m_segzmax, *m_segzoffset, *m_segzoffset_span9, 
@@ -19,5 +18,3 @@ extern int init_segment_info(int *nsegs,int *nplanes,double *d_tan_theta,
                              int maxrd,int span, int nycrys,
                              double crystal_radius,double plane_sep);
 extern void clean_segment_info();
-
-#endif

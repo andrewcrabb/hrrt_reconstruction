@@ -38,8 +38,7 @@
   \date 2010/02/15 added "athr" margin
 */
 
-#ifndef _PARSER_H
-#define _PARSER_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -293,4 +292,3 @@ std::string patternKey() const;               // get key for swapping mechanism
 void usage(const bool) const;                              // print usage information
 };
 
-#endif

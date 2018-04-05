@@ -8,8 +8,7 @@
     \date 2005/01/04 added progress reporting to CT2UMAP()
  */
 
-#ifndef _IMAGE_CONVERSION_H
-#define _IMAGE_CONVERSION_H
+#pragma once
 
 #include <vector>
 #include "image_io.h"
@@ -52,4 +51,3 @@ class ImageConversion:public ImageIO
               const unsigned short int);
  };
 
-#endif

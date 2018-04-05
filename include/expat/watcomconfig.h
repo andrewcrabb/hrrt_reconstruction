@@ -1,13 +1,6 @@
 /* expat_config.h for use with Open Watcom 1.5 and above.  */
 
-#ifndef WATCOMCONFIG_H
-#define WATCOMCONFIG_H
-
-#ifdef __NT__
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#undef WIN32_LEAN_AND_MEAN
-#endif
+#pragma once
 
 /* 1234 = LIL_ENDIAN, 4321 = BIGENDIAN */
 #define BYTEORDER 1234
@@ -42,6 +35,3 @@
 
 /* Define to make XML Namespaces functionality available. */
 #define XML_NS 1
-
-#endif
-

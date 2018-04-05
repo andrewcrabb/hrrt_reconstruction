@@ -531,21 +531,11 @@ void AttenReco::reconstruct(float * const blank, float * const tx,
 
      unsigned short int slice_first, size_z, bidx, tidx;
      float blank_factor, *sino, *blank_zoom, *tx_zoom;
-     std::string mu;
+     std::string mu('mu');
      Logging *flog;
      std::vector <unsigned long int> histo[2];
 
      flog=Logging::flog();
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-     char c[2];
-
-     c[1]=0;
-     c[0]=(char)181;
-     mu=std::string(c);
-#endif
-#ifdef WIN32
-     mu='u';
-#endif
          // define slices to be thrown away from the beginning and from the end
      if (cut_border_planes) { slice_first=1;
                               size_z=planesUMap-2;

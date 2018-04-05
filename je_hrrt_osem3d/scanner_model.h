@@ -1,5 +1,4 @@
-#ifndef ScannerModel_h
-#define ScannerModel_h
+# pragma once
 
 typedef struct _ScannerModel {
 	// ahc
@@ -19,10 +18,5 @@ typedef struct _ScannerModel {
 	int  maxdel;		/* default ring difference 	sept 2002	*/
 } ScannerModel;
 
-#if defined(__STDC__)
-extern ScannerModel *scanner_model(int);
-#else
-extern ScannerModel *scanner_model(int);
-#endif	/* __STDC__ */
 
-#endif /* ScannerModel_h */
+extern ScannerModel *scanner_model(int);

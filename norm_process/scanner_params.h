@@ -12,8 +12,7 @@
  *    30-Apr-2009: Use gen_delays_lib C++ library for rebinning and remove dead code
 */
 
-#ifndef scanner_params_h
-#define scanner_params_h
+# pragma once
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -113,4 +112,3 @@ extern float dwell_elem(int mp, int ax, int bx);
 inline float sq(float v) { return v*v; }
 inline double sq(double v) { return v*v; }
 
-#endif

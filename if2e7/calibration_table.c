@@ -10,18 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "calibration_table.h"
-#ifdef WIN32
-#include <direct.h>
-#include <io.h>
-#define chdir _chdir
-#define getcwd _getcwd
-#define strdup _strdup
-#else
-#include <dirent.h>
-#include <unistd.h>
-#define _MAX_PATH 256
-#endif
-
 
 #define MAX_LINE_LENGTH 1024
 #define MAX_TABLE_SIZE 128
@@ -60,11 +48,7 @@ do_load(const char *dir, const char *fname)
 	char buffer[MAX_LINE_LENGTH];
   char *val=NULL;
   int year,mon,day,hour,min,sec, valid=1;
-#ifdef WIN32
-   sprintf(ctable[ctable_size].fname,"%s\\%s", dir, fname);
-#else
    sprintf(ctable[ctable_size].fname,"%s/%s", dir, fname);
-#endif
 
   if ((fp=fopen(ctable[ctable_size].fname,"rb")) == NULL) 
   {
@@ -107,47 +91,6 @@ do_load(const char *dir, const char *fname)
  * Load calibration files from specified directory in memory table.
  * Returns 0 on success  or error code on failure
  */
-#ifdef WIN32
-int 
-calibration_load(char *dir)
-{
-  int i=0;
-  char *cwd=NULL;
-  struct _finddata_t c_file;
-  long  hFile;
-
-  if (ctable==NULL) ctable = (CTableEntry*)calloc(sizeof(CTableEntry), MAX_TABLE_SIZE);
-  // save working directory
-  if ( (cwd=getcwd(NULL,0)) == NULL) 
-  {
-    perror("calibration_load::getcwd error");
-    return 0;
-  }
-
-  // change to requested directory
-  if (chdir(dir) != 0)
-  {
-    perror(dir);
-    free(cwd);
-    return 0;
-  }
-
-  if( (hFile = _findfirst( "*.hdr", &c_file )) != -1)
-  do
-  {
-    do_load(dir, c_file.name);
-  }  while( _findnext(hFile, &c_file ) == 0 );
-  _findclose(hFile);
-
-  // restore workong directory
-  if (chdir(cwd) != 0) perror(cwd);
-
-   // sort by date
-    qsort(ctable, ctable_size, sizeof(CTableEntry), compare_entry);
-
-  return ctable_size;
-}
-#else
 int 
 calibration_load(char *path)
 {
@@ -171,7 +114,6 @@ calibration_load(char *path)
   qsort(ctable, ctable_size, sizeof(CTableEntry), compare_entry);
   return ctable_size;
 }
-#endif
 /*! \brief Search specified scan time from memory table
     \param[in] year      scan year
     \param[in] mon        scan month

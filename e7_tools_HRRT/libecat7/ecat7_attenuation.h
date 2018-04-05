@@ -5,9 +5,6 @@
     \date 2004/09/22 added Doxygen style comments
  */
 
-#ifndef _ECAT7_ATTENUATION_H
-#define _ECAT7_ATTENUATION_H
-
 #include <fstream>
 #include <list>
 #include <string>
@@ -99,4 +96,3 @@ class ECAT7_ATTENUATION:public ECAT7_MATRIX
     void Volume2View() const;     // convert dataset from volume to view format
  };
 
-#endif

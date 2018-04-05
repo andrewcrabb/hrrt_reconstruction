@@ -5,8 +5,7 @@
     \date 2005/01/18 added Doxygen style comments
  */
 
-#ifndef _ECAT7_POLAR_H
-#define _ECAT7_POLAR_H
+#pragma once
 
 #include <fstream>
 #include <list>
@@ -85,4 +84,3 @@ class ECAT7_POLAR:public ECAT7_MATRIX
     void SaveHeader(std::ofstream * const) const;
  };
 
-#endif

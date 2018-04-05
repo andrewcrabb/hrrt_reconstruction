@@ -26,8 +26,7 @@
 //** file: matrix.h
 //** author: Frank Kehren
 
-#ifndef _MATRIX_H
-#define _MATRIX_H
+// #pragma once
 
 /*- definitions -------------------------------------------------------------*/
 
@@ -57,8 +56,3 @@ template <class T> class Matrix
     void transpose();                                       // transpose matrix
  };
 
-#ifndef _MATRIX_CPP
-#include "matrix.cpp"
-#endif
-
-#endif

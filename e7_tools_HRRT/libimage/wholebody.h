@@ -6,8 +6,7 @@
                      coordinate system than PET/CT beds
  */
 
-#ifndef _WHOLEBODY_H
-#define _WHOLEBODY_H
+#pragma once
 
 /*- class definitions -------------------------------------------------------*/
 
@@ -36,11 +35,3 @@ class Wholebody
                                                  // get data of wholebody image
     float *getWholebody(unsigned short int * const);
  };
-
-#ifndef _WHOLEBODY_CPP
-#define _WHOLEBODY_TMPL_CPP
-#include "wholebody.cpp"
-#endif
-
-#endif
-

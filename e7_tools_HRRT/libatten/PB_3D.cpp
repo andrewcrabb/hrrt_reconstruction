@@ -1,8 +1,4 @@
-#if defined(__linux__) && defined(__INTEL_COMPILER)
-#include <mathimf.h>
-#else
 #include <cmath>
-#endif
 #include <cstdlib>
 #include <iostream>
 #include <fstream>

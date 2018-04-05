@@ -5,8 +5,7 @@
     \date 2004/09/10 added Doxygen style comments
  */
 
-#ifndef _ECAT7_DIRECTORY_H
-#define _ECAT7_DIRECTORY_H
+#pragma once
 
 #include <fstream>
 #include <list>
@@ -81,4 +80,3 @@ class ECAT7_DIRECTORY
                          const unsigned short int) const;
  };
 
-#endif

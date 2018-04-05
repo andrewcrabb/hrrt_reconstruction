@@ -9,57 +9,11 @@
  */
 
 #include <iostream>
-#ifdef WIN32
-//#include <cmath>
-#endif
-#ifndef _GLOBAL_TMPL_CPP
-#define _GLOBAL_TMPL_CPP
 #include "global_tmpl.h"
-#endif
 #include "fastmath.h"
 #include "logging.h"
 
 /*- exported functions ------------------------------------------------------*/
-
-#ifdef WIN32
-             // the MS Visual Studio header files don't contain a complete STL
-             // implementation; some of the missing functions are added here
-#undef min
-#undef max
-
-//namespace std
-// {
-/*---------------------------------------------------------------------------*/
-/*! \brief Return maximum of two values.
-    \param[in] a   first value
-    \param[in] b   second value
-    \return maximum of a and b
-
-    Return maximum of two values.
- */
-/*---------------------------------------------------------------------------*/
-template <typename T>
-inline const T& mymax(const T& a, const T& b)
- { if (a > b) return(a);
-   return(b);
- }
-
-/*---------------------------------------------------------------------------*/
-/*! \brief Return minimum of two values.
-    \param[in] a   first value
-    \param[in] b   second value
-    \return minimum of a and b
-
-    Return minimum of two values.
- */
-/*---------------------------------------------------------------------------*/
-template <typename T>
-inline const T& mymin(const T& a, const T& b)
- { if (a < b) return(a);
-   return(b);
- }
- //}
-#endif
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Print minimum, maximum and total of a dataset.
@@ -104,59 +58,9 @@ void printStat(const std::string logstr, const unsigned short int loglevel,
  */
 /*---------------------------------------------------------------------------*/
 template <typename T>
-inline signed long int round(const T a)
- { if (a >= 0) return((signed long int)(a+0.5));
-   return((signed long int)(a-0.5));
+inline signed long int round(const T a) { 
+  if (a >= 0) 
+    return((signed long int)(a+0.5));
+  return((signed long int)(a-0.5));
  }
 
-#ifdef WIN32
-/*---------------------------------------------------------------------------*/
-/*! \brief Split string into values.
-    \param[in] str   string with values, separated by ','
-    \return array with values
-
-    Split string into values.
- */
-/*---------------------------------------------------------------------------*/
-template <typename T>
-std::vector <T> splitStr(std::string str)
- { std::vector <T> a;
-   std::string::size_type p;
-
-   a.clear();
-   while ((p=str.find(",")) != std::string::npos)
-    { std::string s;
- 
-      s=str.substr(0, p);
-      str.erase(0, p+1);
-      if (typeid(T) == typeid(float))
-       { float f;
- 
-         f=(float)atof(s.c_str());
-         a.push_back(*(T *)&f);
-       }
-       else if (typeid(T) == typeid(unsigned short int))
-             { unsigned short int si;
-
-               si=(unsigned short int)atoi(s.c_str());
-               a.push_back(*(T *)&si);
-             }
-       else a.push_back(*(T *)&s);
-    }
-   if (!str.empty())
-    if (typeid(T) == typeid(float))
-     { float f;
-
-       f=(float)atof(str.c_str());
-       a.push_back(*(T *)&f);
-     }
-     else if (typeid(T) == typeid(unsigned short int))
-           { unsigned short int si;
-
-             si=(unsigned short int)atoi(str.c_str());
-             a.push_back(*(T *)&si);
-           }
-           else a.push_back(*(T *)&str);
-   return(a);
- }
-#endif

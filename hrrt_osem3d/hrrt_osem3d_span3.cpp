@@ -162,28 +162,6 @@ For commercial use, please contact zcho@gachon.ac.kr or isslhong@kpu.ac.kr
 #include <linux/types.h>
 #include <linux/stat.h>
 #include <algorithm>
-#ifdef IS_WIN32
-#include <windows.h>
-#include <process.h>
-#include <io.h>
-#define stat _stat
-#define access _access
-#define unlink _unlink
-#define		DIR_SEPARATOR '\\'
-#define R_OK 4
-#else
-#include <pthread.h>
-#include <pmmintrin.h>
-/* ahc */
-/* Not available on Mac - host_info has some similar features. */
-/* #include <sysinfo.h> */
-#include <fcntl.h>
-#include <stdarg.h>
-#include <unistd.h>
-// O_DIRECT defined here because not found otherwise CM + MS
-// #define O_DIRECT         040000 /* direct disk access hint */	
-#define		DIR_SEPARATOR '/'
-#endif
 
 #include "write_image_header.h"
 #include "scanner_model.h"
@@ -464,12 +442,7 @@ typedef struct {
 } GLOBAL_OSEM3DPAR;
 GLOBAL_OSEM3DPAR *osem3dpar;
 
-#ifdef WIN32
-File_structure fstruct[16];
-HANDLE threads[16];
-#else
 pthread_t threads[16]; // !sv
-#endif
 	// claude comtate PSF modeling parameters
 float blur_fwhm1;
 float blur_fwhm2;
@@ -561,26 +534,6 @@ void file_close(FILEPTR fp) {
 	fclose(fp);
 }
 
-#ifdef IS_WIN32
-void normfac_path(const char *src_filename, char *dest_path)
-{
-	char drive[_MAX_DRIVE];
-	char dir[_MAX_DIR];
-	char ImageName[_MAX_FNAME];
-	char ext[_MAX_EXT];
-
-	if (src_filename != NULL) {
-		_splitpath(src_filename, drive, dir, ImageName, ext );
-		_makepath(dest_path, drive,dir,"normfac","i");
-	}
-	else strcpy(dest_path,"normfac.i");
-}
-# else
-void normfac_path(const char *src_filename, char *dest_path)
-{
-	strcpy(dest_path,"normfac.i");
-}
-#endif
 
 /* get_scan_duration  
 read: sinogram header and sets scan_duration global variable.
@@ -3804,35 +3757,9 @@ void Output_CorrectedScan()
 
 void GetSystemInformation()
 {
-#ifdef IS_WIN32 
-	SYSTEM_INFO siSysInfo;
-#else
     /* ahc */
 	/* struct sysinfo sinfo; */
-#endif
 	printf(" Hardware information: \n");  
-#ifdef IS_WIN32
-	GetSystemInfo(&siSysInfo); 
-	printf("  OEM ID: %u\n", siSysInfo.dwOemId);
-	printf("  Number of processors: %u\n", siSysInfo.dwNumberOfProcessors); 
-	printf("  Page size: %u\n", siSysInfo.dwPageSize); 
-	printf("  Processor type: %u\n", siSysInfo.dwProcessorType); 
-	printf("  Minimum application address: %lx\n", 
-		siSysInfo.lpMinimumApplicationAddress); 
-	printf("  Maximum application address: %lx\n", 
-		siSysInfo.lpMaximumApplicationAddress); 
-	if (nthreads==0) nthreads=siSysInfo.dwNumberOfProcessors;
-#else
-    /* ahc */
-    /*
-	sysinfo(&sinfo);
-	printf("  Total RAM: %u\n", sinfo.totalram); 
-	printf("  Free RAM: %u\n", sinfo.freeram);
-	// To get n_processors we need to get the result of this command "grep processor /proc/cpuinfo | wc -l"
-    */
-	if ( nthreads == 0 )
-      nthreads = 2; // for now
-#endif
 }
 void PrepareNormfac()
 {
@@ -4020,15 +3947,6 @@ void PrepareOsem3dFiles()
 
 	free_tmpprj1();
 	free_tmpprj2();
-#ifdef WIN32
-  // MS: this lines crashes on LINUX, perhaps due to bug hidden somewhere else
-//	free_matrix3dshort(tmp_for_short_sino_read,0,yr_pixels-1,0,views-1,0,xr_pixels-1);
-  if (tmp_for_short_sino_read != NULL) {
-    free_matrix3dshortm128(tmp_for_short_sino_read,0,yr_pixels-1,0,views-1,0,xr_pixels/8-1);
-    tmp_for_short_sino_read = NULL;
-  }
-
-#endif
 	// CM debugging : largeprj3 contains numerator of update equation
 	printf("verbose %x\n",verbose);
 	if (verbose & 0x0002) {
@@ -4505,12 +4423,6 @@ int main(int argc, char* argv[])
     if (!ecat_flag)
       sprintf(out_img_file,"%s_frame0%s.i",em_file_prefix,em_file_postfix);
   }
-
-#ifdef WIN32
-  DWORD len=sizeof(user_name);
-  GetUserName(user_name,&len);
-  LogMessage("Username : %s \n", user_name);
-#endif
 
   memset(ra_smo_file,0,sizeof(ra_smo_file));
   CheckFileValidate();

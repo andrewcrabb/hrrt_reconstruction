@@ -7,8 +7,7 @@
     \date 2005/03/29 delete OSEM object after use to reduce swapping
  */
 
-#ifndef _SCATTER_H
-#define _SCATTER_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -114,4 +113,3 @@ class Scatter
                                         const unsigned short int);
  };
 
-#endif

@@ -6,8 +6,7 @@
     \date 2005/01/10 added Doxygen style comments
  */
 
-#ifndef _ECAT7_GLOBAL_H
-#define _ECAT7_GLOBAL_H
+#pragma once
 
 #include <string>
 
@@ -235,4 +234,3 @@ const int E7_QUANT_UNITS_Normalized=1;                       /*!< normalized */
 const int E7_QUANT_UNITS_Mean=2;                                   /*!< mean */
 const int E7_QUANT_UNITS_StdDevMean=3;               /*!< standard deviation */
 
-#endif

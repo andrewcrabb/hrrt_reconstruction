@@ -8,9 +8,6 @@
  Modification History:
 */
 #include <math.h>
-#ifndef M_PI
-#define M_PI        3.14159265358979323846
-#endif
 
 static int ha[] = [0,0,0,0,0,1,1,1,1,1,2,2,2,2,3,3,3,4,4,5];
 static int hb[] = [2,3,4,5,6,3,4,5,6,7,4,5,6,7,5,6,7,6,7,7];
@@ -20,31 +17,6 @@ static double cvtrad = 180/M_PI;
 
 static double *primary = NULL;
 static int na=5; // heads in coincidences
-
-/*
-pro get_gs_4_fansum
-
-s = get_scanner_params()
-
-get_hrrt_dtct2, xd, yd, zd
-
-pai = 3.14159265
-cvtrad = 180./pai
-primary = 1.*[0,45,90,135,180,225,270,315]/cvtrad
-
-;from -70 to 70 every 10)
-nr = 70-(-70)
-na = 5	; #heads in coincidence
-
-; Module pairs
-ha = [0,0,0,0,0,1,1,1,1,1,2,2,2,2,3,3,3,4,4,5] 
-hb = [2,3,4,5,6,3,4,5,6,7,4,5,6,7,5,6,7,6,7,7] 
-
-;Layers combination
-la = [0,0,1,1]
-lb = [0,1,0,1]
-set = ['00','01','10','11']
-*/
 
 static void local_params()
 {

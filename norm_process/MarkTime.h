@@ -15,11 +15,7 @@ Modification History (HRRT User Community):
 
 //#include	<windows.h>
 #include	<sys/types.h>
-#ifdef WIN32
-#include	<sys/timeb.h>
-#else
 #include <sys/time.h>
-#endif
 #include	<malloc.h>
 
 // The Mark Structure

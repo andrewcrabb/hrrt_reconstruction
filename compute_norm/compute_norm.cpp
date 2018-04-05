@@ -55,15 +55,9 @@
 ;-
 */
 
-#ifdef WIN32
-#include <afx.h>
-#include <direct.h>
-#else
 #include <unistd.h>
-#endif
 #include <sys/types.h>
 #include <sys/stat.h>
-/* #include <malloc.h> */
 #include <malloc.h>
 #include <stdlib.h>
 #include <string.h>
@@ -75,17 +69,11 @@ using namespace cps;
 static int model_number = 328;
 
 #define NORM_HISTO_FILE "norm_histogram.dat"
-/* #define M_PI 3.14159265358979323846 */
 
 #define MAX_INPUT_FILES 10
 #define LINESIZE 1024
-#ifdef WIN32
-#define DIR_SEPARATOR '\\'
-#define stat _stat
-#define chdir _chdir
-#else
 #define DIR_SEPARATOR '/'
-#endif
+
 static char line[LINESIZE];
 
 const char *pgm_id = "V1.1 ";
@@ -594,12 +582,8 @@ static void compute_norm(char **in_files, int nfiles, char *out_file)
 		//
 		if ((out_fp=fopen(NORM_HISTO_FILE,"wb")) != NULL)
 		{
-#ifdef WIN32
-      CString now = CTime::GetCurrentTime().Format("%b-%d-%Y %H:%M:%S");
-			fprintf(out_fp,"#HRRT normalization histogram %s\n", (const char*)now);
-#else
 			fprintf(out_fp,"#HRRT normalization histogram\n");
-#endif
+
 			for (i=0; i<histo_size; i++)
 				fprintf(out_fp,"%g %d\n",0.05f*i, histo[i]);
 			fclose(out_fp);

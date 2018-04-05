@@ -4,18 +4,12 @@
     \author Merence Sibomana (sibomana@gmail.com)
     \date 2008/03/07 initial version
  */
-#ifndef _INTERFILE_READER_H_
-#define _INTERFILE_READER_H_
+#pragma once
 
 #include <sys/types.h>
 
-#ifdef WIN32
-#define FILENAME_SIZE _MAX_PATH
-#endif
-#ifdef __linux__
 #define _MAX_PATH 256
 #define FILENAME_SIZE _MAX_PATH
-#endif
 #define RETURN_MSG_SIZE 256
 #define ERROR_MSG_SIZE 300
 
@@ -35,9 +29,7 @@ struct _IFH_TAble
   }
 IFH_Table;
 
-#if defined(__cplusplus)
 extern "C" {
-#endif
         /*! Load filename in the table */
 int interfile_load(char* in_filename, IFH_Table *out_table);
 
@@ -47,8 +39,4 @@ int interfile_find(IFH_Table *in_table,  const char *in_tag, char *out_str, int 
         /*! free table memory allocated by interfile_open */
 int interfile_clear(IFH_Table *in_table);
 
-#if defined(__cplusplus)
 }
-#endif
-
-#endif

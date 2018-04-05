@@ -5,8 +5,7 @@
     \date 2005/01/19 added Doxygen style documentation
  */
 
-#ifndef _ECAT7_H
-#define _ECAT7_H
+#pragma once
 
 #include <fstream>
 #include <string>
@@ -845,5 +844,3 @@ class ECAT7
     float Scan3D_uncor_singles(const unsigned short int,
                                const unsigned short int) const;
  };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef Norm_Globals_h
-#define Norm_Globals_h
+#pragma once
 
 extern const char *model_name;
 extern int nelems;
@@ -48,7 +47,3 @@ extern void plot(const char *basename, const float *x, const float *y, int size,
 				 const char *title=0);
 float *fit_dwell(short *vsino, int nplns);
 int dwell_sino(float *dwell, int npixels);
-
-
-#endif
-

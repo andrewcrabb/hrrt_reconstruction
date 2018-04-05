@@ -5,8 +5,7 @@
     \date 2005/01/10 added Doxygen style comments
  */
 
-#ifndef _ECAT_TMPL_H
-#define _ECAT_TMPL_H
+#pragma once
 
 #include <fstream>
 
@@ -58,9 +57,3 @@ template <typename T> void view2volume(T * const, const unsigned short int,
 template <typename T> void volume2view(T * const, const unsigned short int,
                                        const unsigned short int,
                                        const unsigned short int);
-
-#ifndef _ECAT_TMPL_CPP
-#include "ecat_tmpl.cpp"
-#endif
-
-#endif

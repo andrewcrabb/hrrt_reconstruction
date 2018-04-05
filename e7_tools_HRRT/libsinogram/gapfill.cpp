@@ -41,19 +41,8 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
-#ifdef XEON_HYPERTHREADING_BUG
-#if defined(__linux__) || defined(__SOLARIS__)
-#include <alloca.h>
-#endif
-#ifdef WIN32
-#include <malloc.h>
-#endif
-#endif
 #include "gapfill.h"
 #include "exception.h"
-#ifdef WIN32
-#include "global_tmpl.h"
-#endif
 #include "logging.h"
 #include "thread_wrapper.h"
 
@@ -79,15 +68,6 @@ void *executeThread_GapFill(void *param)
    { GapFill::tthread_params *tp;
 
      tp=(GapFill::tthread_params *)param;
-#ifdef XEON_HYPERTHREADING_BUG
-      // allocate some padding memory on the stack in front of the thread-stack
-#if defined(__linux__) || defined(__SOLARIS__)
-     alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#ifdef WIN32
-     _alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#endif
      if (tp->norm == NULL)
       tp->object->calcGapFill(tp->sinogram, tp->slices);
       else tp->object->calcGapFill(tp->sinogram, tp->norm, tp->slices,

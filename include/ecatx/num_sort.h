@@ -11,7 +11,7 @@
    * data format provided by CTI to customers. CTI or its legal successors
    * should not be held responsible for the accuracy of this software.
    * CTI, hereby disclaims all copyright interest in this software.
-   * In no event CTI shall be liable for any claim, or any special indirect or 
+   * In no event CTI shall be liable for any claim, or any special indirect or
    * consequential damage whatsoever resulting from the use of this software.
    *
    * This is a free software; you can redistribute it and/or
@@ -28,16 +28,11 @@
    * along with this software; if not, write to the Free Software
    * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-#ifndef num_sort_h
-#define num_sort_h
-#if defined(__cplusplus)
+# pragma once
+
 extern "C" {
-#endif
-int compare_short(const void *a, const void *b);
-int compare_int(const void *a, const void *b);
-int sort_short(short *v, int count);
-int sort_int(int *v, int count);
-#if defined(__cplusplus)
+   int compare_short(const void *a, const void *b);
+   int compare_int(const void *a, const void *b);
+   int sort_short(short *v, int count);
+   int sort_int(int *v, int count);
 }
-#endif
-#endif

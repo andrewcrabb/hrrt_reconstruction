@@ -16,12 +16,7 @@
 #include	<ecatx/matrix.h>
 #include	"interfile_reader.h"
 #include	"write_image_header.h"
-#ifdef WIN32
-#define strnicmp _strnicmp
-#define		DIR_SEPARATOR '\\'
-#else
 #define		DIR_SEPARATOR '/'
-#endif
 
 #define		LINESIZE 1024
 #define		IN_DIR_SEPARATOR '/'

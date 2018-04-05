@@ -28,8 +28,7 @@
    * along with this software; if not, write to the Free Software
    * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-#ifndef DICOM_h
-#define DICOM_h
+#pragma once
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -38,18 +37,11 @@ typedef struct _DICOMElem {
   unsigned type, offset, len;
 } DICOMElem;
 
-#if defined(__cplusplus)
 extern "C" {
-#endif
 extern int dicom_scan_string(int group, int element, char*, void *header,
 	int header_size);
 extern int dicom_scan_int16(int group, int element, short *value, void *header,
 	int header_size);
 extern int dicom_scan_int32(int group, int element, int *value, void *header,
 	int header_size);
-#if defined(__cplusplus)
 }
-#endif
-
-
-#endif

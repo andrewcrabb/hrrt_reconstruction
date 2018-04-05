@@ -18,12 +18,7 @@
 
 #include <cstdio>
 #include <cstdlib>
-#ifdef __linux__
 #include <dlfcn.h>
-#endif
-#ifdef WIN32
-#include <windows.h>
-#endif
 #include "convert.h"
 #include "atten_reco.h"
 #include "dift.h"
@@ -31,9 +26,7 @@
 #include "fbp.h"
 #include "global_tmpl.h"
 #ifdef SUPPORT_NEW_SCATTER_CODE
-#if defined(WIN32) || defined(__SOLARIS__) || defined(__linux__)
 #include "idl_interface.h"
-#endif
 #endif // SUPPORT_NEW_SCATTER_CODE
 #include "logging.h"
 #include "mem_ctrl.h"
@@ -161,19 +154,9 @@ ImageConversion *bt2umap(SinogramConversion * blank_sino,
 
    try
    { unsigned short int umap_z, uidx;
-     std::string str, mu;
+     std::string str, mu('mu');
      uint64 tx_singles=0;
 
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-     char c[2];
-
-     c[1]=0;
-     c[0]=(char)181;
-     mu=std::string(c);
-#endif
-#ifdef WIN32
-     mu='u';
-#endif
      umap_z=(unsigned short int)(ZSamples/umap_z_zoom);
      if (umap_z*umap_z_zoom < ZSamples) umap_z++;
 
@@ -334,7 +317,7 @@ SinogramConversion *eau2scatter(SinogramConversion *emi_sino,
         new_scatter_code=false;
       }
 #ifdef SUPPORT_NEW_SCATTER_CODE
-#if defined(__linux__) || defined(WIN32) || defined(__SOLARIS__)
+
      if (new_scatter_code)                            // use IDL scatter code ?
       { unsigned short int emis_idx;
         std::string scatter_code, scale_code, nr, sav_path, scatter_data_path;
@@ -542,7 +525,7 @@ SinogramConversion *eau2scatter(SinogramConversion *emi_sino,
                                 loglevel);
         return(scatter_sino);
       }
-#endif
+
 #endif //SUPPORT_NEW_SCATTER_CODE
                               // use C++ code top calculate 3d scatter sinogram
      scatter=new Scatter(emi_sino->RhoSamples(), emi_sino->BinSizeRho(),
@@ -608,19 +591,9 @@ void get_umap_acf(Parser::tparam * const v, ImageConversion **umap_image,
                   const unsigned short int u_mnr, const unsigned short int num,
                   const unsigned short int loglevel,
                   const unsigned short int max_threads)
- { std::string mu, nr;
+ { std::string mu('mu'), nr;
    float fov_diameter=0.0f;
 
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-   char c[2];
-
-   c[1]=0;
-   c[0]=(char)181;
-   mu=std::string(c);
-#endif
-#ifdef WIN32
-   mu='u';
-#endif
    nr=toStringZero(num, 2);
    if (!v->umap_filename.empty())
     {                                                    // get u-map from file

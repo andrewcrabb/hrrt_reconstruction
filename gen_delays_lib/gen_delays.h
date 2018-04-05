@@ -7,10 +7,10 @@
   02-JUL-2009: Add Transmission(TX) LUT
   2/14/13 ahc: Made Rebinner LUT file a required argument.
 */
-#ifndef gen_delays_h
-#define gen_delays_h
-// #include <stdio.h>
+# pragma once
+
 #include <cstdio>
+
 int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
 			   float ***result,FILE *p_coins_file,  char *p_delays_file, 
                int span=9, int max_rd=67,
@@ -26,4 +26,3 @@ static int hrrt_mpairs[][2]={{-1,-1},{0,2},{0,3},{0,4},{0,5},{0,6},
                                                  {3,5},{3,6},{3,7},
                                                        {4,6},{4,7},
                                                              {5,7}}; 
-#endif

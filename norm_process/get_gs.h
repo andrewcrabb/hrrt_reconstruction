@@ -8,8 +8,8 @@
  Modification History:
  28-May-2009: Added new geometric profiles format using 4 linear segments cosine
 */
-#ifndef get_gs_h
-#define get_gs_h
+# pragma once
+
 #include <stdio.h>
 extern int get_gs(const char *geom_fname, FILE *log_fp);
-#endif
+

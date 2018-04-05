@@ -14,8 +14,7 @@
                      coordinates and interpolation factors
  */
 
-#ifndef _BCKPRJ3D_H
-#define _BCKPRJ3D_H
+#pragma once
 
 #include <vector>
 #include "e7_tools_const.h"
@@ -196,4 +195,3 @@ class BckPrj3D
                      const unsigned short int num_procs=1);
  };
 
-#endif

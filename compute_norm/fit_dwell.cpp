@@ -58,8 +58,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#define M_PI 3.14159265358979323846
-
 static  void sino_rebin(float *sino, float *rsino, int nelemsr, int nviewsr)
 {
 	int i=0, j=0, k=0;

@@ -1,8 +1,4 @@
-#if defined(__linux__) && defined(__INTEL_COMPILER)
-#include <mathimf.h>
-#else
 #include <cmath>
-#endif
 #include "PB_TV_3D.h"
 
 PB_TV_3D::PB_TV_3D(const int size, const int size_z, const int nang,

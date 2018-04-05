@@ -4,8 +4,7 @@
     \date 2004/04/30 initial version
  */
 
-#ifndef _RNG_H
-#define _RNG_H
+#pragma once
 
 /*- class definition --------------------------------------------------------*/
 
@@ -18,5 +17,3 @@ class RNG
     float poissonDev(const float);     // get poisson distributed random number
     float uniformDev();              // get uniformly distributed random number
  };
-
-#endif

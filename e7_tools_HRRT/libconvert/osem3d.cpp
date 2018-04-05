@@ -39,14 +39,8 @@
 
 #include <iostream>
 #include <vector>
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <sys/utsname.h>
 #include <netdb.h>
-#endif
-#ifdef WIN32
-#include <atlbase.h>
-#include <windows.h>
-#endif
 #include "osem3d.h"
 #include "e7_common.h"
 #include "fastmath.h"
@@ -66,12 +60,7 @@
 const float OSEM3D::epsilon=0.0001f;
 const float OSEM3D::image_max=100000.0f; /*!< maximum allowed value in image */
      /*! name of OSEM slave executable for distributed memory reconstruction */
-#ifdef WIN32
-const std::string OSEM3D::slave_executable="osem_slave.exe";
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 const std::string OSEM3D::slave_executable="osem_slave";
-#endif
             /*! size of receive buffer in bytes for communication with slave */
 const unsigned long int OSEM3D::OS_RECV_BUFFER_SIZE=10000000;
               /*! size of send buffer in byytes for communication with slave */
@@ -1689,21 +1678,13 @@ void OSEM3D::init(const unsigned short int _XYSamples, const float _DeltaXY,
          hostent *h;
          std::string om_ip, local_name;
 
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
+
          { struct utsname un;
                                              // get IP number of local computer
            uname(&un);
            local_name=std::string(un.nodename);
          }
-#endif
-#ifdef WIN32
-         { DWORD size=MAX_COMPUTERNAME_LENGTH+1;
-           TCHAR name[MAX_COMPUTERNAME_LENGTH+1];
-            USES_CONVERSION;
-           GetComputerName(name, &size);
-           local_name=std::string(T2A(name));
-         }
-#endif
+
          h=gethostbyname(local_name.c_str());
          if (h->h_addr_list != NULL)
           { unsigned char *p;
@@ -2648,15 +2629,7 @@ ImageConversion *OSEM3D::reconstructGibbs(SinogramConversion * const sino,
                         loglevel+1)->arg(RhoSamples)->arg(tof_bins)->
             arg(ThetaSamples)->arg(axes_slices)->arg(XYSamples)->
             arg(XYSamples)->arg(axis_slices[0]);
-#if defined(__linux__) || defined(__SOLARIS__)
      flog->logMsg("Gibbs prior: #1=#2", loglevel+2)->arg((char)223)->arg(beta);
-#endif
-#ifdef __MACOSX__
-     flog->logMsg("Gibbs prior: #1=#2", loglevel+2)->arg((char)167)->arg(beta);
-#endif
-#ifdef WIN32
-     flog->logMsg("Gibbs prior: beta=#1", loglevel+2)->arg(beta);
-#endif
      str="subset order for OSEM reconstruction: 0 ";
      for (unsigned short int i=1; i < subsets; i++)
       str+=toString(order[i])+" ";
@@ -2968,372 +2941,6 @@ float *OSEM3D::reconstructGibbs(float * const sinogram,
     }
  }
 
-#ifdef UNUSED
-/*---------------------------------------------------------------------------*/
-/* reconstructMP_master: 3D-OSEM reconstruction (with multi-processing)      */
-/*  sino            sinogram data                                            */
-/*  iterations      number of iterations                                     */
-/*  _fov_diameter   diameter of FOV after reconstruction                     */
-/*  max_threads     maximum number of threads to use                         */
-/* return: reconstructed image                                               */
-/*---------------------------------------------------------------------------*/
-float *OSEM3D::reconstructMP_master(float * const sino,
-                                    const unsigned short int iterations,
-                                    float * const _fov_diameter,
-                                    const unsigned short int max_threads)
- { float *estimate=NULL, *correction=NULL, *result=NULL, *estimate2=NULL;
-   StopWatch sw;
-
-   try
-   { std::string str;
-     unsigned short int image_index;
-     float *image;
-
-     initBckProjector(max_threads);
-     initFwdProjector(max_threads);
-     flog->logMsg("start reconstruction from #1x#2x#3 to #4x#5x#6",
-                  loglevel+1)->arg(RhoSamples)->arg(ThetaSamples)->
-      arg(axes_slices)->arg(XYSamples)->arg(XYSamples)->arg(axis_slices[0]);
-     str="subset order for OSEM reconstruction: 0 ";
-     for (unsigned short int i=1; i < subsets; i++)
-      str+=toString(order[i])+" ";
-     flog->logMsg(str, loglevel+2);
-     sw.start();
-     image=initImage(&image_index, loglevel+2);             // initialize image
-     estimate=new float[subset_size_padded];
-     estimate2=new float[subset_size_padded];
-     correction=new float[image_volume_size];
-     for (unsigned short int iter=0; iter < iterations; iter++)
-      { for (unsigned short int subset=0; subset < subsets; subset++)
-         { flog->logMsg("start iteration #1, subset #2", loglevel+2)->
-            arg(iter+1)->arg(subset);
-           sw.start();
-           memset(correction, 0, image_volume_size*sizeof(float));
-           for (unsigned short int segment=0; segment < segments; segment++)
-            { unsigned short int t, z, proc, num_procs;
-              float *tp, *ep, *tp2, *ep2;
-
-            num_procs=2;
-            proc=0;
-                               // forward-project subset of segment of sinogram
-              fwd->forward_proj3d(image, estimate, order[subset], segment,
-                                  max_threads, proc, num_procs);
-
-              proc=1;
-                               // forward-project subset of segment of sinogram
-              fwd->forward_proj3d(image, estimate2, order[subset], segment,
-                                  max_threads, proc, num_procs);
-              // collect estimate (only z_bottom bis z_top)
-              vecAdd(estimate, estimate2, estimate, subset_size_padded);
-
-                                                 // divide emission by estimate
-              for (tp=&sino[(unsigned long int)seg_plane_offset[segment]*
-                            sino_plane_size+
-                            (unsigned long int)order[subset]*
-                            (unsigned long int)RhoSamples],
-                   ep=&estimate[(unsigned long int)z_bottom[segment]*
-                                (unsigned long int)RhoSamples_padded+1],
-                   t=0; t < ThetaSamples/subsets; t++,
-                   ep+=view_size_padded,
-                   tp+=(unsigned long int)subsets*
-                       (unsigned long int)RhoSamples)
-               for (tp2=tp,
-                    ep2=ep+RhoSamples_padded,
-                    z=z_bottom[segment]; z <= z_top[segment]; z++,
-                    ep2+=RhoSamples_padded,
-                    tp2+=sino_plane_size)
-                for (unsigned short int r=0; r < RhoSamples; r++)
-                 if (ep2[r] > 0.00005f) ep2[r]=std::max(0.0f, tp2[r])/ep2[r];
-                  else ep2[r]=1.0f;
-
-              proc=0;
-                                                        // backproject quotient
-              bp->back_proj3d(estimate, correction, order[subset], segment,
-                              max_threads, proc, num_procs);
-              proc=1;
-                                                        // backproject quotient
-              bp->back_proj3d(estimate, correction, order[subset], segment,
-                              max_threads, proc, num_procs);
-            }
-           // correction einsammeln und aufaddieren
-                                          // calculate image for next iteration
-           { float *ip, *cp, *normfac;
-                                        // load normalization matrix for subset
-             normfac=MemCtrl::mc()->getFloatRO(norm_factors[order[subset]],
-                                               loglevel+2);
-             ip=image+image_plane_size_padded+1;
-             cp=correction;
-             for (unsigned short int z=0; z < axis_slices[0]; z++)
-              { ip+=XYSamples_padded;
-                for (unsigned short int y=0; y < XYSamples; y++,
-                     ip+=XYSamples_padded,
-                     cp+=XYSamples,
-                     normfac+=XYSamples)
-                 for (unsigned short int x=mask[y].start;
-                      x <= mask[y].end;
-                      x++)
-                  if (normfac[x] > OSEM3D::epsilon)
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-                   ip[x]=std::min(ip[x]*cp[x]/normfac[x], OSEM3D::image_max);
-#endif
-#ifdef WIN32
-                   ip[x]=mini(ip[x]*cp[x]/normfac[x], OSEM3D::image_max);
-#endif
-                ip+=XYSamples_padded;
-              }
-             MemCtrl::mc()->put(norm_factors[order[subset]]);
-           }
-           flog->logMsg("finished iteration #1, subset #2 in #3 sec",
-                        loglevel+2)->arg(iter+1)->arg(subset)->arg(sw.stop());
-         }
-      }
-     delete[] correction;
-     correction=NULL;
-     delete[] estimate2;
-     estimate2=NULL;
-     delete[] estimate;
-     estimate=NULL;
-     flog->logMsg("mask #1 planes of image", loglevel+2)->arg(axis_slices[0]);
-     result=new float[image_volume_size];
-     memset(result, 0, image_volume_size*sizeof(float));
-     { float *ip, *rp, factor;
-                                     // apply final mask to reconstructed image
-       ip=image+image_plane_size_padded+1;
-       rp=result;
-                          // scale image to get count rates as in ECAT software
-       factor=BinSizeRho;
-       flog->logMsg("scale image with #1", loglevel+2)->arg(factor);
-       for (unsigned short int z=0; z < axis_slices[0]; z++)
-        { ip+=XYSamples_padded;
-          for (unsigned short int y=0; y < XYSamples; y++,
-               rp+=XYSamples,
-               ip+=XYSamples_padded)
-           vecMulScalar(&ip[mask2[y].start], factor, &rp[mask2[y].start],
-                        mask2[y].end-mask2[y].start+1);
-          ip+=XYSamples_padded;
-        }
-     }
-     MemCtrl::mc()->put(image_index);
-     MemCtrl::mc()->deleteBlock(&image_index);
-     if (_fov_diameter != NULL) *_fov_diameter=fov_diameter;
-     flog->logMsg("finished reconstruction in #1 sec", loglevel+1)->
-      arg(sw.stop());
-     return(result);
-   }
-   catch (...)
-    { sw.stop();
-      if (estimate != NULL) delete[] estimate;
-      if (correction != NULL) delete[] correction;
-      if (result != NULL) delete[] result;
-      throw;
-    }
- }
-#if 0
- { float *correction=NULL, *result=NULL, *correct_plane=NULL, *estimate=NULL;
-   Stopwatch sw;
-
-   try
-   { std::string str;
-     unsigned short int i, image_index;
-     float *image;
-                                               // distribute sinogram to slaves
-     flog->logMsg("distribute sinogram to slaves", loglevel+1);
-     for (i=0; i < os_slave.size(); i++)
-      { float *sp;
-
-        os_slave[i]->newMessage();
-        *(os_slave[i]) << OS_CMD_GET_EMISSION << std::endl;
-        sp=sino;
-        for (unsigned short int p=0; p < axes_slices; p++,
-             sp+=sino_plane_size)
-         { os_slave[i]->newMessage();
-           os_slave[i]->writeData(sp, sino_plane_size);
-           *(os_slave[i]) << std::endl;
-         }
-      }
-
-     flog->logMsg("start reconstruction from #1x#2x#3 to #4x#5x#6",
-                  loglevel+1)->arg(RhoSamples)->arg(ThetaSamples)->
-      arg(axes_slices)->arg(XYSamples)->arg(XYSamples)->arg(axis_slices[0]);
-     str="subset order for OSEM reconstruction: 0 ";
-     for (i=1; i < subsets; i++)
-      str+=toString(order[i])+" ";
-     flog->logMsg(str, loglevel+2);
-     sw.start();
-     image=initImage(&image_index, loglevel+2);             // initialize image
-     estimate=new float[subset_size_padded];
-     correction=new float[image_volume_size];
-     correct_plane=new float[image_plane_size];
-     if (!store_normmat)
-      { normfac=new float[image_volume_size];
-        rio_normfac=new RawIO <float>(normfac_file, false, false);
-      }
-     for (unsigned short int iter=0; iter < iterations; iter++)
-      { for (unsigned short int subset=0; subset < subsets; subset++)
-         { flog->logMsg("start iteration #1, subset #2", loglevel+2)->
-            arg(iter+1)->arg(subset);
-           sw.start();
-           memset(correction, 0, image_volume_size*sizeof(float));
-#if 1
-                                          // distribute current image to slaves
-           flog->logMsg("distribute image to slaves", loglevel+2);
-           for (i=0; i < os_slave.size(); i++)
-            { float *ip;
-
-              os_slave[i]->newMessage();
-              *(os_slave[i]) << OS_CMD_RECONSTRUCT << order[subset]
-                             << std::endl;
-              ip=image+image_plane_size_padded;
-              for (unsigned short int z=0; z < axis_slices[0]; z++,
-                   ip+=image_plane_size_padded)
-               { os_slave[i]->newMessage();
-                 os_slave[i]->writeData(ip, image_plane_size_padded);
-                 *(os_slave[i]) << std::endl;
-               }
-            }
-                                               // calculate reconstruction step
-           for (unsigned short int segment=0; segment < segments; segment++)
-            { unsigned short int num;
-
-              num=segment % os_slave.size();
-              os_slave[num]->newMessage();
-              *(os_slave[num]) << segment << std::endl;
-            }
-           for (i=0; i < os_slave.size(); i++)
-            { os_slave[i]->newMessage();
-              *(os_slave[i]) << (unsigned short int)9999 << std::endl;
-            }
-                                                  // collect correction factors
-           memset(correction, 0, image_volume_size*sizeof(float));
-           for (i=0; i < os_slave.size(); i++)
-            { float *cp;
-
-              cp=correction;
-              for (unsigned short int z=0; z < axis_slices[0]; z++,
-                   cp+=image_plane_size)
-               { os_slave[i]->readData(correct_plane, image_plane_size);
-                 vecAdd(cp, correct_plane, cp, image_plane_size);
-               }
-            }
-#endif
-#if 0
-           for (unsigned short int segment=0; segment < segments; segment++)
-            reconstructMP_slave(sino, image, correction, estimate,
-                                order[subset], segment, max_threads);
-#endif
-           flog->logMsg("update image", loglevel+2);
-                                          // calculate image for next iteration
-           { float *ip, *cp, *normfac;
-                                        // load normalization matrix for subset
-             normfac=MemCtrl::mc()->getFloatRO(norm_factors[order[subset]],
-                                               loglevel+2);
-             ip=image+image_plane_size_padded+1;
-             cp=correction;
-             for (unsigned short int z=0; z < axis_slices[0]; z++)
-              { ip+=XYSamples_padded;
-                for (unsigned short int y=0; y < XYSamples; y++,
-                     ip+=XYSamples_padded,
-                     cp+=XYSamples,
-                     normfac+=XYSamples)
-                 for (unsigned short int x=mask[y].start;
-                      x <= mask[y].end;
-                      x++)
-                  if (normfac[x] > OSEM3D::epsilon)
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-                   ip[x]=std::min(ip[x]*cp[x]/normfac[x], OSEM3D::image_max);
-#endif
-#ifdef WIN32
-                   ip[x]=mini(ip[x]*cp[x]/normfac[x], OSEM3D::image_max);
-#endif
-                ip+=XYSamples_padded;
-              }
-             MemCtrl::mc()->put(norm_factors[order[subset]]);
-           }
-           flog->logMsg("finished iteration #1, subset #2 in #3 sec",
-                        loglevel+2)->arg(iter+1)->arg(subset)->arg(sw.stop());
-         }
-      }
-     delete[] correct_plane;
-     correct_plane=NULL;
-     delete[] correction;
-     correction=NULL;
-     delete[] estimate;
-     estimate=NULL;
-     flog->logMsg("mask #1 planes of image", loglevel+2)->arg(axis_slices[0]);
-     result=new float[image_volume_size];
-     memset(result, 0, image_volume_size*sizeof(float));
-     { float *ip, *rp, factor;
-                                     // apply final mask to reconstructed image
-       ip=image+image_plane_size_padded+1;
-       rp=result;
-       factor=(float)RhoSamples*(float)RhoSamples*BinSizeRho/
-              ((float)XYSamples*(float)XYSamples);
-       for (unsigned short int z=0; z < axis_slices[0]; z++)
-        { ip+=XYSamples_padded;
-          for (unsigned short int y=0; y < XYSamples; y++,
-               rp+=XYSamples,
-               ip+=XYSamples_padded)
-           vecMulScalar(&ip[mask2[y].start], factor, &rp[mask2[y].start],
-                        mask2[y].end-mask2[y].start+1);
-          ip+=XYSamples_padded;
-        }
-     }
-     MemCtrl::mc()->put(image_index);
-     MemCtrl::mc()->deleteBlock(&image_index);
-     if (_fov_diameter != NULL) *_fov_diameter=fov_diameter;
-     flog->logMsg("finished reconstruction in #1 sec", loglevel+1)->
-      arg(sw.stop());
-     return(result);
-   }
-   catch (...)
-    { sw.stop();
-      if (correction != NULL) delete[] correction;
-      if (correct_plane != NULL) delete[] correct_plane;
-      if (result != NULL) delete[] result;
-      throw;
-    }
- }
-
-/*---------------------------------------------------------------------------*/
-/* testcode, not used yet                                                    */
-/*---------------------------------------------------------------------------*/
-void OSEM3D::reconstructMP_slave(float * const sino, float * const image,
-                                 float * const correction,
-                                 float * const estimate,
-                                 const unsigned short int subset,
-                                 const unsigned short int segment,
-                                 const unsigned short int max_threads)
- { unsigned short int t, z;
-   float *tp, *ep, *tp2, *ep2;
-
-   initBckProjector(max_threads);
-   initFwdProjector(max_threads);
-                               // forward-project subset of segment of sinogram
-   fwd->forward_proj3d(image, estimate, subset, segment, max_threads);
-                                                 // divide emission by estimate
-   for (tp=&sino[(unsigned long int)seg_plane_offset[segment]*
-                 sino_plane_size+
-                 (unsigned long int)order[subset]*
-                 (unsigned long int)RhoSamples],
-        ep=&estimate[(unsigned long int)z_bottom[segment]*
-                     (unsigned long int)RhoSamples_padded+1],
-        t=0; t < ThetaSamples/subsets; t++,
-        ep+=view_size_padded,
-        tp+=(unsigned long int)subsets*
-            (unsigned long int)RhoSamples)
-    for (tp2=tp,
-         ep2=ep+RhoSamples_padded,
-         z=z_bottom[segment]; z <= z_top[segment]; z++,
-         ep2+=RhoSamples_padded,
-         tp2+=sino_plane_size)
-     for (unsigned short int r=0; r < RhoSamples; r++)
-      if (ep2[r] > 0.00005f) ep2[r]=std::max(0.0f, tp2[r])/ep2[r];
-       else ep2[r]=1.0f;
-                                                        // backproject quotient
-   bp->back_proj3d(estimate, correction, subset, segment, false, max_threads);
- }
-#endif
-#endif
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Terminate OSEM slave.

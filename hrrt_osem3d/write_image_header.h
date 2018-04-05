@@ -10,16 +10,13 @@
 Copyright (C) CPS Innovations 2002-2003-2004 All Rights Reserved.
 -------------------------------------------------------------------*/
 
-#ifndef write_image_header_h
-#define write_image_header_h
+#pragma once
 
 #include	<stdlib.h>
 #include "compile.h"
 
 // !sv
-#ifdef IS__linux__
 #define _MAX_PATH 256
-#endif
 
 typedef struct {
 	char imagefile  [_MAX_PATH];	// image file must exist 
@@ -43,4 +40,3 @@ extern int write_image_header(ImageHeaderInfo *info, int psf_flag,
                               int sino_flag=0);
 
 
-#endif

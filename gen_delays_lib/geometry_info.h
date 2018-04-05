@@ -6,9 +6,7 @@
                Added short init_geometry_hrrt() with default parameters
   02-JUL-2009: Add Transmission(TX) LUT
 */
-#ifndef geometry_info_h
-#define geometry_info_h
-#define 	M_PI		3.14159265358979323846
+#pragma once
 
 #define NDOIS   2
 #define NXCRYS  72
@@ -56,4 +54,3 @@ inline int num_views(LR_Type type)
 {
   return (type==LR_0? 288:144);
 }
-#endif

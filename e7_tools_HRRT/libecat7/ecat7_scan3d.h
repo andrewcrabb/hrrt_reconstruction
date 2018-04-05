@@ -5,8 +5,7 @@
     \date 2005/01/17 added Doxygen style comments
  */
 
-#ifndef _ECAT7_SCAN3D_H
-#define _ECAT7_SCAN3D_H
+#pragma once
 
 #include <fstream>
 #include <list>
@@ -109,5 +108,3 @@ class ECAT7_SCAN3D:public ECAT7_MATRIX
     void View2Volume() const;     // convert dataset from view to volume format
     void Volume2View() const;     // convert dataset from volume to view format
  };
-
-#endif

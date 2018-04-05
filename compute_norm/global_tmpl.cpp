@@ -5,15 +5,11 @@
 //** © CPS Innovations
 
 #include <iostream>
-#if defined(__linux__) && defined(__INTEL_COMPILER)
-#include <mathimf.h>
-#else
+// #include <mathimf.h>
 #include <cmath>
-#endif
-#ifndef _GLOBAL_TMPL_CPP
-#define _GLOBAL_TMPL_CPP
+
 #include "global_tmpl.h"
-#endif
+
 
 /*- exported functions ------------------------------------------------------*/
 
@@ -28,32 +24,6 @@ void Emi2Tra(T * const data, const unsigned long int size)
     if (data[i] < 0) data[i]=1.0;                    // cut-off negative values
      else data[i]=(T)exp(data[i]);
  }
-
-#ifdef WIN32
-/*---------------------------------------------------------------------------*/
-/* maxi: return maximum of two values                                        */
-/*  a   first value                                                          */
-/*  b   second value                                                         */
-/* return: maximum                                                           */
-/*---------------------------------------------------------------------------*/
-template <typename T>
-inline T maxi(const T a, const T b)
- { if (a > b) return(a);
-   return(b);
- }
-
-/*---------------------------------------------------------------------------*/
-/* mini: return minimum of two values                                        */
-/*  a   first value                                                          */
-/*  b   second value                                                         */
-/* return: minimum                                                           */
-/*---------------------------------------------------------------------------*/
-template <typename T>
-inline T mini(const T a, const T b)
- { if (a < b) return(a);
-   return(b);
- }
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* round: round a value to the nearest integer                               */

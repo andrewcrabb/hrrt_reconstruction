@@ -9,30 +9,20 @@
 - 09-DEC-2009: Restore -X 128 option (MS)
 */
 
-#ifndef         hrrt_osem3d_h
-#define         hrrt_osem3d_h
+#pragma once
+
 #include "compile.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
 #include "scanner_model.h"
-#ifdef IS_WIN32
-	#include <windows.h>
-	#include <process.h>
-	#include <io.h>
-	#include <xmmintrin.h>
-	#include <emmintrin.h>
-#else
 	#include <pthread.h>
 	#include <pmmintrin.h>
 	#include <sys/types.h>
 	#include <sys/stat.h>
 	#include <unistd.h>
-	
-#endif
 #define   degree_to_rad .0174532888f
-#define   PI 3.14159265358979323846f
 #define	  MAXTHREADS 32
 #define   MAXGROUP  100
 /* 
@@ -203,28 +193,7 @@ extern float rel_fov;            /* relative fov : 0.95 (95%)  */
 //extern float fForwardProjSecs;
 //extern float fBackProjSecs;
 
-#ifdef IS_WIN32
-#else
-//	#define max(a,b) ((a)>(b)?(a):(b))
-//	#define min(a,b) ((a)<(b)?(a):(b))
-#endif
 
-/* prototype of routines */
-//#if defined(__STDC__)
-#if 0
-	void free_dependencies();
-	extern	int dependencies(int nprojs, int nviews, int verbose);
-	extern	int forward_proj3d( float ***ima, float ***prj, int sub, int theta, int verbose);
-	extern	int back_proj3d( float ***prj, float ***ima, int sub, int theta, int verbose);
-	int crash1(char *fmt);
-	int crash2(char *fmt, char *a0);
-	int crash3(char *fmt, int a0);
-	int forward_proj3d2(float ***ima,float ** prj,int view,int verbose,float ***imagebuf,float **prjbuf);	
-	int back_proj3d2   (float ** prj,float *** ima,int view,int verbose,float ***imagebuf,float **prjbuf);
-	// following methods will be deprecated.
-	int forward_proj3d(float ***ima,float *** prj,int sub,int view,int verbose);	
-	int back_proj3d(float ***prj,float *** ima,int sub,int view,int verbose);
-#else
 	void free_dependencies();
 	int dependencies(int nprojs,int  nviews,int  verbose);		
 	int crash1(const char *fmt);
@@ -248,8 +217,6 @@ extern float rel_fov;            /* relative fov : 0.95 (95%)  */
 	void mulprojectionscalar(float ***prj1,float coef,int theta);
   int proj_atten_view(float ***image, float *prj,int view, int verbose=0);
   void LogMessage( const char *fmt, ... );
-	//int write_image_header(struct ImageHeaderInfo *info, int psf_flag);
-#endif  /* __STDC__ */
 
 
 
@@ -286,22 +253,12 @@ typedef struct {
 	int the;
 } Theta_start_end;
 
-#ifdef IS_WIN32
-extern File_structure fstruct[16];
-#define THREAD_TYPE HANDLE
-extern HANDLE threads[16];
-#define FUNCPTR unsigned __stdcall 
-#define START_THREAD(th,func,arg,id) th = (HANDLE)_beginthreadex( NULL, 0, &func, &arg, 0, &id )
-#define Wait_thread(threads) {WaitForSingleObject(threads, INFINITE );CloseHandle(threads);}
-
-#else
 // !sv File_structure fstruct[16];
 #define THREAD_TYPE pthread_t
 extern pthread_t threads[16];
 #define FUNCPTR void*
 #define START_THREAD(th,func,arg,id) pthread_create(&th,NULL,&func, &arg)
 #define Wait_thread(threads) pthread_join(threads,NULL)
-#endif
 
 #define LOG_TO_CONSOLE 0x1
 #define LOG_TO_FILE 0x2
@@ -318,6 +275,3 @@ extern Psf1D *psfy;
 extern Psf1D *psfz;
 extern char log_file[];
 extern unsigned int log_mode;
-
-#endif	/* HRRT_osem3d_h  */
-

@@ -6,8 +6,7 @@
     \date 2005/01/04 added arg() method
  */
 
-#ifndef _PROGRESS_H
-#define _PROGRESS_H
+#pragma once
 
 #include <string>
 #include "comm_socket.h"
@@ -38,9 +37,6 @@ class Progress
    public:
     template <typename T>
      Progress *arg(T);                     // fill argument into message string
-#ifdef WIN32
-    Progress *arg(GUID);                       // fill GUID into message string
-#endif
     static void close();                            // close communication link
                             // open communication link to reconstruction server
     void connect(const bool, const unsigned short int);
@@ -49,10 +45,3 @@ class Progress
     Progress *sendMsg(const unsigned long int, const unsigned short int,
                       const std::string);
  };
-
-#ifndef _PROGRESS_CPP
-#define _PROGRESS_TMPL_CPP
-#include "progress.cpp"
-#endif
-
-#endif

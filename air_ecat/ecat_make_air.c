@@ -11,12 +11,6 @@
 #include "ecat2air.h"
 #include <unistd.h>
 #include <ecatx/matpkg.h>
-#ifndef min
-#define min(a,b) ((a)<(b) ? (a) : (b))
-#endif
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
 static void usage(const char *pgm) {
   printf("\n%s Build %s %s\n",pgm,__DATE__,__TIME__);
   fprintf(stderr, "usage: %s -s standard_file -r reslice_file -i air_file | -t yaw(z_rot),pitch(x_rot),roll(y_rot),tx,ty,tz"

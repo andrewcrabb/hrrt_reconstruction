@@ -6,8 +6,7 @@
     \date 2005/02/25 use vectors
  */
 
-#ifndef _REBIN_SINOGRAM_H
-#define _REBIN_SINOGRAM_H
+#pragma once
 
 #include "e7_tools_const.h"
 #include "rebin_x.h"
@@ -65,4 +64,3 @@ class RebinSinogram
                              const unsigned short int);
  };
 
-#endif

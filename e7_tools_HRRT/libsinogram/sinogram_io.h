@@ -13,8 +13,7 @@
     \date 2004/11/05 added "sumCounts" method
  */
 
-#ifndef _SINOGRAM_IO_H
-#define _SINOGRAM_IO_H
+# pragma once
 
 #include <string>
 #include <vector>
@@ -262,10 +261,3 @@ class SinogramIO
     float TOFwidth() const;                   // request width of TOF bin in ns
     unsigned short int ULD() const;     // request upper level energy threshold
  };
-
-#ifndef _SINOGRAM_IO_CPP
-#define _SINOGRAM_IO_TMPL_CPP
-#include "sinogram_io.cpp"
-#endif
-
-#endif

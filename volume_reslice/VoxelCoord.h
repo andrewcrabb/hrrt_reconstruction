@@ -1,5 +1,4 @@
-#ifndef VoxelCoord_h
-#define VoxelCoord_h
+# pragma once
 
 #ifndef DIMENSION_NAME	
 // DimensionName is also defined in <Graphic/geometry.h>
@@ -41,5 +40,3 @@ inline VoxelIndex::VoxelIndex(int vx, int vy, int vz, DimensionName d)
 	set(d,vz);
 	set(d,vx,vy);
 }
-
-#endif

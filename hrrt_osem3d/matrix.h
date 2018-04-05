@@ -1,29 +1,11 @@
 /* @(#)matrix.h	1.5 2/8/93 */
 
 /* prevent recursive definition */
-#ifndef		matrix_h
-#define		matrix_h
+#pragma once
 
 #include <stdio.h>
 #include <sys/types.h>
 
-#ifdef _WIN32
-#define R_MODE "rb"
-#define RW_MODE "rb+"
-#define W_MODE "wb"
-#define swab _swab
-#define strdup _strdup
-typedef char *void *;
-typedef unsigned char unsigned char ;
-typedef unsigned short u_short;
-//extern unsigned short ntohs(unsigned short);
-//extern unsigned long ntohl(unsigned long);
-#else
-#define R_MODE "r"
-#define RW_MODE "r+"
-#define W_MODE "w"
-#include <netinet/in.h>
-#endif
 
 #define		MatBLKSIZE 512
 #define		MatFirstDirBlk 2
@@ -645,4 +627,3 @@ extern char* is_analyze();
 extern void free_matrix_data();
 #endif	/* __cplusplus */
 extern int ecat_default_version;
-#endif	/* 	matrix_h */

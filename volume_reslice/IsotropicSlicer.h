@@ -1,5 +1,4 @@
-#ifndef IsotropicSlicer_h
-#define IsotropicSlicer_h
+# pragma once
 
 /*
  * static char sccsid[] = "%W% UCL-TOPO %E%";
@@ -39,11 +38,6 @@
 #include "matpkg.h"
 #include <stdlib.h>
 #include "matrix_resize.h"
-
-#ifdef _DEBUG
-//#define new DEBUG_NEW
-#endif
-
 
 #define V_ADD(x,y) for(j=0 ; j < 4 ; j++) (*(x+j)) += (*(y+j))
 #define V_ADD2(x,y,m) for(j=0 ; j < 4 ; j++) (*(x+j)) += ((*(y+j)) * (m))
@@ -623,5 +617,3 @@ MatrixData* IsotropicSlicer<T>::average(float z0, float thickness,
   free(tmp);
   return create_comp_slice(dest,xdim,ydim,pixel_size,pixel_size,thickness);
 }
-
-#endif

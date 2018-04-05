@@ -28,20 +28,13 @@
    * along with this software; if not, write to the Free Software
    * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-#ifndef matrix_utils_h
-#define matrix_utils_h
+# pragma once
 #include "matrix.h"
 
-#if defined(__cplusplus)
 extern "C" {
-#endif /* __cplusplus */
 int matrix_interp2(MatrixData *mat, int sx1, int sx2); /* assumes byte data */
 int matrix_resize_1(MatrixData *mat, float pixel_size, int interp_flag);
 int matrix_resize_2(MatrixData *mat, float pixel_size, int interp_flag);
 int matrix_resize(MatrixData *mat, float pixel_size, int interp_flag);
 int matrix_flip(MatrixData *data, int x_flip, int y_flip, int z_flip);
-#if defined(__cplusplus)
 }
-#endif /* __cplusplus */
-
-#endif /* matrix_utils_h */

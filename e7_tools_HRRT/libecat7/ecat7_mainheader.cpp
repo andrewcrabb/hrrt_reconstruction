@@ -221,10 +221,6 @@ void ECAT7_MAINHEADER::PrintMainHeader(
    sl->push_back(s+")");
    sl->push_back(" Serial Number:            "+
                  std::string((const char *)mh.serial_number));
-#ifdef WIN32
-   if (mh.scan_start_time < 0) s="unknown";
-    else
-#endif
          t = mh.scan_start_time;
          { s=asctime(gmtime(&t));
            s.erase(s.length()-1, 1);
@@ -351,10 +347,6 @@ void ECAT7_MAINHEADER::PrintMainHeader(
                  " cm");
    sl->push_back("         Weight:           "+toString(mh.patient_weight)+
                  " kg");
-#ifdef WIN32
-   if (mh.patient_birth_date < 0) s="unknown";
-    else
-#endif
          { t = mh.scan_start_time;
            s=asctime(gmtime(&t));
            s.erase(s.length()-1, 1);
@@ -449,10 +441,6 @@ void ECAT7_MAINHEADER::PrintMainHeader(
    sl->push_back(" Bin Size:                 "+toString(mh.bin_size)+" cm");
    sl->push_back(" Branching Fraction:       "+
                  toString(mh.branching_fraction));
-#ifdef WIN32
-   if (mh.dose_start_time < 0) s="unknown";
-    else
-#endif
          { t = mh.scan_start_time;
            s=asctime(gmtime(&t));
            s.erase(s.length()-1, 1);

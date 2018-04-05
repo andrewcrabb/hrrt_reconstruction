@@ -10,9 +10,7 @@
  */
 
 #include <ctime>
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <sys/time.h>
-#endif
 #include "stopwatch.h"
 #include "exception.h"
 
@@ -89,9 +87,7 @@ float StopWatch::stop()
     and microseconds for Unix.
  */
 /*---------------------------------------------------------------------------*/
-float StopWatch::time() const
- {
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
+float StopWatch::time() const {
    timeval tv;
    tm *t;
                                                             // get current time
@@ -99,12 +95,5 @@ float StopWatch::time() const
    t=localtime((time_t *)&tv.tv_sec);
    return(float(t->tm_hour)*3600.0f+float(t->tm_min)*60.0f+
           float(t->tm_sec)+float(tv.tv_usec)/1000000.0f);
-#endif
-#ifdef WIN32
-   SYSTEMTIME t;
 
-   GetSystemTime(&t);                                       // get current time
-   return(float(t.wHour)*3600.0f+float(t.wMinute)*60.0f+
-          float(t.wSecond)+float(t.wMilliseconds)/1000.0f);
-#endif
  }

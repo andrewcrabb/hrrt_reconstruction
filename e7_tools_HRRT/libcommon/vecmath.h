@@ -6,8 +6,7 @@
     \date 2004/09/25 added functions for complex vectors
  */
 
-#ifndef _VECMATH_H
-#define _VECMATH_H
+#pragma once
 
 /*- exported functions ------------------------------------------------------*/
 
@@ -111,9 +110,3 @@ inline void vecSubComplex(const float * const, const float * const,
 inline void vecSubComplexReal(const float * const, const float * const,
                               const float * const, float * const,
                               float * const, const unsigned long int);
-
-#ifndef _VECMATH_CPP
-#include "vecmath.cpp"
-#endif
-
-#endif

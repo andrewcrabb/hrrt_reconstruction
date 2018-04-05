@@ -145,13 +145,11 @@ char* is_analyze(const char* fname)
 	return NULL;
 }
 
-#ifndef _WIN32      /* unix */
 static char *itoa(int i, char *buf, int radix)
 {
         sprintf(buf ,"%d",i);
         return buf;
 }
-#endif
 
 static char *ftoa(float f, char *buf)
 {
