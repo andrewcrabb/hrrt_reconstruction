@@ -4,7 +4,7 @@
 set (GCC_COMPILE_FLAGS "-std=gnu99")
 add_definitions(${GCC_COMPILE_FLAGS})
 
-add_library (ecatx analyze.c machine_indep.c plandefs.c
+add_library (ecatx analyze.cpp machine_indep.c plandefs.c
 	crash.c interfile.c matrix.c matrix_slice.c scanner_model.c
 	DICOM.c isotope_info.c matrix_extra.c num_sort.c matpkg.c)
 

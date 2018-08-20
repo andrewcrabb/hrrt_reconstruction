@@ -1,6 +1,6 @@
 # Generated automatically from Makefile.in by configure.
 
- # -D _GLIBCXX_USE_CXX11_ABI=0
+
 CFLAGS = -g -O2
 CC = gcc
 LIBS = -lm 

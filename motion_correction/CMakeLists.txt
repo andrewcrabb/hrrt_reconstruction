@@ -4,6 +4,7 @@ set (LIB_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/AIR5.3.0/src
 	)
 
+message("CMAKE_SOURCE_DIR is ${CMAKE_SOURCE_DIR}")
 find_library (LIBRPW   NAME RPW    PATHS "${CMAKE_SOURCE_DIR}/AIR5.3.0/src")
 
 # add_definitions(-std=gnu99)

@@ -494,7 +494,7 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
     // we only used the delayed coins (coins+nvals)vvvvvv
     niter = compute_csings_from_drates( nvals, coins+nvals, tau, ftime, csings);
     gettimeofday( &t3, NULL);
-    printf("csings computed from drates in %d iterations (%d msec)\n", niter, ( ( ( t3.tv_sec * 1000 ) + ( int )( (double)t3.tv_usec / 1000.0 ) ) - ( ( t2.tv_sec * 1000 ) + ( int )( (double)t2.tv_usec / 1000.0 ) ) ) );
+    printf("csings computed from drates in %d iterations (%ld msec)\n", niter, ( ( ( t3.tv_sec * 1000 ) + ( int )( (double)t3.tv_usec / 1000.0 ) ) - ( ( t2.tv_sec * 1000 ) + ( int )( (double)t2.tv_usec / 1000.0 ) ) ) );
     free(coins);
     if (output_csings_file) {
       fptr = fopen( output_csings_file, "wb");
@@ -551,13 +551,13 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
 	pthread_join( threads[ threadnum ] , NULL ) ;
       }
     gettimeofday( &t2, NULL);
-    fprintf(stdout,"%d\t%d msec   \n",mp+1, ( ( ( t2.tv_sec * 1000 ) + ( int )( (double)t2.tv_usec / 1000.0 ) ) - ( ( t1.tv_sec * 1000 ) + ( int )( (double)t1.tv_usec / 1000.0 ) ) ) );
+    fprintf(stdout,"%d\t%ld msec   \n",mp+1, ( ( ( t2.tv_sec * 1000 ) + ( int )( (double)t2.tv_usec / 1000.0 ) ) - ( ( t1.tv_sec * 1000 ) + ( int )( (double)t1.tv_usec / 1000.0 ) ) ) );
     fflush(stdout);
   }
   gettimeofday( &t1, NULL);
-  fprintf(stdout,"Smooth Delays computed in %d msec.\n", ( ( ( t1.tv_sec * 1000 ) + ( int )( (double)t1.tv_usec / 1000.0 ) ) - ( ( t0.tv_sec * 1000 ) + ( int )( (double)t0.tv_usec / 1000.0 ) ) ) );
+  fprintf(stdout,"Smooth Delays computed in %ld msec.\n", ( ( ( t1.tv_sec * 1000 ) + ( int )( (double)t1.tv_usec / 1000.0 ) ) - ( ( t0.tv_sec * 1000 ) + ( int )( (double)t0.tv_usec / 1000.0 ) ) ) );
   gettimeofday( &t2, NULL );
-  fprintf(stdout,"...reduced in %d msec   \n",mp+1, ( ( ( t2.tv_sec * 1000 ) + ( int )( (double)t2.tv_usec / 1000.0 ) ) - ( ( t1.tv_sec * 1000 ) + ( int )( (double)t1.tv_usec / 1000.0 ) ) ) );
+  fprintf(stdout,"...reduced in %ld msec   \n",mp+1, ( ( ( t2.tv_sec * 1000 ) + ( int )( (double)t2.tv_usec / 1000.0 ) ) - ( ( t1.tv_sec * 1000 ) + ( int )( (double)t1.tv_usec / 1000.0 ) ) ) );
   fflush(stdout);	
 	
   free(m_solution[0]);

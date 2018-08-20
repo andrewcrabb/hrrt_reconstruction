@@ -1,6 +1,12 @@
 cmake_minimum_required (VERSION 3.7)
 project (hrrt_recon)
 set (CMAKE_CXX_STANDARD 11)
+
+# if (POLICY CMP0025)
+#   cmake_policy(SET CMP0025 NEW)
+# endif ()
+
+
 # The version number.
 set (hrrt_recon_VERSION_MAJOR 1)
 set (hrrt_recon_VERSION_MINOR 0)
@@ -26,15 +32,28 @@ include_directories(/usr/include ${PROJECT_BINARY_DIR})
  # ahc https://goo.gl/hHNWmc for strdup (else it's undefined and assume int so complains about type)
 add_definitions(-D_XOPEN_SOURCE=600 -D _GLIBCXX_USE_CXX11_ABI=0 -D_FILE_OFFSET_BITS=64)
 
+# https://gitlab.kitware.com/cmake/cmake/issues/15943
+cmake_policy(SET CMP0025 NEW)
+
+
 # add_definitions(-D_LINUX -D__LINUX__ ${GCC_COMPILE_FLAGS})
 # Removed definition: Test for Linux defined at https://sourceforge.net/p/predef/wiki/OperatingSystems/: __linux__
 # add_definitions(-D_LINUX -D__LINUX__)
 # add_compile_options(-I${PROJECT_SOURCE_DIR}/AIR5.3.0/src -L${PROJECT_SOURCE_DIR}/AIR5.3.0/src)
 
+if (MSVC)
+	message("Hello Andrew this is MSVC")
+	set(BOOST_ROOT "C:/BIN/boost_1_68_0")
+	find_package(Boost)
+	message(include_directories(${Boost_INCLUDE_DIRS}))
+
+	# add_compile_options(--stdlib=libc++ -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys)
+endif()
+
 
 if (APPLE)
 	message("Hello Andrew this is a Mac")
-	add_compile_options(-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys)
+	add_compile_options(--stdlib=libc++ -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys)
 endif()
 
 # From original Makefile:
@@ -63,7 +82,10 @@ add_subdirectory(gsmooth)
 add_subdirectory(compute_norm)
 add_subdirectory(if2e7)
 add_subdirectory(lmhistogram_mp)
-add_subdirectory(motion_correction)
+
+# Leaving this out for now - requires AIR
+# add_subdirectory(motion_correction)
+
 # add_subdirectory(TX_TV3DReg)  # Uses X11 and I can't be fagged installing it
 # add_subdirectory(ecat2DICOM)  # Has errors/omits
 

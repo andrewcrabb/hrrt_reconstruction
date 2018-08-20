@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "analyze.h"
+#include "analyze.hpp"
 #include "interfile.h"
 #include "machine_indep.h"
 
@@ -54,21 +54,22 @@ static int analyze_read_hdr(const char *fname)
 	char tmp[80];
 
 	if ((fp = fopen(fname, R_MODE)) == NULL) return 0;
-	if (fread(&hdr,sizeof(struct dsr),1,fp) < 0) return 0;
+	// if (fread(&hdr,sizeof(struct dsr),1,fp) < 0) return 0;
+	if (fread(&hdr,sizeof(struct dsr),1,fp) < sizeof(struct dsr)) return 0;
 	fclose(fp);
-    if (ntohl(hdr.hk.sizeof_hdr) == sizeof(struct dsr)) {
-        hdr.hk.sizeof_hdr = ntohl(hdr.hk.sizeof_hdr);
-        hdr.hk.extents = ntohl(hdr.hk.extents);
+    if (hdr.hk.sizeof_hdr == sizeof(struct dsr)) {
+        hdr.hk.sizeof_hdr = hdr.hk.sizeof_hdr;
+        hdr.hk.extents = hdr.hk.extents;
         swab((char*)hdr.dime.dim,tmp,4*sizeof(short));
         memcpy(hdr.dime.dim,tmp,4*sizeof(short));
-        hdr.dime.datatype = ntohs(hdr.dime.datatype);
-        hdr.dime.bitpix = ntohs(hdr.dime.bitpix);
+        hdr.dime.datatype = hdr.dime.datatype;
+        hdr.dime.bitpix = hdr.dime.bitpix;
         swab((char*)hdr.dime.pixdim,tmp,4*sizeof(float));
         swaw((short*)tmp,(short*)hdr.dime.pixdim,4*sizeof(float)/2);
         swab((char*)&hdr.dime.funused1,tmp,sizeof(float));
         swaw((short*)tmp,(short*)(&hdr.dime.funused1),sizeof(float)/2);
-        hdr.dime.glmax = ntohl(hdr.dime.glmax);
-        hdr.dime.glmin = ntohl(hdr.dime.glmin);
+        hdr.dime.glmax = hdr.dime.glmax;
+        hdr.dime.glmin = hdr.dime.glmin;
     }
 	return 1;
 }
@@ -82,7 +83,7 @@ static int _is_analyze(const char* fname)
 	if ( (fp = fopen(fname, R_MODE)) == NULL) return 0;
 	fread(&sizeof_hdr,sizeof(int),1,fp);
 	fclose(fp);
-	if (sizeof_hdr == magic_number || ntohl(sizeof_hdr) == magic_number ) return 1;
+	if (sizeof_hdr == magic_number || sizeof_hdr == magic_number ) return 1;
 	return 0;
 }
 
@@ -95,15 +96,16 @@ char* is_analyze(const char* fname)
 
 	if (_is_analyze(fname)) {	/* access by .hdr */
 		hdr_fname = strdup(fname);
-		img_fname = malloc(strlen(fname)+4);
+		img_fname = static_cast<char *>(malloc(strlen(fname)+4));
 		strcpy(img_fname,fname);
 		if ( (p=strrchr(img_fname,'.')) != NULL) *p++ = '\0';
 		strcat(img_fname,".img");
 	} else {					/* access by .img */
-		if ( (p=strstr(fname,".img")) == NULL)
+		// if ( (p=strstr(fname,".img")) == NULL)
+		if ( strstr(fname,".img") == NULL)
 			return NULL;			/* not a .img file */
 		img_fname = strdup(fname);
-		hdr_fname = malloc(strlen(fname)+4);
+		hdr_fname = static_cast<char *>(malloc(strlen(fname)+4));
 		strcpy(hdr_fname,fname);
 		if ( (p=strrchr(hdr_fname,'.')) != NULL) *p++ = '\0';
 		strcat(hdr_fname,".hdr");
@@ -167,7 +169,7 @@ int analyze_open(MatrixFile *mptr)
 	int elem_size, data_offset=0, data_size, nblks, frame;
 	char buf[40];
 
-	matrix_errno = 0;
+	matrix_errno = static_cast<MatrixErrorCode>(0);
 	if (!analyze_read_hdr(mptr->fname)) return 0;
     strncpy(patient_id,hdr.hist.patient_id,10);
     patient_id[10] ='\0';
@@ -178,9 +180,9 @@ int analyze_open(MatrixFile *mptr)
   mptr->analyze_hdr = (char*)calloc(1, sizeof(struct dsr));
   memcpy(mptr->analyze_hdr, &hdr, sizeof(hdr));
 	mptr->interfile_header = (char**)calloc(END_OF_KEYS,sizeof(char*));
-	data_file = malloc(strlen(mptr->fname)+4);
+	data_file = static_cast<char *>(malloc(strlen(mptr->fname)+4));
 	strcpy(data_file, mptr->fname);
-	if ((extension = strrchr(data_file,DIR_SEPARATOR)) == NULL)
+	if ((extension = strrchr(data_file,'/')) == NULL)
 		extension = strrchr(data_file,'.');
 	else extension = strrchr(extension,'.');
 	if (extension != NULL) strcpy(extension,".img");
@@ -223,7 +225,7 @@ int analyze_open(MatrixFile *mptr)
 			matrix_errno = MAT_UNKNOWN_FILE_TYPE;
 			return 0;
 	}
-  if (ntohs(hdr.hk.sizeof_hdr) == sizeof(struct dsr))
+  if (hdr.hk.sizeof_hdr == sizeof(struct dsr))
     mptr->interfile_header[IMAGEDATA_BYTE_ORDER] = strdup("bigendian");
   else mptr->interfile_header[IMAGEDATA_BYTE_ORDER] = strdup("littleendian");
 	mh->num_planes = hdr.dime.dim[3];
@@ -235,7 +237,7 @@ int analyze_open(MatrixFile *mptr)
 	mptr->interfile_header[NUMBER_OF_DIMENSIONS] = strdup("3");
 							/* check spm origin */
 	dim = hdr.dime.dim;
-  if (ntohs(hdr.hk.sizeof_hdr) == sizeof(struct dsr)) 
+  if (hdr.hk.sizeof_hdr == sizeof(struct dsr)) 
     swab(hdr.hist.originator,(char*)spm_origin,10);
 	else memcpy(spm_origin,hdr.hist.originator,10);
 	if (spm_origin[0]>1 && spm_origin[1]>1 && spm_origin[2]>1 &&
@@ -322,7 +324,8 @@ int analyze_read(MatrixFile *mptr, int matnum, MatrixData *data, int dtype)
   for (z = 0; z < data->zdim; z++) {
     if (z_flip) 
       plane = data->data_ptr + (data->zdim-z-1)*elem_size*npixels;
-    else plane = data->data_ptr + z*elem_size*npixels;
+    else 
+    	plane = data->data_ptr + z*elem_size*npixels;
     if (fread(plane,elem_size,npixels,mptr->fptr) < npixels) {
       free(data->data_ptr);
       data->data_ptr = NULL;
