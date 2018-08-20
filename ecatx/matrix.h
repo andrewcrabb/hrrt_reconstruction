@@ -572,8 +572,9 @@ struct matrixdata
 }
 MatrixData ;
 
-
+#if defined(__cplusplus)
 extern "C" {
+#endif
   /*
    * high level user functions
    */
@@ -649,22 +650,37 @@ extern "C" {
   void swaw(short *from, short *to, int length);
   int insert_mdir(struct MatDir *matdir, MatDirList *dirlist);
 
+  int numDisplayUnits;
+  char* datasettype[NumDataSetTypes];
+  char* dstypecode[NumDataSetTypes];
+  char* scantype[NumScanTypes];
+  char* scantypecode[NumScanTypes];
+  char* customDisplayUnits[];
+  float ecfconverter[NumOldUnits];
+  char* calstatus[NumCalibrationStatus];
+  char* sexcode;
+  char* dexteritycode;
+  char* typeFilterLabel[NumDataMasks];
+  int ecat_default_version;
+  MatrixErrorCode matrix_errno;
+  char matrix_errtxt[];
 
+#if defined(__cplusplus)
 }
+#endif
 
-
-extern "C" int numDisplayUnits;
-extern "C" char* datasettype[NumDataSetTypes];
-extern "C" char* dstypecode[NumDataSetTypes];
-extern "C" char* scantype[NumScanTypes];
-extern "C" char* scantypecode[NumScanTypes];
-extern "C" char* customDisplayUnits[];
-extern "C" float ecfconverter[NumOldUnits];
-extern "C" char* calstatus[NumCalibrationStatus];
-extern "C" char* sexcode;
-extern "C" char* dexteritycode;
-extern "C" char* typeFilterLabel[NumDataMasks];
-extern "C" int ecat_default_version;
-extern "C" MatrixErrorCode matrix_errno;
-extern "C" char matrix_errtxt[];
+// extern "C" int numDisplayUnits;
+// extern "C" char* datasettype[NumDataSetTypes];
+// extern "C" char* dstypecode[NumDataSetTypes];
+// extern "C" char* scantype[NumScanTypes];
+// extern "C" char* scantypecode[NumScanTypes];
+// extern "C" char* customDisplayUnits[];
+// extern "C" float ecfconverter[NumOldUnits];
+// extern "C" char* calstatus[NumCalibrationStatus];
+// extern "C" char* sexcode;
+// extern "C" char* dexteritycode;
+// extern "C" char* typeFilterLabel[NumDataMasks];
+// extern "C" int ecat_default_version;
+// extern "C" MatrixErrorCode matrix_errno;
+// extern "C" char matrix_errtxt[];
  

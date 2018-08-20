@@ -15,6 +15,13 @@ set (LIB_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libfilter
 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libconvert
 	)
+
+if (MSVC)
+	set (LIBSCATTER 'libscatter')
+else()
+	set (LIBSCATTER 'scatter')
+endif()
+
 # find_library (LIBSCATTER   NAME scatter    PATHS "${CMAKE_SOURCE_DIR}/libscatter")
 find_library (LIBSCATTER   NAME libscatter    PATHS "${CMAKE_SOURCE_DIR}/libscatter")
 message("LIBSCATTER in root is ${LIBSCATTER}")

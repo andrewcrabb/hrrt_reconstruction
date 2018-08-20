@@ -323,10 +323,10 @@ int analyze_read(MatrixFile *mptr, int matnum, MatrixData *data, int dtype)
   }
   for (z = 0; z < data->zdim; z++) {
     if (z_flip) 
-      plane = data->data_ptr + (data->zdim-z-1)*elem_size*npixels;
+      plane = data->data_ptr + (data->zdim - z - 1) * elem_size * npixels;
     else 
-    	plane = data->data_ptr + z*elem_size*npixels;
-    if (fread(plane,elem_size,npixels,mptr->fptr) < npixels) {
+    	plane = data->data_ptr + z * elem_size * npixels;
+    if (fread(plane, elem_size, npixels, mptr->fptr) < npixels) {
       free(data->data_ptr);
       data->data_ptr = NULL;
       matrix_errno = MAT_READ_ERROR;
