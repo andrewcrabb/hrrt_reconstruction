@@ -37,8 +37,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "analyze.hpp"
-#include "interfile.h"
-#include "machine_indep.h"
+#include "interfile.hpp"
+#include "machine_indep.hpp"
 
 // ahc
 #include <unistd.h>

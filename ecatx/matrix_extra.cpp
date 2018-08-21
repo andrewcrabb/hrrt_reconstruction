@@ -36,7 +36,7 @@
 #include	<string.h>
 #include	<sys/types.h>
 #include	<sys/stat.h>
-#include	"interfile.h"
+#include	"interfile.hpp"
 #include	"machine_indep.h"
 #include	"matrix.h"
 #include	"num_sort.h"

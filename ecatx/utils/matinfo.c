@@ -68,14 +68,13 @@ MatrixData *matrix;
       }
     }
   }
-  mx = (mx/total)*matrix->pixel_size*10;
-  my = (my/total)*matrix->y_size*10;
-  mz = (mz/total)*matrix->z_size*10;
+  mx = mx / total * matrix->pixel_size * 10;
+  my = my / total * matrix->y_size * 10;
+  mz = mz / total * matrix->z_size * 10;
   printf("Dimensions := %dx%dx%d\n",matrix->xdim,matrix->ydim,matrix->zdim);
-  if (mh->calibration_units == Uncalibrated || ecf <= 1.0 ||
-      data_unit>numDisplayUnits)  data_unit = 0;
-  if (data_unit) units = customDisplayUnits[data_unit];
-  else units = "";
+  if (mh->calibration_units == Uncalibrated || ecf <= 1.0 || data_unit > numDisplayUnits)  
+    data_unit = 0;
+  units = (data_unit) ? customDisplayUnits[data_unit] : "";
   total *= matrix->scale_factor;
   mean = total/nvoxels;
   sprintf(line1, "Minimum := %g %s",matrix->data_min, units);

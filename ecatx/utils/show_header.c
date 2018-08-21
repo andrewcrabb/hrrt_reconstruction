@@ -153,9 +153,10 @@ void show_main_header( Main_header *mh )
 		printf(" (%s)\n",calstatus[mh->calibration_units]);
 	else printf("\n");
 	printf("Calibration Units Label     : %d", mh->calibration_units_label);
-	if (mh->calibration_units_label>0 && mh->calibration_units_label<14)
+	if (mh->calibration_units_label > 0 && mh->calibration_units_label < 14)
 		printf(" (%s)\n",customDisplayUnits[mh->calibration_units_label]);
-	else printf("\n");
+	else 
+		printf("\n");
 	printf("Compression Code            : %d\n", mh->compression_code);
 	printf("Study Name                  : %-12s\n", mh->study_name);
 	printf("Patient ID                  : %-16s\n", mh->patient_id);

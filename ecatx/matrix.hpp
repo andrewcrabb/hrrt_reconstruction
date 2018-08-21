@@ -575,6 +575,9 @@ struct matrixdata
 }
 MatrixData ;
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
   /*
    * high level user functions
    */
@@ -667,6 +670,10 @@ MatrixData ;
   MatrixErrorCode matrix_errno;
   // char matrix_errtxt[];
   std::string matrix_errtxt;
+
+#if defined(__cplusplus)
+}
+#endif
 
 // extern "C" int numDisplayUnits;
 // extern "C" char* datasettype[NumDataSetTypes];
