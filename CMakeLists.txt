@@ -70,6 +70,7 @@ add_subdirectory(hrrt_common)
 add_subdirectory(gen_delays_lib)
 # add_subdirectory(gen_delays_main)  # Calls gen_delays with 7 params not 10 as required
 add_subdirectory(interfile_lib)
+add_subdirectory(lmhistogram_mp)
 add_subdirectory(ecatx)
 add_subdirectory(ecatx/utils)
 add_subdirectory(hrrt_osem3d)
@@ -81,7 +82,6 @@ add_subdirectory(e7_tools_HRRT)
 add_subdirectory(gsmooth)
 add_subdirectory(compute_norm)
 add_subdirectory(if2e7)
-add_subdirectory(lmhistogram_mp)
 
 # Leaving this out for now - requires AIR
 # add_subdirectory(motion_correction)

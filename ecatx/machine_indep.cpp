@@ -31,11 +31,13 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "matrix.h"
+#include "matrix.hpp"
 
 // ahc
 #include <unistd.h>
 #include <linux/swab.h>
+#include <arpa/inet.h>
+
 
 void 
 SWAB(void *from, void *to, int length)
@@ -72,12 +74,13 @@ int
 file_data_to_host(char *dptr, int nblks, int dtype)
 {
 	int i, j;
-	char *tmp = NULL;
+	char *tmp = new char[512];
 
 
-	matrix_errno = 0;
+	matrix_errno = MAT_OK;
 	matrix_errtxt.clear();
-	if ((tmp = malloc(512)) == NULL) return ECATX_ERROR;
+	// if ((tmp = static_cast<char *>(malloc(512))) == NULL) 
+	// 	return ECATX_ERROR;
 	switch(dtype)
 	{
 	case ByteData:
@@ -130,7 +133,8 @@ file_data_to_host(char *dptr, int nblks, int dtype)
 			}
 		break;
 	}
-	free(tmp);
+	// free(tmp);
+	delete[] tmp;
 	return ECATX_OK;
 }
 
@@ -149,17 +153,18 @@ write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, int dtype)
 {
 	int error_flag = 0;
 	int i, j;
-	char *bufr1 = NULL, *bufr2 = NULL;
+	char *bufr1 = new char[512];
+	char *bufr2 = new char[512];
 
     /* printf("\n\n\n\n HEY2"); fflush(stdout); */
         
-	matrix_errno = 0;
+	matrix_errno = MAT_OK;
 	matrix_errtxt.clear();
-	if ( (bufr1 = malloc(512)) == NULL) return ECATX_ERROR;
-	if ( (bufr2 = malloc(512)) == NULL) {
-		free(bufr1);
-		return ECATX_ERROR;
-	}
+	// if ( (bufr1 = malloc(512)) == NULL) return ECATX_ERROR;
+	// if ( (bufr2 = malloc(512)) == NULL) {
+	// 	free(bufr1);
+	// 	return ECATX_ERROR;
+	// }
 	switch( dtype)
 	{
 	case ByteData:
@@ -199,8 +204,9 @@ write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, int dtype)
 		} else if ( mat_wblk( fptr, strtblk, dptr, nblks) < 0) error_flag++;
 		break;
 	}
-	free(bufr1);
-	free(bufr2);
+	delete[] bufr1;
+	delete[] bufr2;
+
 	if (error_flag == 0) return ECATX_OK;
 	return ECATX_ERROR;
 }

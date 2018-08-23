@@ -530,9 +530,8 @@ typedef struct XATTEN_SUB {
 } Attn_subheader;
 
 typedef enum { ECAT6, ECAT7, Interfile } FileFormat;
-typedef
-struct matrix_file
-{
+
+typedef struct matrix_file {
   char    *fname ;  /* file path */
   Main_header *mhptr ;  /* pointer to main header */
   MatDirList  *dirlist ;  /* directory */
@@ -542,12 +541,9 @@ struct matrix_file
   // ahc replace all occurences of void * with void*
   // void * analyze_hdr;
   void *analyze_hdr;
-}
-MatrixFile ;
+} MatrixFile;
 
-typedef
-struct matrixdata
-{
+typedef struct matrixdata {
   int   matnum ;  /* matrix number */
   MatrixFile  *matfile ;  /* pointer to parent */
   DataSetType mat_type ;  /* type of matrix? */
@@ -572,12 +568,8 @@ struct matrixdata
   float       z_origin;       /* z origin of data */
   void *dicom_header;     /* DICOM header is stored after matrix data */
   int dicom_header_size;
-}
-MatrixData ;
+} MatrixData;
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
   /*
    * high level user functions
    */
@@ -670,10 +662,6 @@ extern "C" {
   MatrixErrorCode matrix_errno;
   // char matrix_errtxt[];
   std::string matrix_errtxt;
-
-#if defined(__cplusplus)
-}
-#endif
 
 // extern "C" int numDisplayUnits;
 // extern "C" char* datasettype[NumDataSetTypes];

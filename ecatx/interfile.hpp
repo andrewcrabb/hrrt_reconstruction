@@ -30,7 +30,7 @@
  */
 #pragma once
 
-#include "matrix.h"
+#include "matrix.hpp"
 
 typedef enum {
 	VERSION_OF_KEYS,
@@ -124,22 +124,22 @@ typedef enum {
 
 typedef struct _InterfileItem {
 	int key;
-	char* value;
+	// char* value;
+	std::string value;
 } InterfileItem;
 
 
-extern "C" {
+// extern "C" {
 int interfile_write_volume(MatrixFile* mptr, char *image_name,char *header_name, unsigned char* data_matrix, int size);
 char *is_interfile(const char*);
 int interfile_open(MatrixFile*);
-MatrixData *interfile_read_slice(FILE*, char** ifh, MatrixData*, int slice,
-	int u_flag);
+MatrixData *interfile_read_slice(FILE*, char** ifh, MatrixData*, int slice,	int u_flag);
 int interfile_read(MatrixFile *mptr,int matnum, MatrixData  *data, int dtype);
-MatrixData *interfile_read_scan(MatrixFile *mptr,int matnum,
-	int dtype, int segment);
+MatrixData *interfile_read_scan(MatrixFile *mptr,int matnum, int dtype, int segment);
 int free_interfile_header(char** ifh);
 void flip_x(void *line, int data_type, int xdim);
 void flip_y(void *plane, int data_type, int xdim, int ydim);
-}
+// }
 
-extern "C" InterfileItem used_keys[];
+// extern "C" InterfileItem used_keys[];
+// std::vector <InterfileItem> used_keys;

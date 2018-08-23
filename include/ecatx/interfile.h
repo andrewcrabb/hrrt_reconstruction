@@ -124,8 +124,9 @@ typedef enum {
 
 typedef struct _InterfileItem {
 	int key;
-	char* value;
+	std::string value;
 } InterfileItem;
+	// char* value;
 
 
 
