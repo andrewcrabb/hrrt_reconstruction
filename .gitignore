@@ -48,6 +48,9 @@ bin/
 !/lib/hrrt_rebinner.lut
 build/
 build_ninja/
+build_mac/
+lmhistogram_mp/html/
+lmhistogram_mp/latex/
 
 # Compiled Libraries #
 ######################
