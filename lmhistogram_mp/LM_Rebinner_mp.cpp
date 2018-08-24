@@ -24,9 +24,9 @@
   20-MAY-2009: Use a single fast LUT rebinner
   04-AUG-2009: Bug fix segment computation was wrong (segment -1 empty)
 */
-#include "LM_Rebinner_mp.h"
-#include "histogram_mp.h"
-#include "gantryinfo.h"
+#include "LM_Rebinner_mp.hpp"
+#include "histogram_mp.hpp"
+#include "gantryinfo.hpp"
 #include <iostream>
 #include <math.h>
 #include <stdlib.h>

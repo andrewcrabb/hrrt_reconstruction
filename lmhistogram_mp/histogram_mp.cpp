@@ -36,16 +36,14 @@
 #include <math.h>
 #include <string.h>
 #include <cstdint>
-#include "histogram_mp.h"
-#include "LM_Reader_mp.h"
-#include "LM_Rebinner_mp.h"
+#include "histogram_mp.hpp"
+#include "LM_Reader_mp.hpp"
+#include "LM_Rebinner_mp.hpp"
 
-#ifdef HRRT_REBINNER_LUT
 #include <gen_delays_lib/gen_delays.h>
 #include <gen_delays_lib/lor_sinogram_map.h>
 #include <gen_delays_lib/segment_info.h>
 #include <gen_delays_lib/geometry_info.h>
-#endif
 
 typedef struct {
     int64_t total_singles;
@@ -634,12 +632,18 @@ void write_coin_map(const char *datafile)
     }
     fclose(fp);
 
-    /*
-            cout << "Total Prompt CH " << total(coinh_p, ncrystals/2) << ", " << total(coinh_p+(ncrystals/2), ncrystals/2) << endl;
-            cout << "Total Delayed CH " << total(coinh_d, ncrystals/2) << ", " << total(coinh_d+(ncrystals/2), ncrystals/2) << endl;
-     */
+            // cout << "Total Prompt CH " << total(coinh_p, ncrystals/2) << ", " << total(coinh_p+(ncrystals/2), ncrystals/2) << endl;
+            // cout << "Total Delayed CH " << total(coinh_d, ncrystals/2) << ", " << total(coinh_d+(ncrystals/2), ncrystals/2) << endl;
 
-#ifdef CREATE_SNG
+    // ahc 8/23/18
+    // create_sng code body was here, but not called from anywhere.
+
+    reset_coin_map();
+}
+
+/*
+ahc 8/23/18
+int create_sng() {
     // Create crystal singles file with extension ".sng"
     //  Write  crystal singlers
     strcpy(out_file, datafile);
@@ -694,9 +698,9 @@ void write_coin_map(const char *datafile)
     fclose( fp);
     printf("Crystal Singles stored in '%s'\n", out_file);
     free(c_singles);
-#endif
-    reset_coin_map();
 }
+*/
+
 /*
  * int check_start_of_frame(L64EventPacket &packet)
  * Locate start of frame and stop producing packets until all packets

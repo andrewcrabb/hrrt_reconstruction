@@ -43,30 +43,34 @@
     2/6/13
     Made hrrt_rebinner.lut a required cmd line arg 'r'.
     Removed call to hrrt_rebinner_lut_path in LM_Rebinner_mp.cpp::init_rebinner()
+    8/23/18
+    Add Boost::ProgramOptions for cmd line arg parsing - remove home-made Flags.cpp
 */
 
-#include "Flags.h"
-#include "Header.h"
-#include "dtc.h"
+// #include "Flags.hpp"
+#include "Header.hpp"
+#include "dtc.hpp"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
-#include "Errors.h"
-#include "LM_Rebinner_mp.h"
-#include "histogram_mp.h"
-#include "LM_Reader_mp.h"
-#include "convert_span9.h"
+#include "Errors.hpp"
+#include "LM_Rebinner_mp.hpp"
+#include "histogram_mp.hpp"
+#include "LM_Reader_mp.hpp"
+#include "convert_span9.hpp"
 #include "hrrt_util.hpp"
 #include <gen_delays_lib/lor_sinogram_map.h>
 #include <gen_delays_lib/segment_info.h>
 #include <gen_delays_lib/geometry_info.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/program_options.hpp>
 
 // ahc
 #include <unistd.h>
 #include <iostream>
+#include <fmt/format.h>
 
 #define DEFAULT_LLD 400 // assume a value of 400 if not specified in listmode header
 #define RW_MODE "wb+"
@@ -117,12 +121,14 @@ int P39_nsinos[] = {
     0,   // span 8 (invalid)
     0,// span 9
 };
+
+std::string out_fname;    // output sinogram file basename
+std::string in_fname;     // input listmode file name
+std::string in_fname_hdr; // input listmode header file name
+
 static int p39_nsegs = 25;
 static const char *p39_seg_table = "{239,231,231,217,217,203,203,189,189,175,175,161,161,147,147,133,133,119,119,105,105,91,91,77,77}";
 
-static char in_fname[FILENAME_MAX];  // input listmode file name
-static char in_fname_hdr[FILENAME_MAX]; // input listmode header file name
-static char out_fname[FILENAME_MAX];  // output sinogram file basename
 static char outfname_hc[FILENAME_MAX]; // output Head Curve file name
 static char outfname_sino[FILENAME_MAX]; //current frame sinogram file name
 static char outfname_hdr[FILENAME_MAX]; //current frame sinogram header file name
@@ -177,11 +183,11 @@ static char *lut_file = NULL;
 #define BLK_SIZE 8      // Number of crystals per block
 
 const char *sw_version = "HRRT_U 1.1";
-char sw_build_id[80];
+std::string g_sw_build_id;
 
 void lmhistogram_usage(char *pgm_name)
 {
-    cout << pgm_name << " " << pgm_id << " Build: " << sw_build_id << endl << endl;
+    cout << pgm_name << " " << pgm_id << " Build: " << g_sw_build_id << endl << endl;
     cout << "Usage : " << pgm_name << " fname.l32|fname.l64 " << endl;
     cout << "    -o file              - output sinogram or 32-bit listmode file depending on file extension" << endl;
     cout << "    -span X              - span size - valid values: 0(TX), 1,3,5,7,9" << endl;
@@ -231,7 +237,7 @@ template <class T> int init_sino(T *&sino, char *&delayed, int init_span, const 
 
         if (hist_mode != 7) {
             // emission
-   	    		cout << "XX Using HRRT Emission: hist_mode = " << hist_mode << endl;
+            cout << "XX Using HRRT Emission: hist_mode = " << hist_mode << endl;
             num_sino = LR_type == 0 ? nsinos[init_span] : LR_nsinos[init_span];
             sinogram_size = m_nprojs * m_nviews * num_sino;
             if (hist_mode == 1) {
@@ -240,8 +246,8 @@ template <class T> int init_sino(T *&sino, char *&delayed, int init_span, const 
             }
         } else {
             // transmission
-   	    		cout << "XX Using HRRT Transmission, hist_mode = " << hist_mode << endl;
-   	    		num_sino = LR_type == 0 ? nsinos[0] : LR_nsinos[0];
+            cout << "XX Using HRRT Transmission, hist_mode = " << hist_mode << endl;
+            num_sino = LR_type == 0 ? nsinos[0] : LR_nsinos[0];
             sinogram_size = m_nprojs * m_nviews * num_sino;
             sinogram_subsize = sinogram_size; // mock memory
         }
@@ -308,11 +314,48 @@ template <class T> int init_sino(T *&sino, char *&delayed, int init_span, const 
     return 1;
 }
 
+// Set out_l32 or out_l64 depending on output file name
+
+void on_arg_out(std::string s) {
+    std::cout << "on_arg_out: " << s << std::endl;
+}
+
+void parse_boost(int argc, char **argv) {
+    using namespace boost::program_options;
+
+    try {
+    options_description desc{"Options"};
+    desc.add_options()
+      ("help,h", "Show options")
+      ("out,o", value<string>(&out_fname)->notifier(on_arg_out), "output sinogram, 32 or 64-bit listmode file from file extension")
+      ;
+      // ("pi,p", value<float>()->implicit_value(3.14f), "Pi")
+      // ("age,a", value<int>(&age), "Age");
+
+    variables_map vm;
+    store(parse_command_line(argc, argv, desc), vm);
+    notify(vm);
+
+    if (vm.count("help"))
+      std::cout << desc << '\n';
+    if (vm.count("out"))
+      std::cout << "Output file: " << vm["out"].as<std::string>() << '\n';
+    // else if (vm.count("pi"))
+    //   std::cout << "Pi: " << vm["pi"].as<float>() << '\n';
+  }
+  catch (const error &ex) {
+    std::cerr << ex.what() << std::endl;
+  }
+}
+
+
+
 /**
  * parse_valid:
  * Checks and sets parameters to user specified values
  * Log error and exit when invalid argument is encountered
  */
+/*
 void parse_valid(int argc, char **argv)
 {
     int count, multi_spec[2];
@@ -467,6 +510,7 @@ void parse_valid(int argc, char **argv)
 
     // set skip to specified countrate
 }
+*/
 
 // void start_reader_thread()
 // Create buffers, Open file listmode file
@@ -805,8 +849,7 @@ void log_message(const char *msg, int type)
 }
 
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     int frame = 0;
     int count = 0, multi_spec[2];
     char *sinogram = NULL, *bsino = NULL, *delayed = NULL;
@@ -819,16 +862,17 @@ int main(int argc, char *argv[])
     char msg[FILENAME_MAX];
 
 
-    sprintf(sw_build_id, "%s %s", __DATE__, __TIME__);
-    parse_valid(argc, argv);
+  g_sw_build_id = fmt::format("{:s} {:s}", __DATE__, __TIME__);
+
+    parse_boost(argc, argv);
 
     // Create log file
 
     if (log_fname != NULL) log_fp = fopen(log_fname, "a+"); // create or append to log file
 
     // set input header filename
-    strcpy(in_fname_hdr, in_fname);
-    strcat(in_fname_hdr, ".hdr");
+    in_fname_hdr = fmt::format("{}.{}", in_fname, "hdr");
+
     sprintf(msg, "%s %s", argv[0], in_fname);
     log_message(msg);
     if (access(in_fname, 4) != 0) {
@@ -853,10 +897,10 @@ int main(int argc, char *argv[])
     // for transmission scans, always override span to 0 (segment 0 only)
     if (!hdr.Readchar("!PET data type", datatype)) {
         cout << "Data Type: '" << datatype << "'" << endl;
-				// ahc this was failing because of trailing CR on DOS format hdr file.
-				//        if (strcasecmp(datatype, "transmission") == 0) {
-				cout << "XXX: " << (datatype == "transmission") << endl;
- 				if (datatype == "transmission") {
+        // ahc this was failing because of trailing CR on DOS format hdr file.
+        //        if (strcasecmp(datatype, "transmission") == 0) {
+        cout << "XXX: " << (datatype == "transmission") << endl;
+        if (datatype == "transmission") {
             float axial_velocity = 0.0;
             g_span = 0;
             hist_mode = 7;
@@ -944,11 +988,14 @@ int main(int argc, char *argv[])
         int axial_comp;
         float isotope_halflife = 0.0;
         // set output filename if an input has not been given
-        if (strlen(out_fname) == 0) {
-            strcpy(out_fname, in_fname);
-            if (cptr = strrchr(out_fname, '.'))
-                * cptr = '\0';
-            strcat(out_fname, ".s");
+        if (out_fname.length() == 0) {
+            out_fname = in_fname;
+            std::size_t found = out_fname.find_first_of(".");
+            if (found != std::string::npos) {
+                out_fname.erase(found, string::npos);
+                out_fname.append(".s")
+                std::cout << fmt::format("out_fname: {}", out_fname) << std::endl;
+            }
         }
 
         if (hdr.Readint("lower level", LLD))
@@ -989,7 +1036,7 @@ int main(int argc, char *argv[])
             hdr.WriteTag("number format"            , "signed integer");
             hdr.WriteTag("number of bytes per pixel", (int)elem_size);
             hdr.WriteTag("!lmhistogram version"     , sw_version);
-            hdr.WriteTag("!lmhistogram build ID"    , sw_build_id);
+            hdr.WriteTag("!lmhistogram build ID"    , g_sw_build_id);
             hdr.WriteTag("!histogrammer revision"   , "2.0");
 
 

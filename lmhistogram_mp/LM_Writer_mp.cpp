@@ -1,5 +1,5 @@
-#include "LM_Writer_mp.h"
-#include "histogram_mp.h"
+#include "LM_Writer_mp.hpp"
+#include "histogram_mp.hpp"
 #include <stdlib.h>
 #include <iostream>
 using namespace std;

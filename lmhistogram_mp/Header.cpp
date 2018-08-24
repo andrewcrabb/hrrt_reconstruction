@@ -17,8 +17,8 @@ Modification history:
 #include <ctype.h>
 #include <iostream>
 
-#include "Header.h"
-#include "Errors.h"
+#include "Header.hpp"
+#include "Errors.hpp"
 #include "hrrt_util.hpp"
 
 #include <boost/xpressive/xpressive.hpp>

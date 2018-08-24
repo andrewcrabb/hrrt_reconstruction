@@ -17,8 +17,8 @@
 
   ---------------------------------------------------------------------*/
 
-#include "gantryinfo.h"
-#include "histogram_mp.h"
+#include "gantryinfo.hpp"
+#include "histogram_mp.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

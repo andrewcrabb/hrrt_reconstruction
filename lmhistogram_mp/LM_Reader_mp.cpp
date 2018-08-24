@@ -42,9 +42,9 @@
  *     set by the producer when half containers are full.
  */
 
-#include "LM_Reader_mp.h"
-#include "LM_Rebinner_mp.h"
-#include "histogram_mp.h"
+#include "LM_Reader_mp.hpp"
+#include "LM_Rebinner_mp.hpp"
+#include "histogram_mp.hpp"
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
