@@ -23,6 +23,7 @@ Modification History (HRRT User Community):
 #define		E_NOT_A_FLOAT		-8
 #define		E_NOT_A_DOUBLE		-9
 
+// These strings are not used anywhere.
 static const char *HdrErrors[] =
 {
 	"OK",
@@ -59,7 +60,7 @@ public:
 protected:
 	int ReadFile();
 	int InsertTag(char *buffer);
-	bool SortData(char*HdrLine, char *tag, char* Data);
+	bool SortData(char*HdrLine, char *tag, char* Data);  // Not in CHeader.hpp but not called.
 	int m_FileOpen;	// 0 = close, 1 = openread, 2 = openwrite
 	char m_FileName[256];
 	FILE* hdr_file;

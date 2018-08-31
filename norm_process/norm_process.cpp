@@ -63,7 +63,7 @@
 #include "cal_sen.h"
 #include "fan_sum.h"
 #include "get_gs.h"
-#include "Header.h"
+#include "CHeader.hpp"
 #include "MarkTime.h"
 #include "rod_dwell.h"
 #include "scanner_params.h"
@@ -1043,7 +1043,7 @@ int main(int argc, char **argv)
   int *coins = NULL;
 
   char *nprocstring = NULL;
-  CHeader hdr;
+  CHeader cheader;
   int layer=NLAYERS;
   char rdwell_path[_MAX_PATH], *omega_file=NULL;
 
@@ -1392,7 +1392,7 @@ int main(int argc, char **argv)
       // Open original listmode header file
       _splitpath(ce_file, drive, dir, fname, ext);
       sprintf(fname,"%s%s%s.l64.hdr",drive,dir,fname);
-      if (hdr.OpenFile(fname) != -1) hdr.CloseFile();
+      if (cheader.OpenFile(fname) != -1) cheader.CloseFile();
 
       fprintf(log_fp, "Reading Crystal efficiencies file %s ...\n",ce_file);      
       if ((fptr = fopen( ce_file, "rb")) == NULL)
@@ -1433,22 +1433,14 @@ int main(int argc, char **argv)
 
       sprintf(fname,"%s.hdr",lm_file); 
       // Copy listmode header to output directory
-      if (hdr.OpenFile(fname) != -1)
+      if (cheader.OpenFile(fname) != -1)
 	{
 	  fprintf(log_fp,"Copy '%s' to %s%s\n", fname,drive,dir);
 	  sprintf(fname,"%s.l64.hdr",base_name);
-	  hdr.CloseFile();
-	  hdr.WriteFile(fname);
+	  cheader.CloseFile();
+	  cheader.WriteFile(fname);
 	}
 
-      /*
-	sprintf(fname,"%s.fs",base_name); 
-	if ((fptr = fopen(fname,"wb")) != NULL)
-	{
-	fwrite(fsum, NUM_CRYSTALS, sizeof(float), fptr);
-	fclose(fptr);
-	} else fprintf(log_fp,"Can't create fansum output file '%s'\n", fname);
-      */
 
       // calculate crystal efficienies from fansum and save to file
       // Crystal efficiencies computed for the border of the heads are unreliable
@@ -1681,26 +1673,27 @@ int main(int argc, char **argv)
       free(cosphi);
 
       // Update original listmode header and write normalization header
-      hdr.WriteTag("!name of data file",norm_file);
-      hdr.WriteTag("data format", "normalization");
-      hdr.WriteTag(";software version", sw_version);
-      hdr.WriteTag(";program build ID",build_id);
-      hdr.WriteTag("axial compression", span);
-      hdr.WriteTag("maximum ring difference", maxrd);
-      hdr.WriteTag("data format", "normalization");
-      if (duration>0) hdr.WriteTag("image duration", duration);
-      hdr.WriteTag("number format", "float");
-      hdr.WriteTag("number of dimensions", 3);
-      hdr.WriteTag("number of bytes per pixel", 4);
-      hdr.WriteTag("matrix size [1]", nprojs);
-      hdr.WriteTag("matrix size [2]", nviews);
-      hdr.WriteTag("matrix size [3]", num_sinos);
-      hdr.WriteTag("scaling factor (mm/pixel) [1]", 1.218750f);
-      hdr.WriteTag("scaling factor [2]", 1);
-      hdr.WriteTag("scaling factor (mm/pixel) [3]", 1.218750f);
-      sprintf(fname,"%s.hdr",norm_file); 
+      cheader.WriteTag(HDR_NAME_OF_DATA_FILE        , norm_file);
+      cheader.WriteTag(HDR_DATA_FORMAT              , "normalization");
+      cheader.WriteTag(HDR_SOFTWARE_VERSION         , sw_version);
+      cheader.WriteTag(HDR_PROGRAM_BUILD_ID         , build_id);
+      cheader.WriteTag(HDR_AXIAL_COMPRESSION™       , span);
+      cheader.WriteTag(HDR_MAXIMUM_RING_DIFFERENCE  , maxrd);
+      cheader.WriteTag(HDR_DATA_FORMAT              , "normalization");
+      if (duration > 0) 
+        cheader.WriteTag(HDR_IMAGE_DURATION, duration);
+      cheader.WriteTag(HDR_NUMBER_FORMAT            , "float");
+      cheader.WriteTag(HDR_NUMBER_OF_DIMENSIONS     , 3);
+      cheader.WriteTag(HDR_NUMBER_OF_BYTES_PER_PIXEL, 4);
+      cheader.WriteTag(HDR_MATRIX_SIZE_1            , nprojs);
+      cheader.WriteTag(HDR_MATRIX_SIZE_2            , nviews);
+      cheader.WriteTag(HDR_MATRIX_SIZE_3            , num_sinos);
+      cheader.WriteTag(HDR_SCALING_FACTOR_1         , 1.218750f);
+      cheader.WriteTag(HDR_SCALING_FACTOR_2         , 1);
+      cheader.WriteTag(HDR_SCALING_FACTOR_3         , 1.218750f);
+      sprintf(fname,"%s.cheader",norm_file); 
       fprintf(log_fp, "Write header %s\n", fname);
-      hdr.WriteFile(fname);
+      cheader.WriteFile(fname);
 
       fprintf(log_fp, "Write to disk completed\n");
     }

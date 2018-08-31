@@ -46,7 +46,7 @@ typedef struct
 /**
  * Process time tag
  */
-extern long process_tagword(long tagword, long duration, FILE *out_hc=NULL);
+extern long process_tagword(long tagword, long duration, std::ofstream &out_hc);
 /**
  * Set input listmode stream position to specified time
  */
@@ -56,7 +56,7 @@ int goto_event( int target_time);
  * Histogram input listmode stream to sinogram, fill duration with time extracted from time tags
  */
 template <class T> int histogram(T *out_sino, char *delayed_sino, int sino_size, 
-                 int &duration, FILE *out_hc=NULL);
+                 int &duration, std::ofstream &out_hc);
 
 /**
  *  Sort  64-bit events from src, decode the event into 32-bit event and add the event to dest
@@ -80,8 +80,8 @@ int find_start_countrate(const char *filename);
 /**
  *  Process tagwords from packet
  */
-void process_tagword(const L32EventPacket &src, FILE *out_hc);
-void process_tagword(const L64EventPacket &src, FILE *out_hc);
+void process_tagword(const L32EventPacket &src, std::ofstream &out_hc);
+void process_tagword(const L64EventPacket &src, std::ofstream &out_hc);
 
 /**
  * Scan input listmode stream and extract head curve, fill duration with time extracted from time tags

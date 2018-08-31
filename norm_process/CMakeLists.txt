@@ -1,7 +1,10 @@
 add_library (norm_process 
-	norm_process.cpp cal_sen.cpp fan_sum.cpp get_gs.cpp Header.cpp inter.cpp MarkTime.cpp rod_dwell.cpp rotation_dwell_sino.cpp	)
+	norm_process.cpp cal_sen.cpp fan_sum.cpp get_gs.cpp inter.cpp MarkTime.cpp rod_dwell.cpp rotation_dwell_sino.cpp)
 
-target_include_directories (norm_process PUBLIC ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories (norm_process PUBLIC 
+	${CMAKE_SOURCE_DIR} 
+	${CMAKE_CURRENT_SOURCE_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/cheader_lib)
 install(TARGETS norm_process
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

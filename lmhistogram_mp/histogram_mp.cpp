@@ -177,7 +177,7 @@ void reset_statistics()
  * Only consistent time values are used: (consecutives t0,t1,t2 are consistent if t2=t1+1 and t1=t0+1).
  * Returns current time (>=0) or error (-1)
  */
-long process_tagword(long tagword, long duration, FILE *out_hc)
+long process_tagword(long tagword, long duration, std::ofstream &out_hc)
 {
     static int prev_time = 0;
     if ((tagword & 0xE0000000) == 0x80000000) { // timetag found
@@ -210,8 +210,8 @@ long process_tagword(long tagword, long duration, FILE *out_hc)
 
             if (!quiet ) cout << current_time  << " " << randoms << " " << prompts << " " << total_singles <<
                                   " " << current_time_msec << endl;
-            if (out_hc)
-                fprintf(out_hc, "%ld,%ld,%ld,%ld\n", total_singles, randoms, prompts, current_time_msec);
+            // fmt::print(out_hc, "%ld,%ld,%ld,%ld\n", total_singles, randoms, prompts, current_time_msec);
+            fmt::print(out_hc, "{},{},{},{}\n", total_singles, randoms, prompts, current_time_msec);
             t_prompts += prompts;
             t_randoms += randoms;
             prompts = randoms = 0;
@@ -1113,7 +1113,7 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
  *  void process_tagword(const L32EventPacket &src, FILE *out_hc)
  *  Process tagwords from the packet
  */
-void process_tagword(const L32EventPacket &src, FILE *out_hc)
+void process_tagword(const L32EventPacket &src, std::ofstream out_hc)
 {
     unsigned *buf = src.events;
     int nevents = src.num_events;
@@ -1134,7 +1134,7 @@ void process_tagword(const L32EventPacket &src, FILE *out_hc)
  *  void process_tagword(const L64EventPacket &src, FILE *out_hc)
  *  Process tagwords from the packet
  */
-void process_tagword(const L64EventPacket &src, FILE *out_hc)
+void process_tagword(const L64EventPacket &src, std::ofstream out_hc)
 {
     unsigned *buf = src.events;
     unsigned int ew1, ew2, type, tag;
@@ -1175,14 +1175,13 @@ void process_tagword(const L64EventPacket &src, FILE *out_hc)
  * Histogram returns: frame start time (>=0),  -1 when an error is encountered.
  */
 template <class T> int histogram(T *sino, char *delayed,
-                                 int sino_size, int &duration, FILE *out_hc)
+                                 int sino_size, int &duration, std::ofstream &out_hc)
 {
     int address = 0, tx_flag = 0;
     T *sub_sino = sino + sino_size;
 
     int tx_sino_size = m_nprojs * m_nviews * (2 * NYCRYS - 1);
-    if (out_hc)
-        fprintf(out_hc, "Singles,Randoms,Prompts,Time(ms)\n");
+    fmt::print(out_hc, "Singles,Randoms,Prompts,Time(ms)\n");
 
     Event_32 cew;
 

@@ -1,7 +1,7 @@
 # cmake_minimum_required (VERSION 3.7)
 
 add_library (hrrt_common hrrt_util.cpp)
-target_include_directories (hrrt_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/lmhistogram_mp )
+target_include_directories (hrrt_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/lmhistogram_mp  ${CMAKE_SOURCE_DIR}/cheader_lib )
 
 add_executable(test_util test_util.cpp)
 target_link_libraries(test_util hrrt_common fmt)

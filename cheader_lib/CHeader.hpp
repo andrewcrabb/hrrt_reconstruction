@@ -1,4 +1,4 @@
-// Header.h: interface for the CHeader class.
+// CHeader.h: interface for the CHeader class.
 //
 //////////////////////////////////////////////////////////////////////
 /*
@@ -40,7 +40,25 @@ const string HDR_NAME_OF_DATA_FILE = "!name of data file";
 const string HDR_ORIGINATING_SYSTEM = "!originating system";
 const string HDR_DOSE_ASSAY_TIME   = "dose_assay_time (hh:mm:ss)";
 const string HDR_DOSE_ASSAY_DATE = "dose_assay_date (dd:mm:yryr)";
-
+const string HDR_SOFTWARE_VERSION = ";software version";
+const string HDR_PROGRAM_BUILD_ID = ";program build ID";
+const string HDR_NUMBER_FORMAT = "number format";
+const string HDR_NUMBER_OF_DIMENSIONS = "number of dimensions";
+const string HDR_NUMBER_OF_BYTES_PER_PIXEL = "number of bytes per pixel";
+const string HDR_MATRIX_SIZE_1 = "matrix size [1]";
+const string HDR_MATRIX_SIZE_2 = "matrix size [2]";
+const string HDR_MATRIX_SIZE_3 = "matrix size [3]";
+const string HDR_SCALING_FACTOR_1 = "scaling factor (mm/pixel) [1]";
+const string HDR_SCALING_FACTOR_2 = "scaling factor [2]";
+const string HDR_SCALING_FACTOR_3 = "scaling factor (mm/pixel) [3]";
+const string HDR_IMAGE_RELATIVE_START_TIME = "image relative start time";
+const string HDR_DECAY_CORRECTION_FACTOR = "decay correction factor";
+const string HDR_DECAY_CORRECTION_FACTOR_2 = "decay correction factor2";
+const string HDR_FRAME = "frame";
+const string HDR_TOTAL_PROMPTS = "Total Prompts";
+const string HDR_TOTAL_RANDOMS = "Total Randoms";
+const string HDR_TOTAL_NET_TRUES = "Total Net Trues";
+const string HDR_SINOGRAM_DATA_TYPE = "Sinogram data type";
 
 struct Tag {
 	std::string key;
@@ -71,7 +89,6 @@ public:
 	virtual ~CHeader();
 protected:
 	int ReadFile();
-	// int InsertTag(char *buffer);
 	int InsertTag(std::string buffer);
 	tag_iterator FindTag(const string &key);
 	template <typename T>int convertString(const string &s, T &val);

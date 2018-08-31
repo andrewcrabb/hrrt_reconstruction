@@ -68,6 +68,7 @@ endif()
 # add_subdirectory(libscatter)
 add_subdirectory(hrrt_common)
 add_subdirectory(gen_delays_lib)
+add_subdirectory(cheader_lib)
 # add_subdirectory(gen_delays_main)  # Calls gen_delays with 7 params not 10 as required
 add_subdirectory(interfile_lib)
 add_subdirectory(lmhistogram_mp)
