@@ -3,7 +3,7 @@ set (LIB_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/hrrt_common
 	${CMAKE_SOURCE_DIR}/cheader_lib
 	)
-
+set (GCC_COMPILE_FLAGS "-std=c++14")
 # find_library (GEN_DELAYS NAME gen_delays PATHS "${CMAKE_BINARY_DIR}/gen_delays_lib")
 # message("GEN_DELAYS is ${GEN_DELAYS}")
 

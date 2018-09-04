@@ -30,7 +30,9 @@ include_directories(/usr/include ${PROJECT_BINARY_DIR})
 # set (GCC_COMPILE_FLAGS "-std=c99")
 
  # ahc https://goo.gl/hHNWmc for strdup (else it's undefined and assume int so complains about type)
-add_definitions(-D_XOPEN_SOURCE=600 -D _GLIBCXX_USE_CXX11_ABI=0 -D_FILE_OFFSET_BITS=64)
+# ahc 9/4/18 took this out trying to fix problems with fmt::format linking
+# add_definitions(-D_XOPEN_SOURCE=600 -D _GLIBCXX_USE_CXX11_ABI=0 -D_FILE_OFFSET_BITS=64)
+# add_definitions(-D_XOPEN_SOURCE=600 -D _GLIBCXX_USE_CXX11_ABI=0 -D_FILE_OFFSET_BITS=64)
 
 # https://gitlab.kitware.com/cmake/cmake/issues/15943
 cmake_policy(SET CMP0025 NEW)

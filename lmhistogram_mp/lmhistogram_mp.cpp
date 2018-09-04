@@ -48,6 +48,9 @@
 */
 
 // #include "Flags.hpp"
+#include <unistd.h>
+#include <iostream>
+#include <fstream>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -74,10 +77,9 @@
 #include "spdlog/sinks/rotating_file_sink.h" // support for rotating file logging
 
 // ahc
-#include <unistd.h>
-#include <iostream>
-#include <fstream>
+#define FMT_HEADER_ONLY
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 
 #define DEFAULT_LLD 400 // assume a value of 400 if not specified in listmode header
 const std::string RW_MODE = "wb+";
@@ -161,8 +163,8 @@ std::string g_outfname_mock; //Mock sinogram file name for transmission only
 
 std::ofstream g_out_hc;             // Head Curve output File Pointer
 std::ofstream g_out_true_prompt_sino;    // output trues or prompts sinogram File Pointer
-static FILE  *g_out_ran_sino = NULL;   // output randoms sinogram File Pointer
-static FILE  *g_out_true_sino = NULL;  // output Trues sinogram for separate prompts and randoms mode
+std::ofstream g_out_ran_sino;   // output randoms sinogram File Pointer
+std::ofstream g_out_true_sino;  // output Trues sinogram for separate prompts and randoms mode
 
 std::vector<int> g_frames_duration;    // Frames duration
 std::vector<int> g_skip;               // Frames optional skip
@@ -188,7 +190,7 @@ static int out_l64 = 0;             // Output 64-bit listmode (output file exten
 
 std::string g_prev_sino;        // 1: add to existing normalization scan
 // static char *log_fname = NULL;          // log file
-static FILE *log_fp = NULL;         // log file ptr
+// static FILE *log_fp = NULL;         // log file ptr
 static float decay_rate = 0.0;      // Default no decay correction in seconds
 static int LLD = DEFAULT_LLD;
 
@@ -199,8 +201,6 @@ std::string g_lut_file;
 #define PITCH 0.24375f
 #define RDIAM 46.9f
 #define LTHICK 1.0f
-
-
 #define BLK_SIZE 8      // Number of crystals per block
 
 const char *sw_version = "HRRT_U 1.1";
@@ -280,16 +280,18 @@ template <class T> int init_sino(T *&sino, char *&delayed, int init_span, const 
       free(sino);
       return 0;
     }
-    FILE *prev_fp = fopen(prev_sino.c_str(), "rb");
-    if (prev_fp != NULL) {
-      int count = fread(sino, g_sinogram_size, r_size, prev_fp);
-      if (count != r_size) {
+    // FILE *prev_fp = fopen(prev_sino.c_str(), "rb");
+    std::ifstream prev_fp = open_istream(prev_sino, , ios::in | ios::binary)
+    if (prev_fp.open()) {
+      // int count = fread(sino, g_sinogram_size, r_size, prev_fp);
+      prev_fp.read(sino, g_sinogram_size * r_size);
+      if (!prev_fp.good()) {
         console->error("Error reading {}", prev_sino);
-        fclose(prev_fp);
+        prev_fp.close();
         free(sino);
         return 0;
       }
-      fclose(prev_fp);
+      prev_fp.close();
     } else {
       console->error("Could not open prev_sino: {}", prev_sino);
       free(sino);
@@ -481,20 +483,6 @@ inline int get_num_cpus() {
     return num_cpus;
 }
 
-/**
- * @brief      Opens a file.
- * Replace this with streams.
- */
-
-FILE *open_file(std::string filename, std::string mode = "w") {
-    FILE *fileptr = fopen(filename, "w");
-    if (!fileptr) {
-        console->error(filename);
-        exit(1);
-    }
-    return fileptr;
-}
-
 std::ofstream open_ostream(std::string name, ios_base::openmode mode = ios::out ) {
   std::ofstream outs;
   outs.open(name, mode);
@@ -503,6 +491,16 @@ std::ofstream open_ostream(std::string name, ios_base::openmode mode = ios::out 
     exit(1);
   }
   return outs;
+}
+
+std::ifstream open_istream(std::string name, ios_base::openmode mode = ios::in ) {
+  std::ifstream ins;
+  ins.open(name, mode);
+  if (!ins.is_open()) {
+    console->error("Could not open input file {}", name);
+    exit(1);
+  }
+  return ins;
 }
 
 /**
@@ -524,17 +522,17 @@ static void create_files() {
     }
     g_out_true_prompt_sino = open_ostream(g_out_fname_sino, ios::out | ios::app | ios::binary);
     if (g_outfname_mock.length() > 0) {
-      g_out_ran_sino = open_file(g_outfname_mock, RW_MODE);
+      g_out_ran_sino = open_ostream(g_outfname_mock, ios::out | ios::app | ios::binary);
     }
   } else if (hist_mode == 1) {
     // Keep original filename for prompts in prompts or prompts+delayed mode
     g_out_fname_pr = g_out_fname_sino;
     g_out_true_prompt_sino = open_ostream(g_out_fname_pr, ios::out | ios::app | ios::binary);
     g_out_fname_ra = make_file_name(FT_RA_S);
-    g_out_ran_sino = open_file(g_out_fname_ra, "rw");
+    g_out_ran_sino = open_ostream(g_out_fname_ra, ios::out | ios::app | ios::binary);
     if (elem_size == 2) {
       g_out_fname_tr = make_file_name(FT_TR_S);
-      g_out_true_sino = open_file(g_out_fname_tr, RW_MODE);
+      g_out_true_sino = open_ostream(g_out_fname_tr, ios::out | ios::app | ios::binary);
     }
   } else {
     g_out_true_prompt_sino = open_ostream(g_out_fname_sino, ios::out | ios::app | ios::binary);
@@ -551,8 +549,8 @@ static void create_files() {
 static void close_files()
 {
     g_out_true_prompt_sino.close();
-    if (g_out_ran_sino != NULL) fclose(g_out_ran_sino);
-    if (g_out_true_sino != NULL) fclose(g_out_true_sino);
+    g_out_ran_sino.close();
+    g_out_true_sino.close();
     g_out_hc.close();
 }
 
@@ -669,7 +667,9 @@ if (!write_error)
         hdr.WriteTag(HDR_MATRIX_SIZE_3, nsinos[9]);
       }
       console->info("Writing Trues Sinogram: {}", g_out_fname_tr);
-      if (fwrite(ssino, g_span == 3 ? span9_sino_size : sino_size, elem_size, g_out_true_sino) == elem_size) {
+      // if (fwrite(ssino, g_span == 3 ? span9_sino_size : sino_size, elem_size, g_out_true_sino) == elem_size) {
+      g_out_true_sino.write(ssino, elem_size * g_span == 3 ? span9_sino_size : sino_size);
+      if (g_out_true_sino.good()) {
         hdr.WriteFile(g_out_fname_hdr);
       } else {
         console->error("Error writing {}", g_out_fname_tr);
@@ -682,11 +682,13 @@ if (!write_error)
       }
       break;
     case 7: // Transmission: EC corrected is second if short type
-      if (g_out_ran_sino != NULL) {
+      if (g_out_ran_sino.is_open()) {
         console->info("Writing Mock Sinogram: {}", g_outfname_mock);
         g_out_fname_hdr = fmt::format("{}.hdr", g_outfname_mock);
         hdr.WriteTag(HDR_NAME_OF_DATA_FILE, g_outfname_mock);
-        if (fwrite(mock, sino_size, elem_size, g_out_ran_sino) == elem_size) {
+        // if (fwrite(mock, sino_size, elem_size, g_out_ran_sino) == elem_size) {
+        g_out_ran_sino.write(mock, sino_size * elem_size);
+        if (g_out_ran_sino.good()) {
           hdr.WriteFile(g_out_fname_hdr);
         } else {
           console->error("Error writing {}", g_outfname_mock);
@@ -702,8 +704,10 @@ if (!write_error)
     g_out_fname_hdr = fmt::format("{}.hdr", g_out_fname_ra);
     hdr.WriteTag(HDR_NAME_OF_DATA_FILE, g_out_fname_ra);
     hdr.WriteTag(HDR_SINOGRAM_DATA_TYPE, "delayed");
-    count = fwrite(delayed, span9_sino_size, elem_size, g_out_ran_sino);
-    if (count == (int)elem_size) {
+    // count = fwrite(delayed, span9_sino_size, elem_size, g_out_ran_sino);
+    // if (count == (int)elem_size) {
+    g_out_ran_sino.write(delayed, span9_sino_size * elem_size);
+    if (g_out_ran_sino.good()) {
       hdr.WriteFile(g_out_fname_hdr);
     } else {
       console->error("Error writing {}", g_out_fname_ra);
@@ -729,30 +733,35 @@ static int get_dose_delay(CHeader &hdr, int &t) {
     }
     return ret;
 }
+
 int do_lmscan() {
   // transmission tag processing uses parameters that need to be initialized
   // reset frame duration otherwise lm_reader splits data into frames and waits
   // for the frame to be written.
-  strcpy(g_out_fname_hc, g_in_fname);
-  // Replace extension by "_lm.hc"
-  char *ext = strrchr(g_out_fname_hc, '.');
-  if (ext != NULL)
-    strcpy(ext, "_lm.hc");
-  else
-    strcat(g_out_fname_hc, "_lm.hc");
-  FILE *outfile_hc = fopen(g_out_fname_hc, "w");
-  if (outfile_hc == NULL) {
-    console->error(g_out_fname_hc);
-    exit(1);
-  }
-  memset(g_frames_duration, 0, sizeof(g_frames_duration));
+  // strcpy(g_out_fname_hc, g_in_fname);
+  // // Replace extension by "_lm.hc"
+  // char *ext = strrchr(g_out_fname_hc, '.');
+  // if (ext != NULL)
+  //   strcpy(ext, "_lm.hc");
+  // else
+  //   strcat(g_out_fname_hc, "_lm.hc");
+
+  // FILE *outfile_hc = fopen(g_out_fname_hc, "w");
+  // if (outfile_hc == NULL) {
+  //   console->error(g_out_fname_hc);
+  //   exit(1);
+  // }
+  // memset(g_frames_duration, 0, sizeof(g_frames_duration));
+
+  g_out_fname_hc = make_file_name(FT_SINO_HC);
+  std::ofstream outfile_hc = open_ostream(g_out_fname_hc);
+  g_frames_duration.clear();
+
   start_reader_thread();
   lmscan(outfile_hc, &scan_duration);
   fclose(outfile_hc);
-
         //      for (int index = 0; index < duration; index++)
         //          cout << hc[index].time << " " << hc[index].randoms_rate << " " << hc[index].trues_rate << " " << hc[index].singles << endl;
-
   console->info("Scan Duration = {:d}", scan_duration)
 
 }
@@ -763,21 +772,21 @@ int do_lmscan() {
  * @return     String 
  */
 std::string make_file_name(FILE_TYPE file_type) {
-  std::string file_name = g_in_fname;
+  std::string file_name;
 
   switch (file_type) {
-    case SINO: {  
-      file_name = g_in_fname.replace_extension(".s");
-      break;
-    }
-    case SINO_HDR: {
-      file_name = g_in_fname.replace_extension(".s.hdr");
-      break;
-    }
-    default: {
-      assert(false);
-    }
+  case FT_SINO:
+  case FT_SINO_HDR:
+  case FT_SINO_HC:
+  {
+    file_name = g_in_fname.replace_extension(FILE_EXTENSIONS[file_type]);
+    break;
   }
+  default: {
+    assert(false);
+  }
+  }
+  console->info("make_file_name({}): {}", file_type, file_name);
   return file_name;
 }
 

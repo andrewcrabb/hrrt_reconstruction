@@ -21,10 +21,12 @@
 
 #define unix 1
 
-#include "LM_Reader_mp.h"
+#include <map>
+#include "LM_Reader_mp.hpp"
+
 
 enum FILE_TYPE {FT_SINO, FT_SINO_HDR, FT_LM_HC, FT_RA_S, FT_TR_S };
-std::map<FILE_TYPE, std::string> FILE_EXTENSIONS = {
+std::map <FILE_TYPE, std::string> FILE_EXTENSIONS = {
   {FT_SINO    , ".s"},
   {FT_SINO_HDR, ".s.hdr"},
   {FT_LM_HC   , "_lm.hc"},
@@ -86,12 +88,12 @@ void process_tagword(const L64EventPacket &src, std::ofstream &out_hc);
 /**
  * Scan input listmode stream and extract head curve, fill duration with time extracted from time tags
  */
-void lmscan(FILE *out, long *duration);
+void lmscan(std::ofstream &out, long *duration);
 
 /**
  * lmsplit: To be redesigned
  */
-head_curve *lmsplit(FILE *out, long *duration);
+head_curve *lmsplit(std::ofstream &out, long *duration);
 
 /**
  * get block singles count

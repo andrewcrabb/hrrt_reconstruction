@@ -1,10 +1,12 @@
 #include <iostream>
-#include <fmt/format.h>
 #include <vector>
 #include <boost/io/ios_state.hpp>
 #include <boost/xpressive/xpressive.hpp>
 #include "hrrt_util.hpp"
 #include "CHeader.hpp"
+
+#define FMT_HEADER_ONLY
+#include <fmt/format.h>
 
 using std::string;
 using std::cout;
@@ -64,6 +66,6 @@ int main() {
 	string sdate = "!study date (dd:mm:yryr) := 18:09:2017";
 	string key, value;
 	if (!parse_interfile_line(sdate, key, value)) {
-		fmt::print("key '{key}' value '{value}'\n", fmt::arg("key", key), fmt::arg("value", value));
+		std::cout << fmt::format("key '{key}' value '{value}'\n", fmt::arg("key", key), fmt::arg("value", value)) << std::endl;
 	}
 }
