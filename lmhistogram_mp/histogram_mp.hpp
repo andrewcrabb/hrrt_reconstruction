@@ -25,14 +25,22 @@
 #include "LM_Reader_mp.hpp"
 
 
-enum FILE_TYPE {FT_SINO, FT_SINO_HDR, FT_LM_HC, FT_RA_S, FT_TR_S };
+enum FILE_TYPE {FT_SINO, FT_SINO_HDR, FT_LM_HC, FT_RA_S, FT_TR_S, FT_DYN, FT_HC, FT_L64_HDR,   FT_END };
 std::map <FILE_TYPE, std::string> FILE_EXTENSIONS = {
   {FT_SINO    , ".s"},
   {FT_SINO_HDR, ".s.hdr"},
   {FT_LM_HC   , "_lm.hc"},
   {FT_RA_S    , ".ra.s"},
-  {FT_TR_S    , ".tr.s"}
+  {FT_TR_S    , ".tr.s"},
+  {FT_DYN     , ".dyn"},
+  {FT_HC      , ".hc"},
+  {FT_L64_HDR , ".l64.hdr"},
+
+  {FT_END     , "END"}
 };
+
+enum HIST_MODE {HM_TRUE = 0, HM_PRO_RAN = 1, HM_RAN = 2, HM_TRA = 7} // 0=Trues (Default), 1=Prompts and Randoms, 2=Prompts only, 7=transmission
+enum HC_FILE_COLUMNS {HC_SINGLE, HC_RANDOM, HC_PROMPT, HC_TIME};
 
 /**
  * Head Curve data structure  
@@ -44,6 +52,10 @@ typedef struct
   long time;  // in seconds
   long singles; // in counts/second
 } head_curve;
+
+// Utility file-open used in histogram_mp and lmhistogram_mp
+std::ifstream open_istream(std::string name, ios_base::openmode mode = ios::in );
+std::ofstream open_ostream(std::string name, ios_base::openmode mode = ios::out );
 
 /**
  * Process time tag
@@ -114,20 +126,19 @@ int64_t total_tx_randoms(); // TX events for P39 simultaneous TX+EM
 // Global variables
 //
 // extern int l64_flag;       // 1 if 64-bit mode, 0 otherwise
-extern int hist_mode;         // 0=Trues (Default), 1=Prompts and Randoms, 
-                  // 2=Prompts only, 7=transmission
-extern int max_rd;          // maximum ring difference, default=67
+extern int g_hist_mode;         // 0=Trues (Default), 1=Prompts and Randoms, 2=Prompts only, 7=transmission
+extern int g_max_rd;          // maximum ring difference, default=67
 extern int quiet;         // default=0 (false)
 extern unsigned stop_count;     // default 0 (Not applicable)
 extern unsigned start_countrate;      // starting trues/sec  default=0 (Not applicable)
-extern float tx_source_speed;     // number of msec per crystal, depends on 
+extern float g_tx_source_speed;     // number of msec per crystal, depends on 
                   // axial_velocity value in transmission header
 extern unsigned *p_coinc_map;   // crystal singles counters for prompts
                   // size = ncrystals
 extern unsigned *d_coinc_map;   // crystal singles counters for delayed
                   // size = ncrystals
 
-extern void write_coin_map(const char *datafile);
+extern int write_coin_map(const std::string &datafile);
 extern void reset_coin_map();
 extern void log_message(const char *msg, int type=0);
 

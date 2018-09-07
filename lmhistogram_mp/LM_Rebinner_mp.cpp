@@ -50,10 +50,9 @@ static int em_span = 9;
 /*
  * Gets  configuration values from GantryModel and calls init_sort3d_hrrt with read or default values.
  * When span=0 (TX mode), span is set to the value from gm328.ini (key rebTxLUTMode0Span) or 21 if key not found,
- * max_rd is set to (span-1)/2.
+ * maxrd is set to (span-1)/2.
  * Returns 1 if OK and 0 if gm328.ini not found or if a key is not found.
  */
-// int init_rebinner(int &span, int &max_rd)
 int init_rebinner(int &span, int &max_rd, const std::string &lut_file) {
   int i = 0,  uniform_flag = -1;
   int *head_type = (int*)calloc(NHEADS, sizeof(int));
@@ -129,6 +128,11 @@ int init_rebinner(int &span, int &max_rd, const std::string &lut_file) {
     cout << "Tramsission mode: using default span " << span << endl;
     ret = 0;
   }
+
+UP TO HERE.
+Cleaning up global use of max_rd from lmhistogram_mp.cpp
+Is this raxrd here a global, or a mistaken edit change from the two max_rd above?
+
   init_geometry_hrrt();
   init_segment_info(&m_nsegs, &nplanes, &m_d_tan_theta, maxrd, span, NYCRYS, m_crystal_radius, m_plane_sep);
 
