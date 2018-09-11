@@ -32,7 +32,7 @@ extern double *m_crystal_ypos;
 extern double *m_crystal_zpos;
 extern int    m_nprojs;
 extern int    m_nviews;
-extern int maxrd, nsino;
+extern int maxrd_, nsino;
 extern float *head_crystal_depth;
 extern LR_Type LR_type;
 

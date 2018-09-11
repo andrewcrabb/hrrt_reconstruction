@@ -19,14 +19,16 @@
 */
 #pragma once
 
-#define unix 1
-
 #include <map>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
 #include "LM_Reader_mp.hpp"
 
+namespace bf = boost::filesystem;
 
-enum FILE_TYPE {FT_SINO, FT_SINO_HDR, FT_LM_HC, FT_RA_S, FT_TR_S, FT_DYN, FT_HC, FT_L64_HDR,   FT_END };
+enum FILE_TYPE {FT_SINO, FT_SINO_HDR, FT_LM_HC, FT_RA_S, FT_TR_S, FT_DYN, FT_HC, FT_L64_HDR, FT_S, FT_FR_S};
 std::map <FILE_TYPE, std::string> FILE_EXTENSIONS = {
+  // Constant names
   {FT_SINO    , ".s"},
   {FT_SINO_HDR, ".s.hdr"},
   {FT_LM_HC   , "_lm.hc"},
@@ -35,11 +37,20 @@ std::map <FILE_TYPE, std::string> FILE_EXTENSIONS = {
   {FT_DYN     , ".dyn"},
   {FT_HC      , ".hc"},
   {FT_L64_HDR , ".l64.hdr"},
-
-  {FT_END     , "END"}
+  {FT_S       , ".s"},
+  // Names with frame number
+  {FT_FR_S    , "_frame{:2d}.s"}
 };
 
-enum HIST_MODE {HM_TRUE = 0, HM_PRO_RAN = 1, HM_RAN = 2, HM_TRA = 7} // 0=Trues (Default), 1=Prompts and Randoms, 2=Prompts only, 7=transmission
+// Histogram mode
+enum HIST_MODE {HM_TRU = 0, HM_PRO_RAN = 1, HM_PRO = 2, HM_TRA = 7}; // 0=Trues (Default), 1=Prompts and Randoms, 2=Prompts only, 7=transmission
+std::map <HIST_MODE, std::string> HISTOGRAM_MODES = {
+  {HM_TRU    , "Nett trues"},
+  {HM_PRO_RAN, "Prompts and randoms"},
+  {HM_PRO    , "Prompts only"},
+  {HM_TRA    , "Transmission"}
+};
+
 enum HC_FILE_COLUMNS {HC_SINGLE, HC_RANDOM, HC_PROMPT, HC_TIME};
 
 /**
@@ -54,8 +65,8 @@ typedef struct
 } head_curve;
 
 // Utility file-open used in histogram_mp and lmhistogram_mp
-std::ifstream open_istream(std::string name, ios_base::openmode mode = ios::in );
-std::ofstream open_ostream(std::string name, ios_base::openmode mode = ios::out );
+boost::filesystem::ifstream open_istream(const boost::filesystem::path &name, std::ios_base::openmode t_mode = std::ios::in );
+bf::ofstream open_ostream(const bf::path &name, std::ios_base::openmode t_mode = std::ios::out );
 
 /**
  * Process time tag
@@ -130,15 +141,14 @@ extern int g_hist_mode;         // 0=Trues (Default), 1=Prompts and Randoms, 2=P
 extern int g_max_rd;          // maximum ring difference, default=67
 extern int quiet;         // default=0 (false)
 extern unsigned stop_count;     // default 0 (Not applicable)
-extern unsigned start_countrate;      // starting trues/sec  default=0 (Not applicable)
-extern float g_tx_source_speed;     // number of msec per crystal, depends on 
-                  // axial_velocity value in transmission header
+extern unsigned start_countrate_;      // starting trues/sec  default=0 (Not applicable)
+extern float g_tx_source_speed;     // msec per crystal, depends on axial_velocity value in transmission header
 extern unsigned *p_coinc_map;   // crystal singles counters for prompts
                   // size = ncrystals
 extern unsigned *d_coinc_map;   // crystal singles counters for delayed
                   // size = ncrystals
 
-extern int write_coin_map(const std::string &datafile);
+extern int write_coin_map(const boost::filesystem::path &datafile);
 extern void reset_coin_map();
 extern void log_message(const char *msg, int type=0);
 

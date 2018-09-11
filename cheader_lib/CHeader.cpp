@@ -203,6 +203,18 @@ int CHeader::ReadTime(const string &tag, boost::posix_time::ptime &time) {
   return ret;
 }
 
+// Open file, read given value, close file.
+
+template <typename T>int CHeader::ReadHeaderNum(const string &filename, const string &tag, T &val) {
+  int result;
+  if (OpenFile(filename) == OK) {
+    result = ReadNum<T>(tag, val);
+    CloseFile();
+  }
+  return result;
+}
+
+
 // Read given tag and return its numeric value
 // Return 0 on success, else 1
 
@@ -213,7 +225,6 @@ template <typename T>int CHeader::ReadNum(const string &tag, T &val) {
     result = convertString<T>(str, val);
   }
   return result;
-
 }
 
 int CHeader::Readint(const string &tag, int &val) {

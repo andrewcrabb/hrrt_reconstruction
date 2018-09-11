@@ -13,7 +13,7 @@
 
 int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
 			   float ***result,FILE *p_coins_file,  char *p_delays_file, 
-               int span=9, int maxrd=67,
+               int span=9, int t_maxrd=67,
                // ahc
                char *p_rebinner_lut_file = NULL
                );

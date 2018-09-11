@@ -20,6 +20,8 @@
 #pragma once
 
 #include <string>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
 //
 // Static class to access configuration file GMXXX.ini
 //

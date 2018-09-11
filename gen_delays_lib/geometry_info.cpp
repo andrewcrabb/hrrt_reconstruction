@@ -12,7 +12,7 @@
 #include <math.h>
 #include "geometry_info.h"
 
-int maxrd=67;
+int maxrd_ = 67;
 int nsino=0;
 LR_Type LR_type=LR_0;
 //geometry_info.h

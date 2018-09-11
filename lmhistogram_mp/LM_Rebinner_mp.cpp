@@ -53,7 +53,7 @@ static int em_span = 9;
  * maxrd is set to (span-1)/2.
  * Returns 1 if OK and 0 if gm328.ini not found or if a key is not found.
  */
-int init_rebinner(int &span, int &max_rd, const std::string &lut_file) {
+int init_rebinner(int &t_span, int &t_max_ringdiff, const std::string &t_lut_file) {
   int i = 0,  uniform_flag = -1;
   int *head_type = (int*)calloc(NHEADS, sizeof(int));
   float radius = 23.45f;
@@ -61,7 +61,7 @@ int init_rebinner(int &span, int &max_rd, const std::string &lut_file) {
   int ret = 1, tx_flag = 0;
   int nplanes = 0;
 
-  em_span = span;
+  em_span = t_span;
   head_crystal_depth = (float*)calloc(NHEADS, sizeof(float));
   if (GantryInfo::load(model_number) > 0) {
     //    GantryInfo::get("interactionDepth", def_depth);
@@ -76,9 +76,9 @@ int init_rebinner(int &span, int &max_rd, const std::string &lut_file) {
         break;
       }
       if (i == 1) {
-        if (head_type[0] == head_type[1]) 
+        if (head_type[0] == head_type[1])
           uniform_flag = 1;
-        else 
+        else
           uniform_flag = 0;
       } else if (head_type[i] != head_type[0]) {
         uniform_flag = 0;
@@ -104,42 +104,34 @@ int init_rebinner(int &span, int &max_rd, const std::string &lut_file) {
       cout << "Layer thickness for all heads = " << def_depth << endl;
     }
     free(head_type);
-    if (span == 0) { 
+    if (t_span == 0) {
       // Transmission mode
       tx_flag = 1;
-      if (GantryInfo::get("rebTxLUTMode0Span", span)) {
-        cout << "Tramsission mode: using span " << span << " from configuration file" << endl;
+      if (GantryInfo::get("rebTxLUTMode0Span", t_span)) {
+        cout << "Tramsission mode: using span " << t_span << " from configuration file" << endl;
       } else {
-        span = 21;
-        cout << "Tramsission mode: using default span " << span << endl;
+        t_span = 21;
+        cout << "Tramsission mode: using default span " << t_span << endl;
       }
-      tx_span = span;
+      tx_span = t_span;
       if (LR_type > 0 ) {
-        span = span / 2 + 1; // 21==>11; 9==>5
-        cout << "Low Resolution mode: span changed to " << span << endl;
+        t_span = t_span / 2 + 1; // 21==>11; 9==>5
+        cout << "Low Resolution mode: span changed to " << t_span << endl;
       }
-      max_rd = (span - 1) / 2;
+      t_max_ringdiff = (t_span - 1) / 2;
     }
   } else {
     cerr << "Unable to open gm328.ini configuration file, using default values:" << endl;
     cerr << "Layer thickness for all heads = " << def_depth << "cm" << endl;
     cerr << "Crystal radius = " << radius << "cm" << endl;
-    span = 21;
-    cout << "Tramsission mode: using default span " << span << endl;
+    t_span = 21;
+    cout << "Tramsission mode: using default span " << t_span << endl;
     ret = 0;
   }
 
-UP TO HERE.
-Cleaning up global use of max_rd from lmhistogram_mp.cpp
-Is this raxrd here a global, or a mistaken edit change from the two max_rd above?
-
   init_geometry_hrrt();
-  init_segment_info(&m_nsegs, &nplanes, &m_d_tan_theta, maxrd, span, NYCRYS, m_crystal_radius, m_plane_sep);
-
-  // ahc: Took out call to hrrt_rebinner_lut_path()
-  // if ((rebinner_lut_file=hrrt_rebinner_lut_path(tx_flag))==NULL) {
-  //   fprintf(stdout,"Rebinner LUT file not found\n");    exit(1); }
-  rebinner_lut_file = lut_file;
+  init_segment_info(&m_nsegs, &nplanes, &m_d_tan_theta, maxrd_, t_span, NYCRYS, m_crystal_radius, m_plane_sep);
+  rebinner_lut_file = t_lut_file;
 
   if (!tx_flag)
     init_lut_sol(rebinner_lut_file.c_str(), m_segzoffset);

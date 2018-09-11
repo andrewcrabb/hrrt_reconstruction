@@ -85,6 +85,7 @@ public:
 	int OpenFile(const string &filename);			// Loads specified filename in memory table
 	// int WriteFile(const string &filename, int p39_flag=0);
 	int WriteFile(const string &filename);
+	template <typename T>int ReadHeaderNum(const string &filename, const string &tag, T &val);
 	CHeader();
 	virtual ~CHeader();
 protected:

@@ -30,13 +30,13 @@
                                             find_start_countrate() to locate histogramming start time
                     20-MAY-2009: Use a single fast LUT rebinner
 */
+#include <cstdint>
 #include <fstream>
-#include <stdio.h>
-#include <stdlib.h>
 #include <iostream>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <cstdint>
 #include "histogram_mp.hpp"
 #include "LM_Reader_mp.hpp"
 #include "LM_Rebinner_mp.hpp"
@@ -45,9 +45,21 @@
 #include <gen_delays_lib/lor_sinogram_map.h>
 #include <gen_delays_lib/segment_info.h>
 #include <gen_delays_lib/geometry_info.h>
-#define FMT_HEADER_ONLY
+// Already included by spdlog
+// #include <fmt/core.h>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
+
+// #if !defined(FMT_HEADER_ONLY)
+// #define FMT_HEADER_ONLY
+// #endif
+
+
+#define SPDLOG_FMT_EXTERNAL
+#include "spdlog/spdlog.h"
+// #include "spdlog.h"
+
+namespace bf = boost::filesystem;
 
 typedef struct {
   int64_t total_singles;
@@ -80,15 +92,16 @@ int g_hist_mode = 0;              // 0=Trues (Default), 1=Prompts and Randoms, 2
 int timetag_processing = 1;     // 0=Use timetag count for time, 1=decode time from timetag event
 unsigned rebinner_method = SW_REBINNER;
 int g_max_rd = 67;
-unsigned stop_count = 0, start_countrate = 0;
+unsigned stop_count = 0;
+unsigned start_countrate_ = 0;
 
 int frame_start_time = -1;      //First time extracted from time tag in sec
 int frame_duration = -1;        //First time extracted from time tag in sec
 
 // crystal singles counters for prompts and delayed
 // different array for each rebinner
-unsigned *p_coinc_map = NULL;
-unsigned *d_coinc_map = NULL;
+unsigned *p_coinc_map = nullptr;
+unsigned *d_coinc_map = nullptr;
 //
 // Local counters for 1 sec period
 //
@@ -132,21 +145,22 @@ static long terminate_frame = 0;        // End frame flag set by time tag proces
 static int clock_reset = 0;
 
 
-std::ofstream open_ostream(std::string name, ios_base::openmode mode = ios::out ) {
-  std::ofstream outs;
-  outs.open(name, mode);
+boost::filesystem::ofstream open_ostream(const boost::filesystem::path &t_path, std::ios_base::openmode t_mode) {
+  // boost::filesystem::ofstream outs();
+  boost::filesystem::ofstream outs{t_path, t_mode};
+  // outs.open(t_path, t_mode);
   if (!outs.is_open()) {
-    g_logger->error("Could not open output file {}", name);
+    g_logger->error("Could not open output file {}", t_path);
     exit(1);
   }
   return outs;
 }
 
-std::ifstream open_istream(std::string name, ios_base::openmode mode = ios::in ) {
-  std::ifstream ins;
-  ins.open(name, mode);
+bf::ifstream open_istream(const bf::path &t_path, std::ios_base::openmode t_mode) {
+  bf::ifstream ins();
+  ins.open(t_path, t_mode);
   if (!ins.is_open()) {
-    g_logger->error("Could not open input file {}", name);
+    g_logger->error("Could not open input file {}", t_path);
     exit(1);
   }
   return ins;
@@ -201,7 +215,7 @@ void reset_statistics()
 
 /**
  * process_tagword:
- * Output time, prompts, randoms, singles counters to out_hc if not NULL.
+ * Output time, prompts, randoms, singles counters to out_hc if not nullptr.
  * Sets terminate_frame flag if duration>0 and  (time-frame_start_time)>=duration.
  * Only consistent time values are used: (consecutives t0,t1,t2 are consistent if t2=t1+1 and t1=t0+1).
  * Returns current time (>=0) or error (-1)
@@ -234,7 +248,7 @@ long process_tagword(long tagword, long duration, std::ofstream &out_hc)
         total_singles += singles[i].last_sample;
       }
 
-      g_logger->info("{} {} {} {} {} ", current_time, randoms, prompts, total_singles current_time_msec);
+      g_logger->info("{} {} {} {} {} ", current_time, randoms, prompts, total_singles, current_time_msec);
       // fmt::print(out_hc, "%ld,%ld,%ld,%ld\n", total_singles, randoms, prompts, current_time_msec);
       fmt::print(out_hc, "{},{},{},{}", total_singles, randoms, prompts, current_time_msec);
       t_prompts += prompts;
@@ -291,16 +305,16 @@ long process_tagword(long tagword, long duration, std::ofstream &out_hc)
 
 inline void load_buffer_32(unsigned *&buf, int &nevents)
 {
-  static L32EventPacket *current = NULL;
-  if (current != NULL) {
+  static L32EventPacket *current = nullptr;
+  if (current != nullptr) {
     current->status = L32EventPacket::empty;
     current->num_events = 0;
   }
-  if ((current = load_buffer_32()) != NULL) {
+  if ((current = load_buffer_32()) != nullptr) {
     buf = current->events;
     nevents = current->num_events;
   } else {
-    buf = NULL;
+    buf = nullptr;
     nevents = 0;
   }
   nsync = 0;
@@ -316,8 +330,7 @@ inline void load_buffer_32(unsigned *&buf, int &nevents)
  * 2="end of file"
  * 3="I/O error"
  */
-static int next_event_32(Event_32 &cew, int scan_flag)
-{
+static int next_event_32(Event_32 &cew, int scan_flag) {
   unsigned event, tag;
 
   if (terminate_frame)
@@ -325,7 +338,8 @@ static int next_event_32(Event_32 &cew, int scan_flag)
 
   if (!nevents) {
     load_buffer_32(listbuf, nevents);
-    if (nevents <= 0)  return -2;
+    if (nevents <= 0)  
+      return -2;
     listptr = listbuf;
   }
 
@@ -418,17 +432,17 @@ inline void load_buffer_64(unsigned *&buf, int &nevents, int &nsync)
 {
   /*
           DWORD bytes_to_read=2*sizeof(unsigned)*MAX_EVENTS, bytes_read=0;
-          ReadFile(in->handle, buf, bytes_to_read, &bytes_read, NULL);
+          ReadFile(in->handle, buf, bytes_to_read, &bytes_read, nullptr);
           nevents = bytes_read/(2*sizeof(unsigned));
           nsync = 0;
   */
-  static L64EventPacket *current = NULL;
-  if (current != NULL) current->status = L64EventPacket::empty;
-  if ((current = load_buffer_64()) != NULL) {
+  static L64EventPacket *current = nullptr;
+  if (current != nullptr) current->status = L64EventPacket::empty;
+  if ((current = load_buffer_64()) != nullptr) {
     buf = current->events;
     nevents = current->num_events;
   } else {
-    buf = NULL;
+    buf = nullptr;
     nevents = 0;
   }
   nsync = 0;
@@ -626,7 +640,7 @@ void reset_coin_map()
  *  Derive output file from sinogram file
  *  Sum all threads ch counters and output the sum
  */
-int write_coin_map(const std::string &datafile) {
+int write_coin_map(const bf::path &datafile) {
   int x = 0, y = 0, h = 0, b = 0, l = 0;
   // char out_file[FILENAME_MAX];
   unsigned i = 0, ncrystals = NDOIS * NXCRYS * NYCRYS * NHEADS;
@@ -634,8 +648,9 @@ int write_coin_map(const std::string &datafile) {
   unsigned *coinh_p = p_coinc_map, *coinh_d = d_coinc_map;
 
   // Create coincidence histogram file with extension ".ch"
-  std::string ch_file_name = datafile.replace_extension("ch");
-  std::ofstream ch_file = open_ostream(ch_file_name, ios::out | ios::app | ios::binary);
+  bf::path ch_file_name = datafile;
+  ch_file_name.replace_extension("ch");
+  std::ofstream ch_file = open_ostream(ch_file_name, std::ios::out | std::ios::app | std::ios::binary);
 
   int error_flag = 0;
   ch_file.write(coinh_p, ncrystals * sizeof(unsigned));
@@ -669,9 +684,9 @@ int create_sng() {
     // Create crystal singles file with extension ".sng"
     //  Write  crystal singlers
     strcpy(out_file, datafile);
-    if ((ext = strrchr(out_file, '.')) != NULL) strcpy(ext, ".sng");
+    if ((ext = strrchr(out_file, '.')) != nullptr) strcpy(ext, ".sng");
     else strcat(out_file, ".sng");
-    if ((fp == fopen(out_file, RW_MODE)) == NULL) {
+    if ((fp == fopen(out_file, RW_MODE)) == nullptr) {
         perror(out_file);
         exit(1);
     }
@@ -679,7 +694,7 @@ int create_sng() {
     int head_nblks = (nxcrys / BLK_SIZE) * (nycrys / BLK_SIZE); // 9*13=117
     float *c_singles = (float *)calloc(ncrystals, sizeof(float));
     float *blk_sum = (float *)calloc(nheads * head_nblks, sizeof(float));
-    if (c_singles == NULL || blk_sum == NULL) {
+    if (c_singles == nullptr || blk_sum == nullptr) {
         cerr << "Memory allocation error creating crystal singles\n";
         exit(1);
     }
@@ -774,20 +789,20 @@ static int find_start_countrate_lm(const char *fname) {
   unsigned file_pos = 0, pos = 0, first_tag_pos = 0;
   unsigned current_countrate = 0, delayed = 0, prompt = 0;
   int current_time = L64EventPacket::current_time;
-  unsigned *buf = NULL, buf_size = 1024 * 1024, num_events = 0;
-  FILE *fp = NULL;
+  unsigned *buf = nullptr, buf_size = 1024 * 1024, num_events = 0;
+  FILE *fp = nullptr;
 
-  if ((fp = fopen(fname, "rb")) == NULL) {
+  if ((fp = fopen(fname, "rb")) == nullptr) {
     perror(fname);
     exit(1);
   }
   buf = (unsigned *)calloc(buf_size, 2 * sizeof(unsigned));
-  if (buf == NULL) {
+  if (buf == nullptr) {
     g_logger->error("Error allocating {} bytes memory", buf_size * 2 * sizeof(unsigned));
     exit(1);
   }
-  g_logger->info("Locating starting countrate {} trues/sec", start_countrate);
-  while (current_countrate < start_countrate) {
+  g_logger->info("Locating starting countrate {} trues/sec", start_countrate_);
+  while (current_countrate < start_countrate_) {
     file_pos += pos;
     pos = 0;
     if ((num_events = fread(buf, 2 * sizeof(unsigned), buf_size, fp)) == 0) {
@@ -807,7 +822,7 @@ static int find_start_countrate_lm(const char *fname) {
           // time tag
           current_time = ((tag & 0x3fffffff)); //msec
           if (current_time / 1000 != L64EventPacket::current_time / 1000) {
-            if (current_countrate >= start_countrate) { // start countrate reached
+            if (current_countrate >= start_countrate_) { // start countrate reached
               fclose(fp);
               free(buf);
               return L64EventPacket::current_time; //first_tag_pos;
@@ -863,7 +878,7 @@ int find_start_countrate(bf::path infile) {
 }
 
 int find_start_countrate_OLD(const char *fname) {
-  char hc_fname[FILENAME_MAX], *ext = NULL;
+  char hc_fname[FILENAME_MAX], *ext = nullptr;
   FILE *fp;
   int singles, random[2], prompt[2], time[2];
   char line[80];
@@ -873,9 +888,9 @@ int find_start_countrate_OLD(const char *fname) {
   std::ifstream hc_file = open_istream(hc_fname);
 
   strcpy(hc_fname, fname);
-  if ((ext = strrchr(hc_fname, '.')) != NULL) 
+  if ((ext = strrchr(hc_fname, '.')) != nullptr) 
     strcpy(ext, ".hc");
-  if ((fp = fopen(hc_fname, "rt")) == NULL)  {
+  if ((fp = fopen(hc_fname, "rt")) == nullptr)  {
     // .hc file not there; use .l64 file.
     return find_start_countrate_lm(fname);
   }
@@ -892,7 +907,7 @@ int find_start_countrate_OLD(const char *fname) {
   if (time[1] < time[0]) { // first entry before time reset, move one line
     random[0] = random[1]; prompt[0] = prompt[1]; time[0] = time[1];
   }
-  while ((prompt[0] - random[0]) < (int)start_countrate) {
+  while ((prompt[0] - random[0]) < (int)start_countrate_) {
     if (fscanf(fp, "%d,%d,%d,%d", &singles, &random[0], &prompt[0], &time[0]) != 4) {
       fclose(fp);
       return -1;
@@ -909,10 +924,10 @@ int find_start_countrate_OLD(const char *fname) {
  * are sorted and CH files are writen
  */
 
-int check_end_of_frame(L64EventPacket &src)
-{
+int check_end_of_frame(L64EventPacket &src) {
   unsigned int ew1, ew2, type, tag;
-  if (frame_duration <= 0 || frame_start_time < 0) return 0;
+  if (frame_duration <= 0 || frame_start_time < 0)
+    return 0;
   int pos = (src.num_events - 1) * 2;
   const unsigned *in_buf = src.events;
   int frame_end = (frame_start_time + frame_duration) * 1000; // in msec
@@ -927,7 +942,8 @@ int check_end_of_frame(L64EventPacket &src)
       if ((tag & 0xE0000000) == 0x80000000) {
         int current_time = (tag & 0x3fffffff); //msec
         if (current_time < frame_end) {
-          if (last_tag_pos > 0)   return last_tag_pos / 2;
+          if (last_tag_pos > 0)
+            return last_tag_pos / 2;
           L64EventPacket::current_time = current_time; // msec
           return 0;
         } else {
@@ -1220,34 +1236,32 @@ void process_tagword(const L64EventPacket &src, std::ofstream out_hc)
  * Duration is filled back with the real histogrammed time.�
  * Histogram returns: frame start time (>=0),  -1 when an error is encountered.
  */
-template <class T> int histogram(T *sino, char *delayed,
-                                 int sino_size, int &duration, std::ofstream &out_hc)
-{
+template <class T> int histogram(T *t_sino, char *delayed, int sino_size, int &t_duration, std::ofstream &t_out_hc) {
   int address = 0, tx_flag = 0;
-  T *sub_sino = sino + sino_size;
+  T *sub_sino = t_sino + sino_size;
 
   int tx_sino_size = m_nprojs * m_nviews * (2 * NYCRYS - 1);
-  fmt::print(out_hc, "Singles,Randoms,Prompts,Time(ms)\n");
+  fmt::print(t_out_hc, "Singles,Randoms,Prompts,Time(ms)\n");
 
   Event_32 cew;
 
   // reset the counters
   reset_statistics();
-  frame_duration = duration;
+  frame_duration = t_duration;
 
   g_logger->info("Time(sec),Randoms,Prompts,Singles,Event Time(ms)");
   switch (g_hist_mode) {
-  case 0: // randoms subtraction
-  case 2: // prompts only
+  case HM_TRU: // randoms subtraction
+  case HM_PRO: // prompts only
     while (next_event_32(cew, 0) == 0) {
       if (cew.type == Event_32::TAG) {
-        process_tagword(cew.value, duration, out_hc);
+        process_tagword(cew.value, t_duration, t_out_hc);
       } else {
         if (cew.value >= 0 && cew.value < sino_size) {
           if (cew.type == Event_32::PROMPT)
-            sino[cew.value]++;
+            t_sino[cew.value]++;
           else
-            sino[cew.value]--;
+            t_sino[cew.value]--;
           //if (sinogram[cew.address] > overflow_size)
           //  cout << "Warning:  overflow sinogram, address=" << cew.address << endl;
         }
@@ -1257,54 +1271,54 @@ template <class T> int histogram(T *sino, char *delayed,
     }
     break;
 
-  case 1: // separate randoms/prompts
-
+  case HM_PRO_RAN: // separate randoms/prompts
     while (next_event_32(cew, 0) == 0) {
       if (cew.type == Event_32::TAG) {
-        process_tagword(cew.value, duration, out_hc);
+        process_tagword(cew.value, t_duration, t_out_hc);
       } else {
-        // use the prompt/random bit as the MSB of the
-        // address to create a virtual address space twice
-        // as large as normal.   Lower half is randoms, upper
-        // half is prompts
+        // use the prompt/random bit as the MSB of the address to create a virtual address space
+        // twice as large as normal.   Lower half is randoms, upper half is prompts.
         if (cew.value >= 0  && cew.value < sino_size) {
           address = cew.value;
-          if (cew.type == Event_32::PROMPT) sino[address]++;
-          else {
-            if (delayed == NULL) {
+          if (cew.type == Event_32::PROMPT) {
+            t_sino[address]++;
+          } else {
+            if (delayed == nullptr) {
               // delayed stored in same array as prompts
-              sino[address + sino_size]++;
+              t_sino[address + sino_size]++;
             } else {
               // delayed stored in different array
-              if (delayed[address] < 255) delayed[address]++; // truncated to byte max
+              if (delayed[address] < 255)
+                delayed[address]++; // truncated to byte max
             }
           }
         }
       }
-      if (stop_count > 0 && event_counter >= stop_count) break;
+      if (stop_count > 0 && event_counter >= stop_count)
+        break;
     }
-
-
     break;
-  case 7: // Transmission
+  case HM_TRA: // Transmission
     while (next_event_32(cew, 0) == 0) {
       if (cew.type == Event_32::TAG)
-        process_tagword(cew.value, duration, out_hc);
+        process_tagword(cew.value, t_duration, t_out_hc);
       else {
-        // use the mock flag
-        // address to create a virtual address space twice
-        // as large as normal.   Lower half is randoms, upper
-        // half is prompts
+        // use the mock flag address to create a virtual address space twice
+        // as large as normal.   Lower half is randoms, upper half is prompts.
         if (cew.value >= 0) {
           tx_flag = cew.value & 0x20000000;
           address = cew.value & 0x1fffffff;
           if (address < sino_size) { // should always be
-            if (tx_flag)    sino[address]++; // TX event
-            else sub_sino[address]++;  // mock event
+            if (tx_flag) {
+              t_sino[address]++; // TX event
+            } else {
+              sub_sino[address]++;  // mock event
+            }
           }
         }
       }
-      if (stop_count > 0 && event_counter >= stop_count) break;
+      if (stop_count > 0 && event_counter >= stop_count)
+        break;
     }
     break;
   }
@@ -1317,7 +1331,7 @@ template <class T> int histogram(T *sino, char *delayed,
     current_time = (current_time_msec + 500) / 1000;
     g_logger->info("Current time {} msec rounded to {} sec", current_time_msec, current_time);
   }
-  duration = (current_time - frame_start_time);
+  t_duration = (current_time - frame_start_time);
   return frame_start_time;
 }
 

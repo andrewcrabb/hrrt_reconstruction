@@ -1,6 +1,7 @@
 cmake_minimum_required (VERSION 3.7)
 project (hrrt_recon)
 set (CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # if (POLICY CMP0025)
 #   cmake_policy(SET CMP0025 NEW)
@@ -22,7 +23,9 @@ configure_file (
  
 # add the binary tree to the search path for include files
 # so that we will find hrrt_recon_config.h
-include_directories(/usr/include ${PROJECT_BINARY_DIR})
+# include_directories(/usr/include ${PROJECT_BINARY_DIR})
+# Use of include_directories is discouraged http://bit.ly/2N6BrmA
+# include_directories(${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/spdlog )
 
 # My compiler switches (from setup.sh)
 # Might want to use GLIBCXX_USE_CX11 more sparingly as it is disabling some posix features like getopt and swab
@@ -66,8 +69,9 @@ endif()
 # 	TX_TV3DReg \
 # 	common
 
-
 # add_subdirectory(libscatter)
+add_subdirectory(spdlog)
+add_subdirectory(fmt-5.1.0)
 add_subdirectory(hrrt_common)
 add_subdirectory(gen_delays_lib)
 add_subdirectory(cheader_lib)

@@ -4,7 +4,7 @@
 set (GCC_COMPILE_FLAGS "-std=c99")
 add_definitions(${GCC_COMPILE_FLAGS})
 
-include_directories(${PROJECT_SOURCE_DIR}/ecatx)
+# target_include_directories(${PROJECT_SOURCE_DIR}/ecatx)
 link_directories(${PROJECT_SOURCE_DIR}/ecatx)
 link_libraries(ecatx m)
 

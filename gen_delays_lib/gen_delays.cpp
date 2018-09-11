@@ -110,9 +110,11 @@ int compute_delays( int mp,float **delays_data,float *csings)
       for (by=0;by<NYCRYS;by++) {
 	dz2[by]=m_c_zpos[by]-m_c_zpos[ay]; // z diff. between det A and det B
         rd = ay-by; if (rd<0) rd=by-ay; 
-	if (rd < maxrd+6) {  // dsaint31 : why 6??
-	  if (bs>by) bs=by; //start ring # of detB
-	  if (be<by) be=by; //end   ring # of detB
+	if (rd < maxrd_ + 6) {  // dsaint31 : why 6??
+	  if (bs>by) 
+      bs=by; //start ring # of detB
+	  if (be<by) 
+      be=by; //end   ring # of detB
 	}
       }
 
@@ -291,7 +293,7 @@ void *pt_compute_delays(void *ptarg)
  */
 int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
                float ***result,FILE *p_coins_file,char *p_delays_file, 
-               int _span, int _maxrd,
+               int t_span, int t_maxrd,
                // My addition ahc: Rebinner LUT file now a required argument.
                char *p_rebinner_lut_file
                ) 
@@ -318,7 +320,7 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
   int *coins=NULL;
   float **delays_data;
   int niter=0;
-  int span=_span;
+  int span=t_span;
   int nplanes=0;
 
   int quiet=1;
@@ -340,7 +342,7 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
    
   delays_file = p_delays_file;
   if (scan_duration>0) ftime = scan_duration;
-  maxrd = _maxrd;
+  maxrd_ = t_maxrd;
 
   // Process command line arguments.
   if (is_inline == 0) {
@@ -364,7 +366,7 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
       case 'v':   quiet = 0; break;   // -v don't be quiet any longer
       case 'h':   coins_file = optarg; break; // coincidence histogram (int 72,8,104,4)
       case 'p':   sscanf( optarg, "%d,%d", &nprojs, &nviews); break; // -p nprojs,nviews - set sinogram size
-      case 's':   sscanf( optarg, "%d,%d", &span, &maxrd); break;    // -s span,maxrd - set 3D parameters
+      case 's':   sscanf( optarg, "%d,%d", &span, &maxrd_); break;    // -s span,maxrd - set 3D parameters
       case 'g':   sscanf( optarg, "%f,%f,%f", &pitch, &diam, &thick); break;    // -g pitch,diam,thick
       case 'C':   csingles_file = optarg; break;  // -C crystal singles file
       case 'k':   kflag = 1; break;          // user Koln geometry
@@ -402,7 +404,7 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
     else head_crystal_depth[i] = 1.0f;
 
   init_geometry_hrrt( nprojs, nviews, pitch, diam, thick);
-  init_segment_info(&m_nsegs,&nplanes,&m_d_tan_theta,maxrd,span,NYCRYS,m_crystal_radius,m_plane_sep);
+  init_segment_info(&m_nsegs, &nplanes, &m_d_tan_theta, maxrd_, span, NYCRYS, m_crystal_radius, m_plane_sep);
 
 
   // ahc hrrt_rebinner.lut now a required command line argument.
