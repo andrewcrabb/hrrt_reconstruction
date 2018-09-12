@@ -145,56 +145,48 @@ static long terminate_frame = 0;        // End frame flag set by time tag proces
 static int clock_reset = 0;
 
 
-boost::filesystem::ofstream open_ostream(const boost::filesystem::path &t_path, std::ios_base::openmode t_mode) {
+int open_ostream(std::ofstream &t_outs, const bf::path &t_path, std::ios_base::openmode t_mode) {
   // boost::filesystem::ofstream outs();
-  boost::filesystem::ofstream outs{t_path, t_mode};
-  // outs.open(t_path, t_mode);
-  if (!outs.is_open()) {
+  t_outs.open(t_path.string(), t_mode);
+  if (!t_outs.is_open()) {
     g_logger->error("Could not open output file {}", t_path);
-    exit(1);
+    return 1;
   }
-  return outs;
+  return 0;
 }
 
-bf::ifstream open_istream(const bf::path &t_path, std::ios_base::openmode t_mode) {
-  bf::ifstream ins();
-  ins.open(t_path, t_mode);
-  if (!ins.is_open()) {
+int open_istream(std::ifstream &t_ins, const bf::path &t_path, std::ios_base::openmode t_mode) {
+  t_ins.open(t_path.string(), t_mode);
+  if (!t_ins.is_open()) {
     g_logger->error("Could not open input file {}", t_path);
-    exit(1);
+    return 1;
   }
-  return ins;
+  return 0;
 }
 
 
 //
 // Counters access functions
 //
-int singles_rate(int block)
-{
+int singles_rate(int block) {
   return (singles[block].average_rate);
 }
-int64_t total_prompts()
-{
+int64_t total_prompts() {
   return t_prompts;
 }
 
-int64_t total_randoms()
-{
+int64_t total_randoms() {
   return t_randoms;
 }
-int64_t total_tx_prompts()
-{
+int64_t total_tx_prompts() {
   return tx_prompts;
 }
 
-int64_t total_tx_randoms()
-{
+int64_t total_tx_randoms() {
   return tx_randoms;
 }
 
-void reset_statistics()
-{
+void reset_statistics() {
   event_counter = 0;
   tag_counter = 0;
   randoms = prompts = 0;
@@ -650,13 +642,15 @@ int write_coin_map(const bf::path &datafile) {
   // Create coincidence histogram file with extension ".ch"
   bf::path ch_file_name = datafile;
   ch_file_name.replace_extension("ch");
-  std::ofstream ch_file = open_ostream(ch_file_name, std::ios::out | std::ios::app | std::ios::binary);
+  std::ofstream ch_file;
+  open_ostream(ch_file, ch_file_name, std::ios::out | std::ios::app | std::ios::binary);
 
   int error_flag = 0;
-  ch_file.write(coinh_p, ncrystals * sizeof(unsigned));
+  const char *coinh_p_c = reinterpret_cast<char *>(coinh_p);
+  ch_file.write(coinh_p_c, ncrystals * sizeof(unsigned));
   if (ch_file.good()) {
     g_logger->info("Writing coincidence histogram prompts {}", ch_file_name);
-    ch_file.write(coinh_d, ncrystals * sizeof(unsigned));
+    ch_file.write(reinterpret_cast<char *>(coinh_d), ncrystals * sizeof(unsigned));
     if (ch_file.good()) {
       g_logger->info("Writing coincidence histogram delayed {}: OK", ch_file_name);
     } else {
@@ -784,29 +778,37 @@ int check_start_of_frame(L64EventPacket &src)
  * Return time in msec
  */
 
-static int find_start_countrate_lm(const char *fname) {
+static int find_start_countrate_lm(const bf::path &l64_file) {
   unsigned int ew1, ew2, type, tag;
   unsigned file_pos = 0, pos = 0, first_tag_pos = 0;
   unsigned current_countrate = 0, delayed = 0, prompt = 0;
   int current_time = L64EventPacket::current_time;
-  unsigned *buf = nullptr, buf_size = 1024 * 1024, num_events = 0;
-  FILE *fp = nullptr;
+  // unsigned *buf = nullptr;
+  unsigned num_events = 0;
+  constexpr unsigned buf_size = 1024 * 1024;
+  // FILE *fp = nullptr;
 
-  if ((fp = fopen(fname, "rb")) == nullptr) {
-    perror(fname);
-    exit(1);
-  }
-  buf = (unsigned *)calloc(buf_size, 2 * sizeof(unsigned));
-  if (buf == nullptr) {
-    g_logger->error("Error allocating {} bytes memory", buf_size * 2 * sizeof(unsigned));
-    exit(1);
-  }
+  // if ((fp = fopen(fname, "rb")) == nullptr) {
+  //   perror(fname);
+  //   exit(1);
+  // }
+  std::ifstream instream;
+  open_istream(instream, l64_file, std::ios::in | std::ios::binary)
+  // buf = (unsigned *)calloc(buf_size, 2 * sizeof(unsigned));
+  char buf[buf_size * 2 * sizeof(unsigned)];
+  // if (buf == nullptr) {
+  //   g_logger->error("Error allocating {} bytes memory", buf_size * 2 * sizeof(unsigned));
+  //   exit(1);
+  // }
   g_logger->info("Locating starting countrate {} trues/sec", start_countrate_);
   while (current_countrate < start_countrate_) {
     file_pos += pos;
     pos = 0;
-    if ((num_events = fread(buf, 2 * sizeof(unsigned), buf_size, fp)) == 0) {
-      g_logger->error("Error reading file {}", fname);
+    // if ((num_events = fread(buf, 2 * sizeof(unsigned), buf_size, fp)) == 0) {
+    instream.read(buf, 2 * sizeof(unsigned) * buf_size);
+    if (instream.fail()) {
+      g_logger->error("Error reading file {}", l64_file);
+      exit(1);
     }
     while (pos < num_events * 2) {
       ew1 = buf[pos];
@@ -823,8 +825,9 @@ static int find_start_countrate_lm(const char *fname) {
           current_time = ((tag & 0x3fffffff)); //msec
           if (current_time / 1000 != L64EventPacket::current_time / 1000) {
             if (current_countrate >= start_countrate_) { // start countrate reached
-              fclose(fp);
-              free(buf);
+              // fclose(fp);
+              // free(buf);
+              instream.close();
               return L64EventPacket::current_time; //first_tag_pos;
             } else { //reset counter
               g_logger->info("xxx {} {} {} {} {}", current_time, prompt, delayed, current_countrate, first_tag_pos);
@@ -848,10 +851,29 @@ static int find_start_countrate_lm(const char *fname) {
       pos += 2;
     }
   }
-  fclose(fp);
-  free(buf);
+  instream.close();
+  // fclose(fp);
+  // free(buf);
   g_logger->info("curr {} prompt {} delay {} countr {} first_pos {}", current_time, prompt, delayed, current_countrate, first_tag_pos);
   return L64EventPacket::current_time; //first_tag_pos;
+}
+
+
+// Return submitted path with extension given by file_type
+
+bf::path &make_path(const bf::path &infile, FILE_TYPE file_type) {
+  // Range checking is handled by enum.
+  bf::path new_path = infile;
+  return new_path.replace_extension(FILE_EXTENSIONS[file_type]);
+}
+
+  // Parse line of HC file with contents:
+  // Singles,Randoms,Prompts,Time(ms)
+  // 4742713,41128,161148,1676
+  // Return vector<int> indexec by HC_FILE_COLUMNS enum
+
+int read_hc_line(const std::ifstream &instream) {
+
 }
 
 /*
@@ -860,20 +882,32 @@ static int find_start_countrate_lm(const char *fname) {
  * Return time in msec
  */
 
-// Return submitted path with extension given by file_type
-
-bf:path &make_path(const bf::path &infile, FILE_TYPE file_type) {
-  // Range checking is handled by enum.
-  return infile.replace_extension(FILE_EXTENSIONS[file_type]);
-}
-
-int find_start_countrate(bf::path infile) {
-  hc_file = make_path(infile, FT_HC);
+int find_start_countrate(bf::path l64_file) {
+  const bf::path hc_file = make_path(l64_file, FT_HC);
   if (! bf::is_regular_file(hc_file)) {
     g_logger->info("hc file {} not found; trying listmode file", hc_file.string());
-    return find_start_countrate_lm(infile);
+    return find_start_countrate_lm(l64_file);
   }
+    // Read and omit the first line
+  std::string in_line;
+  instream >> in_line;
+  bx::sregex reg_hc = bx::sregex::compile("(?P<single>\\d+),(?P<prompt>\\d+),(?P<random>\\d+),(?P<time>\\d+)");
+  bx::smatch what0, what1;
+  instream >> in_line;
+  if (bx::regex_match(in_line, what0, reg_hc)) {
+    instream >> in_line;
+    if (bx::regex_match(in_line, what1, reg_hc)) {
+      int time0 = boost::lexical_cast<int>(what0["time"]);
+      int time1 = boost::lexical_cast<int>(what1["time"]);
+      bx::smatch what = (time1 < time0) ? what1 : what0;
+      int prompt = boost::lexical_cast<int>(what["prompt"]);
+      int random = boost::lexical_cast<int>(what["random"]);
+      while ((prompt - random) < (int)start_countrate_) {
+        instream >> in_line;
+        if (bx::regex_match(in_line, what, reg_hc)) {
 
+        }
+      }
 
 }
 

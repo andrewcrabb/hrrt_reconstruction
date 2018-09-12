@@ -83,8 +83,8 @@
 #include <fmt/ostream.h>
 
 #define DEFAULT_LLD 400 // assume a value of 400 if not specified in listmode header
-const std::string RW_MODE = "wb+";
-const std::string pgm_id = "V2.1 ";  // Revision changed from 2.0 to 2.1 for LR and P39 support
+constexpr std::string RW_MODE = "wb+";
+constexpr std::string pgm_id = "V2.1 ";  // Revision changed from 2.0 to 2.1 for LR and P39 support
 
 #define MAX_FRAMES 256
 #define MAX_THREADS 4
@@ -95,7 +95,7 @@ namespace po = boost::program_options;
 namespace bf = boost::filesystem;
 // namespace bx = boost::xpressive;
 
-const std::vector<int> NSINOS {
+constexpr std::vector<int> NSINOS {
     207, // span 0 (specific to transmission)
     104, // span 1 (direct planes only)
     0,   // span 2 (invalid)
@@ -108,7 +108,7 @@ const std::vector<int> NSINOS {
     2209,// span 9
 };
 
-std::vector<int> LR_NSINOS {
+constexpr std::vector<int> LR_NSINOS {
     103, // span 0 (specific to transmission)
     103, // span 1 (direct planes only)
     0,   // span 2 (invalid)
@@ -121,7 +121,7 @@ std::vector<int> LR_NSINOS {
     0,// span 9
 };
 
-std::vector<int> P39_NSINOS {
+constexpr std::vector<int> P39_NSINOS {
     239, // span 0 (specific to transmission)
     0, // span 1 (direct planes only)
     0,   // span 2 (invalid)
@@ -134,7 +134,7 @@ std::vector<int> P39_NSINOS {
     0,// span 9
 };
 
-enum ELEM_SIZE {ELEM_SIZE_BYTE = 1, ELEM_SIZE_SHORT = 2}
+constexpr enum ELEM_SIZE {ELEM_SIZE_BYTE = 1, ELEM_SIZE_SHORT = 2}
 
 bf::path g_fname_l64;     // input listmode file name
 bf::path g_fname_l64_hdr; // input listmode header file name
@@ -267,7 +267,8 @@ template <class T> int fill_prev_sino(T &sino, const std::string &prev_sino) {
     }
 
   if (prev_sino.length() > 0) {
-    bf::ifstream prev_fp = open_istream(prev_sino, ios::in | ios::binary)
+    std::ifstream prev_fp;
+    open_istream(prev_fp, prev_sino, ios::in | ios::binary)
     if (prev_fp.open()) {
       prev_fp.read(sino, g_sinogram_size * r_size);
       if (!prev_fp.good()) {
@@ -369,7 +370,8 @@ void parse_duration_string(std::string durat_str) {
 // Parse duration strings 
 
 void on_duration(std::vector<std::string> vs) {
-  for (auto it = vs.begin(); it != vs.end(); ++it) {
+  // for (auto it = vs.begin(); it != vs.end(); ++it) {
+  for (auto& it : vs) {
     parse_duration_string(it);
   }
 }
@@ -493,7 +495,7 @@ static void create_histogram_files() {
   g_out_fname_hdr = make_file_name(SINO_HDR);
   g_out_fname_hc  = make_file_name(LM_HC);
 
-  g_out_hc = open_ostream(g_out_fname_hc);
+  open_ostream(g_out_hc, g_out_fname_hc);
 
   if (g_hist_mode == HM_TRA) {
     // transmission
@@ -501,22 +503,22 @@ static void create_histogram_files() {
       g_logger->error("Byte format not supported in transmission mode");
       exit(1);
     }
-    g_out_true_prompt_sino = open_ostream(g_out_fname_sino, ios::out | ios::app | ios::binary);
+    open_ostream(g_out_true_prompt_sino, g_out_fname_sino, ios::out | ios::app | ios::binary);
     if (g_outfname_mock.length() > 0) {
-      g_out_ran_sino = open_ostream(g_outfname_mock, ios::out | ios::app | ios::binary);
+      open_ostream(g_out_ran_sino, g_outfname_mock, ios::out | ios::app | ios::binary);
     }
   } else if (g_hist_mode == HM_PRO_RAN) {
     // Keep original filename for prompts in prompts or prompts+delayed mode
     g_out_fname_pr = g_out_fname_sino;
-    g_out_true_prompt_sino = open_ostream(g_out_fname_pr, ios::out | ios::app | ios::binary);
+    open_ostream(g_out_true_prompt_sino, g_out_fname_pr, ios::out | ios::app | ios::binary);
     g_out_fname_ra = make_file_name(FT_RA_S);
-    g_out_ran_sino = open_ostream(g_out_fname_ra, ios::out | ios::app | ios::binary);
+    open_ostream(g_out_ran_sino, g_out_fname_ra, ios::out | ios::app | ios::binary);
     if (g_elem_size == ELEM_SIZE_SHORT) {
       g_out_fname_tr = make_file_name(FT_TR_S);
-      g_out_true_sino = open_ostream(g_out_fname_tr, ios::out | ios::app | ios::binary);
+      open_ostream(g_out_true_sino, g_out_fname_tr, ios::out | ios::app | ios::binary);
     }
   } else {
-    g_out_true_prompt_sino = open_ostream(g_out_fname_sino, ios::out | ios::app | ios::binary);
+    open_ostream(g_out_true_prompt_sino, g_out_fname_sino, ios::out | ios::app | ios::binary);
 
   }
   g_logger->info("Output File: {}", g_out_fname);
@@ -735,7 +737,8 @@ int do_lmscan() {
   // memset(g_frames_duration, 0, sizeof(g_frames_duration));
 
   g_out_fname_hc = make_file_name(FT_SINO_HC);
-  std::ofstream outfile_hc = open_ostream(g_out_fname_hc);
+  std::ofstream outfile_hc;
+  open_ostream(outfile_hc, g_out_fname_hc);
   g_frames_duration.clear();
 
   start_reader_thread();
@@ -920,7 +923,7 @@ void do_histogramming(const CHeader &hdr) {
     std::ofstream outfile_dyn;
     if (g_frames_duration.size() > 1) {
       const std::string outfname_dyn = make_file_name(FT_DYN);
-      outfile_dyn = open_ostream(outfname_dyn);
+      open_ostream(outfile_dyn, outfname_dyn);
       fmt::print(outfile_dyn, "{:d}", g_frames_duration.size());
     }
 

@@ -53,11 +53,8 @@ std::map <HIST_MODE, std::string> HISTOGRAM_MODES = {
 
 enum HC_FILE_COLUMNS {HC_SINGLE, HC_RANDOM, HC_PROMPT, HC_TIME};
 
-/**
- * Head Curve data structure  
- */
-typedef struct
-{
+ // Head Curve data structure  
+typedef struct {
   long trues_rate; // in counts/second
   long randoms_rate;  // in counts/second
   long time;  // in seconds
@@ -65,77 +62,49 @@ typedef struct
 } head_curve;
 
 // Utility file-open used in histogram_mp and lmhistogram_mp
-boost::filesystem::ifstream open_istream(const boost::filesystem::path &name, std::ios_base::openmode t_mode = std::ios::in );
-bf::ofstream open_ostream(const bf::path &name, std::ios_base::openmode t_mode = std::ios::out );
+int open_istream(std::ifstream &ifstr, const bf::path &name, std::ios_base::openmode t_mode = std::ios::in );
+int open_ostream(std::ofstream &ofstr, const bf::path &name, std::ios_base::openmode t_mode = std::ios::out );
 
-/**
- * Process time tag
- */
-extern long process_tagword(long tagword, long duration, std::ofstream &out_hc);
-/**
- * Set input listmode stream position to specified time
- */
+ // Process time tag
+extern long process_tagword(long tagword, long duration, bf::ofstream &out_hc);
+ // Set input listmode stream position to specified time
 int goto_event( int target_time);
 
-/**
- * Histogram input listmode stream to sinogram, fill duration with time extracted from time tags
- */
-template <class T> int histogram(T *out_sino, char *delayed_sino, int sino_size, 
-                 int &duration, std::ofstream &out_hc);
+ // Histogram input listmode stream to sinogram, fill duration with time extracted from time tags
+template <class T> int histogram(T *out_sino, char *delayed_sino, int sino_size, int &duration, bf::ofstream &out_hc);
 
-/**
- *  Sort  64-bit events from src, decode the event into 32-bit event and add the event to dest
- *  until src is done or dest packet is full
- */
+// Sort 64-bit events from src, decode event into 32-bit event, add event to dest until src is done or dest packet is full
 void rebin_packet(L64EventPacket &src,  L32EventPacket &dst);
-/**
- * Check end of frame and stop producing packets until all packets are sorted and CH files are written
- */
+
+ // Check end of frame and stop producing packets until all packets are sorted and CH files are written
 int check_end_of_frame(L64EventPacket &src);
-/**
- * Check start of frame 
- */
+
+ // Check start of frame 
 int check_start_of_frame(L64EventPacket &src);
 
-/**
- * find start countrate from file, returns time in msec
- */
-int find_start_countrate(const char *filename);
+// find start countrate from file, returns time in msec
+int find_start_countrate(const bf::path &infile);
 
-/**
- *  Process tagwords from packet
- */
-void process_tagword(const L32EventPacket &src, std::ofstream &out_hc);
-void process_tagword(const L64EventPacket &src, std::ofstream &out_hc);
+// Process tagwords from packet
+void process_tagword(const L32EventPacket &src, bf::ofstream &out_hc);
+void process_tagword(const L64EventPacket &src, bf::ofstream &out_hc);
 
-/**
- * Scan input listmode stream and extract head curve, fill duration with time extracted from time tags
- */
-void lmscan(std::ofstream &out, long *duration);
+ // Scan input listmode stream and extract head curve, fill duration with time extracted from time tags
+void lmscan(bf::ofstream &out, long *duration);
 
-/**
- * lmsplit: To be redesigned
- */
-head_curve *lmsplit(std::ofstream &out, long *duration);
+ // lmsplit: To be redesigned
+head_curve *lmsplit(bf::ofstream &out, long *duration);
 
-/**
- * get block singles count
- */
+ // get block singles count
 int singles_rate(int block);
-/**
- * get frame prompts count
- */
+ // get frame prompts count
 int64_t total_prompts();
 int64_t total_tx_prompts(); // TX events for P39 simultaneous TX+EM
-/**
- * get frame randoms count
- */
+ // get frame randoms count
 int64_t total_randoms();
 int64_t total_tx_randoms(); // TX events for P39 simultaneous TX+EM
 
-//
 // Global variables
-//
 // extern int l64_flag;       // 1 if 64-bit mode, 0 otherwise
 extern int g_hist_mode;         // 0=Trues (Default), 1=Prompts and Randoms, 2=Prompts only, 7=transmission
 extern int g_max_rd;          // maximum ring difference, default=67
