@@ -16,7 +16,7 @@
     12/21/2004 : use file_status to test reader startup, change pgm_id to "V2.0 27-DEC-2004"
     02/02/2005 : Add logging, set default span to 9 and remove -byte option
     05/17/2005 : Reset coincidence map counters before each frame.
-    06/07/2005 : Close true sinogram files in PR mode
+    06/07/2005 : Close true sinogram files in PR mode 
     Use float rather than double for variable read from header
     11/30/2005 : Add HRRT low Resolution and P39 support
     Add nodoi support
