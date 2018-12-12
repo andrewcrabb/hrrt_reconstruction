@@ -34,7 +34,7 @@
 # pragma once
 
 #include <stdio.h>
-#define MODEL_HRRT 328
+constexpr int MODEL_HRRT = 328;
 
 /**
  *	Number of rebinner threads

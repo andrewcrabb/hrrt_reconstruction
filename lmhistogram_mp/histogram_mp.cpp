@@ -50,6 +50,9 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
+#include <boost/xpressive/xpressive.hpp>
+#include <boost/lexical_cast.hpp>
+
 // #if !defined(FMT_HEADER_ONLY)
 // #define FMT_HEADER_ONLY
 // #endif
@@ -60,6 +63,7 @@
 // #include "spdlog.h"
 
 namespace bf = boost::filesystem;
+namespace bx = boost::xpressive;
 
 typedef struct {
   int64_t total_singles;
@@ -100,8 +104,8 @@ int frame_duration = -1;        //First time extracted from time tag in sec
 
 // crystal singles counters for prompts and delayed
 // different array for each rebinner
-unsigned *p_coinc_map = nullptr;
-unsigned *d_coinc_map = nullptr;
+unsigned *g_p_coinc_map = nullptr;
+unsigned *g_d_coinc_map = nullptr;
 //
 // Local counters for 1 sec period
 //
@@ -623,8 +627,8 @@ static double total(unsigned *v, int count)
 void reset_coin_map()
 {
   unsigned ncrystals = NDOIS * NXCRYS * NYCRYS * NHEADS;
-  memset(p_coinc_map, 0, ncrystals * sizeof(unsigned));
-  memset(d_coinc_map, 0, ncrystals * sizeof(unsigned));
+  memset(g_p_coinc_map, 0, ncrystals * sizeof(unsigned));
+  memset(g_d_coinc_map, 0, ncrystals * sizeof(unsigned));
 }
 
 /**
@@ -637,13 +641,14 @@ int write_coin_map(const bf::path &datafile) {
   // char out_file[FILENAME_MAX];
   unsigned i = 0, ncrystals = NDOIS * NXCRYS * NYCRYS * NHEADS;
   int rebinner_ID = 0;
-  unsigned *coinh_p = p_coinc_map, *coinh_d = d_coinc_map;
+  unsigned *coinh_p = g_p_coinc_map, *coinh_d = g_d_coinc_map;
 
   // Create coincidence histogram file with extension ".ch"
   bf::path ch_file_name = datafile;
   ch_file_name.replace_extension("ch");
   std::ofstream ch_file;
-  open_ostream(ch_file, ch_file_name, std::ios::out | std::ios::app | std::ios::binary);
+  if (open_ostream(ch_file, ch_file_name, std::ios::out | std::ios::app | std::ios::binary))
+      return 1;
 
   int error_flag = 0;
   const char *coinh_p_c = reinterpret_cast<char *>(coinh_p);
@@ -793,8 +798,9 @@ static int find_start_countrate_lm(const bf::path &l64_file) {
   //   exit(1);
   // }
   std::ifstream instream;
-  open_istream(instream, l64_file, std::ios::in | std::ios::binary)
+  open_istream(instream, l64_file, std::ios::in | std::ios::binary);
   // buf = (unsigned *)calloc(buf_size, 2 * sizeof(unsigned));
+
   char buf[buf_size * 2 * sizeof(unsigned)];
   // if (buf == nullptr) {
   //   g_logger->error("Error allocating {} bytes memory", buf_size * 2 * sizeof(unsigned));
@@ -880,6 +886,11 @@ int read_hc_line(const std::ifstream &instream) {
  * int find_start_countrate(const char *fname)
  * Locate starting countrate using hc file or listmode
  * Return time in msec
+ * NOTE: This used to look for out of sequence hc files. Now throw exception if out of order.
+ * Singles,Randoms,Prompts,Time(ms)
+ * 534772,540,882,482
+ * 534143,501,852,1617
+ * 534107,541,889,2679
  */
 
 int find_start_countrate(bf::path l64_file) {
@@ -888,68 +899,77 @@ int find_start_countrate(bf::path l64_file) {
     g_logger->info("hc file {} not found; trying listmode file", hc_file.string());
     return find_start_countrate_lm(l64_file);
   }
-    // Read and omit the first line
+  std::ifstream instream;
+  if (open_istream(instream, hc_file, std::ios::in | std::ios::binary))
+    return 1;
+  // Read and omit the first line of the hc file
   std::string in_line;
   instream >> in_line;
   bx::sregex reg_hc = bx::sregex::compile("(?P<single>\\d+),(?P<prompt>\\d+),(?P<random>\\d+),(?P<time>\\d+)");
-  bx::smatch what0, what1;
-  instream >> in_line;
-  if (bx::regex_match(in_line, what0, reg_hc)) {
+  bx::smatch what;
+  int lasttime = -1;
+  bool found = false;
+  while (!found) {
     instream >> in_line;
-    if (bx::regex_match(in_line, what1, reg_hc)) {
-      int time0 = boost::lexical_cast<int>(what0["time"]);
-      int time1 = boost::lexical_cast<int>(what1["time"]);
-      bx::smatch what = (time1 < time0) ? what1 : what0;
+    if (bx::regex_match(in_line, what, reg_hc)) {
+      int time = boost::lexical_cast<int>(what["time"]);
       int prompt = boost::lexical_cast<int>(what["prompt"]);
       int random = boost::lexical_cast<int>(what["random"]);
-      while ((prompt - random) < (int)start_countrate_) {
-        instream >> in_line;
-        if (bx::regex_match(in_line, what, reg_hc)) {
-
-        }
+      found = ((prompt - random) > (int)start_countrate_);
+      if (lasttime > time) {
+        g_logger->error("Time out of order in hc file {}: {}", hc_file.string(), in_line);
+        throw;
       }
-
-}
-
-int find_start_countrate_OLD(const char *fname) {
-  char hc_fname[FILENAME_MAX], *ext = nullptr;
-  FILE *fp;
-  int singles, random[2], prompt[2], time[2];
-  char line[80];
-  int err_flag = 0;
-
-  std::string hc_fname = make_file_name(fname, FT_HC);
-  std::ifstream hc_file = open_istream(hc_fname);
-
-  strcpy(hc_fname, fname);
-  if ((ext = strrchr(hc_fname, '.')) != nullptr) 
-    strcpy(ext, ".hc");
-  if ((fp = fopen(hc_fname, "rt")) == nullptr)  {
-    // .hc file not there; use .l64 file.
-    return find_start_countrate_lm(fname);
-  }
-  fgets(line, sizeof(line), fp); // header
-  // get first and second entries
-  if (fscanf(fp, "%d,%d,%d,%d", &singles, &random[0], &prompt[0], &time[0]) != 4) 
-    err_flag++;
-  else if (fscanf(fp, "%d,%d,%d,%d", &singles, &random[1], &prompt[1], &time[1]) != 4) 
-    err_flag++;
-  if (err_flag) {
-    fclose(fp);
-    return -1;
-  }
-  if (time[1] < time[0]) { // first entry before time reset, move one line
-    random[0] = random[1]; prompt[0] = prompt[1]; time[0] = time[1];
-  }
-  while ((prompt[0] - random[0]) < (int)start_countrate_) {
-    if (fscanf(fp, "%d,%d,%d,%d", &singles, &random[0], &prompt[0], &time[0]) != 4) {
-      fclose(fp);
-      return -1;
+      lasttime = time;
+    } else {
+      g_logger->error("Bad hc file line: {}", in_line );
+      throw;
     }
   }
-  fclose(fp);
-  return time[0];
+  return lasttime;
 }
+
+// int find_start_countrate_OLD(const char *fname) {
+//   char hc_fname[FILENAME_MAX], *ext = nullptr;
+//   FILE *fp;
+//   int singles, random[2], prompt[2], time[2];
+//   char line[80];
+//   int err_flag = 0;
+
+//   std::string hc_fname = make_file_name(fname, FT_HC);
+//   std::ifstream hc_file;
+//   if (open_istream(hc_file, hc_fname, std::ios::in | std::ios::binary))
+//     return 1;
+
+//   strcpy(hc_fname, fname);
+//   if ((ext = strrchr(hc_fname, '.')) != nullptr) 
+//     strcpy(ext, ".hc");
+//   if ((fp = fopen(hc_fname, "rt")) == nullptr)  {
+//     // .hc file not there; use .l64 file.
+//     return find_start_countrate_lm(fname);
+//   }
+//   fgets(line, sizeof(line), fp); // header
+//   // get first and second entries
+//   if (fscanf(fp, "%d,%d,%d,%d", &singles, &random[0], &prompt[0], &time[0]) != 4) 
+//     err_flag++;
+//   else if (fscanf(fp, "%d,%d,%d,%d", &singles, &random[1], &prompt[1], &time[1]) != 4) 
+//     err_flag++;
+//   if (err_flag) {
+//     fclose(fp);
+//     return -1;
+//   }
+//   if (time[1] < time[0]) { // first entry before time reset, move one line
+//     random[0] = random[1]; prompt[0] = prompt[1]; time[0] = time[1];
+//   }
+//   while ((prompt[0] - random[0]) < (int)start_countrate_) {
+//     if (fscanf(fp, "%d,%d,%d,%d", &singles, &random[0], &prompt[0], &time[0]) != 4) {
+//       fclose(fp);
+//       return -1;
+//     }
+//   }
+//   fclose(fp);
+//   return time[0];
+// }
 
 
 /*
@@ -1009,8 +1029,8 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
   unsigned  count = src.num_events * 2;
 
   int ncrystals = NDOIS * NXCRYS * NYCRYS * NHEADS;
-  unsigned *coinh_p = p_coinc_map;
-  unsigned *coinh_d = d_coinc_map;
+  unsigned *coinh_p = g_p_coinc_map;
+  unsigned *coinh_d = g_d_coinc_map;
   int nvoxels = NXCRYS * NYCRYS * NHEADS, npixels = NHEADS * NXCRYS;
   unsigned src_pos = 0, dst_pos = 0;
   unsigned ignore_border_crystal = rebinner_method & IGNORE_BORDER_CRYSTAL;
@@ -1404,7 +1424,11 @@ static void lmscan_32(std::ofstream &out, long *duration) {
           reset_statistics();
         }
       } else {
-        process_tagword(cew.value, -1);
+        // ahc 9/4/18
+        // Have to assume this call to process_tagword(int, int) is an error and never called. See below.
+        g_logger->error("Call to process_tagword(int, int) should never be made");
+        assert(false);
+        // process_tagword(cew.value, -1);
       }
     }
   }

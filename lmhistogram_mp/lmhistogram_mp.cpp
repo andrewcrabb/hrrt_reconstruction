@@ -83,8 +83,8 @@
 #include <fmt/ostream.h>
 
 #define DEFAULT_LLD 400 // assume a value of 400 if not specified in listmode header
-constexpr std::string RW_MODE = "wb+";
-constexpr std::string pgm_id = "V2.1 ";  // Revision changed from 2.0 to 2.1 for LR and P39 support
+constexpr char RW_MODE[] = "wb+";
+constexpr char pgm_id[] = "V2.1 ";  // Revision changed from 2.0 to 2.1 for LR and P39 support
 
 #define MAX_FRAMES 256
 #define MAX_THREADS 4
@@ -95,7 +95,7 @@ namespace po = boost::program_options;
 namespace bf = boost::filesystem;
 // namespace bx = boost::xpressive;
 
-constexpr std::vector<int> NSINOS {
+constexpr std::array<int, 10> NSINOS {
     207, // span 0 (specific to transmission)
     104, // span 1 (direct planes only)
     0,   // span 2 (invalid)
@@ -108,7 +108,7 @@ constexpr std::vector<int> NSINOS {
     2209,// span 9
 };
 
-constexpr std::vector<int> LR_NSINOS {
+constexpr std::array<int, 10> LR_NSINOS {
     103, // span 0 (specific to transmission)
     103, // span 1 (direct planes only)
     0,   // span 2 (invalid)
@@ -121,7 +121,7 @@ constexpr std::vector<int> LR_NSINOS {
     0,// span 9
 };
 
-constexpr std::vector<int> P39_NSINOS {
+constexpr std::array<int, 10> P39_NSINOS {
     239, // span 0 (specific to transmission)
     0, // span 1 (direct planes only)
     0,   // span 2 (invalid)
@@ -134,7 +134,7 @@ constexpr std::vector<int> P39_NSINOS {
     0,// span 9
 };
 
-constexpr enum ELEM_SIZE {ELEM_SIZE_BYTE = 1, ELEM_SIZE_SHORT = 2}
+enum ELEM_SIZE {ELEM_SIZE_BYTE = 1, ELEM_SIZE_SHORT = 2};
 
 bf::path g_fname_l64;     // input listmode file name
 bf::path g_fname_l64_hdr; // input listmode header file name
@@ -152,10 +152,10 @@ bf::path g_out_fname_tr;   //current frame sinogram Trues file name
 // auto g_logger = spdlog::stdout_color_mt("g_logger");
 std::string g_logfile;
 
-auto g_logger;
+extern std::shared_ptr<spdlog::logger> g_logger;
 
 static int p39_nsegs = 25;
-static int MODEL_HRRT = 328;
+// static int MODEL_HRRT = 328;
 static const char *p39_seg_table = "{239,231,231,217,217,203,203,189,189,175,175,161,161,147,147,133,133,119,119,105,105,91,91,77,77}";
 
 static char fname_p39_mhdr[FILENAME_MAX]; // input listmode main header file name
@@ -240,12 +240,12 @@ template <class T> int init_sino(T *&sino, int t_span) {
     return 0;
   }
 
-  g_logger->info("number of elements: {}"  << m_nprojs);
-  g_logger->info("number of angles: {}"    << m_nviews);
-  g_logger->info("number of sinograms: {}" << g_num_sino);
-  g_logger->info("bits per register: {}"   << r_size * 8);
-  g_logger->info("sinogram size: {}"       << g_sinogram_size);
-  g_logger->info("sinogram subsize: {}"    << sinogram_subsize);
+  g_logger->info("number of elements: {}", m_nprojs);
+  g_logger->info("number of angles: {}"    , m_nviews);
+  g_logger->info("number of sinograms: {}" , g_num_sino);
+  g_logger->info("bits per register: {}"   , r_size * 8);
+  g_logger->info("sinogram size: {}"       , g_sinogram_size);
+  g_logger->info("sinogram subsize: {}"    , sinogram_subsize);
   if (sino) {
     // memset(sino, 0, (g_sinogram_size + sinogram_subsize) * r_size);
     std::fill_n(sino, g_sinogram_size + sinogram_subsize, 0);
@@ -261,15 +261,17 @@ template <class T> int init_sino(T *&sino, int t_span) {
 }
 
 template <class T> int fill_prev_sino(T &sino, const std::string &prev_sino) {
-    if (g_hist_mode != HM_TRU) {
-      g_logger->error("Adding to existing sinogram only supported Trues mode");
-      return 0;
-    }
+  if (g_hist_mode != HM_TRU) {
+    g_logger->error("Adding to existing sinogram only supported Trues mode");
+    return 0;
+  }
 
   if (prev_sino.length() > 0) {
     std::ifstream prev_fp;
-    open_istream(prev_fp, prev_sino, ios::in | ios::binary)
-    if (prev_fp.open()) {
+    if (open_istream(prev_fp, prev_sino, std::ios::in | std::ios::binary)) {
+      g_logger->error("Could not open prev_sino: {}", prev_sino);
+      return 0;
+    } else {
       prev_fp.read(sino, g_sinogram_size * r_size);
       if (!prev_fp.good()) {
         g_logger->error("Error reading {}", prev_sino);
@@ -277,9 +279,6 @@ template <class T> int fill_prev_sino(T &sino, const std::string &prev_sino) {
         return 0;
       }
       prev_fp.close();
-    } else {
-      g_logger->error("Could not open prev_sino: {}", prev_sino);
-      return 0;
     }
   }
 }
@@ -503,22 +502,22 @@ static void create_histogram_files() {
       g_logger->error("Byte format not supported in transmission mode");
       exit(1);
     }
-    open_ostream(g_out_true_prompt_sino, g_out_fname_sino, ios::out | ios::app | ios::binary);
+    open_ostream(g_out_true_prompt_sino, g_out_fname_sino, std::ios::out | std::ios::app | std::ios::binary);
     if (g_outfname_mock.length() > 0) {
-      open_ostream(g_out_ran_sino, g_outfname_mock, ios::out | ios::app | ios::binary);
+      open_ostream(g_out_ran_sino, g_outfname_mock, std::ios::out | std::ios::app | std::ios::binary);
     }
   } else if (g_hist_mode == HM_PRO_RAN) {
     // Keep original filename for prompts in prompts or prompts+delayed mode
     g_out_fname_pr = g_out_fname_sino;
-    open_ostream(g_out_true_prompt_sino, g_out_fname_pr, ios::out | ios::app | ios::binary);
+    open_ostream(g_out_true_prompt_sino, g_out_fname_pr, std::ios::out | std::ios::app | std::ios::binary);
     g_out_fname_ra = make_file_name(FT_RA_S);
-    open_ostream(g_out_ran_sino, g_out_fname_ra, ios::out | ios::app | ios::binary);
+    open_ostream(g_out_ran_sino, g_out_fname_ra, std::ios::out | std::ios::app | std::ios::binary);
     if (g_elem_size == ELEM_SIZE_SHORT) {
       g_out_fname_tr = make_file_name(FT_TR_S);
-      open_ostream(g_out_true_sino, g_out_fname_tr, ios::out | ios::app | ios::binary);
+      open_ostream(g_out_true_sino, g_out_fname_tr, std::ios::out | std::ios::app | std::ios::binary);
     }
   } else {
-    open_ostream(g_out_true_prompt_sino, g_out_fname_sino, ios::out | ios::app | ios::binary);
+    open_ostream(g_out_true_prompt_sino, g_out_fname_sino, std::ios::out | std::ios::app | std::ios::binary);
 
   }
   g_logger->info("Output File: {}", g_out_fname);
@@ -570,7 +569,7 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
   t_hdr.WriteTag(HDR_TOTAL_NET_TRUES, total_prompts() - total_randoms());
   int av_singles = 0;
   for (int block = 0; block < NBLOCKS; block++) {
-    std::string tmp1 = format::fmt("block singles {:d}", block);
+    std::string tmp1 = fmt::format("block singles {:d}", block);
     t_hdr.WriteTag(tmp1, singles_rate(block));
     av_singles += singles_rate(block);
   }
