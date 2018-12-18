@@ -1,0 +1,24 @@
+!INTERFILE
+!originating system := HRRT
+!name of data file := HAL-2009.12.03.12.02.59_EM.l64
+!study date (dd:mm:yryr) := 03:12:2009
+!study time (hh:mm:ss) := 12:03:00
+!study time (hh:mm:ss.sss) := 12:03:00.003
+!PET data type := emission
+data format := listmode
+axial compression := 0
+maximum ring difference := 103
+energy window lower level[1] := 400
+energy window upper level[1] := 650
+image duration := 5400
+Frame definition := 10*6,20*3,30*6,60*5,120*5,300*8,600*3
+Patient name := H, A
+Patient DOB := 10-11-1979
+Patient ID := 
+Patient sex := Female
+Dose type := None Selected
+isotope halflife := 0.000000
+branching factor := 0.000000
+Dosage Strength := 2.100000 Mega-Bq
+Dead time correction factor := 1.000000e+000
+Dead time constant := 7.3e-006

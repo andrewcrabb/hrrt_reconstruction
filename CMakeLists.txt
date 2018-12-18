@@ -20,7 +20,9 @@ configure_file (
   "${PROJECT_SOURCE_DIR}/hrrt_recon_config.h.in"
   "${PROJECT_BINARY_DIR}/hrrt_recon_config.h"
   )
- 
+
+include_directories (tests PUBLIC ${CMAKE_SOURCE_DIR}/spdlog/include)
+
 # add the binary tree to the search path for include files
 # so that we will find hrrt_recon_config.h
 # include_directories(/usr/include ${PROJECT_BINARY_DIR})
@@ -40,6 +42,11 @@ configure_file (
 # https://gitlab.kitware.com/cmake/cmake/issues/15943
 cmake_policy(SET CMP0025 NEW)
 
+# Prepare "Catch" library for other executables
+set(CATCH_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/catch2)
+add_library(Catch INTERFACE)
+target_include_directories(Catch INTERFACE ${CATCH_INCLUDE_DIR})
+# message("CATCH_INCLUDE_DIR is ${CATCH_INCLUDE_DIR}")
 
 # add_definitions(-D_LINUX -D__LINUX__ ${GCC_COMPILE_FLAGS})
 # Removed definition: Test for Linux defined at https://sourceforge.net/p/predef/wiki/OperatingSystems/: __linux__
@@ -70,7 +77,8 @@ endif()
 # 	common
 
 # add_subdirectory(libscatter)
-add_subdirectory(spdlog)
+# add_subdirectory(catch2)
+# add_subdirectory(spdlog)
 add_subdirectory(fmt-5.1.0)
 add_subdirectory(hrrt_common)
 add_subdirectory(gen_delays_lib)

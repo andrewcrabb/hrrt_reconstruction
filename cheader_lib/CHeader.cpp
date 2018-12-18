@@ -7,7 +7,7 @@
 Modification history:
           01/07/2009 : Warnings cleaning
           24-JUL-2009: Use const char for keywords
-          20180830 ahc Convert to standard C++11
+          20180830 ahc Convert to standard C++11, String, Vector, iterators, spdlog and East Const
 */
 
 #include <stdio.h>
@@ -24,6 +24,9 @@ Modification history:
 
 #include <boost/xpressive/xpressive.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
+
 #include <fmt/format.h>
 
 using std::cin;
@@ -31,12 +34,19 @@ using std::cout;
 using std::endl;
 using std::string;
 
+namespace bf = boost::filesystem;
+namespace bx = boost::xpressive;
+
 CHeader::CHeader() {
-  //
+  auto logger = spdlog::get("CHeader");
+  if (!logger) {
+    std::cerr << "Error: No logger CHeader" << std::endl;
+  } else {
+    logger->info("Hello, world!");    
+  }
 }
 
-CHeader::~CHeader()
-{
+CHeader::~CHeader() {
   if (hdr_file.is_open())
     hdr_file.close();
 }
@@ -48,7 +58,11 @@ CHeader::~CHeader()
  * HdrErrors[-ERR_CODE] contains the text error message.
  */
 
-int CHeader::OpenFile(const string &filename) {
+int CHeader::OpenFile(string const &filename) {
+  auto logger = spdlog::get("CHeader");
+  assert(logger);
+
+  logger->info("OpenFile({})", filename);
   if (hdr_file.is_open())
     return (E_FILE_ALREADY_OPEN);
   hdr_file.open(filename, std::ifstream::in);
@@ -58,6 +72,13 @@ int CHeader::OpenFile(const string &filename) {
   return ReadFile();
 }
 
+int CHeader::OpenFile(bf::path &filename) {
+  auto logger = spdlog::get("CHeader");
+  assert(logger);
+
+  logger->info("OpenFile({})", filename.string());
+  OpenFile(filename.string());
+}
 
 int CHeader::InsertTag(string t_buffer) {
   cout << "CHeader::Inserttag(" << t_buffer << ")" << endl;
@@ -66,7 +87,7 @@ int CHeader::InsertTag(string t_buffer) {
   smatch match;
   sregex m_reg = sregex::compile("^\\s*(?P<key>.+)\\s+:=\\s+(?P<value>.+)\\s*$");
   if (regex_match(t_buffer, match, m_reg)) {
-    tags.push_back({match["key"], match["value"]});
+    tags_.push_back({match["key"], match["value"]});
   }
 
   return 0;
@@ -79,7 +100,11 @@ int CHeader::ReadFile() {
   return OK;
 }
 
-int CHeader::WriteFile(const string &fname) {
+int CHeader::WriteFile(bf::path const &fname) {
+  WriteFile(fname.string());  
+}
+
+int CHeader::WriteFile(string &fname) {
   string outname = (fname.length()) ? fname : m_FileName;
   std::ofstream fp;
 
@@ -89,7 +114,7 @@ int CHeader::WriteFile(const string &fname) {
   }
 
   fp << "!INTERFILE := \n";
-  for (auto &tag : tags) {
+  for (auto &tag : tags_) {
     fp << tag.key << " := " << tag.value << endl;
   }
   fp.close();
@@ -98,6 +123,10 @@ int CHeader::WriteFile(const string &fname) {
 }
 
 int CHeader::IsFileOpen() {
+  auto logger = spdlog::get("CHeader");
+  assert(logger);
+
+  logger->info("IsFileOpen");
   return hdr_file.is_open();
 }
 
@@ -116,36 +145,53 @@ int CHeader::CloseFile() {
 
 // Locate tag having given key
 
-tag_iterator CHeader::FindTag(const string &key) {
-  auto pred = [key](const Tag & tag) { return tag.key == key; };
-  return std::find_if(std::begin(tags), std::end(tags), pred);
+tag_iterator CHeader::FindTag(string &key) {
+  auto pred = [key](Tag const & tag) { return tag.key == key; };
+  // return std::find_if(std::begin(tags_), std::end(tags_), pred);
+
+  // tag_iterator ibegin = tags_.begin();
+  // tag_iterator iend = tags_.end();
+  auto ibegin = tags_.begin();
+  auto iend = tags_.end();
+  tag_iterator found = std::find_if(ibegin, iend, pred);
+  // return std::find_if(std::begin(tags_), std::end(tags_), pred);
+  return found;
 }
 
 // TODO: Rename these silent overloads.  They invite trouble.
 
-int CHeader::WriteTag(const string &key, double val) {
+int CHeader::WriteTag(string &key, double val) {
   string str = fmt::format("{:f}", val);
   return WriteTag(key, str);
 }
 
-int CHeader::WriteTag(const string &key, int val) {
+int CHeader::WriteTag(string &key, int val) {
   string str = fmt::format("{:d}", val);
   return WriteTag(key, str);
 }
 
-int CHeader::WriteTag(const string &key, int64_t val) {
+int CHeader::WriteTag(string &key, int64_t val) {
   string str = fmt::format("{:d}", val);
   return WriteTag(key, str);
+}
+
+int CHeader::WriteTag(string &key, bf::path const &val) {
+  WriteTag(key, val.string());  
+}
+
+int CHeader::WriteTag(string &key, char const *val) {
+  string str(val);
+  WriteTag(key, str);
 }
 
 // If tag with given key is found, update its value.
 // Else append new tag with given key and value.
 
-int CHeader::WriteTag(const string &key, const string &val) {
+int CHeader::WriteTag(string &key, string &val) {
   int ret = 0;
   tag_iterator it = FindTag(key);
-  if (it == std::end(tags)) {
-    tags.push_back({key, val});
+  if (it == std::end(tags_)) {
+    tags_.push_back({key, val});
     ret = 1;
   } else {
     it->value.assign(val);
@@ -155,10 +201,10 @@ int CHeader::WriteTag(const string &key, const string &val) {
 
 // Fill in val if tag is found.
 
-int CHeader::Readchar(const string &key, string &val) {
+int CHeader::Readchar(string &key, string &val) {
   int ret = OK;
   tag_iterator it = FindTag(key);
-  if (it == std::end(tags)) {
+  if (it == std::end(tags_)) {
     ret = E_TAG_NOT_FOUND;
   } else {
     val = it->value;
@@ -173,13 +219,13 @@ int CHeader::Readchar(const string &key, string &val) {
  * @tparam     T     Numeric type to convert to: int, float, int64_t
  * @return     0 on success, else 1
  */
-template <typename T>int CHeader::convertString(const string &str, T &val) {
+template <typename T>int CHeader::convertString(string &str, T &val) {
   int ret = OK;
   cout << "convertString<" << typeid(T).name() << ">(" << str << "): ";
   try {
     val = boost::lexical_cast<T>(str);
   }
-  catch (const boost::bad_lexical_cast &e) {
+  catch (boost::bad_lexical_cast const &e) {
     std::cerr << e.what() << endl;
     ret = 1;
   }
@@ -192,7 +238,7 @@ template <typename T>int CHeader::convertString(const string &str, T &val) {
  * @param      time  Time stored in the tag
  * @return     0 on success, else 1
  */
-int CHeader::ReadTime(const string &tag, boost::posix_time::ptime &time) {
+int CHeader::ReadTime(string &tag, boost::posix_time::ptime &time) {
   string line, key, value;
   int ret = 0;
   if (Readchar(tag, line) == OK) {
@@ -205,7 +251,7 @@ int CHeader::ReadTime(const string &tag, boost::posix_time::ptime &time) {
 
 // Open file, read given value, close file.
 
-template <typename T>int CHeader::ReadHeaderNum(const string &filename, const string &tag, T &val) {
+template <typename T>int CHeader::ReadHeaderNum(string &filename, string &tag, T &val) {
   int result;
   if (OpenFile(filename) == OK) {
     result = ReadNum<T>(tag, val);
@@ -218,7 +264,7 @@ template <typename T>int CHeader::ReadHeaderNum(const string &filename, const st
 // Read given tag and return its numeric value
 // Return 0 on success, else 1
 
-template <typename T>int CHeader::ReadNum(const string &tag, T &val) {
+template <typename T>int CHeader::ReadNum(string &tag, T &val) {
   string str;
   int result = Readchar(tag, str);
   if (result == OK) {
@@ -227,18 +273,18 @@ template <typename T>int CHeader::ReadNum(const string &tag, T &val) {
   return result;
 }
 
-int CHeader::Readint(const string &tag, int &val) {
+int CHeader::Readint(string &tag, int &val) {
   return ReadNum<int>(tag, val) ? E_NOT_AN_INIT : OK;
 }
 
-int CHeader::Readlong(const string &tag, long &val) {
+int CHeader::Readlong(string &tag, long &val) {
   return ReadNum<long>(tag, val) ? E_NOT_A_LONG : OK;
 }
 
-int CHeader::Readfloat(const string &tag, float &val) {
+int CHeader::Readfloat(string &tag, float &val) {
   return ReadNum<float>(tag, val) ? E_NOT_A_FLOAT : OK;
 }
 
-int CHeader::Readdouble(const string &tag, double &val) {
+int CHeader::Readdouble(string &tag, double &val) {
   return ReadNum<double>(tag, val) ? E_NOT_A_DOUBLE : OK;
 }

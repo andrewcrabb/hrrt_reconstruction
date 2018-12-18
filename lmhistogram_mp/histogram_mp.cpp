@@ -96,8 +96,8 @@ int g_hist_mode = 0;              // 0=Trues (Default), 1=Prompts and Randoms, 2
 int timetag_processing = 1;     // 0=Use timetag count for time, 1=decode time from timetag event
 unsigned rebinner_method = SW_REBINNER;
 int g_max_rd = 67;
-unsigned stop_count = 0;
-unsigned start_countrate_ = 0;
+int stop_count_ = 0;
+int start_countrate_ = 0;
 
 int frame_start_time = -1;      //First time extracted from time tag in sec
 int frame_duration = -1;        //First time extracted from time tag in sec
@@ -1320,7 +1320,7 @@ template <class T> int histogram(T *t_sino, char *delayed, int sino_size, int &t
           //  cout << "Warning:  overflow sinogram, address=" << cew.address << endl;
         }
       }
-      if (stop_count > 0 && event_counter >= stop_count)
+      if (stop_count_ > 0 && event_counter >= stop_count_)
         break;
     }
     break;
@@ -1348,7 +1348,7 @@ template <class T> int histogram(T *t_sino, char *delayed, int sino_size, int &t
           }
         }
       }
-      if (stop_count > 0 && event_counter >= stop_count)
+      if (stop_count_ > 0 && event_counter >= stop_count_)
         break;
     }
     break;
@@ -1371,7 +1371,7 @@ template <class T> int histogram(T *t_sino, char *delayed, int sino_size, int &t
           }
         }
       }
-      if (stop_count > 0 && event_counter >= stop_count)
+      if (stop_count_ > 0 && event_counter >= stop_count_)
         break;
     }
     break;

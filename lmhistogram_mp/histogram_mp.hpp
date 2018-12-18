@@ -66,12 +66,12 @@ int open_istream(std::ifstream &ifstr, const bf::path &name, std::ios_base::open
 int open_ostream(std::ofstream &ofstr, const bf::path &name, std::ios_base::openmode t_mode = std::ios::out );
 
  // Process time tag
-extern long process_tagword(long tagword, long duration, bf::ofstream &out_hc);
+extern long process_tagword(long tagword, long duration, std::ofstream &out_hc);
  // Set input listmode stream position to specified time
 int goto_event( int target_time);
 
  // Histogram input listmode stream to sinogram, fill duration with time extracted from time tags
-template <class T> int histogram(T *out_sino, char *delayed_sino, int sino_size, int &duration, bf::ofstream &out_hc);
+template <class T> int histogram(T *out_sino, char *delayed_sino, int sino_size, int &duration, std::ofstream &out_hc);
 
 // Sort 64-bit events from src, decode event into 32-bit event, add event to dest until src is done or dest packet is full
 void rebin_packet(L64EventPacket &src,  L32EventPacket &dst);
@@ -86,14 +86,17 @@ int check_start_of_frame(L64EventPacket &src);
 int find_start_countrate(const bf::path &infile);
 
 // Process tagwords from packet
-void process_tagword(const L32EventPacket &src, bf::ofstream &out_hc);
-void process_tagword(const L64EventPacket &src, bf::ofstream &out_hc);
+void process_tagword(const L32EventPacket &src, std::ofstream &out_hc);
+void process_tagword(const L64EventPacket &src, std::ofstream &out_hc);
+
+bf::path make_file_name(FILE_TYPE file_type);
+bf::path make_file_name(FILE_TYPE file_type, bf::path stem, int frame_no);
 
  // Scan input listmode stream and extract head curve, fill duration with time extracted from time tags
-void lmscan(bf::ofstream &out, long *duration);
+void lmscan(std::ofstream &out, long *duration);
 
  // lmsplit: To be redesigned
-head_curve *lmsplit(bf::ofstream &out, long *duration);
+head_curve *lmsplit(std::ofstream &out, long *duration);
 
  // get block singles count
 int singles_rate(int block);
@@ -105,14 +108,14 @@ int64_t total_randoms();
 int64_t total_tx_randoms(); // TX events for P39 simultaneous TX+EM
 
 // Global variables
-// extern int l64_flag;       // 1 if 64-bit mode, 0 otherwise
-extern int g_hist_mode;         // 0=Trues (Default), 1=Prompts and Randoms, 2=Prompts only, 7=transmission
-extern int g_max_rd;          // maximum ring difference, default=67
-extern int quiet;         // default=0 (false)
-extern unsigned stop_count;     // default 0 (Not applicable)
-extern unsigned start_countrate_;      // starting trues/sec  default=0 (Not applicable)
-extern float g_tx_source_speed;     // msec per crystal, depends on axial_velocity value in transmission header
-extern unsigned *p_coinc_map;   // crystal singles counters for prompts
+// extern int l64_flag;                // 1 if 64-bit mode, 0 otherwise
+extern int g_hist_mode;                // 0=Trues (Default), 1=Prompts and Randoms, 2=Prompts only, 7=transmission
+extern int g_max_rd;                   // maximum ring difference, default=67
+extern int quiet;                      // default=0 (false)
+extern int stop_count_;           // default 0 (Not applicable)
+extern int start_countrate_;      // starting trues/sec  default=0 (Not applicable)
+extern float g_tx_source_speed;        // msec per crystal, depends on axial_velocity value in transmission header
+extern unsigned *p_coinc_map;          // crystal singles counters for prompts
                   // size = ncrystals
 extern unsigned *d_coinc_map;   // crystal singles counters for delayed
                   // size = ncrystals
