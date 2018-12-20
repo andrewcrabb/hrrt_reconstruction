@@ -1,6 +1,6 @@
 #pragma once
 
-const int OK                    =  0;
+const int E_OK                    =  0;
 const int E_FILE_NOT_READ	    = -1;
 const int E_TAG_NOT_FOUND       = -2;
 const int E_FILE_ALREADY_OPEN   = -3;

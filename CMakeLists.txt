@@ -2,6 +2,8 @@ cmake_minimum_required (VERSION 3.7)
 project (hrrt_recon)
 set (CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# This is to get only the file name in __FILE__ for spdlog debug messages http://bit.ly/2PMCS61
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__FILENAME__='\"$(subst ${CMAKE_SOURCE_DIR}/,,$(abspath $<))\"'")
 
 # if (POLICY CMP0025)
 #   cmake_policy(SET CMP0025 NEW)
@@ -21,7 +23,8 @@ configure_file (
   "${PROJECT_BINARY_DIR}/hrrt_recon_config.h"
   )
 
-include_directories (tests PUBLIC ${CMAKE_SOURCE_DIR}/spdlog/include)
+# include_directories (tests PUBLIC ${CMAKE_SOURCE_DIR}/spdlog/include)
+include_directories (${CMAKE_SOURCE_DIR}/spdlog/include)
 
 # add the binary tree to the search path for include files
 # so that we will find hrrt_recon_config.h

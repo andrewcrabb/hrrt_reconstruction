@@ -15,9 +15,9 @@
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include <boost/filesystem.hpp>
 #include "spdlog/spdlog.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
-#include "spdlog/sinks/basic_file_sink.h"
-
+// #include "spdlog/sinks/stdout_color_sinks.h"
+// #include "spdlog/sinks/basic_file_sink.h"
+#include "my_spdlog.hpp"
 
 using std::string;
 
@@ -79,7 +79,7 @@ public:
 	int Readfloat (string &key, float  &val);	       // Get a float  value from memory table
 	int Readlong  (string &key, long   &val);		   // Get a long   value from memory table
 	int Readint   (string &key, int    &val);		   // Get a int    value from memory table
-	int Readchar  (string &key, string &val);        // Get a string value from memory table 
+	int Readchar  (string const &key, string &val);        // Get a string value from memory table 
 	int ReadTime  (string &key, boost::posix_time::ptime &time);
 	int WriteTag  (string &key, string &val);  // Put a string value in memory table
 	int WriteTag  (string &key, char const *val);  // Put a string value in memory table
@@ -92,32 +92,22 @@ public:
 	int IsFileOpen();
 	int OpenFile(string const &filename);			// Loads specified filename in memory table
 	int OpenFile(boost::filesystem::path &filename);
-	// int WriteFile(string const &filename, int p39_flag=0);
 	int WriteFile(string &filename);
 	int WriteFile(boost::filesystem::path const &filename);
+	int NumTags(void);
 	template <typename T>int ReadHeaderNum(string &filename, string &tag, T &val);
 	CHeader();
 	virtual ~CHeader();
 protected:
 	int ReadFile();
 	int InsertTag(std::string buffer);
-	tag_iterator FindTag(string &key) ;
+	tag_iterator FindTag(string const &key) ;
 	template <typename T>int convertString(string &s, T &val);
 	template <typename T>int ReadNum(string &tag, T &val);
 
 	// bool SortData(char*HdrLine, char *tag, char* Data);
-	// int m_FileOpen;	// 0 = close, 1 = openread, 2 = openwrite
-	// char m_FileName[256];
-	std::string m_FileName;
-	// FILE* hdr_file;
-	std::ifstream hdr_file;
-	// char *tags[2048];
-	// char *data[2048];
-	// std::vector<std::string> tags;
-	// std::vector<std::string> data;
-	// std::vector<std::array<std::string, 2>> tagpairs;
+	std::string m_FileName_;
+	std::ifstream hdr_file_;
 	tag_vector tags_;
-	long numtags;
-	// extern std::shared_ptr<spdlog::logger> g_logger;
-
+  	std::shared_ptr<spdlog::logger> logger_;
 };

@@ -17,6 +17,8 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "hrrt_util.hpp"
+#include "spdlog/spdlog.h"
+#include "my_spdlog.hpp"
 
 namespace bt = boost::posix_time;
 namespace bg = boost::gregorian;
@@ -147,41 +149,25 @@ std::istream& safeGetline(std::istream& is, std::string& t) {
     t.clear();
     std::istream::sentry se(is, true);
     std::streambuf* sb = is.rdbuf();
-    // const int eof_sym = std::streambuf::traits_type::eof();
 
     for(;;) {
         int c = sb->sbumpc();
-        // Non const switch gives: "error: expression is not an integral constant expression"
-        // switch (c) {
-        // case '\n':
-        //     return is;
-        // case '\r':
-        //     if(sb->sgetc() == '\n')
-        //         sb->sbumpc();
-        //     return is;
-        // case std::streambuf::traits_type::eof():
-        //     // Also handle the case when the last line has no line ending
-        //     if(t.empty())
-        //         is.setstate(std::ios::eofbit);
-        //     return is;
-        // default:
-        //     t += (char)c;
-        // }
-
-        if (c == '\n') {
-            // return is;
-          } else if (c == '\r') {
+        switch (c) {
+        case '\n':
+            return is;
+        case '\r':
             if(sb->sgetc() == '\n')
                 sb->sbumpc();
-            // return is;
-          } else if (c == std::streambuf::traits_type::eof()) {
+            return is;
+        case std::streambuf::traits_type::eof():
             // Also handle the case when the last line has no line ending
             if(t.empty())
                 is.setstate(std::ios::eofbit);
-            // return is;
-          } else {
+            return is;
+        default:
             t += (char)c;
-          }
+        }
     }
+
     return is;
 }

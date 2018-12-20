@@ -810,7 +810,7 @@ void init_logging(void) {
 CHeader *open_l64_hdr_file(void) {
   CHeader *hdr = new CHeader;
   g_fname_l64_hdr = make_file_name(FT_L64_HDR);
-  if (hdr->OpenFile(g_fname_l64_hdr) != OK) {
+  if (hdr->OpenFile(g_fname_l64_hdr) != E_OK) {
     g_logger->error("header {} not found", g_fname_l64_hdr.string());
     hdr = nullptr;
   }
@@ -829,7 +829,7 @@ int check_input_files(void) {
 int set_tx_source_speed(const CHeader *hdr) {
   string datatype;
   // for transmission scans, always override span to 0 (segment 0 only)
-  if (hdr->Readchar(HDR_PET_DATA_TYPE, datatype) == OK) {
+  if (hdr->Readchar(HDR_PET_DATA_TYPE, datatype) == E_OK) {
     g_logger->info("Data Type: {}", datatype);
     // ahc this was failing because of trailing CR on DOS format hdr file.
     if (datatype == "transmission") {
@@ -848,7 +848,7 @@ int set_tx_source_speed(const CHeader *hdr) {
 }
 
 int set_lld(const CHeader &hdr) {
-  if (hdr.Readint("lower level", g_lld) != OK)
+  if (hdr.Readint("lower level", g_lld) != E_OK)
     g_lld = DEFAULT_LLD;
   g_logger->info("g_lld: {}", g_lld);
   return 0;
@@ -856,7 +856,7 @@ int set_lld(const CHeader &hdr) {
 
 int set_histogramming_mode(const CHeader &hdr) {
   int sino_mode = HM_TRU;  // by default use net trues
-  if (hdr.Readint("Sinogram Mode", sino_mode) == OK) {
+  if (hdr.Readint("Sinogram Mode", sino_mode) == E_OK) {
     g_logger->info("Using Sinogram Mode from header: {}", sino_mode);
     if ((sino_mode != HM_TRU) && g_prev_sino) {
       g_logger->error("Adding to existing sinogram only supported in Trues mode");
