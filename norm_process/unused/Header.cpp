@@ -243,7 +243,7 @@ int CHeader::Readint(char *tag, int *val)
 		else
 		{
 			*val = 0;
-			return E_NOT_AN_INIT;
+			return E_NOT_AN_INT;
 		}
 	}
 	else

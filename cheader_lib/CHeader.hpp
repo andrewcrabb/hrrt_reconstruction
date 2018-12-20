@@ -13,7 +13,9 @@
 #include <string>
 #include <vector>
 #include "boost/date_time/posix_time/posix_time.hpp"
+#define BOOST_NO_CXX11_SCOPED_ENUMS
 #include <boost/filesystem.hpp>
+#undef BOOST_NO_CXX11_SCOPED_ENUMS
 #include "spdlog/spdlog.h"
 // #include "spdlog/sinks/stdout_color_sinks.h"
 // #include "spdlog/sinks/basic_file_sink.h"
@@ -75,18 +77,18 @@ typedef std::vector<Tag>::const_iterator tag_iterator_const;
 
 class CHeader {
 public:
-	int Readdouble(string &key, double &val);        // Get a double value from memory table
-	int Readfloat (string &key, float  &val);	       // Get a float  value from memory table
-	int Readlong  (string &key, long   &val);		   // Get a long   value from memory table
-	int Readint   (string &key, int    &val);		   // Get a int    value from memory table
+	int Readdouble(string const &key, double &val);        // Get a double value from memory table
+	int Readfloat (string const &key, float  &val);	       // Get a float  value from memory table
+	int Readlong  (string const &key, long   &val);		   // Get a long   value from memory table
+	int Readint   (string const &key, int    &val);		   // Get a int    value from memory table
 	int Readchar  (string const &key, string &val);        // Get a string value from memory table 
-	int ReadTime  (string &key, boost::posix_time::ptime &time);
-	int WriteTag  (string &key, string &val);  // Put a string value in memory table
-	int WriteTag  (string &key, char const *val);  // Put a string value in memory table
-	int WriteTag  (string &key, boost::filesystem::path const &val);  // Put a string value in memory table
-	int WriteTag  (string &key, double val);	       // Put a double value in memory table
-	int WriteTag  (string &key, int val);		       // Put a int    value in memory table
-	int WriteTag  (string &key, int64_t);		       // Put a int64  value in memory table
+	int ReadTime  (string const &key, boost::posix_time::ptime &time);
+	int WriteTag  (string const &key, string &val);  // Put a string value in memory table
+	int WriteTag  (string const &key, char const *val);  // Put a string value in memory table
+	int WriteTag  (string const &key, boost::filesystem::path const &val);  // Put a string value in memory table
+	int WriteTag  (string const &key, double val);	       // Put a double value in memory table
+	int WriteTag  (string const &key, int val);		       // Put a int    value in memory table
+	int WriteTag  (string const &key, int64_t);		       // Put a int64  value in memory table
 	int CloseFile();
 	void GetFileName(string &filename);
 	int IsFileOpen();
@@ -103,7 +105,7 @@ protected:
 	int InsertTag(std::string buffer);
 	tag_iterator FindTag(string const &key) ;
 	template <typename T>int convertString(string &s, T &val);
-	template <typename T>int ReadNum(string &tag, T &val);
+	template <typename T>int ReadNum(string const &tag, T &val);
 
 	// bool SortData(char*HdrLine, char *tag, char* Data);
 	std::string m_FileName_;

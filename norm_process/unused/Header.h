@@ -18,7 +18,7 @@ Modification History (HRRT User Community):
 #define		E_FILE_ALREADY_OPEN -3
 #define		E_COULD_NOT_OPEN_FILE -4
 #define		E_FILE_NOT_WRITE	-5
-#define		E_NOT_AN_INIT		-6
+#define		E_NOT_AN_INT		-6
 #define		E_NOT_A_LONG		-7
 #define		E_NOT_A_FLOAT		-8
 #define		E_NOT_A_DOUBLE		-9

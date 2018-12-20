@@ -171,26 +171,26 @@ tag_iterator CHeader::FindTag(string const &key) {
 
 // TODO: Rename these silent overloads.  They invite trouble.
 
-int CHeader::WriteTag(string &key, double val) {
+int CHeader::WriteTag(string const &key, double val) {
   string str = fmt::format("{:f}", val);
   return WriteTag(key, str);
 }
 
-int CHeader::WriteTag(string &key, int val) {
+int CHeader::WriteTag(string const &key, int val) {
   string str = fmt::format("{:d}", val);
   return WriteTag(key, str);
 }
 
-int CHeader::WriteTag(string &key, int64_t val) {
+int CHeader::WriteTag(string const &key, int64_t val) {
   string str = fmt::format("{:d}", val);
   return WriteTag(key, str);
 }
 
-int CHeader::WriteTag(string &key, bf::path const &val) {
+int CHeader::WriteTag(string const &key, bf::path const &val) {
   WriteTag(key, val.string());  
 }
 
-int CHeader::WriteTag(string &key, char const *val) {
+int CHeader::WriteTag(string const &key, char const *val) {
   string str(val);
   WriteTag(key, str);
 }
@@ -198,7 +198,7 @@ int CHeader::WriteTag(string &key, char const *val) {
 // If tag with given key is found, update its value.
 // Else append new tag with given key and value.
 
-int CHeader::WriteTag(string &key, string &val) {
+int CHeader::WriteTag(string const &key, string &val) {
   int ret = 0;
   tag_iterator it = FindTag(key);
   if (it == std::end(tags_)) {
@@ -249,7 +249,7 @@ template <typename T>int CHeader::convertString(string &str, T &val) {
  * @param      time  Time stored in the tag
  * @return     0 on success, else 1
  */
-int CHeader::ReadTime(string &tag, boost::posix_time::ptime &time) {
+int CHeader::ReadTime(std::string const &tag, boost::posix_time::ptime &time) {
   string line, key, value;
   int ret = 0;
   if (Readchar(tag, line) == E_OK) {
@@ -275,7 +275,7 @@ template <typename T>int CHeader::ReadHeaderNum(string &filename, string &tag, T
 // Read given tag and return its numeric value
 // Return 0 on success, else 1
 
-template <typename T>int CHeader::ReadNum(string &tag, T &val) {
+template <typename T>int CHeader::ReadNum(string const &tag, T &val) {
   string str;
   int result = Readchar(tag, str);
   if (result == E_OK) {
@@ -284,18 +284,18 @@ template <typename T>int CHeader::ReadNum(string &tag, T &val) {
   return result;
 }
 
-int CHeader::Readint(string &tag, int &val) {
-  return ReadNum<int>(tag, val) ? E_NOT_AN_INIT : E_OK;
+int CHeader::Readint(string const &tag, int &val) {
+  return ReadNum<int>(tag, val) ? E_NOT_AN_INT : E_OK;
 }
 
-int CHeader::Readlong(string &tag, long &val) {
+int CHeader::Readlong(string const &tag, long &val) {
   return ReadNum<long>(tag, val) ? E_NOT_A_LONG : E_OK;
 }
 
-int CHeader::Readfloat(string &tag, float &val) {
+int CHeader::Readfloat(string const &tag, float &val) {
   return ReadNum<float>(tag, val) ? E_NOT_A_FLOAT : E_OK;
 }
 
-int CHeader::Readdouble(string &tag, double &val) {
+int CHeader::Readdouble(string const &tag, double &val) {
   return ReadNum<double>(tag, val) ? E_NOT_A_DOUBLE : E_OK;
 }
