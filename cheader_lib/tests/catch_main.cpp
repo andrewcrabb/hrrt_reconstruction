@@ -1,7 +1,6 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include "CHeader.hpp"
-#include "Errors.hpp"
 // #include <typeinfo>
 #include <iostream>
 #include <cstdlib>
@@ -82,8 +81,8 @@ void init_logging(void) {
 
 // Was going to do this with vector<int>
 
-bool not_ok_or_notfound(int val) {
-  bool ret = ((val != E_TAG_NOT_FOUND) && (val != E_OK));
+bool not_ok_or_notfound(CHeaderError val) {
+  bool ret = ((val != CHeaderError::E_TAG_NOT_FOUND) && (val != CHeaderError::E_OK));
   return ret;
 }
 
@@ -106,22 +105,22 @@ TEST_CASE("Initialization", "[classic]") {
     REQUIRE(chdr != nullptr);
     LOG_TRACE(logger, "Test: Have not opened file yet");
     REQUIRE(chdr->IsFileOpen() == false);
-    REQUIRE(chdr->CloseFile() == E_OK);
+    REQUIRE_FALSE(chdr->CloseFile() == CHeaderError::E_OK);
     LOG_TRACE(logger, "Test: Should be no tags");
     REQUIRE(chdr->NumTags() == 0);
     LOG_TRACE(logger, "Test: Should not find a bad char tag");
-    REQUIRE(chdr->Readchar("nosuchtag", str) != E_OK);
+    REQUIRE_FALSE(chdr->Readchar("nosuchtag", str) == CHeaderError::E_OK);
     LOG_TRACE(logger, "Test: Should not find a good char tag");
-    REQUIRE(chdr->Readchar(VALID_CHAR_TAG, str) != E_OK);
+    REQUIRE_FALSE(chdr->Readchar(VALID_CHAR_TAG, str) == CHeaderError::E_OK);
     LOG_TRACE(logger, "Test: Should not find a good int tag");
-    REQUIRE(chdr->Readchar(VALID_INT_TAG, str) != E_OK);
+    REQUIRE_FALSE(chdr->Readchar(VALID_INT_TAG, str) == CHeaderError::E_OK);
     LOG_TRACE(logger, "Test: Should not find a good float tag");
-    REQUIRE(chdr->Readchar(VALID_FLOAT_TAG, str) != E_OK);
+    REQUIRE_FALSE(chdr->Readchar(VALID_FLOAT_TAG, str) == CHeaderError::E_OK);
     LOG_TRACE(logger, "Test: Should not find a good double tag");
-    REQUIRE(chdr->Readchar(VALID_DOUBLE_TAG, str) != E_OK);
+    REQUIRE_FALSE(chdr->Readchar(VALID_DOUBLE_TAG, str) == CHeaderError::E_OK);
     LOG_TRACE(logger, "Test: Should not write to empty file {}", temp_file.string());
-    REQUIRE(chdr->WriteFile(temp_file.string()) != E_OK);
-    REQUIRE(chdr->WriteFile(temp_file) != E_OK);
+    REQUIRE_FALSE(chdr->WriteFile(temp_file.string()) == CHeaderError::E_OK);
+    REQUIRE_FALSE(chdr->WriteFile(temp_file) == CHeaderError::E_OK);
     chdr->GetFileName(str);
     REQUIRE(str.length() == 0);
   }
@@ -156,17 +155,17 @@ TEST_CASE("Initialization", "[classic]") {
     float f;
     double d;
     LOG_TRACE(logger, "Should find char tag {} = {}", VALID_CHAR_TAG, VALID_CHAR_VAL);
-    REQUIRE(chdr->Readchar(VALID_CHAR_TAG, s) == E_OK);
+    REQUIRE(chdr->Readchar(VALID_CHAR_TAG, s) == CHeaderError::E_OK);
     REQUIRE(s.compare(VALID_CHAR_VAL) == 0);
     LOG_TRACE(logger, "Should find int tag {} = {}", VALID_INT_TAG, VALID_INT_VAL);
-    REQUIRE(chdr->Readint(VALID_INT_TAG, i) == E_OK);
+    REQUIRE(chdr->Readint(VALID_INT_TAG, i) == CHeaderError::E_OK);
     REQUIRE(i == VALID_INT_VAL);
     LOG_TRACE(logger, "Should find float tag {} = {}", VALID_FLOAT_TAG, VALID_FLOAT_VAL);
-    REQUIRE(chdr->Readfloat(VALID_FLOAT_TAG, f) == E_OK);
-    REQUIRE(std::fabs(f - VALID_FLOAT_VAL) < 0.0001);
+    REQUIRE(chdr->Readfloat(VALID_FLOAT_TAG, f) == CHeaderError::E_OK);
+    REQUIRE(f == Approx(VALID_FLOAT_VAL));
     LOG_TRACE(logger, "Should find double tag {} = {}", VALID_DOUBLE_TAG, VALID_DOUBLE_VAL);
-    REQUIRE(chdr->Readdouble(VALID_DOUBLE_TAG, d) == E_OK);
-    REQUIRE(std::fabs(d - VALID_DOUBLE_VAL) < 0.0001);
+    REQUIRE(chdr->Readdouble(VALID_DOUBLE_TAG, d) == CHeaderError::E_OK);
+    REQUIRE(d == Approx(VALID_DOUBLE_VAL));
   }
 
   SECTION("Write CHeader") {
@@ -177,10 +176,20 @@ TEST_CASE("Initialization", "[classic]") {
     chdr->OpenFile(datafile);
     std::string str;
     LOG_TRACE(logger, "Write to and validate temp_file {}", temp_file.string());
-    REQUIRE(chdr->WriteFile(temp_file) == E_OK);
+    CHeaderError ret = chdr->WriteFile(temp_file);
+    REQUIRE(ret == CHeaderError::E_OK);
 
     CHeader *temphdr = new CHeader;
     temphdr->OpenFile(temp_file);
     REQUIRE(chdr->NumTags() == temphdr->NumTags());
   }
+
+  SECTION("Create CHeader") {
+    init_logging();
+    auto logger = spdlog::get("CHeader");
+
+    CHeader *chdr = new CHeader;    
+  }
+
+
 }

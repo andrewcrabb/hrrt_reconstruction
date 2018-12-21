@@ -1,6 +1,7 @@
 cmake_minimum_required (VERSION 3.7)
 project (hrrt_recon)
-set (CMAKE_CXX_STANDARD 11)
+# set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # This is to get only the file name in __FILE__ for spdlog debug messages http://bit.ly/2PMCS61
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__FILENAME__='\"$(subst ${CMAKE_SOURCE_DIR}/,,$(abspath $<))\"'")
@@ -36,6 +37,7 @@ include_directories (${CMAKE_SOURCE_DIR}/spdlog/include)
 # Might want to use GLIBCXX_USE_CX11 more sparingly as it is disabling some posix features like getopt and swab
 # add_definitions(-D_LINUX -D__LINUX__ -D_GLIBCXX_USE_CXX11_ABI=0)
 # set (GCC_COMPILE_FLAGS "-std=c99")
+add_compile_options("-Wall")
 
  # ahc https://goo.gl/hHNWmc for strdup (else it's undefined and assume int so complains about type)
 # ahc 9/4/18 took this out trying to fix problems with fmt::format linking

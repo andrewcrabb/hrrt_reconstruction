@@ -1,5 +1,6 @@
 # cmake_minimum_required (VERSION 3.7)
-set (GCC_COMPILE_FLAGS "-std=c++11")
+# set (GCC_COMPILE_FLAGS "-std=c++11")
+set (GCC_COMPILE_FLAGS "-std=c++14")
 add_library (hrrt_common hrrt_util.cpp)
 target_include_directories (hrrt_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/lmhistogram_mp  ${CMAKE_SOURCE_DIR}/cheader_lib )
 include_directories (hrrt_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

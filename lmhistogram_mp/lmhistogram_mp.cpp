@@ -61,7 +61,6 @@
 
 #include "CHeader.hpp"
 #include "dtc.hpp"
-#include "Errors.hpp"
 #include "LM_Rebinner_mp.hpp"
 #include "histogram_mp.hpp"
 #include "LM_Reader_mp.hpp"
@@ -84,17 +83,14 @@
 #include "spdlog/sinks/basic_file_sink.h" // support for basic file logging
 #include "spdlog/sinks/rotating_file_sink.h" // support for rotating file logging
 
-// ahc
-// #define FMT_HEADER_ONLY
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
 #define DEFAULT_LLD 400 // assume a value of 400 if not specified in listmode header
 constexpr char RW_MODE[] = "wb+";
 constexpr char pgm_id[] = "V2.1 ";  // Revision changed from 2.0 to 2.1 for LR and P39 support
-
-#define MAX_FRAMES 256
-#define MAX_THREADS 4
+constexpr int MAX_FRAMES  = 256;
+constexpr int MAX_THREADS =  4;
 
 namespace bt = boost::posix_time;
 namespace bg = boost::gregorian;
@@ -141,7 +137,10 @@ constexpr std::array<int, 10> P39_NSINOS {
     0,// span 9
 };
 
-enum ELEM_SIZE {ELEM_SIZE_BYTE = 1, ELEM_SIZE_SHORT = 2};
+enum ELEM_SIZE {
+  ELEM_SIZE_BYTE = 1, 
+  ELEM_SIZE_SHORT = 2
+};
 
 bf::path g_fname_l64;     // input listmode file name
 bf::path g_fname_l64_hdr; // input listmode header file name
@@ -153,21 +152,15 @@ bf::path g_out_fname_ra;   //current frame sinogram randoms file name
 bf::path g_out_fname_pr;   //current frame sinogram prompts file name
 bf::path g_out_fname_tr;   //current frame sinogram Trues file name
 
-// bf::path outfname_p39_em[FILENAME_MAX]; //current frame sinogram emission file name
-// bf::path outfname_p39_tx[FILENAME_MAX]; //current frame sinogram transmission file name
-
-// auto g_logger = spdlog::stdout_color_mt("g_logger");
 std::string g_logfile;
 
 extern std::shared_ptr<spdlog::logger> g_logger;
 
-static int p39_nsegs = 25;
+// static int p39_nsegs = 25;
 // static int MODEL_HRRT = 328;
-static const char *p39_seg_table = "{239,231,231,217,217,203,203,189,189,175,175,161,161,147,147,133,133,119,119,105,105,91,91,77,77}";
+// static const char *p39_seg_table = "{239,231,231,217,217,203,203,189,189,175,175,161,161,147,147,133,133,119,119,105,105,91,91,77,77}";
 
-static char fname_p39_mhdr[FILENAME_MAX]; // input listmode main header file name
 std::string g_outfname_mock; //Mock sinogram file name for transmission only
-
 std::ofstream g_out_hc;             // Head Curve output File Pointer
 std::ofstream g_out_true_prompt_sino;    // output trues or prompts sinogram File Pointer
 std::ofstream g_out_ran_sino;   // output randoms sinogram File Pointer
@@ -183,22 +176,17 @@ static long scan_duration = 0;          // P39 TX duration is total time scan du
 
 // Parameters which default may be overrided in lmhistogram.ini
 static int g_span = 9;                // Default span=9 for l64 if not specified in header
-// static size_t g_elem_size = ELEM_SIZE_SHORT;        // sinogram elem size: 1 for byte, 2 for short (default)
 static int g_elem_size = ELEM_SIZE_SHORT;        // sinogram elem size: 1 for byte, 2 for short (default)
 static int g_num_sino, g_sinogram_size;  // number of sinogram and size
 static int compression = 0;         // 0=no compression (default), 1=ER (Efficient Representation)
 static int output_ra = 0;           // output randoms
 
 static bool g_span_override = false;       // Flag set span when span specified at command line
-// static int nframes = 0;             // Number of frames
 bool do_scan = false;                // scan option , default=no
-// static int split = 0;               // split option, default=no
 static int out_l32 = 0;             // Output 32-bit listmode (output file extension .l32)
 static int out_l64 = 0;             // Output 64-bit listmode (output file extension .l64)
 
 std::string g_prev_sino;        // 1: add to existing normalization scan
-// static char *log_fname = nullptr;          // log file
-// static FILE *log_fp = nullptr;         // log file ptr
 static float decay_rate = 0.0;      // Default no decay correction in seconds
 static int g_lld = DEFAULT_LLD;
 
@@ -206,12 +194,12 @@ static int g_lld = DEFAULT_LLD;
 std::string g_lut_file;
 
 //Crystals and Ring dimensions in cm
-#define PITCH 0.24375f
-#define RDIAM 46.9f
-#define LTHICK 1.0f
-#define BLK_SIZE 8      // Number of crystals per block
+constexpr float PITCH = 0.24375f;
+constexpr float RDIAM = 46.9f;
+constexpr float LTHICK = 1.0f;
+constexpr int BLK_SIZE = 8;      // Number of crystals per block
 
-const char *sw_version = "HRRT_U 1.1";
+constexpr string sw_version("HRRT_U 1.1");
 std::string g_sw_build_id;
 
 
@@ -558,10 +546,10 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
   short *ssino = (short *)t_sino;
   short *delayed = (short *)(t_sino + t_sino_size * g_elem_size);
   short *mock = (short *)(t_sino + t_sino_size * g_elem_size);
-  int i = 0, span9_sino_size = m_nprojs * m_nviews * NSINOS[9];
+  int span9_sino_size = m_nprojs * m_nviews * NSINOS[9];
 
-  t_hdr.WriteTag(HDR_IMAGE_DURATION, g_prev_duration + g_frames_duration[t_frame]);
-  t_hdr.WriteTag(HDR_IMAGE_RELATIVE_START_TIME, relative_start);
+  t_hdr.WriteInt(HDR_IMAGE_DURATION, g_prev_duration + g_frames_duration[t_frame]);
+  t_hdr.WriteInt(HDR_IMAGE_RELATIVE_START_TIME, relative_start);
   int decay_time = relative_start + g_dose_delay;
   float dcf1 = 1.0f;
   float dcf2 = 1.0f;
@@ -570,22 +558,22 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
     //      dcf2 = ((float)log(2.0) * duration[t_frame]) / (decay_rate * (1.0 - (float)pow(2,-1.0*duration[t_frame]/decay_rate)));
     dcf2 = (float)((log(2.0) * g_frames_duration[t_frame]) / (decay_rate * (1.0 - pow(2.0f, -1.0f * g_frames_duration[t_frame] / decay_rate))));
   }
-  t_hdr.WriteTag(HDR_DECAY_CORRECTION_FACTOR, dcf1);
-  t_hdr.WriteTag(HDR_DECAY_CORRECTION_FACTOR_2, dcf2);
-  t_hdr.WriteTag(HDR_FRAME, t_frame);
-  t_hdr.WriteTag(HDR_TOTAL_PROMPTS, total_prompts());
-  t_hdr.WriteTag(HDR_TOTAL_RANDOMS, total_randoms());
-  t_hdr.WriteTag(HDR_TOTAL_NET_TRUES, total_prompts() - total_randoms());
+  t_hdr.WriteFloat(HDR_DECAY_CORRECTION_FACTOR, dcf1);
+  t_hdr.WriteFloat(HDR_DECAY_CORRECTION_FACTOR_2, dcf2);
+  t_hdr.WriteInt(HDR_FRAME, t_frame);
+  t_hdr.WriteLong(HDR_TOTAL_PROMPTS, total_prompts());
+  t_hdr.WriteLong(HDR_TOTAL_RANDOMS, total_randoms());
+  t_hdr.WriteLong(HDR_TOTAL_NET_TRUES, total_prompts() - total_randoms());
   int av_singles = 0;
   for (int block = 0; block < NBLOCKS; block++) {
     std::string tmp1 = fmt::format("block singles {:d}", block);
-    t_hdr.WriteTag(tmp1, singles_rate(block));
+    t_hdr.WriteInt(tmp1, singles_rate(block));
     av_singles += singles_rate(block);
   }
   av_singles /= NBLOCKS;
-  t_hdr.WriteTag("average singles per block", av_singles);
+  t_hdr.WriteInt(HDR_AVERAGE_SINGLES_PER_BLOCK, av_singles);
   g_logger->info("g_lld = {}, Average Singles Per Block = ", g_lld, av_singles);
-  t_hdr.WriteTag(HDR_DEAD_TIME_CORRECTION_FACTOR, GetDTC(g_lld, av_singles));
+  t_hdr.WriteFloat(HDR_DEAD_TIME_CORRECTION_FACTOR, GetDTC(g_lld, av_singles));
 
   // Write Trues or Prompts sinogram
   int count = g_elem_size, write_error = 0;
@@ -597,30 +585,30 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
   case HM_TRU:
     // Randoms substractions
     g_logger->info("Writing Trues Sinogram: {}", g_out_fname_sino);
-    t_hdr.WriteTag(HDR_NAME_OF_DATA_FILE, g_out_fname_sino);
-    t_hdr.WriteTag(HDR_SINOGRAM_DATA_TYPE, "true");
+    t_hdr.WritePath(HDR_NAME_OF_DATA_FILE, g_out_fname_sino);
+    t_hdr.WriteChar(HDR_SINOGRAM_DATA_TYPE, "true");
     g_out_true_prompt_sino.write(t_sino, t_sino_size * g_elem_size);
     break;
   case HM_PRO_RAN:
     // Prompts and delayed: prompts is first
     g_logger->info("Writing Prompts Sinogram: {}", g_out_fname_pr);
-    t_hdr.WriteTag(HDR_NAME_OF_DATA_FILE, g_out_fname_pr);
-    t_hdr.WriteTag(HDR_SINOGRAM_DATA_TYPE, "prompt");
-    t_hdr.WriteTag("!name of true data file", g_out_fname_tr);
+    t_hdr.WritePath(HDR_NAME_OF_DATA_FILE, g_out_fname_pr);
+    t_hdr.WriteChar(HDR_SINOGRAM_DATA_TYPE, "prompt");
+    t_hdr.WritePath(HDR_NAME_OF_TRUE_DATA_FILE, g_out_fname_tr);
     g_out_fname_hdr = fmt::format("{}.hdr", g_out_fname_pr);
     g_out_true_prompt_sino.write(t_sino, t_sino_size * g_elem_size);
     break;
   case HM_PRO:
     // Prompts only
     g_logger->info("Writing Prompts Sinogram: {}", g_out_fname_sino);
-    t_hdr.WriteTag(HDR_NAME_OF_DATA_FILE, g_out_fname_sino);
-    t_hdr.WriteTag(HDR_SINOGRAM_DATA_TYPE, "prompt");
+    t_hdr.WritePath(HDR_NAME_OF_DATA_FILE, g_out_fname_sino);
+    t_hdr.WriteChar(HDR_SINOGRAM_DATA_TYPE, "prompt");
     break;
   case HM_TRA:
     // Transmission
     g_logger->info("Writing EC corrected Sinogram: {}", g_out_fname_sino);
     g_out_fname_hdr = fmt::format("{}.hdr", g_out_fname_sino);
-    t_hdr.WriteTag(HDR_NAME_OF_DATA_FILE, g_out_fname_sino);
+    t_hdr.WritePath(HDR_NAME_OF_DATA_FILE, g_out_fname_sino);
     for (int i = 0; i < t_sino_size; i++) {
       ssino[i] = ssino[i] - mock[i];
       if (ssino[i] < 0)
@@ -645,17 +633,17 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
     switch (g_hist_mode) {
     case 1: // Prompts and delayed: trues is second if short type
       g_out_fname_hdr = fmt::format("{}.hdr", g_out_fname_tr);
-      t_hdr.WriteTag(HDR_NAME_OF_DATA_FILE, g_out_fname_tr);
-      t_hdr.WriteTag(HDR_SINOGRAM_DATA_TYPE, "true");
+      t_hdr.WritePath(HDR_NAME_OF_DATA_FILE, g_out_fname_tr);
+      t_hdr.WriteChar(HDR_SINOGRAM_DATA_TYPE, "true");
       // convert span3 prompt sinogram to span9 and substract delayed
 
-      for (i = 0; i < t_sino_size; i++)
+      for (int i = 0; i < t_sino_size; i++)
         ssino[i] =  ssino[i] - delayed[i];
       if (g_span == 3) {
         g_logger->info("Converting true t_sino to span9");
         convert_span9(ssino, g_max_rd, 104);
-        t_hdr.WriteTag(HDR_AXIAL_COMPRESSION, 9);
-        t_hdr.WriteTag(HDR_MATRIX_SIZE_3, NSINOS[9]);
+        t_hdr.WriteInt(HDR_AXIAL_COMPRESSION, 9);
+        t_hdr.WriteInt(HDR_MATRIX_SIZE_3, NSINOS[9]);
       }
       g_logger->info("Writing Trues Sinogram: {}", g_out_fname_tr);
       // if (fwrite(ssino, g_span == 3 ? span9_sino_size : t_sino_size, g_elem_size, g_out_true_sino) == g_elem_size) {
@@ -668,15 +656,15 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
       }
       // Restore span3 header
       if (g_span == 3) {
-        t_hdr.WriteTag(HDR_AXIAL_COMPRESSION, 3);
-        t_hdr.WriteTag(HDR_MATRIX_SIZE_3, NSINOS[3]);
+        t_hdr.WriteInt(HDR_AXIAL_COMPRESSION, 3);
+        t_hdr.WriteInt(HDR_MATRIX_SIZE_3, NSINOS[3]);
       }
       break;
     case 7: // Transmission: EC corrected is second if short type
       if (g_out_ran_sino.is_open()) {
         g_logger->info("Writing Mock Sinogram: {}", g_outfname_mock);
         g_out_fname_hdr = fmt::format("{}.hdr", g_outfname_mock);
-        t_hdr.WriteTag(HDR_NAME_OF_DATA_FILE, g_outfname_mock);
+        t_hdr.WritePath(HDR_NAME_OF_DATA_FILE, g_outfname_mock);
         // if (fwrite(mock, t_sino_size, g_elem_size, g_out_ran_sino) == g_elem_size) {
         g_out_ran_sino.write(reinterpret_cast<char *>(mock), t_sino_size * g_elem_size);
         if (g_out_ran_sino.good()) {
@@ -693,8 +681,8 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
   if (output_ra && write_error == 0 && g_hist_mode == 1) {
     g_logger->info("Writing Randoms Sinogram: {}", g_out_fname_ra);
     g_out_fname_hdr = fmt::format("{}.hdr", g_out_fname_ra);
-    t_hdr.WriteTag(HDR_NAME_OF_DATA_FILE, g_out_fname_ra);
-    t_hdr.WriteTag(HDR_SINOGRAM_DATA_TYPE, "delayed");
+    t_hdr.WritePath(HDR_NAME_OF_DATA_FILE, g_out_fname_ra);
+    t_hdr.WriteChar(HDR_SINOGRAM_DATA_TYPE, "delayed");
     // count = fwrite(delayed, span9_sino_size, g_elem_size, g_out_ran_sino);
     // if (count == (int)g_elem_size) {
     g_out_ran_sino.write(reinterpret_cast<char *>(delayed), span9_sino_size * g_elem_size);
@@ -885,7 +873,7 @@ int set_span(const CHeader &hdr) {
     if (!g_span_override && axial_comp > 0)
       g_span = axial_comp;
     else
-      hdr.WriteTag(HDR_AXIAL_COMPRESSION, g_span);
+      hdr.WriteInt(HDR_AXIAL_COMPRESSION, g_span);
   }
   return 0;
 }
@@ -905,30 +893,30 @@ void do_histogramming(const CHeader &hdr) {
   set_span(hdr);
 
     // update the header with sinogram info for HRRT
-    hdr.WriteTag(HDR_ORIGINATING_SYSTEM      , "HRRT");
-    hdr.WriteTag(HDR_NAME_OF_DATA_FILE      , g_out_fname_sino);
-    hdr.WriteTag(HDR_NUMBER_OF_DIMENSIONS   , "3");
-    hdr.WriteTag(HDR_MATRIX_SIZE_1          , num_projs(LR_type));
-    hdr.WriteTag(HDR_MATRIX_SIZE_2          , num_views(LR_type));
-    hdr.WriteTag(HDR_MATRIX_SIZE_3          , LR_type == LR_0 ? NSINOS[g_span] : LR_NSINOS[g_span]);
-    hdr.WriteTag(HDR_DATA_FORMAT              , "sinogram");
-    hdr.WriteTag(HDR_NUMBER_FORMAT            , "signed integer");
-    hdr.WriteTag(HDR_NUMBER_OF_BYTES_PER_PIXEL, (int)g_elem_size);
-    hdr.WriteTag("!lmhistogram version"     , sw_version);
-    hdr.WriteTag("!lmhistogram build ID"    , g_sw_build_id);
-    hdr.WriteTag("!histogrammer revision"   , "2.0");
+    hdr.WriteChar(HDR_ORIGINATING_SYSTEM      , "HRRT");
+    hdr.WritePath(HDR_NAME_OF_DATA_FILE       , g_out_fname_sino);
+    hdr.WriteInt(HDR_NUMBER_OF_DIMENSIONS     , "3");
+    hdr.WriteInt(HDR_MATRIX_SIZE_1            , num_projs(LR_type));
+    hdr.WriteInt(HDR_MATRIX_SIZE_2            , num_views(LR_type));
+    hdr.WriteInt(HDR_MATRIX_SIZE_3            , LR_type == LR_0 ? NSINOS[g_span] : LR_NSINOS[g_span]);
+    hdr.WriteChar(HDR_DATA_FORMAT             , "sinogram");
+    hdr.WriteChar(HDR_NUMBER_FORMAT           , "signed integer");
+    hdr.WriteInt(HDR_NUMBER_OF_BYTES_PER_PIXEL, (int)g_elem_size);
+    hdr.WriteString(HDR_LMHISTOGRAM_VERSION   , sw_version);
+    hdr.WriteString(LMHISTOGRAM_BUILD_ID         , g_sw_build_id);
+    hdr.WriteChar(HDR_HISTOGRAMMER_REVISION    , "2.0");
 
     int span_bak = g_span;
     int rd_bak = g_max_rd;
     init_rebinner(g_span, g_max_rd, g_lut_file);
-    hdr.WriteTag("!LM rebinner method", (int)rebinner_method);
-    hdr.WriteTag(HDR_AXIAL_COMPRESSION, g_span);
-    hdr.WriteTag(HDR_MAXIMUM_RING_DIFFERENCE, g_max_rd);
+    hdr.WriteInt(HDR_LM_REBINNER_METHOD, (int)rebinner_method);
+    hdr.WriteInt(HDR_AXIAL_COMPRESSION, g_span);
+    hdr.WriteInt(HDR_MAXIMUM_RING_DIFFERENCE, g_max_rd);
     g_span = span_bak; 
     g_max_rd = rd_bak;
-    hdr.WriteTag(HDR_SCALING_FACTOR_1, 10.0f * m_binsize); // cm to mm
-    hdr.WriteTag(HDR_SCALING_FACTOR_2, 1); // angle
-    hdr.WriteTag(HDR_SCALING_FACTOR_3, 10.0f * m_plane_sep); // cm to mm
+    hdr.WriteFloat(HDR_SCALING_FACTOR_1, 10.0f * m_binsize); // cm to mm
+    hdr.WriteInt(HDR_SCALING_FACTOR_2, 1); // angle
+    hdr.WriteFloat(HDR_SCALING_FACTOR_3, 10.0f * m_plane_sep); // cm to mm
 
     g_logger->info("using rebinner LUT {}", rebinner_lut_file);
     g_logger->info("Span: {}", g_span);
