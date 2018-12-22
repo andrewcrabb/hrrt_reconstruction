@@ -41,7 +41,6 @@ enum class CHeaderError {
   E_TAG_APPENDED        = -12 // Not an error
 };
 
-
 static std::map<CHeaderError, std::string> CHdrErrorString = {
 	{CHeaderError::E_OK                 , "OK"},
 	{CHeaderError::E_FILE_NOT_READ      , "Attempt to read a file that is not open as read"},
@@ -109,12 +108,16 @@ string const HDR_TOTAL_PROMPTS = "Total Prompts";
 string const HDR_TOTAL_RANDOMS = "Total Randoms";
 
 struct Tag {
+	// Tag(std::string k, std::string v) { key(k), value(v) };
 	std::string key;
 	std::string value;
 };
 typedef std::vector<Tag>           tag_vector;
 typedef std::vector<Tag>::iterator tag_iterator;
 typedef std::vector<Tag>::const_iterator tag_iterator_const;
+
+static std::map<std::string, Tag> CHdrTestTags = {
+	"int", 
 
 class CHeader {
 public:

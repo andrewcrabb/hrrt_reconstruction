@@ -189,6 +189,16 @@ TEST_CASE("Initialization", "[classic]") {
     auto logger = spdlog::get("CHeader");
 
     CHeader *chdr = new CHeader;    
+    LOG_TRACE(logger, "Writing char tag {} = {}", VALID_CHAR_TAG, VALID_CHAR_VAL);
+    REQUIRE(chdr->WriteChar(VALID_CHAR_TAG, VALID_CHAR_VAL) == CHeaderError::E_OK);
+    LOG_TRACE(logger, "Writing int tag {} = {}", VALID_INT_TAG, VALID_INT_VAL);
+    REQUIRE(chdr->WriteInt(VALID_INT_TAG, VALID_INT_VAL) == CHeaderError::E_OK);
+    LOG_TRACE(logger, "Writing float tag {} = {}", VALID_FLOAT_TAG, VALID_FLOAT_VAL);
+    REQUIRE(chdr->WriteFloat(VALID_FLOAT_TAG, VALID_FLOAT_VAL) == CHeaderError::E_OK);
+    LOG_TRACE(logger, "Writing double tag {} = {}", VALID_DOUBLE_TAG, VALID_DOUBLE_VAL);
+    REQUIRE(chdr->WriteDouble(VALID_DOUBLE_TAG, VALID_DOUBLE_VAL) == CHeaderError::E_OK);
+
+
   }
 
 
