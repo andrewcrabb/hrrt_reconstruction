@@ -902,8 +902,8 @@ void do_histogramming(const CHeader &hdr) {
     hdr.WriteChar(HDR_DATA_FORMAT             , "sinogram");
     hdr.WriteChar(HDR_NUMBER_FORMAT           , "signed integer");
     hdr.WriteInt(HDR_NUMBER_OF_BYTES_PER_PIXEL, (int)g_elem_size);
-    hdr.WriteString(HDR_LMHISTOGRAM_VERSION   , sw_version);
-    hdr.WriteString(LMHISTOGRAM_BUILD_ID         , g_sw_build_id);
+    hdr.WriteChar(HDR_LMHISTOGRAM_VERSION   , sw_version);
+    hdr.WriteChar(LMHISTOGRAM_BUILD_ID         , g_sw_build_id);
     hdr.WriteChar(HDR_HISTOGRAMMER_REVISION    , "2.0");
 
     int span_bak = g_span;

@@ -19,14 +19,14 @@ std::string g_logfile;
 std::shared_ptr<spdlog::logger> g_logger;
 bf::path datafile("/home/ahc/DEV/hrrt_open_2011/data/test_EM.l64.hdr");
 bf::path temp_file;
-string const VALID_CHAR_TAG   = HDR_ORIGINATING_SYSTEM;
-string const VALID_CHAR_VAL   = "HRRT";
-string const VALID_FLOAT_TAG  = HDR_ISOTOPE_HALFLIFE;
-float const VALID_FLOAT_VAL   = 100.00;
-string const VALID_DOUBLE_TAG = HDR_ISOTOPE_HALFLIFE;
-double const VALID_DOUBLE_VAL = 100.00;
-string const VALID_INT_TAG    = HDR_IMAGE_DURATION;
-int const VALID_INT_VAL   = 5400;
+// string const VALID_CHAR_TAG   = HDR_ORIGINATING_SYSTEM;
+// string const VALID_CHAR_VAL   = "HRRT";
+// string const VALID_FLOAT_TAG  = HDR_ISOTOPE_HALFLIFE;
+// float const VALID_FLOAT_VAL   = 100.00;
+// string const VALID_DOUBLE_TAG = HDR_ISOTOPE_HALFLIFE;
+// double const VALID_DOUBLE_VAL = 100.00;
+// string const VALID_INT_TAG    = HDR_IMAGE_DURATION;
+// int const VALID_INT_VAL       = 5400;
 
 const std::string time_string(void) {
   time_t rawtime;
@@ -111,13 +111,13 @@ TEST_CASE("Initialization", "[classic]") {
     LOG_TRACE(logger, "Test: Should not find a bad char tag");
     REQUIRE_FALSE(chdr->Readchar("nosuchtag", str) == CHeaderError::E_OK);
     LOG_TRACE(logger, "Test: Should not find a good char tag");
-    REQUIRE_FALSE(chdr->Readchar(VALID_CHAR_TAG, str) == CHeaderError::E_OK);
+    REQUIRE_FALSE(chdr->Readchar(CHeader::VALID_CHAR.key, str) == CHeaderError::E_OK);
     LOG_TRACE(logger, "Test: Should not find a good int tag");
-    REQUIRE_FALSE(chdr->Readchar(VALID_INT_TAG, str) == CHeaderError::E_OK);
+    REQUIRE_FALSE(chdr->Readchar(CHeader::VALID_INT.key, str) == CHeaderError::E_OK);
     LOG_TRACE(logger, "Test: Should not find a good float tag");
-    REQUIRE_FALSE(chdr->Readchar(VALID_FLOAT_TAG, str) == CHeaderError::E_OK);
+    REQUIRE_FALSE(chdr->Readchar(CHeader::VALID_FLOAT.key, str) == CHeaderError::E_OK);
     LOG_TRACE(logger, "Test: Should not find a good double tag");
-    REQUIRE_FALSE(chdr->Readchar(VALID_DOUBLE_TAG, str) == CHeaderError::E_OK);
+    REQUIRE_FALSE(chdr->Readchar(CHeader::VALID_DOUBLE.key, str) == CHeaderError::E_OK);
     LOG_TRACE(logger, "Test: Should not write to empty file {}", temp_file.string());
     REQUIRE_FALSE(chdr->WriteFile(temp_file.string()) == CHeaderError::E_OK);
     REQUIRE_FALSE(chdr->WriteFile(temp_file) == CHeaderError::E_OK);
@@ -154,18 +154,18 @@ TEST_CASE("Initialization", "[classic]") {
     int i;
     float f;
     double d;
-    LOG_TRACE(logger, "Should find char tag {} = {}", VALID_CHAR_TAG, VALID_CHAR_VAL);
-    REQUIRE(chdr->Readchar(VALID_CHAR_TAG, s) == CHeaderError::E_OK);
-    REQUIRE(s.compare(VALID_CHAR_VAL) == 0);
-    LOG_TRACE(logger, "Should find int tag {} = {}", VALID_INT_TAG, VALID_INT_VAL);
-    REQUIRE(chdr->Readint(VALID_INT_TAG, i) == CHeaderError::E_OK);
-    REQUIRE(i == VALID_INT_VAL);
-    LOG_TRACE(logger, "Should find float tag {} = {}", VALID_FLOAT_TAG, VALID_FLOAT_VAL);
-    REQUIRE(chdr->Readfloat(VALID_FLOAT_TAG, f) == CHeaderError::E_OK);
-    REQUIRE(f == Approx(VALID_FLOAT_VAL));
-    LOG_TRACE(logger, "Should find double tag {} = {}", VALID_DOUBLE_TAG, VALID_DOUBLE_VAL);
-    REQUIRE(chdr->Readdouble(VALID_DOUBLE_TAG, d) == CHeaderError::E_OK);
-    REQUIRE(d == Approx(VALID_DOUBLE_VAL));
+    LOG_TRACE(logger, "Should find char tag {}", CHeader::VALID_CHAR.sayit());
+    REQUIRE(chdr->Readchar(CHeader::VALID_CHAR.key, s) == CHeaderError::E_OK);
+    REQUIRE(s.compare(CHeader::VALID_CHAR.value) == 0);
+    LOG_TRACE(logger, "Should find int tag {}", CHeader::VALID_INT.sayit());
+    REQUIRE(chdr->Readint(CHeader::VALID_INT.key, i) == CHeaderError::E_OK);
+    REQUIRE(i == std::stoi(CHeader::VALID_INT.value));
+    LOG_TRACE(logger, "Should find float tag {}", CHeader::VALID_FLOAT.sayit());
+    REQUIRE(chdr->Readfloat(CHeader::VALID_FLOAT.key, f) == CHeaderError::E_OK);
+    REQUIRE(f == Approx(std::stof(CHeader::VALID_FLOAT.value)));
+    LOG_TRACE(logger, "Should find double tag {}", CHeader::VALID_DOUBLE.sayit());
+    REQUIRE(chdr->Readdouble(CHeader::VALID_DOUBLE.key, d) == CHeaderError::E_OK);
+    REQUIRE(d == Approx(std::stod(CHeader::VALID_DOUBLE.value)));
   }
 
   SECTION("Write CHeader") {
@@ -189,17 +189,14 @@ TEST_CASE("Initialization", "[classic]") {
     auto logger = spdlog::get("CHeader");
 
     CHeader *chdr = new CHeader;    
-    LOG_TRACE(logger, "Writing char tag {} = {}", VALID_CHAR_TAG, VALID_CHAR_VAL);
-    REQUIRE(chdr->WriteChar(VALID_CHAR_TAG, VALID_CHAR_VAL) == CHeaderError::E_OK);
-    LOG_TRACE(logger, "Writing int tag {} = {}", VALID_INT_TAG, VALID_INT_VAL);
-    REQUIRE(chdr->WriteInt(VALID_INT_TAG, VALID_INT_VAL) == CHeaderError::E_OK);
-    LOG_TRACE(logger, "Writing float tag {} = {}", VALID_FLOAT_TAG, VALID_FLOAT_VAL);
-    REQUIRE(chdr->WriteFloat(VALID_FLOAT_TAG, VALID_FLOAT_VAL) == CHeaderError::E_OK);
-    LOG_TRACE(logger, "Writing double tag {} = {}", VALID_DOUBLE_TAG, VALID_DOUBLE_VAL);
-    REQUIRE(chdr->WriteDouble(VALID_DOUBLE_TAG, VALID_DOUBLE_VAL) == CHeaderError::E_OK);
-
-
+    LOG_TRACE(logger, "Writing char tag {}", CHeader::VALID_CHAR.sayit());
+    REQUIRE(chdr->WriteChar(CHeader::VALID_CHAR.key, CHeader::VALID_CHAR.value) == CHeaderError::E_OK);
+    LOG_TRACE(logger, "Writing int tag {}", CHeader::VALID_INT.sayit());
+    REQUIRE(chdr->WriteInt(CHeader::VALID_INT.key, std::stoi(CHeader::VALID_INT.value)) == CHeaderError::E_OK);
+    LOG_TRACE(logger, "Writing float tag {}", CHeader::VALID_FLOAT.sayit());
+    REQUIRE(chdr->WriteFloat(CHeader::VALID_FLOAT.key, std::stof(CHeader::VALID_FLOAT.value)) == CHeaderError::E_OK);
+    LOG_TRACE(logger, "Writing double tag {}", CHeader::VALID_DOUBLE.sayit());
+    REQUIRE(chdr->WriteDouble(CHeader::VALID_DOUBLE.key, std::stod(CHeader::VALID_DOUBLE.value)) == CHeaderError::E_OK);
   }
-
 
 }
