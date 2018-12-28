@@ -548,8 +548,8 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
   short *mock = (short *)(t_sino + t_sino_size * g_elem_size);
   int span9_sino_size = m_nprojs * m_nviews * NSINOS[9];
 
-  t_hdr.WriteInt(HDR_IMAGE_DURATION, g_prev_duration + g_frames_duration[t_frame]);
-  t_hdr.WriteInt(HDR_IMAGE_RELATIVE_START_TIME, relative_start);
+  t_hdr.WriteInt(CHeader::IMAGE_DURATION, g_prev_duration + g_frames_duration[t_frame]);
+  t_hdr.WriteInt(CHeader::IMAGE_RELATIVE_START_TIME, relative_start);
   int decay_time = relative_start + g_dose_delay;
   float dcf1 = 1.0f;
   float dcf2 = 1.0f;
@@ -558,12 +558,12 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
     //      dcf2 = ((float)log(2.0) * duration[t_frame]) / (decay_rate * (1.0 - (float)pow(2,-1.0*duration[t_frame]/decay_rate)));
     dcf2 = (float)((log(2.0) * g_frames_duration[t_frame]) / (decay_rate * (1.0 - pow(2.0f, -1.0f * g_frames_duration[t_frame] / decay_rate))));
   }
-  t_hdr.WriteFloat(HDR_DECAY_CORRECTION_FACTOR, dcf1);
-  t_hdr.WriteFloat(HDR_DECAY_CORRECTION_FACTOR_2, dcf2);
-  t_hdr.WriteInt(HDR_FRAME, t_frame);
-  t_hdr.WriteLong(HDR_TOTAL_PROMPTS, total_prompts());
-  t_hdr.WriteLong(HDR_TOTAL_RANDOMS, total_randoms());
-  t_hdr.WriteLong(HDR_TOTAL_NET_TRUES, total_prompts() - total_randoms());
+  t_hdr.WriteFloat(CHeader::DECAY_CORRECTION_FACTOR, dcf1);
+  t_hdr.WriteFloat(CHeader::DECAY_CORRECTION_FACTOR_2, dcf2);
+  t_hdr.WriteInt(CHeader::FRAME, t_frame);
+  t_hdr.WriteLong(CHeader::TOTAL_PROMPTS, total_prompts());
+  t_hdr.WriteLong(CHeader::TOTAL_RANDOMS, total_randoms());
+  t_hdr.WriteLong(CHeader::TOTAL_NET_TRUES, total_prompts() - total_randoms());
   int av_singles = 0;
   for (int block = 0; block < NBLOCKS; block++) {
     std::string tmp1 = fmt::format("block singles {:d}", block);
@@ -571,9 +571,9 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
     av_singles += singles_rate(block);
   }
   av_singles /= NBLOCKS;
-  t_hdr.WriteInt(HDR_AVERAGE_SINGLES_PER_BLOCK, av_singles);
+  t_hdr.WriteInt(CHeader::AVERAGE_SINGLES_PER_BLOCK, av_singles);
   g_logger->info("g_lld = {}, Average Singles Per Block = ", g_lld, av_singles);
-  t_hdr.WriteFloat(HDR_DEAD_TIME_CORRECTION_FACTOR, GetDTC(g_lld, av_singles));
+  t_hdr.WriteFloat(CHeader::DEAD_TIME_CORRECTION_FACTOR, GetDTC(g_lld, av_singles));
 
   // Write Trues or Prompts sinogram
   int count = g_elem_size, write_error = 0;
@@ -585,30 +585,30 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
   case HM_TRU:
     // Randoms substractions
     g_logger->info("Writing Trues Sinogram: {}", g_out_fname_sino);
-    t_hdr.WritePath(HDR_NAME_OF_DATA_FILE, g_out_fname_sino);
-    t_hdr.WriteChar(HDR_SINOGRAM_DATA_TYPE, "true");
+    t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_out_fname_sino);
+    t_hdr.WriteChar(CHeader::SINOGRAM_DATA_TYPE, "true");
     g_out_true_prompt_sino.write(t_sino, t_sino_size * g_elem_size);
     break;
   case HM_PRO_RAN:
     // Prompts and delayed: prompts is first
     g_logger->info("Writing Prompts Sinogram: {}", g_out_fname_pr);
-    t_hdr.WritePath(HDR_NAME_OF_DATA_FILE, g_out_fname_pr);
-    t_hdr.WriteChar(HDR_SINOGRAM_DATA_TYPE, "prompt");
-    t_hdr.WritePath(HDR_NAME_OF_TRUE_DATA_FILE, g_out_fname_tr);
+    t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_out_fname_pr);
+    t_hdr.WriteChar(CHeader::SINOGRAM_DATA_TYPE, "prompt");
+    t_hdr.WritePath(CHeader::NAME_OF_TRUE_DATA_FILE, g_out_fname_tr);
     g_out_fname_hdr = fmt::format("{}.hdr", g_out_fname_pr);
     g_out_true_prompt_sino.write(t_sino, t_sino_size * g_elem_size);
     break;
   case HM_PRO:
     // Prompts only
     g_logger->info("Writing Prompts Sinogram: {}", g_out_fname_sino);
-    t_hdr.WritePath(HDR_NAME_OF_DATA_FILE, g_out_fname_sino);
-    t_hdr.WriteChar(HDR_SINOGRAM_DATA_TYPE, "prompt");
+    t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_out_fname_sino);
+    t_hdr.WriteChar(CHeader::SINOGRAM_DATA_TYPE, "prompt");
     break;
   case HM_TRA:
     // Transmission
     g_logger->info("Writing EC corrected Sinogram: {}", g_out_fname_sino);
     g_out_fname_hdr = fmt::format("{}.hdr", g_out_fname_sino);
-    t_hdr.WritePath(HDR_NAME_OF_DATA_FILE, g_out_fname_sino);
+    t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_out_fname_sino);
     for (int i = 0; i < t_sino_size; i++) {
       ssino[i] = ssino[i] - mock[i];
       if (ssino[i] < 0)
@@ -633,8 +633,8 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
     switch (g_hist_mode) {
     case 1: // Prompts and delayed: trues is second if short type
       g_out_fname_hdr = fmt::format("{}.hdr", g_out_fname_tr);
-      t_hdr.WritePath(HDR_NAME_OF_DATA_FILE, g_out_fname_tr);
-      t_hdr.WriteChar(HDR_SINOGRAM_DATA_TYPE, "true");
+      t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_out_fname_tr);
+      t_hdr.WriteChar(CHeader::SINOGRAM_DATA_TYPE, "true");
       // convert span3 prompt sinogram to span9 and substract delayed
 
       for (int i = 0; i < t_sino_size; i++)
@@ -642,8 +642,8 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
       if (g_span == 3) {
         g_logger->info("Converting true t_sino to span9");
         convert_span9(ssino, g_max_rd, 104);
-        t_hdr.WriteInt(HDR_AXIAL_COMPRESSION, 9);
-        t_hdr.WriteInt(HDR_MATRIX_SIZE_3, NSINOS[9]);
+        t_hdr.WriteInt(CHeader::AXIAL_COMPRESSION, 9);
+        t_hdr.WriteInt(CHeader::MATRIX_SIZE_3, NSINOS[9]);
       }
       g_logger->info("Writing Trues Sinogram: {}", g_out_fname_tr);
       // if (fwrite(ssino, g_span == 3 ? span9_sino_size : t_sino_size, g_elem_size, g_out_true_sino) == g_elem_size) {
@@ -656,15 +656,15 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
       }
       // Restore span3 header
       if (g_span == 3) {
-        t_hdr.WriteInt(HDR_AXIAL_COMPRESSION, 3);
-        t_hdr.WriteInt(HDR_MATRIX_SIZE_3, NSINOS[3]);
+        t_hdr.WriteInt(CHeader::AXIAL_COMPRESSION, 3);
+        t_hdr.WriteInt(CHeader::MATRIX_SIZE_3, NSINOS[3]);
       }
       break;
     case 7: // Transmission: EC corrected is second if short type
       if (g_out_ran_sino.is_open()) {
         g_logger->info("Writing Mock Sinogram: {}", g_outfname_mock);
         g_out_fname_hdr = fmt::format("{}.hdr", g_outfname_mock);
-        t_hdr.WritePath(HDR_NAME_OF_DATA_FILE, g_outfname_mock);
+        t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_outfname_mock);
         // if (fwrite(mock, t_sino_size, g_elem_size, g_out_ran_sino) == g_elem_size) {
         g_out_ran_sino.write(reinterpret_cast<char *>(mock), t_sino_size * g_elem_size);
         if (g_out_ran_sino.good()) {
@@ -681,8 +681,8 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
   if (output_ra && write_error == 0 && g_hist_mode == 1) {
     g_logger->info("Writing Randoms Sinogram: {}", g_out_fname_ra);
     g_out_fname_hdr = fmt::format("{}.hdr", g_out_fname_ra);
-    t_hdr.WritePath(HDR_NAME_OF_DATA_FILE, g_out_fname_ra);
-    t_hdr.WriteChar(HDR_SINOGRAM_DATA_TYPE, "delayed");
+    t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_out_fname_ra);
+    t_hdr.WriteChar(CHeader::SINOGRAM_DATA_TYPE, "delayed");
     // count = fwrite(delayed, span9_sino_size, g_elem_size, g_out_ran_sino);
     // if (count == (int)g_elem_size) {
     g_out_ran_sino.write(reinterpret_cast<char *>(delayed), span9_sino_size * g_elem_size);
@@ -703,8 +703,8 @@ static int get_dose_delay(CHeader &hdr, int &t) {
   bt::ptime assay_time, study_time;
   int ret = 1;
 
-  if (!hdr.ReadTime(HDR_DOSE_ASSAY_TIME, assay_time)) {
-    if (!hdr.ReadTime(HDR_STUDY_TIME, study_time)) {
+  if (!hdr.ReadTime(CHeader::DOSE_ASSAY_TIME, assay_time)) {
+    if (!hdr.ReadTime(CHeader::STUDY_TIME, study_time)) {
       bt::time_duration diff = study_time - assay_time;
       t = diff.total_seconds();
       ret = 0;
@@ -817,7 +817,7 @@ int check_input_files(void) {
 int set_tx_source_speed(const CHeader *hdr) {
   string datatype;
   // for transmission scans, always override span to 0 (segment 0 only)
-  if (hdr->Readchar(HDR_PET_DATA_TYPE, datatype) == E_OK) {
+  if (hdr->Readchar(CHeader::PET_DATA_TYPE, datatype) == E_OK) {
     g_logger->info("Data Type: {}", datatype);
     // ahc this was failing because of trailing CR on DOS format hdr file.
     if (datatype == "transmission") {
@@ -869,11 +869,11 @@ int set_isotope_halflife(const CHeader &hdr) {
 int set_span(const CHeader &hdr) {
   int axial_comp;
 
-  if (!hdr.Readint(HDR_AXIAL_COMPRESSION, axial_comp)) {
+  if (!hdr.Readint(CHeader::AXIAL_COMPRESSION, axial_comp)) {
     if (!g_span_override && axial_comp > 0)
       g_span = axial_comp;
     else
-      hdr.WriteInt(HDR_AXIAL_COMPRESSION, g_span);
+      hdr.WriteInt(CHeader::AXIAL_COMPRESSION, g_span);
   }
   return 0;
 }
@@ -893,30 +893,30 @@ void do_histogramming(const CHeader &hdr) {
   set_span(hdr);
 
     // update the header with sinogram info for HRRT
-    hdr.WriteChar(HDR_ORIGINATING_SYSTEM      , "HRRT");
-    hdr.WritePath(HDR_NAME_OF_DATA_FILE       , g_out_fname_sino);
-    hdr.WriteInt(HDR_NUMBER_OF_DIMENSIONS     , "3");
-    hdr.WriteInt(HDR_MATRIX_SIZE_1            , num_projs(LR_type));
-    hdr.WriteInt(HDR_MATRIX_SIZE_2            , num_views(LR_type));
-    hdr.WriteInt(HDR_MATRIX_SIZE_3            , LR_type == LR_0 ? NSINOS[g_span] : LR_NSINOS[g_span]);
-    hdr.WriteChar(HDR_DATA_FORMAT             , "sinogram");
-    hdr.WriteChar(HDR_NUMBER_FORMAT           , "signed integer");
-    hdr.WriteInt(HDR_NUMBER_OF_BYTES_PER_PIXEL, (int)g_elem_size);
-    hdr.WriteChar(HDR_LMHISTOGRAM_VERSION   , sw_version);
+    hdr.WriteChar(CHeader::ORIGINATING_SYSTEM      , "HRRT");
+    hdr.WritePath(CHeader::NAME_OF_DATA_FILE       , g_out_fname_sino);
+    hdr.WriteInt(CHeader::NUMBER_OF_DIMENSIONS     , "3");
+    hdr.WriteInt(CHeader::MATRIX_SIZE_1            , num_projs(LR_type));
+    hdr.WriteInt(CHeader::MATRIX_SIZE_2            , num_views(LR_type));
+    hdr.WriteInt(CHeader::MATRIX_SIZE_3            , LR_type == LR_0 ? NSINOS[g_span] : LR_NSINOS[g_span]);
+    hdr.WriteChar(CHeader::DATA_FORMAT             , "sinogram");
+    hdr.WriteChar(CHeader::NUMBER_FORMAT           , "signed integer");
+    hdr.WriteInt(CHeader::NUMBER_OF_BYTES_PER_PIXEL, (int)g_elem_size);
+    hdr.WriteChar(CHeader::LMHISTOGRAM_VERSION   , sw_version);
     hdr.WriteChar(LMHISTOGRAM_BUILD_ID         , g_sw_build_id);
-    hdr.WriteChar(HDR_HISTOGRAMMER_REVISION    , "2.0");
+    hdr.WriteChar(CHeader::HISTOGRAMMER_REVISION    , "2.0");
 
     int span_bak = g_span;
     int rd_bak = g_max_rd;
     init_rebinner(g_span, g_max_rd, g_lut_file);
-    hdr.WriteInt(HDR_LM_REBINNER_METHOD, (int)rebinner_method);
-    hdr.WriteInt(HDR_AXIAL_COMPRESSION, g_span);
-    hdr.WriteInt(HDR_MAXIMUM_RING_DIFFERENCE, g_max_rd);
+    hdr.WriteInt(CHeader::LM_REBINNER_METHOD, (int)rebinner_method);
+    hdr.WriteInt(CHeader::AXIAL_COMPRESSION, g_span);
+    hdr.WriteInt(CHeader::MAXIMUM_RING_DIFFERENCE, g_max_rd);
     g_span = span_bak; 
     g_max_rd = rd_bak;
-    hdr.WriteFloat(HDR_SCALING_FACTOR_1, 10.0f * m_binsize); // cm to mm
-    hdr.WriteInt(HDR_SCALING_FACTOR_2, 1); // angle
-    hdr.WriteFloat(HDR_SCALING_FACTOR_3, 10.0f * m_plane_sep); // cm to mm
+    hdr.WriteFloat(CHeader::SCALING_FACTOR_1, 10.0f * m_binsize); // cm to mm
+    hdr.WriteInt(CHeader::SCALING_FACTOR_2, 1); // angle
+    hdr.WriteFloat(CHeader::SCALING_FACTOR_3, 10.0f * m_plane_sep); // cm to mm
 
     g_logger->info("using rebinner LUT {}", rebinner_lut_file);
     g_logger->info("Span: {}", g_span);
@@ -1069,7 +1069,7 @@ int main(int argc, char *argv[]) {
   // Decode frame duration even when creating l32 file to output CH files
   if (g_frames_duration.empty() {
     string framedef_str;
-    hdr.Readchar(HDR_FRAME_DEFINITION, framedef_str);
+    hdr.Readchar(CHeader::FRAME_DEFINITION, framedef_str);
     parse_duration_string(framedef_str);
   }
 

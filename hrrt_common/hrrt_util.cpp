@@ -39,18 +39,22 @@ using std::string;
  *
  * @return     false on success, else true
  */
-bool parse_interfile_datetime(const string &datestr, const string &format, boost::posix_time::ptime &pt) {
-  bt::time_input_facet * facet = new bt::time_input_facet(format);
+bool parse_interfile_datetime(const string &t_datestr, const string &t_format, boost::posix_time::ptime &t_pt) {
+  bt::time_input_facet * facet = new bt::time_input_facet(t_format);
   const std::locale loc(std::locale::classic(), facet);
+  auto logger = spdlog::get("CHeader");
 
-  std::istringstream iss(datestr);
+  LOG_DEBUG(logger, "t_datestr {} t_format {}", t_datestr, t_format);
+  std::istringstream iss(t_datestr);
   iss.imbue(loc);
   // iss.exceptions(std::ios_base::failbit);
 
-  iss >> pt;
-  // cout << iss.fail() << endl;
-  // cout << pt << endl;
-  return pt.is_not_a_date_time();
+  iss >> t_pt;
+  bool ret = t_pt.is_not_a_date_time();
+  std::string timestr("FILLMEIN");
+  // LOG_DEBUG(logger, "t_datestr {} posix_time {} returning {}", t_datestr, bt::to_simple_string(t_pt), ret ? "true" : "false");
+  LOG_DEBUG(logger, "t_datestr {} posix_time {} returning {}", t_datestr, timestr, ret ? "true" : "false");
+  return ret;
 }
 
 bool parse_interfile_date(const string &datestr, boost::posix_time::ptime &pt) {
@@ -72,6 +76,7 @@ bool parse_interfile_time(const string &timestr, boost::posix_time::ptime &pt) {
  * @return     false on success, else true
  */
 bool parse_interfile_line(const string &line, string &key, string &value) {
+  auto logger = spdlog::get("CHeader");
   bool ret = true;
   bx::smatch match;
   // using namespace boost::xpressive;
@@ -80,7 +85,9 @@ bool parse_interfile_line(const string &line, string &key, string &value) {
     key   = match["key"];
     value = match["value"];
     ret = false;
+    LOG_DEBUG(logger, "key {} value {} ret {}", key, value, "false");
   }
+  LOG_ERROR(logger, "Could not parse line: '{}'", line);
   return ret;
 }
 

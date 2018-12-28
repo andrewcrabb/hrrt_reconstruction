@@ -48,67 +48,68 @@ constexpr auto to_underlying(E e) noexcept {
 using ::to_underlying;
 
 // Define const strings only once.  Declared as externs in .hpp 
-// 'extern' approach: http://bit.ly/2Sn8eSS gives 'error: storage class specified for ‘HDR_AXIAL_COMPRESSION’'
+// 'extern' approach: http://bit.ly/2Sn8eSS gives 'error: storage class specified for ‘AXIAL_COMPRESSION’'
 // Omitting the 'extern' in the hpp removes the error.  
-//   .hpp:   extern string const HDR_AXIAL_COMPRESSION           ;
-//   .cpp:   string const CHeader::HDR_AXIAL_COMPRESSION  = "axial compression";
+//   .hpp:   extern string const CHeader::AXIAL_COMPRESSION           ;
+//   .cpp:   string const CHeader::AXIAL_COMPRESSION  = "axial compression";
 // 'static' approach: http://bit.ly/2Va3Kkm
 
-string const CHeader::HDR_AXIAL_COMPRESSION  = "axial compression";
-string const CHeader::HDR_AVERAGE_SINGLES_PER_BLOCK   = "average singles per block";
-string const CHeader::HDR_BRANCHING_FACTOR            = "branching factor";
-string const CHeader::HDR_DATA_FORMAT                 = "data format";
-string const CHeader::HDR_DEAD_TIME_CORRECTION_FACTOR = "Dead time correction factor";
-string const CHeader::HDR_DECAY_CORRECTION_FACTOR     = "decay correction factor";
-string const CHeader::HDR_DECAY_CORRECTION_FACTOR_2   = "decay correction factor2";
-string const CHeader::HDR_DOSAGE_STRENGTH             = "Dosage Strength";
-string const CHeader::HDR_DOSE_ASSAY_DATE             = "dose_assay_date (dd:mm:yryr)";
-string const CHeader::HDR_DOSE_ASSAY_TIME             = "dose_assay_time (hh:mm:ss)";
-string const CHeader::HDR_DOSE_TYPE                   = "Dose type";
-string const CHeader::HDR_ENERGY_WINDOW_LOWER_LEVEL   = "energy window lower level[1]";
-string const CHeader::HDR_ENERGY_WINDOW_UPPER_LEVEL   = "energy window upper level[1]";
-string const CHeader::HDR_FRAME                       = "frame";
-string const CHeader::HDR_FRAME_DEFINITION            = "Frame definition";
-string const CHeader::HDR_HISTOGRAMMER_REVISION       = "!histogrammer revision";
-string const CHeader::HDR_IMAGE_DURATION              = "image duration";
-string const CHeader::HDR_IMAGE_RELATIVE_START_TIME   = "image relative start time";
-string const CHeader::HDR_INTERFILE                   = "!INTERFILE";
-string const CHeader::HDR_ISOTOPE_HALFLIFE            = "isotope halflife";
-string const CHeader::HDR_LM_REBINNER_METHOD          = "!LM rebinner method";
-string const CHeader::HDR_LMHISTOGRAM_BUILD_ID        = "!lmhistogram build ID";
-string const CHeader::HDR_LMHISTOGRAM_VERSION         = "!lmhistogram version";
-string const CHeader::HDR_MATRIX_SIZE_1               = "matrix size [1]";
-string const CHeader::HDR_MATRIX_SIZE_2               = "matrix size [2]";
-string const CHeader::HDR_MATRIX_SIZE_3               = "matrix size [3]";
-string const CHeader::HDR_MAXIMUM_RING_DIFFERENCE     = "maximum ring difference";
-string const CHeader::HDR_NAME_OF_DATA_FILE           = "!name of data file";
-string const CHeader::HDR_NAME_OF_TRUE_DATA_FILE      = "!name of true data file";
-string const CHeader::HDR_NUMBER_FORMAT               = "number format";
-string const CHeader::HDR_NUMBER_OF_BYTES_PER_PIXEL   = "number of bytes per pixel";
-string const CHeader::HDR_NUMBER_OF_DIMENSIONS        = "number of dimensions";
-string const CHeader::HDR_ORIGINATING_SYSTEM          = "!originating system";
-string const CHeader::HDR_PATIENT_DOB                 = "Patient DOB";
-string const CHeader::HDR_PATIENT_ID                  = "Patient ID";
-string const CHeader::HDR_PATIENT_NAME                = "Patient name";
-string const CHeader::HDR_PATIENT_SEX                 = "Patient sex";
-string const CHeader::HDR_PET_DATA_TYPE               = "!PET data type";
-string const CHeader::HDR_PROGRAM_BUILD_ID            = ";program build ID";
-string const CHeader::HDR_SCALING_FACTOR_1            = "scaling factor (mm/pixel) [1]";
-string const CHeader::HDR_SCALING_FACTOR_2            = "scaling factor [2]";
-string const CHeader::HDR_SCALING_FACTOR_3            = "scaling factor (mm/pixel) [3]";
-string const CHeader::HDR_SINOGRAM_DATA_TYPE          = "Sinogram data type";
-string const CHeader::HDR_SOFTWARE_VERSION            = ";software version";
-string const CHeader::HDR_STUDY_DATE                  = "!study date (dd:mm:yryr)";
-string const CHeader::HDR_STUDY_TIME                  = "!study time (hh:mm:ss)";
-string const CHeader::HDR_TOTAL_NET_TRUES             = "Total Net Trues";
-string const CHeader::HDR_TOTAL_PROMPTS               = "Total Prompts";
-string const CHeader::HDR_TOTAL_RANDOMS               = "Total Randoms";
+string const CHeader::AXIAL_COMPRESSION  = "axial compression";
+string const CHeader::AVERAGE_SINGLES_PER_BLOCK   = "average singles per block";
+string const CHeader::BRANCHING_FACTOR            = "branching factor";
+string const CHeader::DATA_FORMAT                 = "data format";
+string const CHeader::DEAD_TIME_CORRECTION_FACTOR = "Dead time correction factor";
+string const CHeader::DECAY_CORRECTION_FACTOR     = "decay correction factor";
+string const CHeader::DECAY_CORRECTION_FACTOR_2   = "decay correction factor2";
+string const CHeader::DOSAGE_STRENGTH             = "Dosage Strength";
+string const CHeader::DOSE_ASSAY_DATE             = "dose_assay_date (dd:mm:yryr)";
+string const CHeader::DOSE_ASSAY_TIME             = "dose_assay_time (hh:mm:ss)";
+string const CHeader::DOSE_TYPE                   = "Dose type";
+string const CHeader::ENERGY_WINDOW_LOWER_LEVEL   = "energy window lower level[1]";
+string const CHeader::ENERGY_WINDOW_UPPER_LEVEL   = "energy window upper level[1]";
+string const CHeader::FRAME                       = "frame";
+string const CHeader::FRAME_DEFINITION            = "Frame definition";
+string const CHeader::HISTOGRAMMER_REVISION       = "!histogrammer revision";
+string const CHeader::IMAGE_DURATION              = "image duration";
+string const CHeader::IMAGE_RELATIVE_START_TIME   = "image relative start time";
+string const CHeader::INTERFILE                   = "!INTERFILE";
+string const CHeader::ISOTOPE_HALFLIFE            = "isotope halflife";
+string const CHeader::LM_REBINNER_METHOD          = "!LM rebinner method";
+string const CHeader::LMHISTOGRAM_BUILD_ID        = "!lmhistogram build ID";
+string const CHeader::LMHISTOGRAM_VERSION         = "!lmhistogram version";
+string const CHeader::MATRIX_SIZE_1               = "matrix size [1]";
+string const CHeader::MATRIX_SIZE_2               = "matrix size [2]";
+string const CHeader::MATRIX_SIZE_3               = "matrix size [3]";
+string const CHeader::MAXIMUM_RING_DIFFERENCE     = "maximum ring difference";
+string const CHeader::NAME_OF_DATA_FILE           = "!name of data file";
+string const CHeader::NAME_OF_TRUE_DATA_FILE      = "!name of true data file";
+string const CHeader::NUMBER_FORMAT               = "number format";
+string const CHeader::NUMBER_OF_BYTES_PER_PIXEL   = "number of bytes per pixel";
+string const CHeader::NUMBER_OF_DIMENSIONS        = "number of dimensions";
+string const CHeader::ORIGINATING_SYSTEM          = "!originating system";
+string const CHeader::PATIENT_DOB                 = "Patient DOB";
+string const CHeader::PATIENT_ID                  = "Patient ID";
+string const CHeader::PATIENT_NAME                = "Patient name";
+string const CHeader::PATIENT_SEX                 = "Patient sex";
+string const CHeader::PET_DATA_TYPE               = "!PET data type";
+string const CHeader::PROGRAM_BUILD_ID            = ";program build ID";
+string const CHeader::SCALING_FACTOR_1            = "scaling factor (mm/pixel) [1]";
+string const CHeader::SCALING_FACTOR_2            = "scaling factor [2]";
+string const CHeader::SCALING_FACTOR_3            = "scaling factor (mm/pixel) [3]";
+string const CHeader::SINOGRAM_DATA_TYPE          = "Sinogram data type";
+string const CHeader::SOFTWARE_VERSION            = ";software version";
+string const CHeader::STUDY_DATE                  = "!study date (dd:mm:yryr)";
+string const CHeader::STUDY_TIME                  = "!study time (hh:mm:ss)";
+string const CHeader::TOTAL_NET_TRUES             = "Total Net Trues";
+string const CHeader::TOTAL_PROMPTS               = "Total Prompts";
+string const CHeader::TOTAL_RANDOMS               = "Total Randoms";
 
 // Test data
-Tag const CHeader::VALID_CHAR(HDR_ORIGINATING_SYSTEM, "HRRT");
-Tag const CHeader::VALID_DOUBLE(HDR_ISOTOPE_HALFLIFE, "100.0");
-Tag const CHeader::VALID_FLOAT(HDR_ISOTOPE_HALFLIFE , "100.0");
-Tag const CHeader::VALID_INT(HDR_IMAGE_DURATION     , "5400");
+Tag const CHeader::VALID_CHAR(CHeader::ORIGINATING_SYSTEM, "HRRT");
+Tag const CHeader::VALID_DOUBLE(CHeader::BRANCHING_FACTOR, "0.0");
+Tag const CHeader::VALID_FLOAT(CHeader::ISOTOPE_HALFLIFE , "100.0");
+Tag const CHeader::VALID_INT(CHeader::IMAGE_DURATION     , "5400");
+Tag const CHeader::VALID_TIME(CHeader::STUDY_TIME        , "12:03:00");
 
 string Tag::sayit(void) const {
   string str = fmt::format("{} = {}", key, value);
@@ -137,10 +138,10 @@ CHeader::~CHeader() {
 CHeaderError CHeader::OpenFile(string const &filename) {
   LOG_DEBUG(logger_, filename);
   if (hdr_file_.is_open())
-    return (CHeaderError::E_FILE_ALREADY_OPEN);
+    return (CHeaderError::FILE_ALREADY_OPEN);
   hdr_file_.open(filename, std::ifstream::in);
   if (!hdr_file_.is_open())
-    return (CHeaderError::E_COULD_NOT_OPEN_FILE);
+    return (CHeaderError::COULD_NOT_OPEN_FILE);
   m_FileName_.assign(filename);
   return ReadFile();
 }
@@ -153,7 +154,7 @@ CHeaderError CHeader::OpenFile(bf::path &filename) {
 /**
  * @brief      Add to tags_ a new Tag from pattern "key := value" in buffer
  * @param[in]  t_buffer  Line from input file
- * @return     CHeaderError::E_OK, or one of the CHeaderError::E_foo error values
+ * @return     CHeaderError::OK, or one of the CHeaderError::foo error values
  */
 
 CHeaderError CHeader::InsertTag(string t_buffer) {
@@ -169,7 +170,7 @@ CHeaderError CHeader::InsertTag(string t_buffer) {
   } else {
     LOG_DEBUG(logger_, "No match: '{}'", t_buffer);
   }
-  return CHeaderError::E_OK;
+  return CHeaderError::OK;
 }
 
 CHeaderError CHeader::ReadFile() {
@@ -177,7 +178,7 @@ CHeaderError CHeader::ReadFile() {
   while (safeGetline(hdr_file_, buffer)) {
     InsertTag(buffer);
   }
-  return CHeaderError::E_OK;
+  return CHeaderError::OK;
 }
 
 CHeaderError CHeader::WriteFile(bf::path const &fname) {
@@ -193,12 +194,12 @@ CHeaderError CHeader::WriteFile(string &fname) {
 
   if (tags_.size() == 0) {
     LOG_ERROR(logger_, "tags.size = 0: {}", fname);
-    return CHeaderError::E_COULD_NOT_OPEN_FILE;
+    return CHeaderError::COULD_NOT_OPEN_FILE;
   }
   fp.open(outname, std::ofstream::out);
   if (!fp.is_open()) {
     LOG_ERROR(logger_, "Could not open file: {}", fname);
-    return CHeaderError::E_COULD_NOT_OPEN_FILE;
+    return CHeaderError::COULD_NOT_OPEN_FILE;
   }
 
   fp << "!INTERFILE\n";
@@ -207,12 +208,12 @@ CHeaderError CHeader::WriteFile(string &fname) {
   }
   if (fp.fail()) {
     LOG_ERROR(logger_, "fp.fail(): {}", fname);
-    return CHeaderError::E_COULD_NOT_OPEN_FILE;
+    return CHeaderError::COULD_NOT_OPEN_FILE;
   }
   fp.close();
-  LOG_DEBUG(logger_, "returning {}", to_underlying(CHeaderError::E_OK));
+  LOG_DEBUG(logger_, "returning {}", to_underlying(CHeaderError::OK));
 
-  return CHeaderError::E_OK;
+  return CHeaderError::OK;
 }
 
 int CHeader::NumTags(void) {
@@ -226,18 +227,18 @@ int CHeader::IsFileOpen() {
 CHeaderError CHeader::GetFileName(string &filename) {
   if (IsFileOpen()) {
     filename = m_FileName_;
-    return CHeaderError::E_OK;
+    return CHeaderError::OK;
   }
-  return CHeaderError::E_COULD_NOT_OPEN_FILE;
+  return CHeaderError::COULD_NOT_OPEN_FILE;
 }
 
 CHeaderError CHeader::CloseFile() {
   if (IsFileOpen()) {
     hdr_file_.close();
     m_FileName_.erase();
-    return CHeaderError::E_OK;
+    return CHeaderError::OK;
   }
-  return CHeaderError::E_COULD_NOT_OPEN_FILE;
+  return CHeaderError::COULD_NOT_OPEN_FILE;
 }
 
 // Locate tag having given key
@@ -289,11 +290,11 @@ CHeaderError CHeader::WritePath(string const &key, bf::path const &val) {
 // Else append new tag with given key and value.
 
 CHeaderError CHeader::WriteChar(string const &key, string const &val) {
-  CHeaderError ret = CHeaderError::E_OK;
+  CHeaderError ret = CHeaderError::OK;
   tag_iterator it = FindTag(key);
   if (it == std::end(tags_)) {
     tags_.push_back({key, val});
-    ret = CHeaderError::E_TAG_APPENDED;  // Not an error but consistent with other methods.
+    ret = CHeaderError::TAG_APPENDED;  // Not an error but consistent with other methods.
   } else {
     it->value.assign(val);
   }
@@ -303,10 +304,11 @@ CHeaderError CHeader::WriteChar(string const &key, string const &val) {
 // Fill in val if tag is found.
 
 CHeaderError CHeader::Readchar(string const &key, string &val) {
-  CHeaderError ret = CHeaderError::E_OK;
+  CHeaderError ret = CHeaderError::OK;
   tag_iterator it = FindTag(key);
   if (it == std::end(tags_)) {
-    ret = CHeaderError::E_TAG_NOT_FOUND;
+    LOG_ERROR(logger_, "Tag not found: {}", key);
+    ret = CHeaderError::TAG_NOT_FOUND;
   } else {
     val = it->value;
   }
@@ -322,13 +324,13 @@ CHeaderError CHeader::Readchar(string const &key, string &val) {
  * @return     0 on success, else 1
  */
 template <typename T>CHeaderError CHeader::convertString(string &str, T &val) {
-  CHeaderError ret = CHeaderError::E_OK;
+  CHeaderError ret = CHeaderError::OK;
   try {
     val = boost::lexical_cast<T>(str);
   }
   catch (boost::bad_lexical_cast const &e) {
     LOG_ERROR(logger_, "Lexical cast: {}",  e.what());
-    ret = CHeaderError::E_BAD_LEXICAL_CAST;
+    ret = CHeaderError::BAD_LEXICAL_CAST;
   }
   return ret;
 }
@@ -339,13 +341,12 @@ template <typename T>CHeaderError CHeader::convertString(string &str, T &val) {
  * @param      time  Time stored in the tag
  * @return     0 on success, else 1
  */
-CHeaderError CHeader::ReadTime(std::string const &tag, boost::posix_time::ptime &time) {
-  string line, key, value;
-  CHeaderError ret = CHeaderError::E_OK;
-  if (Readchar(tag, line) == CHeaderError::E_OK) {
-    if (!parse_interfile_line(line, key, value)) {
-      ret = parse_interfile_time(value, time) ? CHeaderError::E_NOT_A_TIME : CHeaderError::E_OK;
-    }
+CHeaderError CHeader::ReadTime(std::string const &t_tag, boost::posix_time::ptime &t_time) {
+  string value;
+  CHeaderError ret = CHeaderError::OK;
+  if ((ret = Readchar(t_tag, value)) == CHeaderError::OK) {
+    LOG_DEBUG(logger_, "t_tag {} value {}", t_tag, value);
+    ret = parse_interfile_time(value, t_time) ? CHeaderError::NOT_A_TIME : CHeaderError::OK;
   }
   return ret;
 }
@@ -354,7 +355,7 @@ CHeaderError CHeader::ReadTime(std::string const &tag, boost::posix_time::ptime 
 
 template <typename T>int CHeader::ReadHeaderNum(string &filename, string &tag, T &val) {
 int result;
-if (OpenFile(filename) == CHeaderError::E_OK) {
+if (OpenFile(filename) == CHeaderError::OK) {
   result = ReadNum<T>(tag, val);
   CloseFile();
 }
@@ -368,17 +369,17 @@ return result;
 template <typename T>CHeaderError CHeader::ReadNum(string const &tag, T &val) {
   string str;
   CHeaderError result = Readchar(tag, str);
-  if (result == CHeaderError::E_OK) {
+  if (result == CHeaderError::OK) {
     result = convertString<T>(str, val);
-    if (result != CHeaderError::E_OK) {
+    if (result != CHeaderError::OK) {
       if (std::is_same<T, int>::value) {
-        result = CHeaderError::E_NOT_AN_INT;
+        result = CHeaderError::NOT_AN_INT;
       } else if (std::is_same<T, long>::value) {
-        result = CHeaderError::E_NOT_A_LONG;
+        result = CHeaderError::NOT_A_LONG;
       } else if (std::is_same<T, float>::value) {
-        result = CHeaderError::E_NOT_A_FLOAT;
+        result = CHeaderError::NOT_A_FLOAT;
       } else if (std::is_same<T, double>::value) {
-        result = CHeaderError::E_NOT_A_DOUBLE;
+        result = CHeaderError::NOT_A_DOUBLE;
       }
     }
   }

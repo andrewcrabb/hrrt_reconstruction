@@ -36,9 +36,9 @@ int test_time (const string &str) {
 // 	using namespace boost::xpressive;
 // 	string str;
 
-// 	if (hdr.Readchar(HDR_DOSE_ASSAY_DATE, str)) {
+// 	if (hdr.Readchar(CHeader::DOSE_ASSAY_DATE, str)) {
 // 		smatch match;
-// 		sregex reg = sregex::compile(HDR_DOSE_ASSAY_DATE + "\\s+:=\\s+(?P<value>.+)$");
+// 		sregex reg = sregex::compile(CHeader::DOSE_ASSAY_DATE + "\\s+:=\\s+(?P<value>.+)$");
 // 		if (regex_match(str, match, reg)) {
 // 			bt::ptime t;
 // 			parse_interfile_time(match["key"], t);

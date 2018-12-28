@@ -1587,24 +1587,24 @@ int main(int argc, char **argv)
     free(cosphi);
 
     // Update original listmode header and write normalization header
-    cheader.WriteChar(HDR_NAME_OF_DATA_FILE        , norm_file);
-    cheader.WriteChar(HDR_DATA_FORMAT              , "normalization");
-    cheader.WriteChar(HDR_SOFTWARE_VERSION         , sw_version);
-    cheader.WriteChar(HDR_PROGRAM_BUILD_ID         , build_id);
-    cheader.WriteInt(HDR_AXIAL_COMPRESSION™       , span);
-    cheader.WriteInt(HDR_MAXIMUM_RING_DIFFERENCE  , maxrd_);
-    cheader.WriteChar(HDR_DATA_FORMAT              , "normalization");
+    cheader.WriteChar(CHeader::NAME_OF_DATA_FILE        , norm_file);
+    cheader.WriteChar(CHeader::DATA_FORMAT              , "normalization");
+    cheader.WriteChar(CHeader::SOFTWARE_VERSION         , sw_version);
+    cheader.WriteChar(CHeader::PROGRAM_BUILD_ID         , build_id);
+    cheader.WriteInt(CHeader::AXIAL_COMPRESSION™       , span);
+    cheader.WriteInt(CHeader::MAXIMUM_RING_DIFFERENCE  , maxrd_);
+    cheader.WriteChar(CHeader::DATA_FORMAT              , "normalization");
     if (duration > 0)
-      cheader.WriteInt(HDR_IMAGE_DURATION, duration);
-    cheader.WriteChar(HDR_NUMBER_FORMAT            , "float");
-    cheader.WriteInt(HDR_NUMBER_OF_DIMENSIONS     , 3);
-    cheader.WriteInt(HDR_NUMBER_OF_BYTES_PER_PIXEL, 4);
-    cheader.WriteInt(HDR_MATRIX_SIZE_1            , nprojs);
-    cheader.WriteInt(HDR_MATRIX_SIZE_2            , nviews);
-    cheader.WriteInt(HDR_MATRIX_SIZE_3            , num_sinos);
-    cheader.WriteFloat(HDR_SCALING_FACTOR_1         , 1.218750f);
-    cheader.WriteInt(HDR_SCALING_FACTOR_2         , 1);
-    cheader.WriteFloat(HDR_SCALING_FACTOR_3         , 1.218750f);
+      cheader.WriteInt(CHeader::IMAGE_DURATION, duration);
+    cheader.WriteChar(CHeader::NUMBER_FORMAT            , "float");
+    cheader.WriteInt(CHeader::NUMBER_OF_DIMENSIONS     , 3);
+    cheader.WriteInt(CHeader::NUMBER_OF_BYTES_PER_PIXEL, 4);
+    cheader.WriteInt(CHeader::MATRIX_SIZE_1            , nprojs);
+    cheader.WriteInt(CHeader::MATRIX_SIZE_2            , nviews);
+    cheader.WriteInt(CHeader::MATRIX_SIZE_3            , num_sinos);
+    cheader.WriteFloat(CHeader::SCALING_FACTOR_1         , 1.218750f);
+    cheader.WriteInt(CHeader::SCALING_FACTOR_2         , 1);
+    cheader.WriteFloat(CHeader::SCALING_FACTOR_3         , 1.218750f);
     sprintf(fname, "%s.cheader", norm_file);
     fprintf(log_fp, "Write header %s\n", fname);
     cheader.WriteFile(fname);
