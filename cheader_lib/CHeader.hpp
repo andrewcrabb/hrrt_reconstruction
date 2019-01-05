@@ -26,19 +26,21 @@
 using std::string;
 
 enum class CHeaderError {
-  OK                  =  0,
-  FILE_NOT_READ	    = -1,
-  TAG_NOT_FOUND       = -2,
-  FILE_ALREADY_OPEN   = -3,
-  COULD_NOT_OPEN_FILE = -4,
-  FILE_NOT_WRITE	    = -5,
-  NOT_AN_INT		    = -6,
-  NOT_A_LONG		    = -7,
-  NOT_A_FLOAT		    = -8,
-  NOT_A_DOUBLE		= -9,
-  NOT_A_TIME          = -10,
-  BAD_LEXICAL_CAST    = -11,
-  TAG_APPENDED        = -12 // Not an error
+	OK                  =  0,
+	FILE_NOT_READ       = -1,
+	TAG_NOT_FOUND       = -2,
+	FILE_ALREADY_OPEN   = -3,
+	COULD_NOT_OPEN_FILE = -4,
+	FILE_NOT_WRITE      = -5,
+	NOT_AN_INT          = -6,
+	NOT_A_LONG          = -7,
+	NOT_A_FLOAT         = -8,
+	NOT_A_DOUBLE        = -9,
+	NOT_A_DATE          = -10,
+	NOT_A_TIME          = -11,
+	BAD_LEXICAL_CAST    = -12,
+	ERROR               = -13,
+	TAG_APPENDED        = -14 // Not an error
 };
 
 static std::map<CHeaderError, string> CHdrErrorString = {
@@ -52,8 +54,10 @@ static std::map<CHeaderError, string> CHdrErrorString = {
 	{CHeaderError::NOT_A_LONG         , "Not a long"},
 	{CHeaderError::NOT_A_FLOAT        , "Not a float"},
 	{CHeaderError::NOT_A_DOUBLE       , "Not a double"},
+	{CHeaderError::NOT_A_TIME         , "Not a date"},
 	{CHeaderError::NOT_A_TIME         , "Not a time"},
 	{CHeaderError::BAD_LEXICAL_CAST   , "Bad lexical cast"},
+	{CHeaderError::ERROR              , "Error (other)"},
 	{CHeaderError::TAG_APPENDED       , "Tag was appended (not an error)"}
 };
 
@@ -68,20 +72,28 @@ typedef std::vector<Tag>::iterator tag_iterator;
 
 class CHeader {
 public:
-	CHeaderError Readdouble(string const & key, double & val);      // Get a double value from memory table
-	CHeaderError Readfloat (string const & key, float  & val);	     // Get a float  value from memory table
-	CHeaderError Readlong  (string const & key, long   & val);		 // Get a long   value from memory table
-	CHeaderError Readint   (string const & key, int    &val);		  // Get a int    value from memory table
-	CHeaderError Readchar  (string const & key, string & val);      // Get a string value from memory table
-	CHeaderError ReadTime  (string const & key, boost::posix_time::ptime & time);
-	// CHeaderError WriteString (string const &key, string const &val);  // Put a string value in memory table
-	// CHeaderError WriteChar   (string const &key, char const *val);  // Put a string value in memory table
-	CHeaderError WriteChar   (string const & key, string const & val); // Put a string value in memory table
-	CHeaderError WritePath   (string const & key, boost::filesystem::path const & val); // Put a string value in memory table
-	CHeaderError WriteDouble (string const & key, double val);	      // Put a double value in memory table
-	CHeaderError WriteFloat (string const & key, float val);	      // Put a float value in memory table
-	CHeaderError WriteInt    (string const & key, int val);		      // Put a int    value in memory table
-	CHeaderError WriteLong   (string const & key, int64_t);		      // Put a int64  value in memory table
+	CHeaderError Readdouble(string const &key, double &val);      // Get a double value from memory table
+	CHeaderError Readfloat (string const &key, float  &val);	     // Get a float  value from memory table
+	CHeaderError Readlong  (string const &key, long   &val);		 // Get a long   value from memory table
+	CHeaderError Readint   (string const &key, int    &val);		  // Get a int    value from memory table
+	CHeaderError Readchar  (string const &key, string &val);      // Get a string value from memory table
+
+	// In the process of being implemented.
+	CHeaderError ReadTime     (string const &key, boost::posix_time::ptime &time);
+	CHeaderError ReadDate     (string const &key, boost::posix_time::ptime &date);
+	// CHeaderError WriteTime  (string const &key, boost::posix_time::ptime const &time);
+	// CHeaderError WriteDate  (string const &key, boost::posix_time::ptime const &date);
+
+
+	CHeaderError WriteChar   (string const &key, string const & val); // Put a string value in memory table
+	CHeaderError WritePath   (string const &key, boost::filesystem::path const & val); // Put a string value in memory table
+	CHeaderError WriteDouble (string const &key, double val);	      // Put a double value in memory table
+	CHeaderError WriteFloat  (string const &key, float val);	      // Put a float value in memory table
+	CHeaderError WriteInt    (string const &key, int val);		      // Put a int    value in memory table
+	CHeaderError WriteLong   (string const &key, int64_t);		      // Put a int64  value in memory table
+	// template <typename T>CHeaderError WriteDate (string const &t_tag, boost::posix_time::ptime const &t_pt);
+	template <typename T>CHeaderError WriteDate (string const &t_tag, T const &t_datetime);
+	template <typename T>CHeaderError WriteTime (string const &t_tag, T const &t_datetime);
 	CHeaderError CloseFile();
 	CHeaderError GetFileName(string & filename);
 	CHeaderError OpenFile(string const & filename);			// Loads specified filename in memory table
@@ -149,7 +161,13 @@ public:
 	static Tag const VALID_DOUBLE;
 	static Tag const VALID_FLOAT;
 	static Tag const VALID_INT;
+	static Tag const VALID_DATE;
 	static Tag const VALID_TIME;
+
+	// Class methods
+	static bool parse_interfile_datetime(const std::string &datestr, const std::string &format, boost::posix_time::ptime &pt);
+	static bool parse_interfile_time(const std::string &timestr, boost::posix_time::ptime &pt);
+	static bool parse_interfile_date(const std::string &datestr, boost::posix_time::ptime &pt);
 
 protected:
 	CHeaderError ReadFile();
@@ -157,6 +175,10 @@ protected:
 	tag_iterator FindTag(string const &key) ;
 	template <typename T>CHeaderError convertString(string &s, T &val);
 	template <typename T>CHeaderError ReadNum(string const &tag, T &val);
+
+	// Moved here from hrrt_util.hpp
+	CHeaderError ReadDateTime (string const &t_tag, string const &t_format, boost::posix_time::ptime       &t_pt);
+	CHeaderError WriteDateTime(string const &t_tag, string const &t_format, boost::posix_time::ptime const &t_pt);
 
 	// bool SortData(char*HdrLine, char *tag, char* Data);
 	string m_FileName_;

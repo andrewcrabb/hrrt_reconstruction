@@ -82,30 +82,40 @@ void init_logging(void) {
 
 int test_read_tags(CHeader *chdr) {
     auto logger = spdlog::get("CHeader");
-    std::string s;
-    int i;
-    float f;
-    double d;
-    boost::posix_time::ptime t;
-    boost::posix_time::ptime valid_time;
 
+    std::string s;
     LOG_TRACE(logger, "Should find char tag {}", CHeader::VALID_CHAR.sayit());
     REQUIRE(chdr->Readchar(CHeader::VALID_CHAR.key, s) == CHeaderError::OK);
     REQUIRE(s.compare(CHeader::VALID_CHAR.value) == 0);
+
+    int i;
     LOG_TRACE(logger, "Should find int tag {}", CHeader::VALID_INT.sayit());
     REQUIRE(chdr->Readint(CHeader::VALID_INT.key, i) == CHeaderError::OK);
     REQUIRE(i == std::stoi(CHeader::VALID_INT.value));
+
+    float f;
     LOG_TRACE(logger, "Should find float tag {}", CHeader::VALID_FLOAT.sayit());
     REQUIRE(chdr->Readfloat(CHeader::VALID_FLOAT.key, f) == CHeaderError::OK);
     REQUIRE(f == Approx(std::stof(CHeader::VALID_FLOAT.value)));
+
+    double d;
     LOG_TRACE(logger, "Should find double tag {}", CHeader::VALID_DOUBLE.sayit());
     REQUIRE(chdr->Readdouble(CHeader::VALID_DOUBLE.key, d) == CHeaderError::OK);
     REQUIRE(d == Approx(std::stod(CHeader::VALID_DOUBLE.value)));
 
+    boost::posix_time::ptime the_time;
+    boost::posix_time::ptime valid_time;
     LOG_TRACE(logger, "Should find time tag {}", CHeader::VALID_TIME.sayit());
-    REQUIRE(chdr->ReadTime(CHeader::VALID_TIME.key, t) == CHeaderError::OK);
-    REQUIRE_FALSE(parse_interfile_time(CHeader::VALID_TIME.value, valid_time));
-    REQUIRE(t == valid_time);
+    REQUIRE(chdr->ReadTime(CHeader::VALID_TIME.key, the_time) == CHeaderError::OK);
+    REQUIRE_FALSE(CHeader::parse_interfile_time(CHeader::VALID_TIME.value, valid_time));
+    REQUIRE(the_time == valid_time);
+
+    boost::posix_time::ptime the_date;
+    boost::posix_time::ptime valid_date;
+    LOG_TRACE(logger, "Should find date tag {}", CHeader::VALID_DATE.sayit());
+    REQUIRE(chdr->ReadDate(CHeader::VALID_DATE.key, the_date) == CHeaderError::OK);
+    REQUIRE_FALSE(CHeader::parse_interfile_date(CHeader::VALID_DATE.value, valid_date));
+    REQUIRE(the_date == valid_date);
 
     return 0;
 }
@@ -213,6 +223,8 @@ TEST_CASE("Initialization", "[classic]") {
     REQUIRE(chdr->Readfloat(CHeader::VALID_CHAR.key, f)  == CHeaderError::NOT_A_FLOAT);
     LOG_TRACE(logger, "Test: Should not find a double in a good char tag");
     REQUIRE(chdr->Readdouble(CHeader::VALID_CHAR.key, d) == CHeaderError::NOT_A_DOUBLE);
+    LOG_TRACE(logger, "Test: Should not find a date in a good char tag");
+    REQUIRE(chdr->ReadDate(CHeader::VALID_CHAR.key, t)   == CHeaderError::NOT_A_DATE);
     LOG_TRACE(logger, "Test: Should not find a time in a good char tag");
     REQUIRE(chdr->ReadTime(CHeader::VALID_CHAR.key, t)   == CHeaderError::NOT_A_TIME);
   }
@@ -255,6 +267,8 @@ TEST_CASE("Initialization", "[classic]") {
     REQUIRE(chdr->WriteDouble(CHeader::VALID_DOUBLE.key, std::stod(CHeader::VALID_DOUBLE.value)) == CHeaderError::TAG_APPENDED);
     LOG_TRACE(logger, "Writing time tag {}", CHeader::VALID_TIME.sayit());
     REQUIRE(chdr->WriteTime(CHeader::VALID_TIME.key, std::stod(CHeader::VALID_TIME.value)) == CHeaderError::TAG_APPENDED);
+    LOG_TRACE(logger, "Writing date tag {}", CHeader::VALID_DATE.sayit());
+    REQUIRE(chdr->WriteDate(CHeader::VALID_DATE.key, std::stod(CHeader::VALID_DATE.value)) == CHeaderError::TAG_APPENDED);
  
     LOG_TRACE(logger, "Write to temp_file {}", temp_file.string());
     CHeaderError ret = chdr->WriteFile(temp_file);

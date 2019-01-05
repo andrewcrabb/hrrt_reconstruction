@@ -22,10 +22,14 @@ Modification history:
 #include "CHeader.hpp"
 #include "hrrt_util.hpp"
 
-#include <boost/xpressive/xpressive.hpp>
-#include <boost/lexical_cast.hpp>
+#include <boost/date_time.hpp>
+#include <boost/date_time/date_facet.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/posix_time/posix_time_io.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/xpressive/xpressive.hpp>
 
 #include <fmt/format.h>
 
@@ -35,6 +39,7 @@ using std::endl;
 using std::string;
 
 namespace bf = boost::filesystem;
+namespace bt = boost::posix_time;
 namespace bx = boost::xpressive;
 
 // Cast CHeaderError to its underlying type (int) for LOG_foo macros.  http://bit.ly/2PSzLJY
@@ -104,15 +109,19 @@ string const CHeader::TOTAL_NET_TRUES             = "Total Net Trues";
 string const CHeader::TOTAL_PROMPTS               = "Total Prompts";
 string const CHeader::TOTAL_RANDOMS               = "Total Randoms";
 
-// Test data
+// Test data matching contents of test_EM.l64.hdr
 Tag const CHeader::VALID_CHAR(CHeader::ORIGINATING_SYSTEM, "HRRT");
 Tag const CHeader::VALID_DOUBLE(CHeader::BRANCHING_FACTOR, "0.0");
 Tag const CHeader::VALID_FLOAT(CHeader::ISOTOPE_HALFLIFE , "100.0");
 Tag const CHeader::VALID_INT(CHeader::IMAGE_DURATION     , "5400");
-Tag const CHeader::VALID_TIME(CHeader::STUDY_TIME        , "12:03:00");
+Tag const CHeader::VALID_DATE(CHeader::STUDY_DATE        , "03:12:2009");  // DD:MM:YYYY
+Tag const CHeader::VALID_TIME(CHeader::STUDY_TIME        , "12:03:00");    // HH:MM:SS
+
+string const ECAT_DATE_FORMAT = "%d:%m:%Y";  // !study date (dd:mm:yryr) := 18:09:2017
+string const ECAT_TIME_FORMAT = "%H:%M:%S";  // !study time (hh:mm:ss) := 15:26:00
 
 string Tag::sayit(void) const {
-  string str = fmt::format("{} = {}", key, value);
+  string str = fmt::format("'{}' with value '{}'", key, value);
   return str;
 }
 
@@ -307,7 +316,9 @@ CHeaderError CHeader::Readchar(string const &key, string &val) {
   CHeaderError ret = CHeaderError::OK;
   tag_iterator it = FindTag(key);
   if (it == std::end(tags_)) {
-    LOG_ERROR(logger_, "Tag not found: {}", key);
+    string file_name;
+    GetFileName(file_name);
+    LOG_ERROR(logger_, "Tag not found: '{}' in {}", key, file_name);
     ret = CHeaderError::TAG_NOT_FOUND;
   } else {
     val = it->value;
@@ -336,18 +347,76 @@ template <typename T>CHeaderError CHeader::convertString(string &str, T &val) {
 }
 
 /**
+ * @brief      Read date from element with given tag
+ * @param[in]  tag   Tag to read
+ * @param      time  Date stored in the tag
+ * @return     0 on success, else 1
+ */
+CHeaderError CHeader::ReadDate(std::string const &t_tag, bt::ptime &t_date) {
+  return (ReadDateTime(t_tag, ECAT_DATE_FORMAT, t_date) == CHeaderError::OK) ? CHeaderError::OK : CHeaderError::NOT_A_DATE;
+}
+
+/**
  * @brief      Read time from element with given tag
  * @param[in]  tag   Tag to read
  * @param      time  Time stored in the tag
  * @return     0 on success, else 1
  */
-CHeaderError CHeader::ReadTime(std::string const &t_tag, boost::posix_time::ptime &t_time) {
+CHeaderError CHeader::ReadTime(std::string const &t_tag, bt::ptime &t_time) {
+  return (ReadDateTime(t_tag, ECAT_TIME_FORMAT, t_time) == CHeaderError::OK) ? CHeaderError::OK : CHeaderError::NOT_A_TIME;
+}
+
+CHeaderError CHeader::ReadDateTime(string const &t_tag, string const &t_format, bt::ptime &t_pt) {
   string value;
   CHeaderError ret = CHeaderError::OK;
   if ((ret = Readchar(t_tag, value)) == CHeaderError::OK) {
     LOG_DEBUG(logger_, "t_tag {} value {}", t_tag, value);
-    ret = parse_interfile_time(value, t_time) ? CHeaderError::NOT_A_TIME : CHeaderError::OK;
+    ret = parse_interfile_datetime(value, t_format, t_pt) ? CHeaderError::ERROR : CHeaderError::OK;
   }
+  return ret;
+}
+
+template <typename T>CHeaderError CHeader::WriteDate(string const &t_tag, T const &t_datetime) {
+  return(WriteDateTime(t_tag, ECAT_DATE_FORMAT, t_datetime));
+}
+
+template <typename T>CHeaderError CHeader::WriteTime(string const &t_tag, T const &t_datetime) {
+  return(WriteDateTime(t_tag, ECAT_TIME_FORMAT, t_datetime));
+}
+
+// t_datetime can be a boost::posix_time::ptime or a std::string
+// Am I doing this correctly?  Seems wrong to switch on type of T.
+
+template <typename T>CHeaderError CHeader::WriteDateTime(string const &t_tag, string const &t_format, T const &t_datetime) {
+  bt::ptime datetime;
+  if (std::is_same<T, std::string>::value) {
+    std::string datetime_str = t_datetime;
+    LOG_TRACE(logger_, "Converting string to ptime: {}", datetime_str);
+  bt::time_facet *ofacet = new bt::time_facet();
+  ofacet->format(ECAT_DATE_FORMAT.c_str());
+
+UP TO HERE.  THE IDEA IS TO ALLOW A CALL TO WRITEDATE() OR WRITETIME()
+WITH EITHER A POSIX_TIME OR A STD::STRING.  
+WRITEDATETIME() SHOULD ALWAYS RECEIVE A POSIX_TIME, SO IS NOT TEMPLATED
+WRITEDATE() AND WRITETIME() SHOULD CONVERT STRING TO POSIX_TIME IF NEEDED, AND ARE TEMPLATED
+FINISH THIS METHOD WITH CODE FROM BOOST_DATE1.CPP
+
+    std::istringstream iss(datetime_str);
+    iss.imbue(std::locale(iss.getloc(), ))
+  } else if (std::is_same<T, bt::ptime>::value) {
+    datetime = t_datetime;
+  } else {
+    raise();
+  }
+
+
+  bt::time_facet *dtfacet = new bt::time_facet();
+  dtfacet->format(t_format.c_str());
+  std::ostringstream datetime_osstr;
+  datetime_osstr.imbue(std::locale(datetime_osstr.getloc(), dtfacet));
+  datetime_osstr << datetime;
+  LOG_DEBUG(logger_, "datetime_osstr time: {}", datetime_osstr.str());
+  CHeaderError ret = WriteChar(t_tag, datetime_osstr.str());
   return ret;
 }
 
@@ -365,6 +434,7 @@ return result;
 
 // Read given tag and return its numeric value
 // Return 0 on success, else 1
+// Am I doing this correctly?  Seems wrong to switch on T's type.
 
 template <typename T>CHeaderError CHeader::ReadNum(string const &tag, T &val) {
   string str;
@@ -400,4 +470,41 @@ CHeaderError CHeader::Readfloat(string const &tag, float &val) {
 
 CHeaderError CHeader::Readdouble(string const &tag, double &val) {
   return ReadNum<double>(tag, val);
+}
+
+// These came from hrrt_util.cpp
+// But all CHeader lines are 'HRRT' ECAT-format lines, so they have been moved here to CHeader.
+
+/**
+ * @brief      Parse ECAT-format date into Boost ptime
+ *
+ * @param[in]  str   Date string in format '18:09:2017'
+ * @param[in]  pt    bt::ptime object to set to date
+ *
+ * @return     false on success, else true
+ */
+bool CHeader::parse_interfile_datetime(const string &t_datestr, const string &t_format, bt::ptime &t_pt) {
+  bt::time_input_facet *facet = new bt::time_input_facet(t_format);
+  const std::locale loc(std::locale::classic(), facet);
+  auto logger = spdlog::get("CHeader");
+
+  LOG_DEBUG(logger, "t_datestr {} t_format {}", t_datestr, t_format);
+  std::istringstream iss(t_datestr);
+  iss.imbue(loc);
+  // iss.exceptions(std::ios_base::failbit);
+
+  iss >> t_pt;
+  bool ret = t_pt.is_not_a_date_time();
+  std::string timestr("FILLMEIN");
+  // LOG_DEBUG(logger, "t_datestr {} posix_time {} returning {}", t_datestr, bt::to_simple_string(t_pt), ret ? "true" : "false");
+  LOG_DEBUG(logger, "t_datestr {} posix_time {} returning {}", t_datestr, timestr, ret ? "true" : "false");
+  return ret;
+}
+
+bool CHeader::parse_interfile_date(const string &datestr, bt::ptime &pt) {
+  return parse_interfile_datetime(datestr, ECAT_DATE_FORMAT, pt);
+}
+
+bool CHeader::parse_interfile_time(const string &timestr, bt::ptime &pt) {
+  return parse_interfile_datetime(timestr, ECAT_TIME_FORMAT, pt);
 }

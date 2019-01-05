@@ -24,46 +24,9 @@ namespace bt = boost::posix_time;
 namespace bg = boost::gregorian;
 namespace bx = boost::xpressive;
 
-const std::string ECAT_DATE_FORMAT = "%d:%m:%Y";  // !study date (dd:mm:yryr) := 18:09:2017
-const std::string ECAT_TIME_FORMAT = "%H:%M:%S";  // !study time (hh:mm:ss) := 15:26:00
-
 using std::cout;
 using std::endl;
 using std::string;
-
-/**
- * @brief      Parse ECAT-format date into Boost ptime
- *
- * @param[in]  str   Date string in format '18:09:2017'
- * @param[in]  pt    boost::posix_time::ptime object to set to date
- *
- * @return     false on success, else true
- */
-bool parse_interfile_datetime(const string &t_datestr, const string &t_format, boost::posix_time::ptime &t_pt) {
-  bt::time_input_facet * facet = new bt::time_input_facet(t_format);
-  const std::locale loc(std::locale::classic(), facet);
-  auto logger = spdlog::get("CHeader");
-
-  LOG_DEBUG(logger, "t_datestr {} t_format {}", t_datestr, t_format);
-  std::istringstream iss(t_datestr);
-  iss.imbue(loc);
-  // iss.exceptions(std::ios_base::failbit);
-
-  iss >> t_pt;
-  bool ret = t_pt.is_not_a_date_time();
-  std::string timestr("FILLMEIN");
-  // LOG_DEBUG(logger, "t_datestr {} posix_time {} returning {}", t_datestr, bt::to_simple_string(t_pt), ret ? "true" : "false");
-  LOG_DEBUG(logger, "t_datestr {} posix_time {} returning {}", t_datestr, timestr, ret ? "true" : "false");
-  return ret;
-}
-
-bool parse_interfile_date(const string &datestr, boost::posix_time::ptime &pt) {
-  return parse_interfile_datetime(datestr, ECAT_DATE_FORMAT, pt);
-}
-
-bool parse_interfile_time(const string &timestr, boost::posix_time::ptime &pt) {
-  return parse_interfile_datetime(timestr, ECAT_TIME_FORMAT, pt);
-}
 
 /**
  * @brief      Parse Interfile line into its key and value
