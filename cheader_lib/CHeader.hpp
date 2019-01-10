@@ -38,9 +38,10 @@ enum class CHeaderError {
 	NOT_A_DOUBLE        = -9,
 	NOT_A_DATE          = -10,
 	NOT_A_TIME          = -11,
-	BAD_LEXICAL_CAST    = -12,
-	ERROR               = -13,
-	TAG_APPENDED        = -14 // Not an error
+	INVALID_DATE        = -12,
+	BAD_LEXICAL_CAST    = -13,
+	ERROR               = -14,
+	TAG_APPENDED        = -15 // Not an error
 };
 
 static std::map<CHeaderError, string> CHdrErrorString = {
@@ -56,6 +57,7 @@ static std::map<CHeaderError, string> CHdrErrorString = {
 	{CHeaderError::NOT_A_DOUBLE       , "Not a double"},
 	{CHeaderError::NOT_A_TIME         , "Not a date"},
 	{CHeaderError::NOT_A_TIME         , "Not a time"},
+	{CHeaderError::INVALID_DATE       , "Invalid date"},
 	{CHeaderError::BAD_LEXICAL_CAST   , "Bad lexical cast"},
 	{CHeaderError::ERROR              , "Error (other)"},
 	{CHeaderError::TAG_APPENDED       , "Tag was appended (not an error)"}
@@ -92,8 +94,14 @@ public:
 	CHeaderError WriteInt    (string const &key, int val);		      // Put a int    value in memory table
 	CHeaderError WriteLong   (string const &key, int64_t);		      // Put a int64  value in memory table
 	// template <typename T>CHeaderError WriteDate (string const &t_tag, boost::posix_time::ptime const &t_pt);
-	template <typename T>CHeaderError WriteDate (string const &t_tag, T const &t_datetime);
-	template <typename T>CHeaderError WriteTime (string const &t_tag, T const &t_datetime);
+	// CHeaderError WriteDate (string const &t_tag, string const &t_datetime);
+	// CHeaderError WriteTime (string const &t_tag, string const &t_datetime);
+
+	CHeaderError WriteDate(string const &t_tag, string    const &t_datetime);
+	CHeaderError WriteDate(string const &t_tag, boost::posix_time::ptime const &t_datetime);
+	CHeaderError WriteTime(string const &t_tag, string    const &t_datetime);
+	CHeaderError WriteTime(string const &t_tag, boost::posix_time::ptime const &t_datetime);
+
 	CHeaderError CloseFile();
 	CHeaderError GetFileName(string & filename);
 	CHeaderError OpenFile(string const & filename);			// Loads specified filename in memory table
@@ -156,7 +164,7 @@ public:
 	static string const TOTAL_PROMPTS               ;
 	static string const TOTAL_RANDOMS               ;
 
-// Test data
+	// Test data
 	static Tag const VALID_CHAR;
 	static Tag const VALID_DOUBLE;
 	static Tag const VALID_FLOAT;
@@ -178,13 +186,17 @@ protected:
 
 	// Moved here from hrrt_util.hpp
 	CHeaderError ReadDateTime (string const &t_tag, string const &t_format, boost::posix_time::ptime       &t_pt);
-	CHeaderError WriteDateTime(string const &t_tag, string const &t_format, boost::posix_time::ptime const &t_pt);
+	// CHeaderError WriteDateTime(string const &t_tag, string const &t_format, boost::posix_time::ptime const &t_pt);
+
+	CHeaderError StringToPTime(string const &t_time, string const &t_format, boost::posix_time::ptime &t_datetime);
+	CHeaderError PTimeToString(boost::posix_time::ptime const &t_time, string const &t_format, string &t_datetime);
+	CHeaderError ValidDate(boost::posix_time::ptime const &t_datetime);
+	CHeaderError WriteDateTime(string const &t_tag, string const &t_format, string                   const &t_datetime);
+	CHeaderError WriteDateTime(string const &t_tag, string const &t_format, boost::posix_time::ptime const &t_datetime);
 
 	// bool SortData(char*HdrLine, char *tag, char* Data);
 	string m_FileName_;
 	std::ifstream hdr_file_;
 	tag_vector tags_;
   	std::shared_ptr<spdlog::logger> logger_;
-
-
 };

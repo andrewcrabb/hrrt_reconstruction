@@ -82,6 +82,9 @@ void init_logging(void) {
 
 int test_read_tags(CHeader *chdr) {
     auto logger = spdlog::get("CHeader");
+    std::string infile;
+
+    chdr->GetFileName(infile);
 
     std::string s;
     LOG_TRACE(logger, "Should find char tag {}", CHeader::VALID_CHAR.sayit());
@@ -105,7 +108,7 @@ int test_read_tags(CHeader *chdr) {
 
     boost::posix_time::ptime the_time;
     boost::posix_time::ptime valid_time;
-    LOG_TRACE(logger, "Should find time tag {}", CHeader::VALID_TIME.sayit());
+    LOG_TRACE(logger, "Should find time tag {} in {}", CHeader::VALID_TIME.sayit(), infile);
     REQUIRE(chdr->ReadTime(CHeader::VALID_TIME.key, the_time) == CHeaderError::OK);
     REQUIRE_FALSE(CHeader::parse_interfile_time(CHeader::VALID_TIME.value, valid_time));
     REQUIRE(the_time == valid_time);
@@ -258,17 +261,23 @@ TEST_CASE("Initialization", "[classic]") {
 
     CHeader *chdr = new CHeader;    
     LOG_TRACE(logger, "Writing char tag {}", CHeader::VALID_CHAR.sayit());
-    REQUIRE(chdr->WriteChar(CHeader::VALID_CHAR.key, CHeader::VALID_CHAR.value) == CHeaderError::TAG_APPENDED);
+    REQUIRE(chdr->WriteChar(CHeader::VALID_CHAR.key, CHeader::VALID_CHAR.value)                  == CHeaderError::TAG_APPENDED);
     LOG_TRACE(logger, "Writing int tag {}", CHeader::VALID_INT.sayit());
-    REQUIRE(chdr->WriteInt(CHeader::VALID_INT.key, std::stoi(CHeader::VALID_INT.value)) == CHeaderError::TAG_APPENDED);
+    REQUIRE(chdr->WriteInt(CHeader::VALID_INT.key, std::stoi(CHeader::VALID_INT.value))          == CHeaderError::TAG_APPENDED);
     LOG_TRACE(logger, "Writing float tag {}", CHeader::VALID_FLOAT.sayit());
-    REQUIRE(chdr->WriteFloat(CHeader::VALID_FLOAT.key, std::stof(CHeader::VALID_FLOAT.value)) == CHeaderError::TAG_APPENDED);
+    REQUIRE(chdr->WriteFloat(CHeader::VALID_FLOAT.key, std::stof(CHeader::VALID_FLOAT.value))    == CHeaderError::TAG_APPENDED);
     LOG_TRACE(logger, "Writing double tag {}", CHeader::VALID_DOUBLE.sayit());
     REQUIRE(chdr->WriteDouble(CHeader::VALID_DOUBLE.key, std::stod(CHeader::VALID_DOUBLE.value)) == CHeaderError::TAG_APPENDED);
-    LOG_TRACE(logger, "Writing time tag {}", CHeader::VALID_TIME.sayit());
-    REQUIRE(chdr->WriteTime(CHeader::VALID_TIME.key, std::stod(CHeader::VALID_TIME.value)) == CHeaderError::TAG_APPENDED);
-    LOG_TRACE(logger, "Writing date tag {}", CHeader::VALID_DATE.sayit());
-    REQUIRE(chdr->WriteDate(CHeader::VALID_DATE.key, std::stod(CHeader::VALID_DATE.value)) == CHeaderError::TAG_APPENDED);
+
+    // Boost posix time requires datetime-format input string for time.
+    std::string datetime_string = fmt::format("{} {}", CHeader::VALID_DATE.value, CHeader::VALID_TIME.value);
+    LOG_TRACE(logger, "Writing date tag {} from {}", CHeader::VALID_DATE.key, CHeader::VALID_DATE.value);
+    REQUIRE(chdr->WriteDate(CHeader::VALID_DATE.key, CHeader::VALID_DATE.value)                  == CHeaderError::TAG_APPENDED);
+    LOG_TRACE(logger, "Writing time tag {} from {}", CHeader::VALID_TIME.key, datetime_string);
+    REQUIRE(chdr->WriteTime(CHeader::VALID_TIME.key, datetime_string)                  == CHeaderError::TAG_APPENDED);
+
+    // NOW READ THIS FILE BACK IN AND CHECK ITS VALUES
+    // NOW REPEAT ALL, USING A PTIME OBJECT INSTEAD OF STRING
  
     LOG_TRACE(logger, "Write to temp_file {}", temp_file.string());
     CHeaderError ret = chdr->WriteFile(temp_file);
@@ -278,7 +287,7 @@ TEST_CASE("Initialization", "[classic]") {
     chdr = new CHeader;
     LOG_TRACE(logger, "Read from temp_file {}", temp_file.string());
     chdr->OpenFile(temp_file);
-    REQUIRE(chdr->NumTags() == 4);
+    REQUIRE(chdr->NumTags() == 6);
 
     LOG_DEBUG(logger, "Calling test_read_tags for {}", temp_file.string());
     test_read_tags(chdr);

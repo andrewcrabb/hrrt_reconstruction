@@ -119,6 +119,7 @@ Tag const CHeader::VALID_TIME(CHeader::STUDY_TIME        , "12:03:00");    // HH
 
 string const ECAT_DATE_FORMAT = "%d:%m:%Y";  // !study date (dd:mm:yryr) := 18:09:2017
 string const ECAT_TIME_FORMAT = "%H:%M:%S";  // !study time (hh:mm:ss) := 15:26:00
+string const ECAT_DATETIME_FORMAT = "%d:%m:%Y %H:%M:%S";  // !study time (hh:mm:ss) := 15:26:00
 
 string Tag::sayit(void) const {
   string str = fmt::format("'{}' with value '{}'", key, value);
@@ -376,48 +377,104 @@ CHeaderError CHeader::ReadDateTime(string const &t_tag, string const &t_format, 
   return ret;
 }
 
-template <typename T>CHeaderError CHeader::WriteDate(string const &t_tag, T const &t_datetime) {
-  return(WriteDateTime(t_tag, ECAT_DATE_FORMAT, t_datetime));
+// Convert ptime to time/date string in given format
+// TODO: This doesn't do any error checking
+
+CHeaderError CHeader::PTimeToString(bt::ptime const &t_ptime, string const &t_format, string &t_datetime) {
+  bt::time_facet *tfacet = new bt::time_facet();
+  tfacet->format(t_format.c_str());
+  std::ostringstream oss;
+  oss.imbue(std::locale(oss.getloc(), tfacet));
+  oss << t_ptime;
+  t_datetime = oss.str();
+  LOG_TRACE(logger_, "ptime {} format {} returning {}", bt::to_iso_string(t_ptime), t_format, t_datetime);
+  return CHeaderError::OK;
 }
 
-template <typename T>CHeaderError CHeader::WriteTime(string const &t_tag, T const &t_datetime) {
-  return(WriteDateTime(t_tag, ECAT_TIME_FORMAT, t_datetime));
-}
+// Convert datetime string to a ptime
+// Can't convert a time by itself: must be a datetime
 
-// t_datetime can be a boost::posix_time::ptime or a std::string
-// Am I doing this correctly?  Seems wrong to switch on type of T.
-
-template <typename T>CHeaderError CHeader::WriteDateTime(string const &t_tag, string const &t_format, T const &t_datetime) {
-  bt::ptime datetime;
-  if (std::is_same<T, std::string>::value) {
-    std::string datetime_str = t_datetime;
-    LOG_TRACE(logger_, "Converting string to ptime: {}", datetime_str);
-  bt::time_facet *ofacet = new bt::time_facet();
-  ofacet->format(ECAT_DATE_FORMAT.c_str());
-
-UP TO HERE.  THE IDEA IS TO ALLOW A CALL TO WRITEDATE() OR WRITETIME()
-WITH EITHER A POSIX_TIME OR A STD::STRING.  
-WRITEDATETIME() SHOULD ALWAYS RECEIVE A POSIX_TIME, SO IS NOT TEMPLATED
-WRITEDATE() AND WRITETIME() SHOULD CONVERT STRING TO POSIX_TIME IF NEEDED, AND ARE TEMPLATED
-FINISH THIS METHOD WITH CODE FROM BOOST_DATE1.CPP
-
-    std::istringstream iss(datetime_str);
-    iss.imbue(std::locale(iss.getloc(), ))
-  } else if (std::is_same<T, bt::ptime>::value) {
-    datetime = t_datetime;
+CHeaderError CHeader::StringToPTime(string const &t_datestr, string const &t_format, bt::ptime &t_datetime) {
+  bt::time_input_facet *tfacet = new bt::time_input_facet();
+  tfacet->format(t_format.c_str());
+  std::istringstream iss(t_datestr);
+  iss.imbue(std::locale(iss.getloc(), tfacet));
+  // bt::ptime the_datetime;
+  iss >> t_datetime;
+  CHeaderError ret = CHeaderError::OK;
+  if (t_datetime.is_not_a_date_time()) {
+    ret = CHeaderError::INVALID_DATE;
+    LOG_ERROR(logger_, "datestr {} format {} ptime {}", iss.str(), t_format, bt::to_iso_string(t_datetime) );
   } else {
-    raise();
+    LOG_TRACE(logger_, "datestr {} format {} ptime {}", iss.str(), t_format, bt::to_iso_string(t_datetime) );
+    // t_datetime = t_datetime;
+  }
+  return ret;
+}
+
+// Check that given date is between 1900 and 2100.
+
+CHeaderError CHeader::ValidDate(bt::ptime const &t_datetime) {
+  static bt::ptime low_time(boost::gregorian::date(1900,01,01), bt::time_duration(0,0,0));
+  static bt::ptime high_time(boost::gregorian::date(2099,12,31), bt::time_duration(24,0,0));
+
+  CHeaderError ret = ((t_datetime < low_time) || (t_datetime > high_time)) ? CHeaderError::INVALID_DATE : CHeaderError::OK;
+  if (ret != CHeaderError::OK) {
+    string str;
+    PTimeToString(t_datetime, ECAT_DATE_FORMAT, str);
+    LOG_DEBUG(logger_, "{}: {}", CHdrErrorString[ret], str);
+  }
+  return ret;
+}
+
+CHeaderError CHeader::WriteDateTime(string const &t_tag, string const &t_format, string const &t_datetime) {
+  bt::ptime ptime;
+  CHeaderError ret;
+
+  if ((ret = StringToPTime(t_datetime, t_format, ptime)) == CHeaderError::OK) {
+    ret = WriteDateTime(t_tag, t_format, ptime);
+  }
+  return ret;
+}
+
+// Write a date or time to given tag in given format.
+// Note that date is checked: All times should have a valid date.
+
+CHeaderError CHeader::WriteDateTime(string const &t_tag, string const &t_format, bt::ptime const &t_datetime) {
+  std::string datetime_str;
+  CHeaderError ret;
+
+  if ((ret = ValidDate(t_datetime)) == CHeaderError::OK) {
+    if ((ret = PTimeToString(t_datetime, t_format, datetime_str)) == CHeaderError::OK) {
+      ret = WriteChar(t_tag, datetime_str);
+    }
   }
 
-
-  bt::time_facet *dtfacet = new bt::time_facet();
-  dtfacet->format(t_format.c_str());
-  std::ostringstream datetime_osstr;
-  datetime_osstr.imbue(std::locale(datetime_osstr.getloc(), dtfacet));
-  datetime_osstr << datetime;
-  LOG_DEBUG(logger_, "datetime_osstr time: {}", datetime_osstr.str());
-  CHeaderError ret = WriteChar(t_tag, datetime_osstr.str());
   return ret;
+}
+
+CHeaderError CHeader::WriteDate(string const &t_tag, string const &t_datetime) {
+  return WriteDateTime(t_tag, ECAT_DATE_FORMAT, t_datetime);
+}
+
+CHeaderError CHeader::WriteDate(string const &t_tag, bt::ptime const &t_datetime) {
+  return WriteDateTime(t_tag, ECAT_DATE_FORMAT, t_datetime);
+}
+
+// Extra step since t_datetime is a datetime but we want time only written.
+
+CHeaderError CHeader::WriteTime(string const &t_tag, string const &t_datetime) {
+  CHeaderError ret;
+  bt::ptime ptime;
+
+  if ((ret = StringToPTime(t_datetime, ECAT_DATETIME_FORMAT, ptime)) == CHeaderError::OK) {
+    ret = WriteDateTime(t_tag, ECAT_TIME_FORMAT, ptime);
+  }
+  return ret;
+}
+
+CHeaderError CHeader::WriteTime(string const &t_tag, bt::ptime const &t_datetime) {
+  return WriteDateTime(t_tag, ECAT_TIME_FORMAT, t_datetime);
 }
 
 // Open file, read given value, close file.
