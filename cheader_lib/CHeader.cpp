@@ -313,7 +313,7 @@ CHeaderError CHeader::WriteChar(string const &key, string const &val) {
 
 // Fill in val if tag is found.
 
-CHeaderError CHeader::Readchar(string const &key, string &val) {
+CHeaderError CHeader::ReadChar(string const &key, string &val) const {
   CHeaderError ret = CHeaderError::OK;
   tag_iterator it = FindTag(key);
   if (it == std::end(tags_)) {
@@ -353,7 +353,7 @@ template <typename T>CHeaderError CHeader::convertString(string &str, T &val) {
  * @param      time  Date stored in the tag
  * @return     0 on success, else 1
  */
-CHeaderError CHeader::ReadDate(std::string const &t_tag, bt::ptime &t_date) {
+CHeaderError CHeader::ReadDate(std::string const &t_tag, bt::ptime &t_date) const {
   return (ReadDateTime(t_tag, ECAT_DATE_FORMAT, t_date) == CHeaderError::OK) ? CHeaderError::OK : CHeaderError::NOT_A_DATE;
 }
 
@@ -363,14 +363,20 @@ CHeaderError CHeader::ReadDate(std::string const &t_tag, bt::ptime &t_date) {
  * @param      time  Time stored in the tag
  * @return     0 on success, else 1
  */
-CHeaderError CHeader::ReadTime(std::string const &t_tag, bt::ptime &t_time) {
+CHeaderError CHeader::ReadTime(std::string const &t_tag, bt::ptime &t_time) const {
   return (ReadDateTime(t_tag, ECAT_TIME_FORMAT, t_time) == CHeaderError::OK) ? CHeaderError::OK : CHeaderError::NOT_A_TIME;
 }
 
-CHeaderError CHeader::ReadDateTime(string const &t_tag, string const &t_format, bt::ptime &t_pt) {
+/**
+ * @param t_tag
+ * @param t_format
+ * @param t_pt
+ * @return CHeaderError 
+ */
+CHeaderError CHeader::ReadDateTime(string const &t_tag, string const &t_format, bt::ptime &t_pt) const {
   string value;
   CHeaderError ret = CHeaderError::OK;
-  if ((ret = Readchar(t_tag, value)) == CHeaderError::OK) {
+  if ((ret = ReadChar(t_tag, value)) == CHeaderError::OK) {
     LOG_DEBUG(logger_, "t_tag {} value {}", t_tag, value);
     ret = parse_interfile_datetime(value, t_format, t_pt) ? CHeaderError::ERROR : CHeaderError::OK;
   }
@@ -493,9 +499,9 @@ return result;
 // Return 0 on success, else 1
 // Am I doing this correctly?  Seems wrong to switch on T's type.
 
-template <typename T>CHeaderError CHeader::ReadNum(string const &tag, T &val) {
+template <typename T>CHeaderError CHeader::ReadNum(string const &tag, T &val) const {
   string str;
-  CHeaderError result = Readchar(tag, str);
+  CHeaderError result = ReadChar(tag, str);
   if (result == CHeaderError::OK) {
     result = convertString<T>(str, val);
     if (result != CHeaderError::OK) {
@@ -513,19 +519,19 @@ template <typename T>CHeaderError CHeader::ReadNum(string const &tag, T &val) {
   return result;
 }
 
-CHeaderError CHeader::Readint(string const &tag, int &val) {
+CHeaderError CHeader::ReadInt(string const &tag, int &val) const {
   return ReadNum<int>(tag, val);
 }
 
-CHeaderError CHeader::Readlong(string const &tag, long &val) {
+CHeaderError CHeader::ReadLong(string const &tag, long &val) const {
   return ReadNum<long>(tag, val);
 }
 
-CHeaderError CHeader::Readfloat(string const &tag, float &val) {
+CHeaderError CHeader::ReadFloat(string const &tag, float &val) const {
   return ReadNum<float>(tag, val);
 }
 
-CHeaderError CHeader::Readdouble(string const &tag, double &val) {
+CHeaderError CHeader::ReadDouble(string const &tag, double &val) const {
   return ReadNum<double>(tag, val);
 }
 

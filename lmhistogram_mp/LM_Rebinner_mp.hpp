@@ -54,7 +54,7 @@ extern void lm64_rebinner(void *p);
  */
 // ahc: lut file now passed rather than found in this fn
 // int init_rebinner(int &span, int &max_rd);
-int init_rebinner(int &span, int &max_rd, char *lut_file);
+int init_rebinner(int &span, int &max_rd, std::string const &lut_file);
 
 extern int rebin_event(int mp, int alayer, int ax, int ay, int blayer, int bx, int by 
 							 /*,unsigned delayed_flag*/);
@@ -62,6 +62,9 @@ extern int rebin_event(int mp, int alayer, int ax, int ay, int blayer, int bx, i
 extern int rebin_event_tx(int mp, int alayer, int ax, int ay, int blayer, int bx, int by);
 
 extern int model_number;
-extern const char *rebinner_lut_file;
+
+namespace LM_Rebinner {
+	std::string *rebinner_lut_file;
+};
 
 extern int tx_span;

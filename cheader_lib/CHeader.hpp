@@ -74,33 +74,25 @@ typedef std::vector<Tag>::iterator tag_iterator;
 
 class CHeader {
 public:
-	CHeaderError Readdouble(string const &key, double &val);      // Get a double value from memory table
-	CHeaderError Readfloat (string const &key, float  &val);	     // Get a float  value from memory table
-	CHeaderError Readlong  (string const &key, long   &val);		 // Get a long   value from memory table
-	CHeaderError Readint   (string const &key, int    &val);		  // Get a int    value from memory table
-	CHeaderError Readchar  (string const &key, string &val);      // Get a string value from memory table
+	CHeaderError ReadDouble(string const &key, double &val) const;
+	CHeaderError ReadFloat (string const &key, float  &val) const;
+	CHeaderError ReadLong  (string const &key, long   &val) const;
+	CHeaderError ReadInt   (string const &key, int    &val) const;
+	CHeaderError ReadChar  (string const &key, string &val) const;
+	CHeaderError ReadTime  (string const &key, boost::posix_time::ptime &time) const;
+	CHeaderError ReadDate  (string const &key, boost::posix_time::ptime &date) const;
 
-	// In the process of being implemented.
-	CHeaderError ReadTime     (string const &key, boost::posix_time::ptime &time);
-	CHeaderError ReadDate     (string const &key, boost::posix_time::ptime &date);
-	// CHeaderError WriteTime  (string const &key, boost::posix_time::ptime const &time);
-	// CHeaderError WriteDate  (string const &key, boost::posix_time::ptime const &date);
+	CHeaderError WriteChar   (string const &key, string                  const & val);
+	CHeaderError WritePath   (string const &key, boost::filesystem::path const & val);
+	CHeaderError WriteDouble (string const &key, double  val);
+	CHeaderError WriteFloat  (string const &key, float   val);
+	CHeaderError WriteInt    (string const &key, int     val);
+	CHeaderError WriteLong   (string const &key, int64_t val);
 
-
-	CHeaderError WriteChar   (string const &key, string const & val); // Put a string value in memory table
-	CHeaderError WritePath   (string const &key, boost::filesystem::path const & val); // Put a string value in memory table
-	CHeaderError WriteDouble (string const &key, double val);	      // Put a double value in memory table
-	CHeaderError WriteFloat  (string const &key, float val);	      // Put a float value in memory table
-	CHeaderError WriteInt    (string const &key, int val);		      // Put a int    value in memory table
-	CHeaderError WriteLong   (string const &key, int64_t);		      // Put a int64  value in memory table
-	// template <typename T>CHeaderError WriteDate (string const &t_tag, boost::posix_time::ptime const &t_pt);
-	// CHeaderError WriteDate (string const &t_tag, string const &t_datetime);
-	// CHeaderError WriteTime (string const &t_tag, string const &t_datetime);
-
-	CHeaderError WriteDate(string const &t_tag, string    const &t_datetime);
-	CHeaderError WriteDate(string const &t_tag, boost::posix_time::ptime const &t_datetime);
-	CHeaderError WriteTime(string const &t_tag, string    const &t_datetime);
-	CHeaderError WriteTime(string const &t_tag, boost::posix_time::ptime const &t_datetime);
+	CHeaderError WriteDate   (string const &t_tag, string                   const &t_datetime);
+	CHeaderError WriteDate   (string const &t_tag, boost::posix_time::ptime const &t_datetime);
+	CHeaderError WriteTime   (string const &t_tag, string                   const &t_datetime);
+	CHeaderError WriteTime   (string const &t_tag, boost::posix_time::ptime const &t_datetime);
 
 	CHeaderError CloseFile();
 	CHeaderError GetFileName(string & filename);
@@ -110,7 +102,6 @@ public:
 	CHeaderError WriteFile(boost::filesystem::path const & filename);
 	int IsFileOpen();
 	int NumTags(void);
-	template <typename T>int ReadHeaderNum(string & filename, string & tag, T & val);
 	CHeader();
 	virtual ~CHeader();
 
@@ -183,6 +174,7 @@ protected:
 	tag_iterator FindTag(string const &key) ;
 	template <typename T>CHeaderError convertString(string &s, T &val);
 	template <typename T>CHeaderError ReadNum(string const &tag, T &val);
+	template <typename T>int ReadHeaderNum(string & filename, string & tag, T & val);
 
 	// Moved here from hrrt_util.hpp
 	CHeaderError ReadDateTime (string const &t_tag, string const &t_format, boost::posix_time::ptime       &t_pt);

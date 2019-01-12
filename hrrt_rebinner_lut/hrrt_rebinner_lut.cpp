@@ -56,11 +56,11 @@ void main(int argc, char* argv[])
       {
         switch(type)
         {
-        case LR_20: LR_type=LR_20; break;
-        case LR_24: LR_type=LR_24; break;
+        case LR_20: GeometryInfo::LR_type=LR_20; break;
+        case LR_24: GeometryInfo::LR_type=LR_24; break;
         }
       }
-      if (LR_type != LR_20 && LR_type != LR_24)
+      if (GeometryInfo::LR_type != LR_20 && GeometryInfo::LR_type != LR_24)
       {
         fprintf(stderr, "Invalid LR mode %d\n", type);
         usage();

@@ -118,16 +118,16 @@ void main(int argc, char ** argv)
   memset(rebin_dwell,0,NPROJS*NVIEWS);
   for (mp=1; mp<=NMPAIRS; mp++)
   {
-    for(al=0;al<NDOIS;al++)
+    for(al=0;al<GeometryInfo::NDOIS;al++)
     { //layer
-      for(ax=0;ax<NXCRYS;ax++)
+      for(ax=0;ax<GeometryInfo::NXCRYS;ax++)
       { 
-        axx=ax+NXCRYS*al; 
-        for(bl=0;bl<NDOIS;bl++)
+        axx=ax+GeometryInfo::NXCRYS*al; 
+        for(bl=0;bl<GeometryInfo::NDOIS;bl++)
         {
-          for(bx=0;bx<NXCRYS;bx++)
+          for(bx=0;bx<GeometryInfo::NXCRYS;bx++)
           {
-            bxx=bx+NXCRYS*bl;
+            bxx=bx+GeometryInfo::NXCRYS*bl;
             if ((idx=m_solution[mp][axx][bxx].nsino) >=0 )
             {
               mp_mask[0][idx] = mp;

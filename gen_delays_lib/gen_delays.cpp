@@ -80,14 +80,14 @@ int compute_delays( int mp,float **delays_data,float *csings)
   int ax, ay, bx, by, ahead, bhead;
   int alayer, blayer, rd;
   int axx,bxx,nbd;
-  int headxcrys=NHEADS*NXCRYS;
+  int headxcrys = GeometryInfo::NHEADS * GeometryInfo::NXCRYS;
   float aw;
   float cay;
   float awtauftime;
   float *dptr;
-  int current_view;
-  int current_proj;
-  int num=0;
+  // int current_view;
+  // int current_proj;
+  // int num=0;
   int bs,be;
   SOL *sol;
   int segnum,plane;
@@ -100,14 +100,14 @@ int compute_delays( int mp,float **delays_data,float *csings)
   //fprintf(stdout,"2 Generating delays for MP %d [H%d,H%d]\n", mp, ahead, bhead);
   fflush(stdout);
 
-  for (alayer=0; alayer<NDOIS; alayer++) {
-    for (ay=0; ay<NYCRYS; ay++) {
+  for (alayer=0; alayer < GeometryInfo::NDOIS; alayer++) {
+    for (ay=0; ay < GeometryInfo::NYCRYS; ay++) {
       //	if (ay%10==0) printf("Generating delays for MP %d [H%d,H%d] %d\t%d \r", mp, ahead, bhead,alayer,ay);
       cay=m_c_zpos2[ay];
       bs=1000;be=-1000;
 
       //get rd,dz2[by],bs,be
-      for (by=0;by<NYCRYS;by++) {
+      for (by=0;by<GeometryInfo::NYCRYS;by++) {
 	dz2[by]=m_c_zpos[by]-m_c_zpos[ay]; // z diff. between det A and det B
         rd = ay-by; if (rd<0) rd=by-ay; 
 	if (rd < maxrd_ + 6) {  // dsaint31 : why 6??
@@ -118,38 +118,40 @@ int compute_delays( int mp,float **delays_data,float *csings)
 	}
       }
 
-      for (ax=0; ax<NXCRYS; ax++) {
+      for (ax=0; ax<GeometryInfo::NXCRYS; ax++) {
 				
-	axx=ax+NXCRYS*alayer;
-	aw=csings[alayer*NHEADS*NXCRYS*NYCRYS+ay*NHEADS*NXCRYS+ahead*NXCRYS+ax];
-	awtauftime=aw*tauftime; // 2 * tau * singles at detA
-	if (awtauftime==0) continue;
+	axx = ax + GeometryInfo::NXCRYS * alayer;
+	aw = csings[alayer * GeometryInfo::NUM_CRYSTALS_X_Y_HEADS + ay * GeometryInfo::NUM_CRYSTALS_X_Y_HEADS + ax];
+	awtauftime = aw * tauftime; // 2 * tau * singles at detA
+	if (awtauftime == 0)
+    continue;
 
-	for (blayer=0; blayer<2; blayer++) {
-	  //nbl=NXCRYS*blayer;
-	  //nbl;
-	  bxx=NXCRYS*blayer;
-	  for (bx=0; bx<NXCRYS; bx++,bxx++) {
-	    if (m_solution[mp][axx][bxx].nsino==-1) continue;
-	    sol=&m_solution[mp][axx][bxx];
+	for (blayer = 0; blayer < 2; blayer++) {
+	  bxx = GeometryInfo::NXCRYS * blayer;
+	  for (bx=0; bx<GeometryInfo::NXCRYS; bx++,bxx++) {
+	    if (m_solution[mp][axx][bxx].nsino == -1) 
+        continue;
+	    sol = &m_solution[mp][axx][bxx];
 						
 	    //dsaint31
 	    dptr = delays_data[sol->nsino];//result bin location
-	    current_view = bin_number_to_nview[sol->nsino];
-	    current_proj = bin_number_to_nproj[sol->nsino];
+	    // current_view = bin_number_to_nview[sol->nsino];
+	    // current_proj = bin_number_to_nproj[sol->nsino];
 
-	    nbd  = blayer*NHEADS*NXCRYS*NYCRYS+bhead*NXCRYS+bx+headxcrys*bs;
+	    nbd  = blayer * GeometryInfo::NUM_CRYSTALS_X_Y_HEADS + bhead * GeometryInfo::NXCRYS + bx + headxcrys * bs;
 	    for (by=bs; by<=be; by++,nbd+=headxcrys) {
+	      plane = (int)(cay + sol->z * dz2[by]);
 
-	      plane        = (int)(cay+sol->z*dz2[by]);
-
-	      seg = (float)(0.5+dz2[by] * sol->d);
+	      seg = (float)(0.5 + dz2[by] * sol->d);
               segnum = (int)seg;
-	      if (seg<0) segnum=1-(segnum<<1);
-	      else      segnum=segnum<<1;
+	      if (seg < 0) 
+          segnum = 1 - (segnum << 1);
+	      else      
+          segnum = segnum << 1;
 
 	      //dsaint31
-	      if (m_segplane[segnum][plane]!=-1) dptr[m_segplane[segnum][plane]] +=csings[nbd]*awtauftime;
+	      if (m_segplane[segnum][plane] != -1) 
+          dptr[m_segplane[segnum][plane]] += csings[nbd] * awtauftime;
 	      //if (m_segplane[segnum][plane]!=-1) 
 	      //	delays_data[m_segplane[segnum][plane]][current_view][current_proj] +=csings[nbd]*awtauftime;
 	    }
@@ -167,33 +169,33 @@ int compute_delays( int mp,float **delays_data,float *csings)
 
 void compute_drate( float *srate, float tau, float *drate)
 {
-  float hsum[NHEADS], ohead_sum;
+  float hsum[GeometryInfo::NHEADS], ohead_sum;
   int head, layer, cx, cy, i, j, ohead;
 
   // First we compute the total singles rates for each of the heads...
 
-  for (head=0; head<NHEADS; head++) {
+  for (head=0; head<GeometryInfo::NHEADS; head++) {
     hsum[head]=0.0;
-    for (layer=0; layer<NDOIS; layer++)
-      for (cx=0; cx<NXCRYS; cx++)
-	for (cy=0; cy<NYCRYS; cy++) {
-	  i=NXCRYS*head+cx+NXCRYS*NHEADS*cy+NXCRYS*NYCRYS*NHEADS*layer;
+    for (layer=0; layer < GeometryInfo::NDOIS; layer++)
+      for (cx=0; cx<GeometryInfo::NXCRYS; cx++)
+	for (cy=0; cy<GeometryInfo::NYCRYS; cy++) {
+	  i = GeometryInfo::NXCRYS * head + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
 	  hsum[head] += srate[i];
 	}
   }
 
   // Now we compute the delayed coincidence rate for each crystal...
 
-  for (head=0; head<NHEADS; head++) {
+  for (head=0; head<GeometryInfo::NHEADS; head++) {
     ohead_sum=0.0;
     for (j=0; j<5; j++) {
-      ohead = (head+j+2)%NHEADS;
+      ohead = (head+j+2)%GeometryInfo::NHEADS;
       ohead_sum += hsum[ohead];
     }
-    for (layer=0; layer<NDOIS; layer++)
-      for (cx=0; cx<NXCRYS; cx++)
-	for (cy=0; cy<NYCRYS; cy++) {
-	  i=NXCRYS*head+cx+NXCRYS*NHEADS*cy+NXCRYS*NYCRYS*NHEADS*layer;
+    for (layer=0; layer < GeometryInfo::NDOIS; layer++)
+      for (cx=0; cx<GeometryInfo::NXCRYS; cx++)
+	for (cy=0; cy<GeometryInfo::NYCRYS; cy++) {
+	  i = GeometryInfo::NXCRYS * head + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
 	  drate[i] = srate[i]*tau*ohead_sum;
 	}
   }
@@ -201,47 +203,48 @@ void compute_drate( float *srate, float tau, float *drate)
 
 void estimate_srate( float *drate, float tau, float *srate)
 {
-  float hsum[NHEADS], ohead_sum;
+  float hsum[GeometryInfo::NHEADS], ohead_sum;
   int head, layer, cx, cy, i, j, ohead;
 
   // First we compute the total singles rates for each of the heads...
 
-  for (head=0; head<NHEADS; head++) {
+  for (head=0; head<GeometryInfo::NHEADS; head++) {
     hsum[head]=0.0;
-    for (layer=0; layer<NDOIS; layer++)
-      for (cx=0; cx<NXCRYS; cx++)
-	for (cy=0; cy<NYCRYS; cy++) {
-	  i=NXCRYS*head+cx+NXCRYS*NHEADS*cy+NXCRYS*NYCRYS*NHEADS*layer;
+    for (layer=0; layer < GeometryInfo::NDOIS; layer++)
+      for (cx=0; cx<GeometryInfo::NXCRYS; cx++)
+	for (cy=0; cy<GeometryInfo::NYCRYS; cy++) {
+	  i = GeometryInfo::NXCRYS * head + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
 	  hsum[head] += srate[i];
 	}
   }
 
   // Now we update the estimated singles rate for each crystal...
 
-  for (head=0; head<NHEADS; head++) {
+  for (head=0; head<GeometryInfo::NHEADS; head++) {
     ohead_sum=0.0;
     for (j=0; j<5; j++) {
-      ohead = (head+j+2)%NHEADS;
+      ohead = (head+j+2)%GeometryInfo::NHEADS;
       ohead_sum += hsum[ohead];
     }
-    for (layer=0; layer<NDOIS; layer++)
-      for (cx=0; cx<NXCRYS; cx++)
-	for (cy=0; cy<NYCRYS; cy++) {
-	  i=NXCRYS*head+cx+NXCRYS*NHEADS*cy+NXCRYS*NYCRYS*NHEADS*layer;
+    for (layer=0; layer < GeometryInfo::NDOIS; layer++)
+      for (cx=0; cx<GeometryInfo::NXCRYS; cx++)
+	for (cy=0; cy<GeometryInfo::NYCRYS; cy++) {
+	  i = GeometryInfo::NXCRYS * head + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
 	  srate[i]=(srate[i]+drate[i]/(tau*ohead_sum))/2.0f;
 	  //                    if (drate[i] == 0.0) srate[i]=0.0;  // dead crystal - no delayed coins
 	}
   }
 }
 
-void compute_initial_srate( float *drate, float tau, float *srate)
-{
+void compute_initial_srate( float *drate, float tau, float *srate) {
   float dtotal=0.0, stotal;
   int i;
 
-  for (i=0; i<NHEADS*NXCRYS*NYCRYS*NDOIS; i++) dtotal += drate[i];
-  stotal=(float)(8.0*sqrt(dtotal/(40.*tau)));
-  for (i=0; i<NHEADS*NXCRYS*NYCRYS*NDOIS; i++) srate[i] = drate[i] * stotal / dtotal;
+  for (i = 0; i < GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS; i++) 
+    dtotal += drate[i];
+  stotal = (float)(8.0 * sqrt(dtotal / (40. * tau)));
+  for (i = 0; i < GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS; i++) 
+    srate[i] = drate[i] * stotal / dtotal;
 }
 
 int errtotal( int *ich, float *srate, int nvals, float dt)
@@ -260,7 +263,8 @@ int compute_csings_from_drates( int ncrys, int *dcoins, float tau, float dt, flo
 {
   int iter, i;
   float *xrates, *drates;
-  int err, erbest;
+  int err;
+  // int erbest;
     
   drates = (float*) calloc( ncrys, sizeof(float));
   xrates = (float*) calloc( ncrys, sizeof(float));
@@ -271,8 +275,9 @@ int compute_csings_from_drates( int ncrys, int *dcoins, float tau, float dt, flo
     err = errtotal( dcoins, xrates, ncrys, dt);       // compute the error
     //        if (!quiet) printf("%3d %i\n", iter, err);
     //        if (iter && ((err >= erbest) || (err==0))) break;    // time to stop?
-    if (iter && (err==0)) break; // only stop when we converge
-    erbest = err;
+    if (iter && (err == 0)) 
+    break; // only stop when we converge
+    // erbest = err;
     estimate_srate( drates, tau, srates); // update the estimate
   }
   free(drates);
@@ -398,13 +403,13 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
 		
   gettimeofday( &t0, NULL ) ;
   
-  head_crystal_depth = (float*)calloc(NHEADS, sizeof(float));
-  for (i=0; i<NHEADS;i++) 
+  head_crystal_depth = (float*)calloc(GeometryInfo::NHEADS, sizeof(float));
+  for (i=0; i<GeometryInfo::NHEADS;i++) 
     if (kflag) head_crystal_depth[i] = koln_lthick[i];
     else head_crystal_depth[i] = 1.0f;
 
   init_geometry_hrrt( nprojs, nviews, pitch, diam, thick);
-  init_segment_info(&m_nsegs, &nplanes, &m_d_tan_theta, maxrd_, span, NYCRYS, m_crystal_radius, m_plane_sep);
+  init_segment_info(&m_nsegs, &nplanes, &m_d_tan_theta, maxrd_, span, GeometryInfo::NYCRYS, m_crystal_radius, m_plane_sep);
 
 
   // ahc hrrt_rebinner.lut now a required command line argument.
@@ -468,7 +473,7 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
 	
   //-------------------------------------------------------
   // make singles. ( load or estimate)
-  nvals  = NDOIS*NHEADS*NXCRYS*NYCRYS; // # of detecters
+  nvals  = GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS; // # of detecters
   
   csings = (float*) calloc( nvals, sizeof(float));
   if (!csings) printf("malloc failed for csings data\n");
@@ -496,7 +501,7 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
     // we only used the delayed coins (coins+nvals)vvvvvv
     niter = compute_csings_from_drates( nvals, coins+nvals, tau, ftime, csings);
     gettimeofday( &t3, NULL);
-    printf("csings computed from drates in %d iterations (%ld msec)\n", niter, ( ( ( t3.tv_sec * 1000 ) + ( int )( (double)t3.tv_usec / 1000.0 ) ) - ( ( t2.tv_sec * 1000 ) + ( int )( (double)t2.tv_usec / 1000.0 ) ) ) );
+    printf("csings computed from drates in %d iterations (%ld msec)\n", niter, ((( t3.tv_sec * 1000 ) + (int)( (double)t3.tv_usec / 1000.0 ) ) - ((t2.tv_sec * 1000 ) + (int)( (double)t2.tv_usec / 1000.0 ))));
     free(coins);
     if (output_csings_file) {
       fptr = fopen( output_csings_file, "wb");
@@ -548,23 +553,22 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
       }
     /* Free attribute and wait for the other threads */
     pthread_attr_destroy( &attr ) ;
-    for ( threadnum = 0 ; threadnum < 4 ; threadnum += 1 )
-      {
+    for ( threadnum = 0 ; threadnum < 4 ; threadnum += 1 ) {
 	pthread_join( threads[ threadnum ] , NULL ) ;
       }
     gettimeofday( &t2, NULL);
-    fprintf(stdout,"%d\t%ld msec   \n",mp+1             , ( ( ( t2.tv_sec * 1000 ) + ( int )( (double)t2.tv_usec / 1000.0 ) ) - ( ( t1.tv_sec * 1000 ) + ( int )( (double)t1.tv_usec / 1000.0 ) ) ) );
+    fprintf(stdout,"%d\t%ld msec   \n",mp+1             , ((( t2.tv_sec * 1000 ) + (int)((double)t2.tv_usec / 1000.0 )) - ((t1.tv_sec * 1000) + (int)((double)t1.tv_usec / 1000.0 ))));
     fflush(stdout);
   }
   gettimeofday( &t1, NULL);
-  fprintf(stdout,"Smooth Delays computed in %ld msec.\n", ( ( ( t1.tv_sec * 1000 ) + ( int )( (double)t1.tv_usec / 1000.0 ) ) - ( ( t0.tv_sec * 1000 ) + ( int )( (double)t0.tv_usec / 1000.0 ) ) ) );
+  fprintf(stdout,"Smooth Delays computed in %ld msec.\n", ((( t1.tv_sec * 1000 ) + (int)((double)t1.tv_usec / 1000.0 )) - ((t0.tv_sec * 1000) + (int)((double)t0.tv_usec / 1000.0 ))));
   gettimeofday( &t2, NULL );
-  fprintf(stdout,"...reduced in %ld msec   \n",mp+1     , ( ( ( t2.tv_sec * 1000 ) + ( int )( (double)t2.tv_usec / 1000.0 ) ) - ( ( t1.tv_sec * 1000 ) + ( int )( (double)t1.tv_usec / 1000.0 ) ) ) );
+  fprintf(stdout, "...reduced in %d msec   \n", mp+1     , (((t2.tv_sec * 1000) + (int)((double)t2.tv_usec / 1000.0 )) - ((t1.tv_sec * 1000) + (int)((double)t1.tv_usec / 1000.0 ))));
   fflush(stdout);	
 	
   free(m_solution[0]);
   for (i=1;i<21;i++) {
-    for (j=0;j<NXCRYS*NDOIS;j++) {
+    for (j=0;j<GeometryInfo::NXCRYS*GeometryInfo::NDOIS;j++) {
       //fprintf(stdout,"%d:%d\n",i,j);
       if (m_solution[i][j] !=NULL) free(m_solution[i][j]);
     }
@@ -615,10 +619,10 @@ int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
   }
   
   gettimeofday( &t3, NULL);
-  dtime1 = ( ( ( t1.tv_sec * 1000 ) + ( int )( (double)t1.tv_usec / 1000.0 ) ) - ( ( t0.tv_sec * 1000 ) + ( int )( (double)t0.tv_usec / 1000.0 ) ) ) ;
-  dtime2 = ( ( ( t2.tv_sec * 1000 ) + ( int )( (double)t2.tv_usec / 1000.0 ) ) - ( ( t1.tv_sec * 1000 ) + ( int )( (double)t1.tv_usec / 1000.0 ) ) ) ;
-  dtime3 = ( ( ( t3.tv_sec * 1000 ) + ( int )( (double)t3.tv_usec / 1000.0 ) ) - ( ( t2.tv_sec * 1000 ) + ( int )( (double)t2.tv_usec / 1000.0 ) ) ) ;
-  dtime4 = ( ( ( t3.tv_sec * 1000 ) + ( int )( (double)t3.tv_usec / 1000.0 ) ) - ( ( t0.tv_sec * 1000 ) + ( int )( (double)t0.tv_usec / 1000.0 ) ) ) ;
+  dtime1 = ((( t1.tv_sec * 1000 ) + (int)( (double)t1.tv_usec / 1000.0 ) ) - ((t0.tv_sec * 1000 ) + (int)( (double)t0.tv_usec / 1000.0 ) ) ) ;
+  dtime2 = ((( t2.tv_sec * 1000 ) + (int)( (double)t2.tv_usec / 1000.0 ) ) - ((t1.tv_sec * 1000 ) + (int)( (double)t1.tv_usec / 1000.0 ) ) ) ;
+  dtime3 = ((( t3.tv_sec * 1000 ) + (int)( (double)t3.tv_usec / 1000.0 ) ) - ((t2.tv_sec * 1000 ) + (int)( (double)t2.tv_usec / 1000.0 ) ) ) ;
+  dtime4 = ((( t3.tv_sec * 1000 ) + (int)( (double)t3.tv_usec / 1000.0 ) ) - ((t0.tv_sec * 1000 ) + (int)( (double)t0.tv_usec / 1000.0 ) ) ) ;
   printf("...stored to disk in %d msec.\n", dtime3);
   printf("Total time %d msec.\n", dtime4);
   return 1;

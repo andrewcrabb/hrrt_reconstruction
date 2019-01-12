@@ -88,22 +88,22 @@ int test_read_tags(CHeader *chdr) {
 
     std::string s;
     LOG_TRACE(logger, "Should find char tag {}", CHeader::VALID_CHAR.sayit());
-    REQUIRE(chdr->Readchar(CHeader::VALID_CHAR.key, s) == CHeaderError::OK);
+    REQUIRE(chdr->ReadChar(CHeader::VALID_CHAR.key, s) == CHeaderError::OK);
     REQUIRE(s.compare(CHeader::VALID_CHAR.value) == 0);
 
     int i;
     LOG_TRACE(logger, "Should find int tag {}", CHeader::VALID_INT.sayit());
-    REQUIRE(chdr->Readint(CHeader::VALID_INT.key, i) == CHeaderError::OK);
+    REQUIRE(chdr->ReadInt(CHeader::VALID_INT.key, i) == CHeaderError::OK);
     REQUIRE(i == std::stoi(CHeader::VALID_INT.value));
 
     float f;
     LOG_TRACE(logger, "Should find float tag {}", CHeader::VALID_FLOAT.sayit());
-    REQUIRE(chdr->Readfloat(CHeader::VALID_FLOAT.key, f) == CHeaderError::OK);
+    REQUIRE(chdr->ReadFloat(CHeader::VALID_FLOAT.key, f) == CHeaderError::OK);
     REQUIRE(f == Approx(std::stof(CHeader::VALID_FLOAT.value)));
 
     double d;
     LOG_TRACE(logger, "Should find double tag {}", CHeader::VALID_DOUBLE.sayit());
-    REQUIRE(chdr->Readdouble(CHeader::VALID_DOUBLE.key, d) == CHeaderError::OK);
+    REQUIRE(chdr->ReadDouble(CHeader::VALID_DOUBLE.key, d) == CHeaderError::OK);
     REQUIRE(d == Approx(std::stod(CHeader::VALID_DOUBLE.value)));
 
     boost::posix_time::ptime the_time;
@@ -153,15 +153,15 @@ TEST_CASE("Initialization", "[classic]") {
     LOG_TRACE(logger, "Test: Should be no tags");
     REQUIRE(chdr->NumTags() == 0);
     LOG_TRACE(logger, "Test: Should not find a bad char tag");
-    REQUIRE(chdr->Readchar("nosuchtag", str) == CHeaderError::TAG_NOT_FOUND);
+    REQUIRE(chdr->ReadChar("nosuchtag", str) == CHeaderError::TAG_NOT_FOUND);
     LOG_TRACE(logger, "Test: Should not find a good char tag");
-    REQUIRE_FALSE(chdr->Readchar(CHeader::VALID_CHAR.key, str) == CHeaderError::OK);
+    REQUIRE_FALSE(chdr->ReadChar(CHeader::VALID_CHAR.key, str) == CHeaderError::OK);
     LOG_TRACE(logger, "Test: Should not find a good int tag");
-    REQUIRE_FALSE(chdr->Readchar(CHeader::VALID_INT.key, str) == CHeaderError::OK);
+    REQUIRE_FALSE(chdr->ReadChar(CHeader::VALID_INT.key, str) == CHeaderError::OK);
     LOG_TRACE(logger, "Test: Should not find a good float tag");
-    REQUIRE_FALSE(chdr->Readchar(CHeader::VALID_FLOAT.key, str) == CHeaderError::OK);
+    REQUIRE_FALSE(chdr->ReadChar(CHeader::VALID_FLOAT.key, str) == CHeaderError::OK);
     LOG_TRACE(logger, "Test: Should not find a good double tag");
-    REQUIRE_FALSE(chdr->Readchar(CHeader::VALID_DOUBLE.key, str) == CHeaderError::OK);
+    REQUIRE_FALSE(chdr->ReadChar(CHeader::VALID_DOUBLE.key, str) == CHeaderError::OK);
     LOG_TRACE(logger, "Test: Should not write to empty file {}", temp_file.string());
     REQUIRE_FALSE(chdr->WriteFile(temp_file.string()) == CHeaderError::OK);
     REQUIRE_FALSE(chdr->WriteFile(temp_file) == CHeaderError::OK);
@@ -219,13 +219,13 @@ TEST_CASE("Initialization", "[classic]") {
 
     chdr->OpenFile(datafile);
     LOG_TRACE(logger, "Test: Should not find an int in a good char tag");
-    REQUIRE(chdr->Readint(CHeader::VALID_CHAR.key, i)    == CHeaderError::NOT_AN_INT);
+    REQUIRE(chdr->ReadInt(CHeader::VALID_CHAR.key, i)    == CHeaderError::NOT_AN_INT);
     LOG_TRACE(logger, "Test: Should not find a long in a good char tag");
-    REQUIRE(chdr->Readlong(CHeader::VALID_CHAR.key, l)   == CHeaderError::NOT_A_LONG);
+    REQUIRE(chdr->ReadLong(CHeader::VALID_CHAR.key, l)   == CHeaderError::NOT_A_LONG);
     LOG_TRACE(logger, "Test: Should not find a float in a good char tag");
-    REQUIRE(chdr->Readfloat(CHeader::VALID_CHAR.key, f)  == CHeaderError::NOT_A_FLOAT);
+    REQUIRE(chdr->ReadFloat(CHeader::VALID_CHAR.key, f)  == CHeaderError::NOT_A_FLOAT);
     LOG_TRACE(logger, "Test: Should not find a double in a good char tag");
-    REQUIRE(chdr->Readdouble(CHeader::VALID_CHAR.key, d) == CHeaderError::NOT_A_DOUBLE);
+    REQUIRE(chdr->ReadDouble(CHeader::VALID_CHAR.key, d) == CHeaderError::NOT_A_DOUBLE);
     LOG_TRACE(logger, "Test: Should not find a date in a good char tag");
     REQUIRE(chdr->ReadDate(CHeader::VALID_CHAR.key, t)   == CHeaderError::NOT_A_DATE);
     LOG_TRACE(logger, "Test: Should not find a time in a good char tag");
@@ -276,9 +276,6 @@ TEST_CASE("Initialization", "[classic]") {
     LOG_TRACE(logger, "Writing time tag {} from {}", CHeader::VALID_TIME.key, datetime_string);
     REQUIRE(chdr->WriteTime(CHeader::VALID_TIME.key, datetime_string)                  == CHeaderError::TAG_APPENDED);
 
-    // NOW READ THIS FILE BACK IN AND CHECK ITS VALUES
-    // NOW REPEAT ALL, USING A PTIME OBJECT INSTEAD OF STRING
- 
     LOG_TRACE(logger, "Write to temp_file {}", temp_file.string());
     CHeaderError ret = chdr->WriteFile(temp_file);
     REQUIRE(ret == CHeaderError::OK);

@@ -41,7 +41,7 @@
 using namespace std;
 using namespace cps;
 int model_number = MODEL_HRRT;
-std::string rebinner_lut_file;
+std::string LM_Rebinner::rebinner_lut_file;
 
 enum { LSO_LSO = 0, LSO_NAI = 1, LSO_ONLY = 2, LSO_GSO = 3, LSO_LYSO = 4 } HeadType;
 int tx_span = 21;
@@ -114,7 +114,7 @@ int init_rebinner(int &t_span, int &t_max_ringdiff, const std::string &t_lut_fil
         cout << "Tramsission mode: using default span " << t_span << endl;
       }
       tx_span = t_span;
-      if (LR_type > 0 ) {
+      if (GeometryInfo::LR_type > 0 ) {
         t_span = t_span / 2 + 1; // 21==>11; 9==>5
         cout << "Low Resolution mode: span changed to " << t_span << endl;
       }
@@ -131,12 +131,12 @@ int init_rebinner(int &t_span, int &t_max_ringdiff, const std::string &t_lut_fil
 
   init_geometry_hrrt();
   init_segment_info(&m_nsegs, &nplanes, &m_d_tan_theta, maxrd_, t_span, NYCRYS, m_crystal_radius, m_plane_sep);
-  rebinner_lut_file = t_lut_file;
+  LM_Rebinner::rebinner_lut_file = t_lut_file;
 
   if (!tx_flag)
-    init_lut_sol(rebinner_lut_file.c_str(), m_segzoffset);
+    init_lut_sol(LM_Rebinner::rebinner_lut_file.c_str(), m_segzoffset);
   else
-    init_lut_sol_tx(rebinner_lut_file.c_str());
+    init_lut_sol_tx(LM_Rebinner::rebinner_lut_file.c_str());
   m_d_tan_theta = (float)(tx_span * m_plane_sep / m_crystal_radius);
   return ret;
 }

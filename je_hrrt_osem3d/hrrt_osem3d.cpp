@@ -222,10 +222,6 @@
 #define Cal7    14
 #define Cal8    15
 
-#define NHEADS 8
-#define HEAD_XSIZE 72
-#define HEAD_YSIZE 104
-
 void alloc_tmprprj2();
 void alloc_tmprprj1();
 void free_tmpprj1();
@@ -4812,7 +4808,8 @@ int main(int argc, char* argv[]) {
 
   /* Get smoothed  file format : 3D or .ch file*/
   if (pFlag) {
-    int ch_size = NHEADS*HEAD_XSIZE*HEAD_YSIZE*4;  // 4 combinations Back/front
+    // int ch_size = NHEADS*HEAD_XSIZE*HEAD_YSIZE*4;
+    int ch_size = GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * 4;    // 4 combinations Back/front
     if (stat(osem3dpar->delayed_file, &st) == 0) {
       if (st.st_size == ch_size*sizeof(int)) {
         // ch format: compute smooth randoms

@@ -110,17 +110,16 @@ void init_sol(int *segzoffset)
 	int bhead;
   float deta_pos[3], detb_pos[3];
 
-	m_c_zpos   = (float *)  calloc(NYCRYS,sizeof(float ));
-	m_c_zpos2  = (float *)  calloc(NYCRYS,sizeof(float ));
+	m_c_zpos   = (float *)  calloc(GeometryInfo::NYCRYS,sizeof(float ));
+	m_c_zpos2  = (float *)  calloc(GeometryInfo::NYCRYS,sizeof(float ));
 	m_segplane = (short **) calloc(63,sizeof(short *));
 
-	for(i=0;i<63;i++) {
-		m_segplane[i]=(short *) calloc(NYCRYS*2-1,sizeof(short));
+	for(i = 0; i < 63; i++) {
+		m_segplane[i]=(short *) calloc(GeometryInfo::NYCRYS * 2 - 1, sizeof(short));
 	}
   
   // Initialize and populate solution if NULL
-  if (m_solution == NULL)
-  {
+  if (m_solution == NULL) {
 	  //m_solution = phi(=view angle)
 	  m_solution=(SOL ***) calloc(21,sizeof(SOL **));
 	  for(i=1;i<=20;i++){
@@ -130,9 +129,9 @@ void init_sol(int *segzoffset)
 		  7  12 16 19
 		  11 15 18
   */
-		  m_solution[i]=(SOL**) calloc(NXCRYS*NDOIS,sizeof(SOL *));
-		  for(ax=0;ax<NXCRYS*NDOIS;ax++){
-			  m_solution[i][ax]=(SOL *) calloc(NXCRYS*NDOIS,sizeof(SOL));
+ 		  m_solution[i]=(SOL**) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS,sizeof(SOL *));
+		  for(ax=0;ax<GeometryInfo::NUM_CRYSTALS_X_DOIS;ax++){
+			  m_solution[i][ax]=(SOL *) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS,sizeof(SOL));
 		  }
 	  }
   /*	solution[10]=solution[5];
@@ -150,13 +149,13 @@ void init_sol(int *segzoffset)
   //		if(i==10 || i==9 || i==14 || i==13 || i==17 || i==12 || i==16 || i==19 || i==10 || i==15 || i==18) continue;
 	      ahead = mpairs[i][0];
 		  bhead = mpairs[i][1];
-		  for(al=0;al<NDOIS;al++){ //layer
-			  for(ax=0;ax<NXCRYS;ax++){ //x축
-				  axx=ax+NXCRYS*al;       //x축+레이어
+		  for(al=0;al<GeometryInfo::NDOIS;al++){ //layer
+			  for(ax=0;ax<GeometryInfo::NXCRYS;ax++){ //x축
+				  axx=ax+GeometryInfo::NXCRYS*al;       //x축+레이어
 				  det_to_phy( ahead, al, ax, 0, deta_pos);
-				  for(bl=0;bl<NDOIS;bl++){
-					  for(bx=0;bx<NXCRYS;bx++){
-						  bxx=bx+NXCRYS*bl;
+				  for(bl=0;bl<GeometryInfo::NDOIS;bl++){
+					  for(bx=0;bx<GeometryInfo::NXCRYS;bx++){
+						  bxx=bx+GeometryInfo::NXCRYS*bl;
 						  det_to_phy( bhead, bl, bx, 0, detb_pos);
 						  init_phy_to_pro(deta_pos,detb_pos,&m_solution[i][axx][bxx]);
 					  }
@@ -166,14 +165,14 @@ void init_sol(int *segzoffset)
 	  }
   }
 	printf("\n");
-	for(i=0;i<NYCRYS;i++){
+	for(i=0;i<GeometryInfo::NYCRYS;i++){
 		det_to_phy( 0,0, 0, i, deta_pos);
 		m_c_zpos[i] =deta_pos[2];
 		m_c_zpos2[i]=(float)(deta_pos[2]/m_plane_sep+0.5);
 	}
 	
 	for(i=0;i<63;i++){
-		for(plane=0;plane<NYCRYS*2-1;plane++){
+		for(plane=0;plane<GeometryInfo::NYCRYS*2-1;plane++){
 			if (i>m_nsegs-1){
 				m_segplane[i][plane]=-1;
 				continue;
@@ -202,10 +201,10 @@ int init_lut_sol(const char* lut_filename, int *segzoffset)
 	  //m_solution = phi(=view angle)
 	  m_solution=(SOL ***) calloc(21,sizeof(SOL **));
     for(i=1;i<=20;i++){
- 		  m_solution[i]=(SOL**) calloc(NXCRYS*NDOIS,sizeof(SOL *));
-		  for(ax=0;ax<NXCRYS*NDOIS;ax++){
-			  m_solution[i][ax]=(SOL *) calloc(NXCRYS*NDOIS,sizeof(SOL));
-        if (fread(m_solution[i][ax],sizeof(SOL),NXCRYS*NDOIS, fp) != NXCRYS*NDOIS)
+ 		  m_solution[i]=(SOL**) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS,sizeof(SOL *));
+		  for(ax=0;ax<GeometryInfo::NUM_CRYSTALS_X_DOIS;ax++){
+			  m_solution[i][ax]=(SOL *) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS,sizeof(SOL));
+        if (fread(m_solution[i][ax],sizeof(SOL),GeometryInfo::NUM_CRYSTALS_X_DOIS, fp) != GeometryInfo::NUM_CRYSTALS_X_DOIS)
         {
           fclose(fp);
           return 0;
@@ -221,20 +220,20 @@ int init_lut_sol(const char* lut_filename, int *segzoffset)
   }
 
 	printf("\n");
-	m_c_zpos   = (float *)  calloc(NYCRYS,sizeof(float ));
-	m_c_zpos2  = (float *)  calloc(NYCRYS,sizeof(float ));
+	m_c_zpos   = (float *)  calloc(GeometryInfo::NYCRYS,sizeof(float ));
+	m_c_zpos2  = (float *)  calloc(GeometryInfo::NYCRYS,sizeof(float ));
 	m_segplane = (short **) calloc(63,sizeof(short *));
 
 	for(i=0;i<63;i++) {
-		m_segplane[i]=(short *) calloc(NYCRYS*2-1,sizeof(short));
+		m_segplane[i]=(short *) calloc(GeometryInfo::NYCRYS*2-1,sizeof(short));
 	}
   
-  if (fread(m_c_zpos,sizeof(float),NYCRYS, fp) != NYCRYS)
+  if (fread(m_c_zpos,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
   {
     fclose(fp);
     return 0;
   }
-  if (fread(m_c_zpos2,sizeof(float),NYCRYS, fp) != NYCRYS)
+  if (fread(m_c_zpos2,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
   {
     fclose(fp);
     return 0;
@@ -242,7 +241,7 @@ int init_lut_sol(const char* lut_filename, int *segzoffset)
   if (fp != NULL) fclose(fp);
 	
 	for(i=0;i<63;i++){
-		for(plane=0;plane<NYCRYS*2-1;plane++){
+		for(plane=0;plane<GeometryInfo::NYCRYS*2-1;plane++){
 			if (i>m_nsegs-1){
 				m_segplane[i][plane]=-1;
 				continue;
@@ -265,21 +264,21 @@ int save_lut_sol(const char* lut_filename)
     if ((fp=fopen(lut_filename, "wb")) == NULL) return 0;
     for(i=1;i<=20;i++)
     {
-      for(ax=0;ax<NXCRYS*NDOIS;ax++)
+      for(ax=0;ax<GeometryInfo::NUM_CRYSTALS_X_DOIS;ax++)
       {
-        if (fwrite(m_solution[i][ax],sizeof(SOL),NXCRYS*NDOIS, fp) != NXCRYS*NDOIS)
+        if (fwrite(m_solution[i][ax],sizeof(SOL),GeometryInfo::NUM_CRYSTALS_X_DOIS, fp) != GeometryInfo::NUM_CRYSTALS_X_DOIS)
         {
           fclose(fp);
           return 0;
         }
       }
     }
-    if (fwrite(m_c_zpos,sizeof(float),NYCRYS, fp) != NYCRYS)
+    if (fwrite(m_c_zpos,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
     {
       fclose(fp);
       return 0;
     }
-    if (fwrite(m_c_zpos2,sizeof(float),NYCRYS, fp) != NYCRYS)
+    if (fwrite(m_c_zpos2,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
     {
       fclose(fp);
       return 0;
@@ -298,8 +297,8 @@ void init_sol_tx(int tx_span)
   float deta_pos[3], detb_pos[3];
 
 /*
-	m_c_zpos   = (float *)  calloc(NYCRYS,sizeof(float ));
-	m_c_zpos2  = (float *)  calloc(NYCRYS,sizeof(float ));
+	m_c_zpos   = (float *)  calloc(GeometryInfo::NYCRYS,sizeof(float ));
+	m_c_zpos2  = (float *)  calloc(GeometryInfo::NYCRYS,sizeof(float ));
 	m_segplane = NULL;
 */
 
@@ -316,22 +315,22 @@ void init_sol_tx(int tx_span)
 		  7  12 16 19
 		  11 15 18
   */
-	   m_solution_tx[0][i]=(SOL**) calloc(NXCRYS*NDOIS,sizeof(SOL *));
-	    m_solution_tx[1][i]=(SOL**) calloc(NXCRYS*NDOIS,sizeof(SOL *));
-	    for(ax=0;ax<NXCRYS*NDOIS;ax++){
-        m_solution_tx[0][i][ax]=(SOL *) calloc(NXCRYS,sizeof(SOL));
-		    m_solution_tx[1][i][ax]=(SOL *) calloc(NXCRYS,sizeof(SOL));
+	   m_solution_tx[0][i]=(SOL**) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS,sizeof(SOL *));
+	    m_solution_tx[1][i]=(SOL**) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS,sizeof(SOL *));
+	    for(ax=0;ax<GeometryInfo::NUM_CRYSTALS_X_DOIS;ax++){
+        m_solution_tx[0][i][ax]=(SOL *) calloc(GeometryInfo::NXCRYS,sizeof(SOL));
+		    m_solution_tx[1][i][ax]=(SOL *) calloc(GeometryInfo::NXCRYS,sizeof(SOL));
       }
     }
     // Table 0,  B is  TX source
     for(i=1;i<=nmpairs;i++){
       ahead = mpairs[i][0];
 		  bhead = mpairs[i][1];
-		  for(al=0;al<NDOIS;al++){ //layer
-			  for(ax=0;ax<NXCRYS;ax++){ //x축
-				  axx=ax+NXCRYS*al;       //x축+레이어
+		  for(al=0;al<GeometryInfo::NDOIS;al++){ //layer
+			  for(ax=0;ax<GeometryInfo::NXCRYS;ax++){ //x축
+				  axx=ax+GeometryInfo::NXCRYS*al;       //x축+레이어
 				  det_to_phy( ahead, al, ax, 0, deta_pos);
-					  for(bx=0;bx<NXCRYS;bx++){
+					  for(bx=0;bx<GeometryInfo::NXCRYS;bx++){
 						  det_to_phy( bhead, 7, bx, 0, detb_pos);
 						  init_phy_to_pro(deta_pos,detb_pos,&m_solution_tx[0][i][axx][bx]);
 					  }
@@ -343,11 +342,11 @@ void init_sol_tx(int tx_span)
     for(i=1;i<=nmpairs;i++){
       ahead = mpairs[i][0];
 		  bhead = mpairs[i][1];
-      for(ax=0;ax<NXCRYS;ax++){ //x축
+      for(ax=0;ax<GeometryInfo::NXCRYS;ax++){ //x축
 				  det_to_phy( ahead, 7, ax, 0, deta_pos);
-          for(bl=0;bl<NDOIS;bl++){ //layer
-					  for(bx=0;bx<NXCRYS;bx++){
-						  bxx=bx+NXCRYS*bl;
+          for(bl=0;bl<GeometryInfo::NDOIS;bl++){ //layer
+					  for(bx=0;bx<GeometryInfo::NXCRYS;bx++){
+						  bxx=bx+GeometryInfo::NXCRYS*bl;
 						  det_to_phy( bhead, bl, bx, 0, detb_pos);
 						  init_phy_to_pro(deta_pos,detb_pos,&m_solution_tx[1][i][bxx][ax]);
 					  }
@@ -356,7 +355,7 @@ void init_sol_tx(int tx_span)
     }
 /*
 	printf("\n");
-	for(i=0;i<NYCRYS;i++){
+	for(i=0;i<GeometryInfo::NYCRYS;i++){
 		det_to_phy( 0,0, 0, i, deta_pos);
 		m_c_zpos[i] =deta_pos[2];
 		m_c_zpos2[i]=(float)(deta_pos[2]/m_plane_sep+0.5);
@@ -372,10 +371,10 @@ int save_lut_sol_tx(const char* lut_filename)
   if ((fp=fopen(lut_filename, "wb")) == NULL) return 0;
   for(i=1;i<=nmpairs;i++)
     {
-      for(ax=0;ax<NXCRYS*NDOIS;ax++)
+      for(ax=0;ax<GeometryInfo::NUM_CRYSTALS_X_DOIS;ax++)
       {
-        if (fwrite(m_solution_tx[0][i][ax],sizeof(SOL),NXCRYS, fp) != NXCRYS ||
-            fwrite(m_solution_tx[1][i][ax],sizeof(SOL),NXCRYS, fp) != NXCRYS)
+        if (fwrite(m_solution_tx[0][i][ax],sizeof(SOL),GeometryInfo::NXCRYS, fp) != GeometryInfo::NXCRYS ||
+            fwrite(m_solution_tx[1][i][ax],sizeof(SOL),GeometryInfo::NXCRYS, fp) != GeometryInfo::NXCRYS)
         {
           fclose(fp);
           return 0;
@@ -383,12 +382,12 @@ int save_lut_sol_tx(const char* lut_filename)
       }
     }
 /*
-  if (fwrite(m_c_zpos,sizeof(float),NYCRYS, fp) != NYCRYS)
+  if (fwrite(m_c_zpos,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
     {
       fclose(fp);
       return 0;
     }
-  if (fwrite(m_c_zpos2,sizeof(float),NYCRYS, fp) != NYCRYS)
+  if (fwrite(m_c_zpos2,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
     {
       fclose(fp);
       return 0;
@@ -415,13 +414,13 @@ int init_lut_sol_tx(const char* lut_filename)
     m_solution_tx[0]=(SOL ***) calloc(21,sizeof(SOL **));
 	  m_solution_tx[1]=(SOL ***) calloc(21,sizeof(SOL **));
     for(i=1;i<=20;i++){
-      m_solution_tx[0][i]=(SOL**) calloc(NXCRYS*NDOIS,sizeof(SOL *));
- 		  m_solution_tx[1][i]=(SOL**) calloc(NXCRYS*NDOIS,sizeof(SOL *));
-		  for(ax=0;ax<NXCRYS*NDOIS;ax++){
-			  m_solution_tx[0][i][ax]=(SOL *) calloc(NXCRYS,sizeof(SOL));
-			  m_solution_tx[1][i][ax]=(SOL *) calloc(NXCRYS,sizeof(SOL));
-        if (fread(m_solution_tx[0][i][ax],sizeof(SOL),NXCRYS, fp) != NXCRYS ||
-          fread(m_solution_tx[1][i][ax],sizeof(SOL),NXCRYS, fp) != NXCRYS)
+      m_solution_tx[0][i]=(SOL**) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS,sizeof(SOL *));
+ 		  m_solution_tx[1][i]=(SOL**) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS,sizeof(SOL *));
+		  for(ax=0;ax<GeometryInfo::NUM_CRYSTALS_X_DOIS;ax++){
+			  m_solution_tx[0][i][ax]=(SOL *) calloc(GeometryInfo::NXCRYS,sizeof(SOL));
+			  m_solution_tx[1][i][ax]=(SOL *) calloc(GeometryInfo::NXCRYS,sizeof(SOL));
+        if (fread(m_solution_tx[0][i][ax],sizeof(SOL),GeometryInfo::NXCRYS, fp) != GeometryInfo::NXCRYS ||
+          fread(m_solution_tx[1][i][ax],sizeof(SOL),GeometryInfo::NXCRYS, fp) != GeometryInfo::NXCRYS)
         {
           fclose(fp);
           return 0;
@@ -432,20 +431,20 @@ int init_lut_sol_tx(const char* lut_filename)
 
 /*
 	printf("\n");
-	m_c_zpos   = (float *)  calloc(NYCRYS,sizeof(float ));
-	m_c_zpos2  = (float *)  calloc(NYCRYS,sizeof(float ));
+	m_c_zpos   = (float *)  calloc(GeometryInfo::NYCRYS,sizeof(float ));
+	m_c_zpos2  = (float *)  calloc(GeometryInfo::NYCRYS,sizeof(float ));
 	m_segplane = (short **) calloc(63,sizeof(short *));
 
 	for(i=0;i<63;i++) {
-		m_segplane[i]=(short *) calloc(NYCRYS*2-1,sizeof(short));
+		m_segplane[i]=(short *) calloc(GeometryInfo::NYCRYS*2-1,sizeof(short));
 	}
   
-  if (fread(m_c_zpos,sizeof(float),NYCRYS, fp) != NYCRYS)
+  if (fread(m_c_zpos,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
   {
     fclose(fp);
     return 0;
   }
-  if (fread(m_c_zpos2,sizeof(float),NYCRYS, fp) != NYCRYS)
+  if (fread(m_c_zpos2,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
   {
     fclose(fp);
     return 0;

@@ -91,13 +91,15 @@ struct TX_SourcePosition {
 // extern auto g_logger;
 extern std::shared_ptr<spdlog::logger> g_logger;
 
+// Defined extern
+unsigned int start_countrate_ = 0;
+
 int quiet = 0;
-int g_hist_mode = 0;              // 0=Trues (Default), 1=Prompts and Randoms, 2=Prompts only, 7=transmission
+HIST_MODE g_hist_mode = HM_TRU;              // 0=Trues (Default), 1=Prompts and Randoms, 2=Prompts only, 7=transmission
 int timetag_processing = 1;     // 0=Use timetag count for time, 1=decode time from timetag event
-unsigned rebinner_method = SW_REBINNER;
+unsigned eg_rebinner_method = SW_REBINNER;
 int g_max_rd = 67;
 int stop_count_ = 0;
-int start_countrate_ = 0;
 
 int frame_start_time = -1;      //First time extracted from time tag in sec
 int frame_duration = -1;        //First time extracted from time tag in sec
@@ -273,9 +275,9 @@ long process_tagword(long tagword, long duration, std::ofstream &out_hc)
   }
 
   else if ((tagword & 0xE0000000) == 0xc0000000) { // Gantry Motions & positions
-    int head = (tagword & 0x000f0000) >> 16;
-    int tx_y = (tagword & 0x0000ff00) >> 8;
-    int tx_x = tagword & 0x000000ff;
+    // int head = (tagword & 0x000f0000) >> 16;
+    // int tx_y = (tagword & 0x0000ff00) >> 8;
+    // int tx_x = tagword & 0x000000ff;
     //  cout << "tx pos: " << tx_source.head << "," << tx_source.x << "," << tx_source.y << ": " << tx_source.timer << "msec" << endl;
     tx_source.head = (short)((tagword & 0x000f0000) >> 16);
     tx_source.y = (short)((tagword & 0x0000ff00) >> 8);
@@ -285,7 +287,7 @@ long process_tagword(long tagword, long duration, std::ofstream &out_hc)
     tx_source.timer = 0;
     tx_mock.head = tx_source.head;
     tx_mock.x = tx_source.x;
-    tx_mock.y = (tx_source.y + NYCRYS / 2) % NYCRYS;
+    tx_mock.y = (tx_source.y + GeometryInfo::NYCRYS / 2) % GeometryInfo::NYCRYS;
     tx_mock.z_low = tx_mock.y - (tx_span / 2);
     tx_mock.z_high = tx_mock.y + (tx_span / 2);
     // keep tx_low positive to allow comparison with unsigned
@@ -379,7 +381,8 @@ static int next_event_32(Event_32 &cew, int scan_flag) {
 static int goto_event_32(int target)
 {
   unsigned event, tag;
-  int tmp_time = 0, prev_time = 0;
+  int tmp_time = 0;
+  // int prev_time;
   int terminate = 0;
 
   g_logger->info("Skipping to {} secs (goto_event_32, nevent {})", target, nevents);
@@ -400,7 +403,7 @@ static int goto_event_32(int target)
     if (tag) {
       if ((event & 0xE0000000) == 0x80000000) {
         tmp_time = event & 0x3fffffff;
-        prev_time = tmp_time;
+        // prev_time = tmp_time;
         if (tmp_time == 0 && target == 0) {
           // goto time 0
           current_time = 0;
@@ -452,11 +455,14 @@ inline void load_buffer_64(unsigned *&buf, int &nevents, int &nsync)
  * Returns 1 (OK)
  * Logs an error and retun 0 otherwise.
  */
+// Commented out as unused 1/1/19 ahc
+/*
 static int goto_event_64(int target)
 {
   unsigned int ew1, ew2, type, tag;
-  int tmp_time = 0, prev_time = 0;
-  int64_t tot_events = 0;
+  int tmp_time = 0;
+  // int prev_time = 0;
+  // int64_t tot_events = 0;
   int terminate = 0;
 
   g_logger->info("Skipping To {} secs (goto_event_64)", target);
@@ -490,7 +496,7 @@ static int goto_event_64(int target)
       tag = (ew1 & 0xffff) | ((ew2 & 0xffff) << 16);
       if ((tag & 0xE0000000) == 0x80000000) {
         tmp_time = tag & 0x3fffffff;
-        prev_time = tmp_time;
+        // prev_time = tmp_time;
         if (tmp_time == 0 && target == 0) {
           // goto time 0
           current_time = 0;
@@ -509,6 +515,7 @@ static int goto_event_64(int target)
   g_logger->info("done");
   return 1;
 }
+*/
 
 /**
  * next_event_64:
@@ -537,7 +544,7 @@ static int next_event_64(Event_32 &cew, int scan_flag)
   ew1 = listptr[0];
   ew2 = listptr[1];
   type = ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
-  unsigned doi_processing = (rebinner_method & NODOI_PROCESSING) == 0 ? 1 : 0;
+  unsigned doi_processing = (eg_rebinner_method & NODOI_PROCESSING) == 0 ? 1 : 0;
   while (type == 3) {
     // sync
     nsync++;
@@ -573,12 +580,12 @@ static int next_event_64(Event_32 &cew, int scan_flag)
         //    cerr << current_time << ": Invalid head pair " << mpe << endl;
         error_flag++;
       }
-      if (ax < 0 || ax >= NXCRYS || ay < 0 || ay >= NYCRYS) {
-        g_logger->error("{}: next_event_64: Invalid crystal pair A: ({},{}) (NXCRYS {}, NYCRYS {})", current_time, ax, ay, NXCRYS, NYCRYS);
+      if (ax < 0 || ax >= GeometryInfo::NXCRYS || ay < 0 || ay >= GeometryInfo::NYCRYS) {
+        g_logger->error("{}: next_event_64: Invalid crystal pair A: ({},{}) (NXCRYS {}, GeometryInfo::NYCRYS {})", current_time, ax, ay, GeometryInfo::NXCRYS, GeometryInfo::NYCRYS);
         error_flag++;
       }
-      if (bx < 0 || bx >= NXCRYS || by < 0 || by >= NYCRYS) {
-        g_logger->error("{}: next_event_64: Invalid crystal pair B: ({},{}) (NXCRYS {}, NYCRYS {})", current_time, ax, ay, NXCRYS, NYCRYS);
+      if (bx < 0 || bx >= GeometryInfo::NXCRYS || by < 0 || by >= GeometryInfo::NYCRYS) {
+        g_logger->error("{}: next_event_64: Invalid crystal pair B: ({},{}) (NXCRYS {}, GeometryInfo::NYCRYS {})", current_time, ax, ay, GeometryInfo::NXCRYS, GeometryInfo::NYCRYS);
         error_flag++;
       }
       if ((doia != 1 && doia != 0 && doia != 7) || (doib != 1 && doib != 0 && doib != 7)) {
@@ -626,7 +633,7 @@ static double total(unsigned *v, int count)
 
 void reset_coin_map()
 {
-  unsigned ncrystals = NDOIS * NXCRYS * NYCRYS * NHEADS;
+  unsigned ncrystals = GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS;
   memset(g_p_coinc_map, 0, ncrystals * sizeof(unsigned));
   memset(g_d_coinc_map, 0, ncrystals * sizeof(unsigned));
 }
@@ -637,10 +644,11 @@ void reset_coin_map()
  *  Sum all threads ch counters and output the sum
  */
 int write_coin_map(const bf::path &datafile) {
-  int x = 0, y = 0, h = 0, b = 0, l = 0;
+  // int x = 0, y = 0, h = 0, b = 0, l = 0;
   // char out_file[FILENAME_MAX];
-  unsigned i = 0, ncrystals = NDOIS * NXCRYS * NYCRYS * NHEADS;
-  int rebinner_ID = 0;
+  // unsigned i = 0;
+  unsigned ncrystals = GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS;
+  // int rebinner_ID = 0;
   unsigned *coinh_p = g_p_coinc_map, *coinh_d = g_d_coinc_map;
 
   // Create coincidence histogram file with extension ".ch"
@@ -878,9 +886,8 @@ bf::path &make_path(const bf::path &infile, FILE_TYPE file_type) {
   // 4742713,41128,161148,1676
   // Return vector<int> indexec by HC_FILE_COLUMNS enum
 
-int read_hc_line(const std::ifstream &instream) {
-
-}
+// int read_hc_line(const std::ifstream &instream) {
+// }
 
 /*
  * int find_start_countrate(const char *fname)
@@ -894,7 +901,7 @@ int read_hc_line(const std::ifstream &instream) {
  */
 
 int find_start_countrate(bf::path l64_file) {
-  const bf::path hc_file = make_path(l64_file, FT_HC);
+  const bf::path hc_file = make_path(l64_file, FILE_TYPE::HC);
   if (! bf::is_regular_file(hc_file)) {
     g_logger->info("hc file {} not found; trying listmode file", hc_file.string());
     return find_start_countrate_lm(l64_file);
@@ -913,9 +920,9 @@ int find_start_countrate(bf::path l64_file) {
     instream >> in_line;
     if (bx::regex_match(in_line, what, reg_hc)) {
       int time = boost::lexical_cast<int>(what["time"]);
-      int prompt = boost::lexical_cast<int>(what["prompt"]);
-      int random = boost::lexical_cast<int>(what["random"]);
-      found = ((prompt - random) > (int)start_countrate_);
+      unsigned int prompt = boost::lexical_cast<unsigned int>(what["prompt"]);
+      unsigned int random = boost::lexical_cast<unsigned int>(what["random"]);
+      found = ((prompt - random) > (unsigned int)start_countrate_);
       if (lasttime > time) {
         g_logger->error("Time out of order in hc file {}: {}", hc_file.string(), in_line);
         throw;
@@ -936,7 +943,7 @@ int find_start_countrate(bf::path l64_file) {
 //   char line[80];
 //   int err_flag = 0;
 
-//   std::string hc_fname = make_file_name(fname, FT_HC);
+//   std::string hc_fname = make_file_name(fname, FILE_TYPE::HC);
 //   std::ifstream hc_file;
 //   if (open_istream(hc_file, hc_fname, std::ios::in | std::ios::binary))
 //     return 1;
@@ -1021,25 +1028,26 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
   unsigned int ew1, ew2, type, tag;
   int ax, ay, bx, by;
   int address;
-  int ahead, bhead, ablk, bblk;
+  int ahead, bhead;
+  // int ablk, bblk;
   int doia = 1, doib = 1;
   int mpe, error_flag = 0;
   const unsigned *in_buf = src.events;
   unsigned *out_buf = dst.events;
   unsigned  count = src.num_events * 2;
 
-  int ncrystals = NDOIS * NXCRYS * NYCRYS * NHEADS;
   unsigned *coinh_p = g_p_coinc_map;
   unsigned *coinh_d = g_d_coinc_map;
-  int nvoxels = NXCRYS * NYCRYS * NHEADS, npixels = NHEADS * NXCRYS;
+  int nvoxels = GeometryInfo::NUM_CRYSTALS_X_Y_HEADS;
+  int npixels = GeometryInfo::NUM_CRYSTALS_X_Y;
   unsigned src_pos = 0, dst_pos = 0;
-  unsigned ignore_border_crystal = rebinner_method & IGNORE_BORDER_CRYSTAL;
-  unsigned doi_processing = (rebinner_method & NODOI_PROCESSING) == 0 ? 1 : 0;
+  unsigned ignore_border_crystal = eg_rebinner_method & IGNORE_BORDER_CRYSTAL;
+  unsigned doi_processing = (eg_rebinner_method & NODOI_PROCESSING) == 0 ? 1 : 0;
 
 
-  int xhigh = NXCRYS; //, yhigh=nycrys;
+  int xhigh = GeometryInfo::NXCRYS; //, yhigh=nycrys;
   if (ignore_border_crystal) {
-    xhigh = NXCRYS - 1;
+    xhigh = GeometryInfo::NXCRYS - 1;
     //      yhigh = nycrys-1;
   }
 
@@ -1056,7 +1064,7 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
     case 2: // tag word
       src_pos += 2;
       tag = (ew1 & 0xffff) | ((ew2 & 0xffff) << 16);
-      if (g_hist_mode == 7) {
+      if (g_hist_mode == HM_TRA) {
         // transmission mode
         if ((tag & 0xE0000000) == 0x80000000) {
           // timetag
@@ -1065,9 +1073,9 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
           dst_pos++;
         } else if ((tag & 0xE0000000) == 0xc0000000) {
           // Gantry Motions & positions
-          int head = (tag & 0x000f0000) >> 16;
-          int tx_y = (tag & 0x0000ff00) >> 8;
-          int tx_x = tag & 0x000000ff;
+          // int head = (tag & 0x000f0000) >> 16;
+          // int tx_y = (tag & 0x0000ff00) >> 8;
+          // int tx_x = tag & 0x000000ff;
           //  cerr << "xxx TX pos: " << tx_source.head << "," << tx_source.x << "," << tx_source.y << ": " << tx_mock.timer << "msec" << endl;
           tx_source.head = (tag & 0x000f0000) >> 16;
           tx_source.y = (tag & 0x0000ff00) >> 8;
@@ -1077,7 +1085,7 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
           tx_source.timer = 0;
           tx_mock.head = tx_source.head;
           tx_mock.x = tx_source.x;
-          tx_mock.y = (tx_source.y + NYCRYS / 2) % NYCRYS;
+          tx_mock.y = (tx_source.y + GeometryInfo::NYCRYS / 2) % GeometryInfo::NYCRYS;
           tx_mock.z_low = tx_mock.y - (tx_span / 2);
           tx_mock.z_high = tx_mock.y + (tx_span / 2);
           // keep tx_low positive to allow comparison with unsigned
@@ -1104,10 +1112,10 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
       ay = ((ew1 & 0xff00) >> 8);
       bx = (ew2 & 0xff);
       by = ((ew2 & 0xff00) >> 8);
-      if (doi_processing || g_hist_mode == 7) {
+      if (doi_processing || g_hist_mode == HM_TRA) {
         doia = (ew1 & 0x01C00000) >> 22;
         doib = (ew2 & 0x01C00000) >> 22;
-        if (g_hist_mode == 7)
+        if (g_hist_mode == HM_TRA)
           if (doia != 7 && doib != 7) {
             g_logger->error("{}: Invalid crystal DOI fro TX event ({},{}) ({},{}) ", doia, ay, bx, by);
             error_flag++;
@@ -1118,17 +1126,17 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
           //    cerr << "current_time " << current_time << ": Invalid head pair " << mpe << ", error_flag " << error_flag << endl;
           error_flag++;
       }
-      if (ax < 0 || ax >= NXCRYS || ay < 0 || ay >= NYCRYS) {
+      if (ax < 0 || ax >= GeometryInfo::NXCRYS || ay < 0 || ay >= GeometryInfo::NYCRYS) {
         if (verbose) 
-          g_logger->error("{}: next_event_64: Invalid crystal pair A: ({},{}) (NXCRYS {}, NYCRYS {})", current_time, ax, ay, NXCRYS, NYCRYS);
+          g_logger->error("{}: next_event_64: Invalid crystal pair A: ({},{}) (NXCRYS {}, GeometryInfo::NYCRYS {})", current_time, ax, ay, GeometryInfo::NXCRYS, GeometryInfo::NYCRYS);
         error_flag++;
       }
-      if (bx < 0 || bx >= NXCRYS || by < 0 || by >= NYCRYS) {
+      if (bx < 0 || bx >= GeometryInfo::NXCRYS || by < 0 || by >= GeometryInfo::NYCRYS) {
         if (verbose) 
-          g_logger->error("{}: next_event_64: Invalid crystal pair B: ({},{}) (NXCRYS {}, NYCRYS {})", current_time, ax, ay, NXCRYS, NYCRYS);
+          g_logger->error("{}: next_event_64: Invalid crystal pair B: ({},{}) (NXCRYS {}, GeometryInfo::NYCRYS {})", current_time, ax, ay, GeometryInfo::NXCRYS, GeometryInfo::NYCRYS);
         error_flag++;
       }
-      // if (ax >= NXCRYS ||  ay >= NYCRYS || bx >= NXCRYS || by >= NYCRYS) {
+      // if (ax >= GeometryInfo::NXCRYS ||  ay >= GeometryInfo::NYCRYS || bx >= GeometryInfo::NXCRYS || by >= GeometryInfo::NYCRYS) {
       //     if (verbose) cerr <<  current_time << ": Invalid crystal pair (" << ax << "," << ay << ") (" << bx << "," << by << ")" << endl;
       //     error_flag++;
       // }
@@ -1182,7 +1190,7 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
           if (ignore_border_crystal && (ax * bx == 0 || ax == xhigh || bx == xhigh )) {
             address = -1;
           } else {
-            if (g_hist_mode == 2) {
+            if (g_hist_mode == HM_PRO) {
               if (type == 0) {
                 // prompt
                 address = rebin_event( mpe, doia, ax, ay, doib, bx, by /*, type*/);
@@ -1202,16 +1210,16 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
           }
           //
           // Update coincidence histogram: increment singles in crystals indices
-          ablk = (ay / 8) * 9 + (ax / 8);
-          bblk = (by / 8) * 9 + (bx / 8);
+          // ablk = (ay / 8) * 9 + (ax / 8);
+          // bblk = (by / 8) * 9 + (bx / 8);
           ahead = hrrt_mpairs[mpe][0];
           bhead = hrrt_mpairs[mpe][1];
           if (coinh_p && (type == 0)) {
-            coinh_p[doia * nvoxels + ahead * NXCRYS + ax + ay * npixels]++;
-            coinh_p[doib * nvoxels + bhead * NXCRYS + bx + by * npixels]++;
+            coinh_p[doia * nvoxels + ahead * GeometryInfo::NXCRYS + ax + ay * npixels]++;
+            coinh_p[doib * nvoxels + bhead * GeometryInfo::NXCRYS + bx + by * npixels]++;
           } else if (coinh_d && (type == 1)) {
-            coinh_d[doia * nvoxels + ahead * NXCRYS + ax + ay * npixels]++;
-            coinh_d[doib * nvoxels + bhead * NXCRYS + bx + by * npixels]++;
+            coinh_d[doia * nvoxels + ahead * GeometryInfo::NXCRYS + ax + ay * npixels]++;
+            coinh_d[doib * nvoxels + bhead * GeometryInfo::NXCRYS + bx + by * npixels]++;
           }
         }
       }
@@ -1294,7 +1302,7 @@ template <class T> int histogram(T *t_sino, char *delayed, int sino_size, int &t
   int address = 0, tx_flag = 0;
   T *sub_sino = t_sino + sino_size;
 
-  int tx_sino_size = m_nprojs * m_nviews * (2 * NYCRYS - 1);
+  // int tx_sino_size = m_nprojs * m_nviews * (2 * GeometryInfo::NYCRYS - 1);
   fmt::print(t_out_hc, "Singles,Randoms,Prompts,Time(ms)\n");
 
   Event_32 cew;
@@ -1391,11 +1399,11 @@ template <class T> int histogram(T *t_sino, char *delayed, int sino_size, int &t
 
 template int histogram(char *sino, char *delayed, int sino_size, int &duration,  std::ofstream &out_hc);
 template int histogram(short *sino, char *delayed, int sino_size, int &duration, std::ofstream &out_hc);
-
+/*
 static void lmscan_32(std::ofstream &out, long *duration) {
   long prev_time = 0, time = 0;
   long prompts = 0, randoms = 0, total_singles = 0;
-  long max_plane = 0;
+  // long max_plane = 0;
 
   // reset the counters
   reset_statistics();
@@ -1432,14 +1440,14 @@ static void lmscan_32(std::ofstream &out, long *duration) {
       }
     }
   }
-
   *duration = time;
 }
+*/
 
 static void lmscan_64(std::ofstream &out, long *duration) {
   long prev_time = 0, time = 0;
   long prompts = 0, randoms = 0, total_singles = 0;
-  long max_plane = 0;
+  // long max_plane = 0;
 
   // reset the counters
   reset_statistics();

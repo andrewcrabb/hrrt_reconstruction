@@ -40,7 +40,7 @@ static void init_cosine(unsigned corrections)
 			{
 				int bcrys =  i%8;
 				int blk   =  i/8;
-				float dz     =  (float)(blk*(BSIZE+BGAP)+bcrys*(CSIZE+CGAP));
+				float dz     =  (float)(blk*(GeometryInfo::BSIZE+GeometryInfo::BGAP)+bcrys*(GeometryInfo::CSIZE+GeometryInfo::CGAP));
 				cosine[i] = (float)(cos(atan(dz/(2*m_crystal_radius))));
 			}
 		}

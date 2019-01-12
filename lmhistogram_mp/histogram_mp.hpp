@@ -26,20 +26,29 @@
 
 namespace bf = boost::filesystem;
 
-enum FILE_TYPE {FT_SINO, FT_SINO_HDR, FT_LM_HC, FT_RA_S, FT_TR_S, FT_DYN, FT_HC, FT_L64_HDR, FT_S, FT_FR_S};
+enum class FILE_TYPE {
+  SINO, 
+  SINO_HDR, 
+  LM_HC, 
+  RA_S, 
+  TR_S, 
+  DYN, 
+  HC, 
+  L64_HDR, 
+  FR_S
+};
 std::map <FILE_TYPE, std::string> FILE_EXTENSIONS = {
   // Constant names
-  {FT_SINO    , ".s"},
-  {FT_SINO_HDR, ".s.hdr"},
-  {FT_LM_HC   , "_lm.hc"},
-  {FT_RA_S    , ".ra.s"},
-  {FT_TR_S    , ".tr.s"},
-  {FT_DYN     , ".dyn"},
-  {FT_HC      , ".hc"},
-  {FT_L64_HDR , ".l64.hdr"},
-  {FT_S       , ".s"},
+  {FILE_TYPE::SINO    , ".s"},
+  {FILE_TYPE::SINO_HDR, ".s.hdr"},
+  {FILE_TYPE::LM_HC   , "_lm.hc"},
+  {FILE_TYPE::RA_S    , ".ra.s"},
+  {FILE_TYPE::TR_S    , ".tr.s"},
+  {FILE_TYPE::DYN     , ".dyn"},
+  {FILE_TYPE::HC      , ".hc"},
+  {FILE_TYPE::L64_HDR , ".l64.hdr"},
   // Names with frame number
-  {FT_FR_S    , "_frame{:2d}.s"}
+  {FILE_TYPE::FR_S    , "_frame{:2d}.s"}
 };
 
 // Histogram mode
@@ -109,11 +118,11 @@ int64_t total_tx_randoms(); // TX events for P39 simultaneous TX+EM
 
 // Global variables
 // extern int l64_flag;                // 1 if 64-bit mode, 0 otherwise
-extern int g_hist_mode;                // 0=Trues (Default), 1=Prompts and Randoms, 2=Prompts only, 7=transmission
+extern HIST_MODE g_hist_mode;                // 0=Trues (Default), 1=Prompts and Randoms, 2=Prompts only, 7=transmission
 extern int g_max_rd;                   // maximum ring difference, default=67
 extern int quiet;                      // default=0 (false)
 extern int stop_count_;           // default 0 (Not applicable)
-extern int start_countrate_;      // starting trues/sec  default=0 (Not applicable)
+extern unsigned int start_countrate_;      // starting trues/sec  default=0 (Not applicable)
 extern float g_tx_source_speed;        // msec per crystal, depends on axial_velocity value in transmission header
 extern unsigned *p_coinc_map;          // crystal singles counters for prompts
                   // size = ncrystals
@@ -125,7 +134,7 @@ extern void reset_coin_map();
 extern void log_message(const char *msg, int type=0);
 
 extern int timetag_processing;
-extern unsigned rebinner_method;
+extern unsigned eg_rebinner_method;
 typedef enum {HW_REBINNER=0x1, SW_REBINNER=0x2, IGNORE_BORDER_CRYSTAL=0x4, NODOI_PROCESSING=0x8} 
   RebinnerMethodMask;
 extern int frame_start_time;

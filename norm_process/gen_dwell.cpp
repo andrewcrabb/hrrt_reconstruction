@@ -28,7 +28,7 @@ void main(int argc, char ** argv)
   int ax, ay, bx, by;
   int alayer, blayer, rd;
 	int axx,bxx;
-	int headxcrys=NHEADS*NXCRYS;
+	int headxcrys = GeometryInfo::NHEADS * GeometryInfo::NXCRYS;
 	float cay;
   float *dptr;
 	int nprojs=256, nviews=288;
@@ -42,7 +42,7 @@ void main(int argc, char ** argv)
   const char *rebinner_lut_file=NULL;
   const char *out_file =NULL;
   double m_d_tan_theta=0;
-  int layer=NDOIS; // all layers
+  int layer=GeometryInfo::NDOIS; // all layers
 
   while ((i=getopt( argc, argv, "o:l:s:")) != -1)
   {
@@ -52,7 +52,7 @@ void main(int argc, char ** argv)
       out_file = optarg; break;
     case 'l':
       sscanf(optarg, "%d", &layer);
-      if (layer<0 || layer>NDOIS) 
+      if (layer<0 || layer>GeometryInfo::NDOIS) 
       {
         fprintf(stderr, "Invalid layer %d\n", layer);
         usage(argv[0]);
@@ -70,7 +70,7 @@ void main(int argc, char ** argv)
     fprintf(stdout,"Rebinner LUT file not found\n");
     exit(1);
   }
-  init_segment_info(&m_nsegs,&nplanes,&m_d_tan_theta,maxrd,span,NYCRYS,
+  init_segment_info(&m_nsegs,&nplanes,&m_d_tan_theta,maxrd,span,GeometryInfo::NYCRYS,
     m_crystal_radius,m_plane_sep);
   npixels=nprojs*nviews;
   nvoxels=npixels*nplanes;
@@ -92,13 +92,13 @@ void main(int argc, char ** argv)
   for (int mp=1; mp<=nmpairs; mp++)
   {
     printf("mp %d\n", mp);
-	  for (alayer=0; alayer<NDOIS; alayer++)
+	  for (alayer=0; alayer<GeometryInfo::NDOIS; alayer++)
     {
-      if (layer<NDOIS && alayer != layer) continue; // not requested layer
-		  for (ay=0; ay<NYCRYS; ay++){
+      if (layer<GeometryInfo::NDOIS && alayer != layer) continue; // not requested layer
+		  for (ay=0; ay<GeometryInfo::NYCRYS; ay++){
 			  cay=m_c_zpos2[ay];
 			  bs=1000;be=-1000;
-			  for(by=0;by<NYCRYS;by++){
+			  for(by=0;by<GeometryInfo::NYCRYS;by++){
 				  dz2[by]=m_c_zpos[by]-m_c_zpos[ay]; // z diff. between det A and det B
           rd = ay-by; if (rd<0) rd=by-ay; 
 				  if(rd < maxrd+6){  // dsaint31 : why 6??
@@ -106,12 +106,12 @@ void main(int argc, char ** argv)
 					  if(be<by) be=by; //end   ring # of detB
 				  }
 			  }
-			  for (ax=0; ax<NXCRYS; ax++){
-				  axx=ax+NXCRYS*alayer;
-				  for (blayer=0; blayer<NDOIS; blayer++){
-            if (layer<NDOIS && blayer != layer) continue; // not requested layer
-					  bxx=NXCRYS*blayer;
-					  for (bx=0; bx<NXCRYS; bx++,bxx++){
+			  for (ax=0; ax<GeometryInfo::NXCRYS; ax++){
+				  axx=ax+GeometryInfo::NXCRYS*alayer;
+				  for (blayer=0; blayer<GeometryInfo::NDOIS; blayer++){
+            if (layer<GeometryInfo::NDOIS && blayer != layer) continue; // not requested layer
+					  bxx=GeometryInfo::NXCRYS*blayer;
+					  for (bx=0; bx<GeometryInfo::NXCRYS; bx++,bxx++){
 						  if(m_solution[mp][axx][bxx].nsino==-1) continue;
 						  sol=&m_solution[mp][axx][bxx];
   						

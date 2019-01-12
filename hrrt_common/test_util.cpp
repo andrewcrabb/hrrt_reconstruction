@@ -36,7 +36,7 @@ int test_time (const string &str) {
 // 	using namespace boost::xpressive;
 // 	string str;
 
-// 	if (hdr.Readchar(CHeader::DOSE_ASSAY_DATE, str)) {
+// 	if (hdr.ReadChar(CHeader::DOSE_ASSAY_DATE, str)) {
 // 		smatch match;
 // 		sregex reg = sregex::compile(CHeader::DOSE_ASSAY_DATE + "\\s+:=\\s+(?P<value>.+)$");
 // 		if (regex_match(str, match, reg)) {
