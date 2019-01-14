@@ -147,8 +147,8 @@ int rebin_event_tx( int mp, int alayer, int ax, int ay, int blayer, int bx, int 
   int plane, seg, addr = -1, sino_addr;
   int axx, bxx;
 
-  int ahead = hrrt_mpairs[mp][0];
-  int bhead = hrrt_mpairs[mp][1];
+  int ahead = GeometryInfo::hrrt_mpairs[mp][0];
+  int bhead = GeometryInfo::hrrt_mpairs[mp][1];
   det_to_phy( ahead, alayer, ax, ay, deta);
   det_to_phy( bhead, blayer, bx, by, detb);
   dz = detb[2] - deta[2];

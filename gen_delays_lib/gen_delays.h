@@ -11,18 +11,23 @@
 
 #include <cstdio>
 
+#include "geometry_info.h"
+
 int gen_delays(int argc, char **argv,int is_inline, float scan_duration,
 			   float ***result,FILE *p_coins_file,  char *p_delays_file, 
-               int span=9, int t_maxrd=67,
+               int span=9, int t_maxrd=GeometryInfo::MAX_RINGDIFF,
                // ahc
                char *p_rebinner_lut_file = NULL
                );
 const char *hrrt_rebinner_lut_path(int tx_flag=0);
 
-static int nmpairs=20;
-static int hrrt_mpairs[][2]={{-1,-1},{0,2},{0,3},{0,4},{0,5},{0,6},
-                                     {1,3},{1,4},{1,5},{1,6},{1,7},
-                                           {2,4},{2,5},{2,6},{2,7},
-                                                 {3,5},{3,6},{3,7},
-                                                       {4,6},{4,7},
-                                                             {5,7}}; 
+// ahc 1/14/19 
+// This seems to be HRRT geometry so moved to geometry_info.hpp
+// 
+// static int nmpairs=20;
+// static int hrrt_mpairs[][2]={{-1,-1},{0,2},{0,3},{0,4},{0,5},{0,6},
+//                                      {1,3},{1,4},{1,5},{1,6},{1,7},
+//                                            {2,4},{2,5},{2,6},{2,7},
+//                                                  {3,5},{3,6},{3,7},
+//                                                        {4,6},{4,7},
+//                                                              {5,7}}; 

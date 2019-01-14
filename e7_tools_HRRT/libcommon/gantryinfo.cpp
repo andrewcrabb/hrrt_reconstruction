@@ -344,7 +344,7 @@ int GantryInfo::axialCrystals()
 
 int GantryInfo::mrd()
 {
-    int rd=67;    // default value
+    int rd=GeometryInfo::MAX_RINGDIFF;    // default value
     get("ringDiff", rd);
     return rd;
 }

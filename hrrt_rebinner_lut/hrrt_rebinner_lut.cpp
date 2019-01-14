@@ -33,7 +33,7 @@ void main(int argc, char* argv[])
   float pitch=0.0;
   float diam=0.0;
   float thick=0.0;
-	int span=9, maxrd=67;
+	int span=9, maxrd=GeometryInfo::MAX_RINGDIFF;
 	int nplanes=0;
   int i=0, kflag=0, type=0, tx_flag=0;
   char *lut_fname=NULL;

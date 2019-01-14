@@ -89,7 +89,7 @@ int nelems = 256;
 int nviews = 288;
 int nrings = 104;
 int span = 0;           // TBD : 3 or 9 wrt file size
-int rd = 67;
+int rd = GeometryInfo::MAX_RINGDIFF;
 int nseg = 0;			// TBD: (2*rd+1)/span;
 
 /*********************** Note ***************************************/

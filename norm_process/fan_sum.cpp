@@ -104,9 +104,8 @@ int fan_sum(unsigned *event, int count, float *sum, unsigned corrections)
 		   lc = alayer*2+blayer;
 		   ahead = hrrt_mpairs[mp][0];
 		   bhead = hrrt_mpairs[mp][1];
-		   if (mp>0 && mp<=nmpairs)
-		   {
-			   cor = type? -1.0f:1.0f;
+		   if (mp > 0 && mp <= GetometryInfo::NMPAIRS)   {
+			   cor = type ? -1.0f : 1.0f;
 			   if (corrections&GR_C) //geometric radial 
 			   {
 				   gra = *(gr_elem(ax, bx, bhead-ahead-2, lc, 0));

@@ -13,15 +13,15 @@
 #define NPROJS 256
 #define NVIEWS 288
 #define NSINOS 207
-#define NRINGS 104
-#define NMPAIRS 20
+// #define NRINGS 104
+// #define NMPAIRS 20
 #define MAXSEG 45
 static float sino1[NPROJS*NVIEWS*NSINOS];
 static float sino2[NPROJS*NVIEWS*NSINOS];
 static char mp_mask[3][NPROJS*NVIEWS]; 
 static unsigned char rebin_dwell[NPROJS*NVIEWS];
-static double ratio[MAXSEG][NMPAIRS+1];
-static  int count[MAXSEG][NMPAIRS+1];
+static double ratio[MAXSEG][GeometryInfo::NMPAIRS+1];
+static  int count[MAXSEG][GeometryInfo::NMPAIRS+1];
 static short ordered_mp[] = {0,3,8,13,17,  /* opposite heads */
                                2,7,12,16,   /*opposite head -1 */
                                4,9,14,19,  /*opposite head +1 */
@@ -33,7 +33,7 @@ static FILE *log_fp=NULL;
 static void divide_planes(FILE *fp1, FILE *fp2, int seg, int nplns)
 {
   int i=0, sino=0, mp=0;
-  for (mp=0; mp<=NMPAIRS; mp++) ratio[seg][mp] = count[seg][mp] = 0;
+  for (mp=0; mp<=GeometryInfo::NMPAIRS; mp++) ratio[seg][mp] = count[seg][mp] = 0;
   for (sino=0; sino<nplns; sino++)
   {
     if (fread(sino1, sizeof(float), NPROJS*NVIEWS, fp1)!=NPROJS*NVIEWS)
@@ -72,7 +72,7 @@ static void divide_planes(FILE *fp1, FILE *fp2, int seg, int nplns)
       }
     }
   }
-  for (mp=1; mp<=NMPAIRS; mp++) 
+  for (mp=1; mp<=GeometryInfo::NMPAIRS; mp++) 
   {
     ratio[seg][0] += ratio[seg][mp]; 
     count[seg][0] += count[seg][mp];
@@ -80,7 +80,7 @@ static void divide_planes(FILE *fp1, FILE *fp2, int seg, int nplns)
   }
 
   printf("%g", ratio[seg][ordered_mp[1]]);
-  for (mp=2; mp<=NMPAIRS; mp++)
+  for (mp=2; mp<=GeometryInfo::NMPAIRS; mp++)
     printf( ",%g", ratio[seg][ordered_mp[mp]]);
   printf("\n");
 }
@@ -88,7 +88,7 @@ static void divide_planes(FILE *fp1, FILE *fp2, int seg, int nplns)
 void main(int argc, char ** argv)
 {
   int i=0, j=0, sino=0;
-  int rd=67, span=0, seg=0, nseg=0;
+  int rd=GeometryInfo::MAX_RINGDIFF, span=0, seg=0, nseg=0;
   int ntotal_3, ntotal_9, nplns=0, nplns0=207;
 	struct _stat st1, st2;
   FILE *fp1=NULL, *fp2=NULL;
@@ -116,7 +116,7 @@ void main(int argc, char ** argv)
   }
   init_lut_sol(rebinner_lut_file, m_segzoffset);
   memset(rebin_dwell,0,NPROJS*NVIEWS);
-  for (mp=1; mp<=NMPAIRS; mp++)
+  for (mp=1; mp<=GeometryInfo::NMPAIRS; mp++)
   {
     for(al=0;al<GeometryInfo::NDOIS;al++)
     { //layer
@@ -131,8 +131,8 @@ void main(int argc, char ** argv)
             if ((idx=m_solution[mp][axx][bxx].nsino) >=0 )
             {
               mp_mask[0][idx] = mp;
-              mp_mask[1][idx] = hrrt_mpairs[mp][0];
-              mp_mask[2][idx] = hrrt_mpairs[mp][1];
+              mp_mask[1][idx] = GeometryInfo::HRRT_MPAIRS[mp][0];
+              mp_mask[2][idx] = GeometryInfo::HRRT_MPAIRS[mp][1];
               rebin_dwell[idx] += 1;
             }
           }
@@ -196,7 +196,7 @@ void main(int argc, char ** argv)
 
     log_fp = fopen("segment_divide_log.txt","wt");
     fprintf(log_fp, "segment, theta, mp%d", ordered_mp[1]);
-    for (mp=2; mp<=NMPAIRS; mp++)
+    for (mp=2; mp<=GeometryInfo::NMPAIRS; mp++)
       fprintf(log_fp, ",mp%d", ordered_mp[mp]);
     fprintf(log_fp,"\n");
 
@@ -205,7 +205,7 @@ void main(int argc, char ** argv)
 
 		for (seg=1; (2*seg)<nseg;  seg++)
 		{
-      nplns = 2*NRINGS - span*(2*seg -1) -2;  
+      nplns = 2*GeometryInfo::NRINGS - span*(2*seg -1) -2;  
       printf("segment +/- %d planes %d\n", seg, nplns);
       divide_planes(fp1, fp2, nseg/2 -seg, nplns); // -
       divide_planes(fp1, fp2, nseg/2 +seg, nplns); // +
@@ -219,7 +219,7 @@ void main(int argc, char ** argv)
       omp = ordered_mp[1];
       fprintf(log_fp,"%d, %g, %g", seg, seg*d_theta,
         span==3? ratio[i][omp]/3:ratio[i][omp]);
-      for (mp=2; mp<=NMPAIRS; mp++)
+      for (mp=2; mp<=GeometryInfo::NMPAIRS; mp++)
       {
         omp = ordered_mp[mp];
         fprintf(log_fp, ", %g", span==3? ratio[i][omp]/3:ratio[i][omp]);

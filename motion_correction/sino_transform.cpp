@@ -26,7 +26,7 @@ static int float_flag=0;
 static float bin_size=1.21875f, plane_sep=1.21875f, radius=234.5f;
 static int xdim=256, ydim=256,zdim=207;
 static float pixel_size=1.21875f, z_pixel_size=1.21875f;
-static int nsegs=15, nviews=288, nprojs=256, rd=67, span=9;
+static int nsegs=15, nviews=288, nprojs=256, rd=GeometryInfo::MAX_RINGDIFF, span=9;
 
 static int seg_offset[MAX_SEG], seg_planes[MAX_SEG];
 template<class T>

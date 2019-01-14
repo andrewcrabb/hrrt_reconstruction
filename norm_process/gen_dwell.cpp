@@ -37,7 +37,7 @@ void main(int argc, char ** argv)
 	int segnum,plane;
 	float dz2[104],seg;
   float *dwell_data=NULL, **dwell_data2 = NULL;
-  int maxrd=67, span=9, nplanes=0;
+  int maxrd=GeometryInfo::MAX_RINGDIFF, span=9, nplanes=0;
   int i, npixels=0, nvoxels=0;
   const char *rebinner_lut_file=NULL;
   const char *out_file =NULL;
@@ -89,7 +89,7 @@ void main(int argc, char ** argv)
   for (i=0; i<npixels; i++)
     dwell_data2[i] =  dwell_data + i*nplanes;
 
-  for (int mp=1; mp<=nmpairs; mp++)
+  for (int mp=1; mp<=GeometryInfo::NMPAIRS; mp++)
   {
     printf("mp %d\n", mp);
 	  for (alayer=0; alayer<GeometryInfo::NDOIS; alayer++)

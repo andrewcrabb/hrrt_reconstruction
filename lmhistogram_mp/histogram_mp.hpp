@@ -119,7 +119,7 @@ int64_t total_tx_randoms(); // TX events for P39 simultaneous TX+EM
 // Global variables
 // extern int l64_flag;                // 1 if 64-bit mode, 0 otherwise
 extern HIST_MODE g_hist_mode;                // 0=Trues (Default), 1=Prompts and Randoms, 2=Prompts only, 7=transmission
-extern int g_max_rd;                   // maximum ring difference, default=67
+extern int g_max_rd;                   // maximum ring difference, default=GeometryInfo::MAX_RINGDIFF
 extern int quiet;                      // default=0 (false)
 extern int stop_count_;           // default 0 (Not applicable)
 extern unsigned int start_countrate_;      // starting trues/sec  default=0 (Not applicable)

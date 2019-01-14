@@ -8,6 +8,8 @@
 */
 #pragma once
 
+#include <vector>
+
 enum class LR_Type {
   LR_0, 
   LR_20, 
@@ -15,35 +17,84 @@ enum class LR_Type {
 };
 
 namespace GeometryInfo {
-  extern const int NDOIS  ;
-  extern const int NXCRYS ;
-  extern const int NYCRYS ;
-  extern const int NHEADS ;
-  extern const int NBLOCKS;
-  extern const int NUM_CRYSTALS_X_Y;             // Detectors per plane
-  extern const int NUM_CRYSTALS_X_Y_HEADS;       // Detectors per DOI
-  extern const int NUM_CRYSTALS_X_Y_HEADS_DOIS;  // Total detectors
-  extern const int NUM_CRYSTALS_X_DOIS;
+LR_Type LR_type = LR_Type::LR_0;
 
-  extern const int NUM_CRYSTALS_PER_BLOCK;   // 8
-  extern const int NUM_BLOCKS_PER_BRACKET;   // 9
-  extern const int NUM_CRYSTALS_PER_BRACKET; // 72
-  extern const int NUM_BRACKETS_PER_RING;    // 8
-  extern const int NUM_CRYSTALS_PER_RING;    // 576
+const int NDOIS   = 2;
+const int NXCRYS  = 72;
+const int NYCRYS  = 104;
+const int NRINGS  = NYCRYS;
+const int NHEADS  = 8;
+const int NUM_CRYSTALS_X_Y = NXCRYS * NYCRYS;
+const int NUM_CRYSTALS_X_Y_HEADS = NUM_CRYSTALS_X_Y * NHEADS;
+const int NUM_CRYSTALS_X_Y_HEADS_DOIS = NUM_CRYSTALS_X_Y_HEADS * NDOIS;
+const int NUM_CRYSTALS_X_DOIS = NXCRYS * NDOIS;
 
-  extern const float  CSIZE ;   // the cristal size
-  extern const float  CGAP  ;   // the gap between neighboring cristals.
-  extern const float  BSIZE ;
-  extern const float  BGAP  ;   // the gap between neighboring blocks.
-  extern const float  XHSIZE;   // the head's x length.
+const int NUM_CRYSTALS_PER_BLOCK = 8;
+const int NUM_BLOCKS_PER_BRACKET = 9;
+const int NUM_CRYSTALS_PER_BRACKET = NUM_CRYSTALS_PER_BLOCK * NUM_BLOCKS_PER_BRACKET;  // 72
+const int NUM_BRACKETS_PER_RING = 8;
+const int NUM_CRYSTALS_PER_RING = NUM_CRYSTALS_PER_BRACKET * NUM_BRACKETS_PER_RING;    // 576
 
-  extern const float PITCH ;    //=cptich
-  extern const float RDIAM ;    //=diam
-  extern const float LTHICK;    //=thick
-  extern const float TX_RADIUS;
+const int NBLOCKS = 936;     // NHEADS * 9 * 13
+const int MAX_RINGDIFF = 67;
 
-  extern LR_Type LR_type;
-};
+const float  CSIZE  = 0.22;  // Crystal size
+const float  CGAP   = 0.02;  // Gap between neighboring crystals
+const float  BSIZE  = 8.0 * CSIZE + 7 * CGAP;
+const float  BGAP   = 0.05;   // Gap between neighboring blocks
+const float  XHSIZE = 9.0 * BSIZE + 8 * BGAP; // Head's x length.
+
+// Crystals and Ring dimensions in cm
+const float PITCH     = 0.24375f;    //=cptich
+const float RDIAM     = 46.9f;       //=diam
+const float LTHICK    = 1.0f;        //=thick
+const float TX_RADIUS = 22.357f;
+
+// ahc 1/14/19 
+// Moved here from gen_delays.h
+
+const int NMPAIRS = 20;
+const std::vector<std::vector<int>> HRRT_MPAIRS{{-1,-1},{0,2},{0,3},{0,4},{0,5},{0,6},
+                                                {1,3},{1,4},{1,5},{1,6},{1,7},
+                                                {2,4},{2,5},{2,6},{2,7},
+                                                {3,5},{3,6},{3,7},
+                                                {4,6},{4,7},
+                                                {5,7}};
+
+
+}
+
+
+// namespace GeometryInfo {
+//   extern const int NDOIS  ;
+//   extern const int NXCRYS ;
+//   extern const int NYCRYS ;
+//   extern const int NHEADS ;
+//   extern const int NBLOCKS;
+//   extern const int NUM_CRYSTALS_X_Y;             // Detectors per plane
+//   extern const int NUM_CRYSTALS_X_Y_HEADS;       // Detectors per DOI
+//   extern const int NUM_CRYSTALS_X_Y_HEADS_DOIS;  // Total detectors
+//   extern const int NUM_CRYSTALS_X_DOIS;
+
+//   extern const int NUM_CRYSTALS_PER_BLOCK;   // 8
+//   extern const int NUM_BLOCKS_PER_BRACKET;   // 9
+//   extern const int NUM_CRYSTALS_PER_BRACKET; // 72
+//   extern const int NUM_BRACKETS_PER_RING;    // 8
+//   extern const int NUM_CRYSTALS_PER_RING;    // 576
+
+//   extern const float  CSIZE ;   // the cristal size
+//   extern const float  CGAP  ;   // the gap between neighboring cristals.
+//   extern const float  BSIZE ;
+//   extern const float  BGAP  ;   // the gap between neighboring blocks.
+//   extern const float  XHSIZE;   // the head's x length.
+
+//   extern const float PITCH ;    //=cptich
+//   extern const float RDIAM ;    //=diam
+//   extern const float LTHICK;    //=thick
+//   extern const float TX_RADIUS;
+
+//   extern LR_Type LR_type;
+// };
 
 
 extern double m_binsize;

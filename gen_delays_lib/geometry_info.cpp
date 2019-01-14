@@ -1,8 +1,8 @@
 /* Authors: Inki Hong, Dsaint31, Merence Sibomana
   Creation 08/2004
   Modification history: Merence Sibomana
-	10-DEC-2007: Modifications for compatibility with windelays.
-  07-Apr-2009: Changed filenames from .c to .cpp and removed debugging printf 
+  10-DEC-2007: Modifications for compatibility with windelays.
+  07-Apr-2009: Changed filenames from .c to .cpp and removed debugging printf
   09-Apr-2009: Bug fix in init_geometry_hrrt (initialize i=0)
   30-Apr-2009: Integrate Peter Bloomfield __linux__ support
   02-JUL-2009: Add Transmission(TX) LUT
@@ -12,42 +12,9 @@
 #include <math.h>
 #include "geometry_info.h"
 
-namespace GeometryInfo {
-  LR_Type LR_type = LR_Type::LR_0;
 
-  const int NDOIS   = 2;
-  const int NXCRYS  = 72;
-  const int NYCRYS  = 104;
-  const int NHEADS  = 8;
-  const int NUM_CRYSTALS_X_Y = NXCRYS * NYCRYS;
-  const int NUM_CRYSTALS_X_Y_HEADS = NUM_CRYSTALS_X_Y * NHEADS;
-  const int NUM_CRYSTALS_X_Y_HEADS_DOIS = NUM_CRYSTALS_X_Y_HEADS * NDOIS;
-  const int NUM_CRYSTALS_X_DOIS = NXCRYS * NDOIS;
-
-  const int NUM_CRYSTALS_PER_BLOCK = 8;
-  const int NUM_BLOCKS_PER_BRACKET = 9;
-  const int NUM_CRYSTALS_PER_BRACKET = NUM_CRYSTALS_PER_BLOCK * NUM_BLOCKS_PER_BRACKET;  // 72
-  const int NUM_BRACKETS_PER_RING = 8;
-  const int NUM_CRYSTALS_PER_RING = NUM_CRYSTALS_PER_BRACKET * NUM_BRACKETS_PER_RING;    // 576
-
-  const int NBLOCKS = 936; //117*8 //NHEADS*9*13
-
-  const float  CSIZE  = 0.22;  // the cristal size
-  const float  CGAP   = 0.02;  // the gap between neighboring cristals.
-  const float  BSIZE  = 8.0 * CSIZE + 7 * CGAP;
-  const float  BGAP   = 0.05;   // the gap between neighboring blocks.
-  const float  XHSIZE = 9.0 * BSIZE + 8 * BGAP; // the head's x length.
-
-  // Crystals and Ring dimensions in cm
-  const float PITCH     = 0.24375f;    //=cptich
-  const float RDIAM     = 46.9f;       //=diam
-  const float LTHICK    = 1.0f;        //=thick
-  const float TX_RADIUS = 22.357f;
-
-}
-
-int maxrd_ = 67;
-int nsino=0;
+int maxrd_ = GeometryInfo::MAX_RINGDIFF;
+int nsino = 0;
 //geometry_info.h
 double m_binsize;
 double *m_sin_head;
@@ -59,7 +26,7 @@ double *m_crystal_ypos = NULL;
 double *m_crystal_zpos = NULL;
 int    m_nprojs;
 int    m_nviews;
-float *head_crystal_depth=NULL;
+float *head_crystal_depth = NULL;
 
 
 /**********************************************************
@@ -93,137 +60,137 @@ void calc_txsrc_position( int head, int detx, int dety, float location[3]) {
 //  contains the head, and crystal x,y location of the source. This is converted
 //  into X,Y,Z position coordinates here.
 
-    float angle;
-    int offset=-36, i;
-    double sint, cost;
-    static float *xpos=NULL;
-    static float *ypos=NULL;
+  float angle;
+  int offset = -36, i;
+  double sint, cost;
+  static float *xpos = NULL;
+  static float *ypos = NULL;
 
-    if (xpos == NULL) {
-        xpos = (float*) calloc( 576, sizeof(float));
-        ypos = (float*) calloc( 576, sizeof(float));
-        for (i=0; i<576; i++) {
-            angle = (float)(M_PI*(i+offset)/288.0);
-            sint = sin(angle);
-            cost = cos(angle);
-            xpos[i] = (float)(GeometryInfo::TX_RADIUS * sint);
-            ypos[i] = (float)(GeometryInfo::TX_RADIUS * cost);
-        }
+  if (xpos == NULL) {
+    xpos = (float*) calloc( 576, sizeof(float));
+    ypos = (float*) calloc( 576, sizeof(float));
+    for (i = 0; i < 576; i++) {
+      angle = (float)(M_PI * (i + offset) / 288.0);
+      sint = sin(angle);
+      cost = cos(angle);
+      xpos[i] = (float)(GeometryInfo::TX_RADIUS * sint);
+      ypos[i] = (float)(GeometryInfo::TX_RADIUS * cost);
     }
-    i = head*72+detx;
-    location[0] = xpos[i];
-    location[1] = ypos[i];
-    location[2] = (float)(dety * GeometryInfo::PITCH);
+  }
+  i = head * 72 + detx;
+  location[0] = xpos[i];
+  location[1] = ypos[i];
+  location[2] = (float)(dety * GeometryInfo::PITCH);
 }
 
 void calc_det_to_phy( int head, int layer, int detx, int dety, float location[3])
 {
-    double sint, cost, x, y, z, xpos, ypos;
-    int bcrys, blk;
+  double sint, cost, x, y, z, xpos, ypos;
+  int bcrys, blk;
 
-    if (layer==7) {calc_txsrc_position( head, detx, dety, location); return;}
-    sint = m_sin_head[head];
-    cost = m_cos_head[head];
-    bcrys = detx%8;
-    blk = detx/8;
-    x = blk * (GeometryInfo::BSIZE + GeometryInfo::BGAP) + bcrys * (GeometryInfo::CSIZE + GeometryInfo::CGAP) - GeometryInfo::XHSIZE / 2.0 + GeometryInfo::CSIZE / 2.0; // +GeometryInfo::CGAP/2.0 //dsaint31
-//    y = m_crystal_radius+1.0f*(1-layer)+0.5f;	
-    y = m_crystal_radius + head_crystal_depth[head] * (1 - layer) + 0.5 * head_crystal_depth[head];
+  if (layer == 7) {calc_txsrc_position( head, detx, dety, location); return;}
+  sint = m_sin_head[head];
+  cost = m_cos_head[head];
+  bcrys = detx % 8;
+  blk = detx / 8;
+  x = blk * (GeometryInfo::BSIZE + GeometryInfo::BGAP) + bcrys * (GeometryInfo::CSIZE + GeometryInfo::CGAP) - GeometryInfo::XHSIZE / 2.0 + GeometryInfo::CSIZE / 2.0; // +GeometryInfo::CGAP/2.0 //dsaint31
+//    y = m_crystal_radius+1.0f*(1-layer)+0.5f;
+  y = m_crystal_radius + head_crystal_depth[head] * (1 - layer) + 0.5 * head_crystal_depth[head];
 
-    bcrys = dety % 8;
-    blk = dety / 8;
-    z = blk * (GeometryInfo::BSIZE + GeometryInfo::BGAP) + bcrys * (GeometryInfo::CSIZE + GeometryInfo::CGAP); // - GeometryInfo::CGAP-GeometryInfo::CSIZE/2.0 //dsaint31
+  bcrys = dety % 8;
+  blk = dety / 8;
+  z = blk * (GeometryInfo::BSIZE + GeometryInfo::BGAP) + bcrys * (GeometryInfo::CSIZE + GeometryInfo::CGAP); // - GeometryInfo::CGAP-GeometryInfo::CSIZE/2.0 //dsaint31
 
-    xpos = x*cost+y*sint;
-    ypos = -x*sint+y*cost;
+  xpos = x * cost + y * sint;
+  ypos = -x * sint + y * cost;
 
-    location[0] = (float)xpos; // X location
-    location[1] = (float)ypos; // Y location
-    location[2] = (float)z;    // Z location
+  location[0] = (float)xpos; // X location
+  location[1] = (float)ypos; // Y location
+  location[2] = (float)z;    // Z location
 }
 
 
 void init_geometry_hrrt ( int np, int nv, float cpitch, float diam, float thick) {
-    float pitch  = (cpitch > 0.0) ? cpitch : GeometryInfo::PITCH;
-    float rdiam  = (diam > 0.0)   ? diam   : GeometryInfo::RDIAM;
-    float lthick = (thick > 0.0)  ? thick  : GeometryInfo::LTHICK;
+  float pitch  = (cpitch > 0.0) ? cpitch : GeometryInfo::PITCH;
+  float rdiam  = (diam > 0.0)   ? diam   : GeometryInfo::RDIAM;
+  float lthick = (thick > 0.0)  ? thick  : GeometryInfo::LTHICK;
 
 
-    m_sin_head = (double*) calloc( GeometryInfo::NHEADS, sizeof(double));
-    m_cos_head = (double*) calloc( GeometryInfo::NHEADS, sizeof(double));
-    for (int i = 0; i < GeometryInfo::NHEADS; i++) {
-        m_sin_head[i] = sin(i* 2.0 * M_PI / GeometryInfo::NHEADS);
-        m_cos_head[i] = cos(i* 2.0 * M_PI / GeometryInfo::NHEADS);
-    }
-    m_crystal_radius = rdiam/2.0;
-    m_crystal_x_pitch = m_crystal_y_pitch = pitch;
-	switch(GeometryInfo::LR_type)
-	{
-	case LR_Type::LR_0:
-		m_nprojs = 256;
-		m_nviews = 288;
-		m_binsize = pitch/2.0;
-		m_plane_sep = pitch/2.0;
-		break;
-	case LR_Type::LR_20:
-		m_nprojs = 160;
-		m_nviews = 144;
-		m_binsize = 0.2f; // 2mm
-		m_plane_sep = pitch; 
-		break;
-	case LR_Type::LR_24:
-		m_nprojs = 128;
-		m_nviews = 144;
-		m_binsize = pitch;
-		m_plane_sep = pitch;
-		break;
-	}
+  m_sin_head = (double*) calloc( GeometryInfo::NHEADS, sizeof(double));
+  m_cos_head = (double*) calloc( GeometryInfo::NHEADS, sizeof(double));
+  for (int i = 0; i < GeometryInfo::NHEADS; i++) {
+    m_sin_head[i] = sin(i * 2.0 * M_PI / GeometryInfo::NHEADS);
+    m_cos_head[i] = cos(i * 2.0 * M_PI / GeometryInfo::NHEADS);
+  }
+  m_crystal_radius = rdiam / 2.0;
+  m_crystal_x_pitch = m_crystal_y_pitch = pitch;
+  switch (GeometryInfo::LR_type)
+  {
+  case LR_Type::LR_0:
+    m_nprojs = 256;
+    m_nviews = 288;
+    m_binsize = pitch / 2.0;
+    m_plane_sep = pitch / 2.0;
+    break;
+  case LR_Type::LR_20:
+    m_nprojs = 160;
+    m_nviews = 144;
+    m_binsize = 0.2f; // 2mm
+    m_plane_sep = pitch;
+    break;
+  case LR_Type::LR_24:
+    m_nprojs = 128;
+    m_nviews = 144;
+    m_binsize = pitch;
+    m_plane_sep = pitch;
+    break;
+  }
 
-    if ((m_crystal_xpos = (double*) calloc( GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, sizeof(double))) == NULL)
-        printf("Can't allocate memory for crystal_xpos array\n");
-    if ((m_crystal_ypos = (double*) calloc( GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, sizeof(double))) == NULL)
-        printf("Can't allocate memory for crystal_ypos array\n");
-    if ((m_crystal_zpos = (double*) calloc( GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, sizeof(double))) == NULL)
-        printf("Can't allocate memory for crystal_zpos array\n");
+  if ((m_crystal_xpos = (double*) calloc( GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, sizeof(double))) == NULL)
+    printf("Can't allocate memory for crystal_xpos array\n");
+  if ((m_crystal_ypos = (double*) calloc( GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, sizeof(double))) == NULL)
+    printf("Can't allocate memory for crystal_ypos array\n");
+  if ((m_crystal_zpos = (double*) calloc( GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, sizeof(double))) == NULL)
+    printf("Can't allocate memory for crystal_zpos array\n");
 
-	if (head_crystal_depth == NULL) {
-		head_crystal_depth = (float*)calloc(GeometryInfo::NHEADS, sizeof(float));
-		for (int i = 0; i < GeometryInfo::NHEADS; i++) 
+  if (head_crystal_depth == NULL) {
+    head_crystal_depth = (float*)calloc(GeometryInfo::NHEADS, sizeof(float));
+    for (int i = 0; i < GeometryInfo::NHEADS; i++)
       head_crystal_depth[i] = lthick;
-		printf("  layer_thickness = %0.4f cm\n", lthick);
+    printf("  layer_thickness = %0.4f cm\n", lthick);
   }
 
   float pos[3];
   int i;
-	for (int head = 0; head < GeometryInfo::NHEADS; head++){
-		for (int layer = 0; layer < GeometryInfo::NDOIS; layer++){
-			for (int xcrys = 0; xcrys < GeometryInfo::NXCRYS; xcrys++){
-				for (int ycrys = 0; ycrys < GeometryInfo::NYCRYS; ycrys++,i++){
-					calc_det_to_phy( head, layer, xcrys, ycrys, pos);
-					m_crystal_xpos[i] = pos[0];
-					m_crystal_ypos[i] = pos[1];
-					m_crystal_zpos[i] = pos[2];
-				}
-			}
-		}
-	}
+  for (int head = 0; head < GeometryInfo::NHEADS; head++) {
+    for (int layer = 0; layer < GeometryInfo::NDOIS; layer++) {
+      for (int xcrys = 0; xcrys < GeometryInfo::NXCRYS; xcrys++) {
+        for (int ycrys = 0; ycrys < GeometryInfo::NYCRYS; ycrys++, i++) {
+          calc_det_to_phy( head, layer, xcrys, ycrys, pos);
+          m_crystal_xpos[i] = pos[0];
+          m_crystal_ypos[i] = pos[1];
+          m_crystal_zpos[i] = pos[2];
+        }
+      }
+    }
+  }
 
-	free(m_sin_head);
-	free(m_cos_head);
+  free(m_sin_head);
+  free(m_cos_head);
   printf("Geometry configured for HRRT (%d heads of radius %0.2f cm.)\n", GeometryInfo::NHEADS, m_crystal_radius);
   printf("  crystal x,y pitches (cm) = %0.4f, %0.4f\n", pitch, pitch);
   printf("  x_head_center = %0.4f cm\n", pitch * (GeometryInfo::NXCRYS - 1) / 2.0);
 }
 
 
-void det_to_phy( int head, int layer, int xcrys, int ycrys, float pos[3]){
-    int i;
-    if (layer==7) { 
-      calc_det_to_phy( head, layer, xcrys, ycrys, pos); 
-      return; 
-    }
-    i = head * GeometryInfo::NDOIS * GeometryInfo::NUM_CRYSTALS_X_Y + layer * GeometryInfo::NUM_CRYSTALS_X_Y + xcrys * GeometryInfo::NYCRYS + ycrys;
-    pos[0] = (float)m_crystal_xpos[i];
-    pos[1] = (float)m_crystal_ypos[i];
-    pos[2] = (float)m_crystal_zpos[i];
+void det_to_phy( int head, int layer, int xcrys, int ycrys, float pos[3]) {
+  int i;
+  if (layer == 7) {
+    calc_det_to_phy( head, layer, xcrys, ycrys, pos);
+    return;
+  }
+  i = head * GeometryInfo::NDOIS * GeometryInfo::NUM_CRYSTALS_X_Y + layer * GeometryInfo::NUM_CRYSTALS_X_Y + xcrys * GeometryInfo::NYCRYS + ycrys;
+  pos[0] = (float)m_crystal_xpos[i];
+  pos[1] = (float)m_crystal_ypos[i];
+  pos[2] = (float)m_crystal_zpos[i];
 }

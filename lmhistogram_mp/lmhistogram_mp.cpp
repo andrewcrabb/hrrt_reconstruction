@@ -369,11 +369,13 @@ void parse_duration_string(std::string durat_str) {
 int read_framing(CHeader const &hdr) {
   // Frame duration not specified at command line; Use header
   // Decode frame duration even when creating l32 file to output CH files
-  if (g_frames_duration.empty() {
+  if (g_frames_duration.empty()) {
     string framedef_str;
     hdr.ReadChar(CHeader::FRAME_DEFINITION, framedef_str);
     parse_duration_string(framedef_str);
   }
+  // TODO
+  return 0;
 }
 
 // Parse duration strings
@@ -578,12 +580,12 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
   t_hdr.WriteLong(CHeader::TOTAL_RANDOMS, total_randoms());
   t_hdr.WriteLong(CHeader::TOTAL_NET_TRUES, total_prompts() - total_randoms());
   int av_singles = 0;
-  for (int block = 0; block < NBLOCKS; block++) {
+  for (int block = 0; block < GeometryInfo::NBLOCKS; block++) {
     std::string tmp1 = fmt::format("block singles {:d}", block);
     t_hdr.WriteInt(tmp1, singles_rate(block));
     av_singles += singles_rate(block);
   }
-  av_singles /= NBLOCKS;
+  av_singles /= GeometryInfo::NBLOCKS;
   t_hdr.WriteInt(CHeader::AVERAGE_SINGLES_PER_BLOCK, av_singles);
   g_logger->info("g_lld = {}, Average Singles Per Block = ", g_lld, av_singles);
   t_hdr.WriteFloat(CHeader::DEAD_TIME_CORRECTION_FACTOR, GetDTC(g_lld, av_singles));

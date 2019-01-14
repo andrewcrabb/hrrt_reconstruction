@@ -139,15 +139,18 @@ float normal_irad  [8] = {5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0};
 float *head_lthick = NULL;
 float *head_irad   = NULL;
 
-inline void crash(const char *args) {
+void crash(const char *args) {
   fprintf(stderr, args);
   exit(1);
 }
 
-inline int mp_num(int ahead, int bhead)
-{
-  for (int i = 1; i < = nmpairs; i++)
-    if (hrrt_mpairs[i][0] = = ahead && hrrt_mpairs[i][1] = = bhead) return i;
+int mp_num(int ahead, int bhead) {
+  // for (int i = 1; i < = GeometryInfo::NMPAIRS; i++)
+  //   if (GeometryInfo::HRRT_MPAIRS[i][0] = = ahead && GeometryInfo::HRRT_MPAIRS[i][1] = = bhead) return i;
+  // return 0;
+  for (auto pair : GeometryInfo::NMPAIRS)
+    if (pair[0] = = ahead && pair[1] = = bhead) 
+      return i;
   return 0;
 }
 
@@ -181,7 +184,7 @@ float omega_elem(int mp, int ax, int bx) {
   int idx = m_solution[mp][NXCRYS + ax][NXCRYS + bx].nsino; //coincident head index
   if (idx >= 0) {
     omega = omega_sino[idx];
-    if (abs(hrrt_mpairs[mp][0] - hrrt_mpairs[mp][1]) == 4) {
+    if (abs(GeometryInfo::HRRT_MPAIRS[mp][0] - GeometryInfo::HRRT_MPAIRS[mp][1]) == 4) {
       // add omega2 for opposite MP
       // assume ax order 0...71 and bx order 71...0
       //omega *= omega2[abs(NXCRYS-bx-1-ax)];
@@ -293,11 +296,11 @@ void init_corrections() {
       fprintf(stderr, "Can't allocate memory for dwell correction array\n");
       exit(1);
     }
-    for (int mp = 1; mp <= nmpairs; mp++) {
+    for (int mp = 1; mp <= GeometryInfo::NMPAIRS; mp++) {
       for (ax = 0; ax < NXCRYS; ax++) {
-        det_to_phy(hrrt_mpairs[mp][0], 1, ax, 0, deta);  // head 0, ring 0, front layer crystal position
+        det_to_phy(GeometryInfo::HRRT_MPAIRS[mp][0], 1, ax, 0, deta);  // head 0, ring 0, front layer crystal position
         for (bx = 0; bx < NXCRYS; bx++) {
-          det_to_phy(hrrt_mpairs[mp][1], 1, bx, 0, detb);  // ring 0, front layer crystal position
+          det_to_phy(GeometryInfo::HRRT_MPAIRS[mp][1], 1, bx, 0, detb);  // ring 0, front layer crystal position
           rd = rod_dwell(deta[0], deta[1], detb[0], detb[1]);
           rd *= 10.0f; //cm to  mm
           for (alayer = 0; alayer < NLAYERS; alayer++)
@@ -324,13 +327,13 @@ void init_corrections() {
     }
 
     float d0_sq = rdiam * rdiam, so = 0.0f;
-    for (int mp = 1; mp <= nmpairs; mp++) {
+    for (int mp = 1; mp <= GeometryInfo::NMPAIRS; mp++) {
       for (ax = 0; ax < NXCRYS; ax++) {
-        det_to_phy(hrrt_mpairs[mp][0], 1, ax, 0, deta);  // head 0, ring 0, front layer crystal position
+        det_to_phy(GeometryInfo::HRRT_MPAIRS[mp][0], 1, ax, 0, deta);  // head 0, ring 0, front layer crystal position
         deta[0] -= rotation_cx;
         deta[1] -= rotation_cy;
         for (bx = 0; bx < NXCRYS; bx++) {
-          det_to_phy(hrrt_mpairs[mp][1], 1, bx, 0, detb);  // ring 0, front layer crystal position
+          det_to_phy(GeometryInfo::HRRT_MPAIRS[mp][1], 1, bx, 0, detb);  // ring 0, front layer crystal position
           detb[0] -= rotation_cx;
           detb[1] -= rotation_cy;
           if (inter(deta[0], deta[1], detb[0], detb[1], rotation_radius + rod_radius, outer_xi, outer_yi) > 0) {
@@ -448,8 +451,8 @@ void *CNThread2( void *arglist ) {
 
   /*----*/
   mp = args->mp;
-  ahead = hrrt_mpairs[mp][0];
-  bhead = hrrt_mpairs[mp][1];
+  ahead = GeometryInfo::HRRT_MPAIRS[mp][0];
+  bhead = GeometryInfo::HRRT_MPAIRS[mp][1];
 
   //  printf("processing mp %d\t%d\t%d\n", args->mp, ahead, bhead);
   printf("CNThread[%d]: ahead %d bhead %d \n", mp, ahead, bhead);
@@ -718,7 +721,7 @@ void create_omega_sino(float * &sino) {
   else
     memset(sino, 0, m_nprojs * m_nviews * sizeof(float));
 
-  for (int mp = 1; mp <= nmpairs; mp++) {
+  for (int mp = 1; mp <= GeometryInfo::NMPAIRS; mp++) {
     for (int ax = 0; ax < NXCRYS; ax++) {
       int axx = NXCRYS + ax;   // front layer
       for (int bx = 0; bx < NXCRYS; bx++) {
@@ -740,7 +743,7 @@ void create_omega_sino(float * &sino) {
 void create_dwell_sino(float * &sino) {
   if (sino == NULL) sino = (float*)calloc(m_nprojs * m_nviews, sizeof(float));
   else memset(sino, 0, m_nprojs * m_nviews * sizeof(float));
-  for (int mp = 1; mp <= nmpairs; mp++)  {
+  for (int mp = 1; mp <= GeometryInfo::NMPAIRS; mp++)  {
     for (int ax = 0; ax < NXCRYS; ax++) {
       int axx = NXCRYS + ax;   // front layer
       for (int bx = 0; bx < NXCRYS; bx++) {
@@ -774,9 +777,9 @@ void create_gr_sino(int layer)
 
   int lc = (layer = = 0) ? 3 : 0; // BB:FF
 
-  for (int mp = 0; mp < nmpairs; mp++) {
-    int ahead = hrrt_mpairs[mp + 1][0];
-    int bhead = hrrt_mpairs[mp + 1][1];
+  for (int mp = 0; mp < GeometryInfo::NMPAIRS; mp++) {
+    int ahead = GeometryInfo::HRRT_MPAIRS[mp + 1][0];
+    int bhead = GeometryInfo::HRRT_MPAIRS[mp + 1][1];
     for (int ax = 0; ax < NXCRYS; ax++) {
       det_to_phy(ahead, 1, ax, layer, deta);  // ring 0, front layer crystal position
       for (int bx = 0; bx < NXCRYS; bx++) {
@@ -1434,14 +1437,14 @@ int main(int argc, char **argv)
   //create array of handles to threads
 
 #ifdef __linux__
-  pthread_t ThreadHandles[ nmpairs ] ;
+  pthread_t ThreadHandles[ GeometryInfo::NMPAIRS ] ;
   pthread_attr_t  attr ;
 #else
-  HANDLE *threadhandles = (HANDLE *) malloc( nmpairs * sizeof( HANDLE ) );
+  HANDLE *threadhandles = (HANDLE *) malloc( GeometryInfo::NMPAIRS * sizeof( HANDLE ) );
   if ( threadhandles == NULL )  printf("BP: ERROR malloc threadhandles\n");
 #endif
 
-  struct CNArgs *CNargs = (struct CNArgs *) malloc( nmpairs * sizeof( struct CNArgs) );;
+  struct CNArgs *CNargs = (struct CNArgs *) malloc( GeometryInfo::NMPAIRS * sizeof( struct CNArgs) );;
   if ( CNargs == NULL )
     printf("BP: ERROR malloc CNargs\n");
 
@@ -1450,7 +1453,7 @@ int main(int argc, char **argv)
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 #endif
-  for (mp = 0; mp < nmpairs; mp++)
+  for (mp = 0; mp < GeometryInfo::NMPAIRS; mp++)
   {
     CNargs[mp].alayer = CNargs[mp].blayer = layer;
     CNargs[mp].mp = mp + 1;
@@ -1465,7 +1468,7 @@ int main(int argc, char **argv)
   /* Free attribute and wait for the other threads */
   pthread_attr_destroy(&attr);
 #endif
-  for (mp = 0; mp < nmpairs; mp++) {
+  for (mp = 0; mp < GeometryInfo::NMPAIRS; mp++) {
 #ifdef __linux__
     pthread_join( ThreadHandles[mp] , NULL ) ;
 #else

@@ -98,7 +98,7 @@ int quiet = 0;
 HIST_MODE g_hist_mode = HM_TRU;              // 0=Trues (Default), 1=Prompts and Randoms, 2=Prompts only, 7=transmission
 int timetag_processing = 1;     // 0=Use timetag count for time, 1=decode time from timetag event
 unsigned eg_rebinner_method = SW_REBINNER;
-int g_max_rd = 67;
+int g_max_rd = GeometryInfo::MAX_RINGDIFF;
 int stop_count_ = 0;
 
 int frame_start_time = -1;      //First time extracted from time tag in sec
@@ -118,12 +118,12 @@ static long randoms = 0;        // In FOV randoms event counter
 // Global counters for 1 frame period
 //
 static int64_t event_counter = 0;   // Events (prompts and randoms) counter
-static int64_t tag_counter = 0;     // Tags counter
-static int64_t t_prompts = 0;       // In FOV prompts event counter
-static int64_t t_randoms = 0;       // In FOV randoms event counter
-static int64_t tx_prompts = 0;      // In FOV TX prompts event counter
-static int64_t tx_randoms = 0;      // In FOV TX randoms event counter
-static singles_record singles[NBLOCKS]; // Block singles
+static int64_t tag_counter   = 0;   // Tags counter
+static int64_t t_prompts     = 0;   // In FOV prompts event counter
+static int64_t t_randoms     = 0;   // In FOV randoms event counter
+static int64_t tx_prompts    = 0;   // In FOV TX prompts event counter
+static int64_t tx_randoms    = 0;   // In FOV TX randoms event counter
+static singles_record singles[GeometryInfo::NBLOCKS]; // Block singles
 
 //
 // Timers
@@ -198,7 +198,7 @@ void reset_statistics() {
   randoms = prompts = 0;
   t_prompts = t_randoms = 0;
 
-  for (int i = 0; i < NBLOCKS; i++) {
+  for (int i = 0; i < GeometryInfo::NBLOCKS; i++) {
     singles[i].total_singles = 0;
     singles[i].average_rate = 0;
     singles[i].nsamples = 0;
@@ -242,7 +242,7 @@ long process_tagword(long tagword, long duration, std::ofstream &out_hc)
     if (current_time != current_time_msec / 1000) {
       long total_singles = 0;
       current_time = current_time_msec / 1000;
-      for (int i = 0; i < NBLOCKS; i++) {
+      for (int i = 0; i < GeometryInfo::NBLOCKS; i++) {
         total_singles += singles[i].last_sample;
       }
 
@@ -261,7 +261,7 @@ long process_tagword(long tagword, long duration, std::ofstream &out_hc)
     int block = (tagword & 0x1ff80000) >> 19;
     int bsingles = tagword & 0x0007ffff;
     //cout << "block: " << block << "  singles: " << bsingles << endl;
-    if (block >= 0 && block < NBLOCKS) {
+    if (block >= 0 && block < GeometryInfo::NBLOCKS) {
       singles[block].last_sample = bsingles;
       singles[block].total_singles += bsingles;
       singles[block].nsamples++;
@@ -575,7 +575,7 @@ static int next_event_64(Event_32 &cew, int scan_flag)
         doia = (ew1 & 0x01C00000) >> 22;
         doib = (ew2 & 0x01C00000) >> 22;
       }
-      if (mpe < 1 || mpe > nmpairs) {
+      if (mpe < 1 || mpe > GeometryInfo::NMPAIRS) {
         //        if (verbose && (! error_flag % 10) )
         //    cerr << current_time << ": Invalid head pair " << mpe << endl;
         error_flag++;
@@ -1121,7 +1121,7 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
             error_flag++;
           }
       }
-      if (mpe < 1 || mpe > nmpairs) {
+      if (mpe < 1 || mpe > GeometryInfo::NMPAIRS) {
         if (verbose)
           //    cerr << "current_time " << current_time << ": Invalid head pair " << mpe << ", error_flag " << error_flag << endl;
           error_flag++;
@@ -1212,8 +1212,8 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
           // Update coincidence histogram: increment singles in crystals indices
           // ablk = (ay / 8) * 9 + (ax / 8);
           // bblk = (by / 8) * 9 + (bx / 8);
-          ahead = hrrt_mpairs[mpe][0];
-          bhead = hrrt_mpairs[mpe][1];
+          ahead = GeometryInfo::HRRT_MPAIRS[mpe][0];
+          bhead = GeometryInfo::HRRT_MPAIRS[mpe][1];
           if (coinh_p && (type == 0)) {
             coinh_p[doia * nvoxels + ahead * GeometryInfo::NXCRYS + ax + ay * npixels]++;
             coinh_p[doib * nvoxels + bhead * GeometryInfo::NXCRYS + bx + by * npixels]++;
@@ -1471,7 +1471,7 @@ static void lmscan_64(std::ofstream &out, long *duration) {
           prev_time = time / 1000;
           // calculate the gantry singles from individual values
           total_singles = 0;
-          for (int block = 0; block < NBLOCKS; block++)
+          for (int block = 0; block < GeometryInfo::NBLOCKS; block++)
             total_singles += singles_rate(block);
           out << fmt::format("{},{},{},{}", total_singles, randoms, prompts, time) << std::endl;
           // reset the counters

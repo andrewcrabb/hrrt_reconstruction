@@ -11,17 +11,19 @@ Modification history:
   converts in place span3 to span 9 sinogram
 */
 int convert_span9(short *sino, int t_maxrd, int nrings) {
-  int iseg = 0, seg = 0, span3 = 3, span9 = 9;
+  // int iseg = 0
+  // int seg = 0, 
+  int span3 = 3, span9 = 9;
   int nseg = (2 * t_maxrd + 1) / span3;  // span 3 # egments
   int nplns0 = 2 * nrings - 1;    // Segment 0 #planes
-  int ntotal = nseg * nplns0 - (nseg - 1) * (span3 * (nseg - 1) / 2 + 1);
+  // int ntotal = nseg * nplns0 - (nseg - 1) * (span3 * (nseg - 1) / 2 + 1);
 
   int iseg_9 = 0, nseg_9 = (2 * t_maxrd + 1) / span9;
-  int offset = 0;
+  // int offset = 0;
   int npixels =  m_nprojs * m_nviews;
   int j = 0, nvoxels = npixels * nplns0;
   short *in_p = NULL, *out_p = NULL;
-  short *in_data = NULL;
+  // short *in_data = NULL;
   short *out_data_neg = NULL;
   short *out_data_pos = NULL;
 
@@ -31,14 +33,14 @@ int convert_span9(short *sino, int t_maxrd, int nrings) {
   int *nplns = (int*)calloc(nseg, sizeof(int));   // #planes foreach segment in span3 mode
   int *move = (int*)calloc(nseg, sizeof(int));     // plane shift foreach segment from span3 to span9
 
-  for (iseg = 0; iseg < nseg; iseg++)
+  for (int iseg = 0; iseg < nseg; iseg++)
     seg_span9[iseg] = (iseg + 3) / 6;
-  for (iseg = 0; iseg < nseg; iseg++)
+  for (int iseg = 0; iseg < nseg; iseg++)
     nplns[iseg] = nplns_span9[iseg] = 207;
 
 
-  for (iseg = 0; iseg < nseg; iseg++) {
-    seg = (iseg + 1) / 2;
+  for (int iseg = 0; iseg < nseg; iseg++) {
+    int seg = (iseg + 1) / 2;
     if (seg > 0 )
       nplns[iseg] = 2 * nrings - 3 * (2 * seg - 1) - 2; // other elements  initialized to 207
     if (seg > 1)
@@ -49,7 +51,7 @@ int convert_span9(short *sino, int t_maxrd, int nrings) {
   }
 
   // span 9 sino build by pair (-seg,+seg) except for segment 0
-  iseg = 0;
+  int iseg = 0;
   int span3_pos = 0, span9_pos = 0;
   while (iseg_9 < nseg_9) {
     int out_nplanes = nplns[iseg];
