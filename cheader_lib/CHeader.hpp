@@ -71,6 +71,7 @@ struct Tag {
 };
 typedef std::vector<Tag>           tag_vector;
 typedef std::vector<Tag>::iterator tag_iterator;
+typedef std::vector<Tag>::const_iterator const_tag_iterator;
 
 class CHeader {
 public:
@@ -78,9 +79,10 @@ public:
 	CHeaderError ReadFloat (string const &key, float  &val) const;
 	CHeaderError ReadLong  (string const &key, long   &val) const;
 	CHeaderError ReadInt   (string const &key, int    &val) const;
-	CHeaderError ReadChar  (string const &key, string &val) const;
+	CHeaderError ReadChar  (string const &key, string &val)  const;
 	CHeaderError ReadTime  (string const &key, boost::posix_time::ptime &time) const;
 	CHeaderError ReadDate  (string const &key, boost::posix_time::ptime &date) const;
+	CHeaderError ReadDateTime (string const &t_tag, string const &t_format, boost::posix_time::ptime &t_pt) const;
 
 	CHeaderError WriteChar   (string const &key, string                  const & val);
 	CHeaderError WritePath   (string const &key, boost::filesystem::path const & val);
@@ -95,13 +97,13 @@ public:
 	CHeaderError WriteTime   (string const &t_tag, boost::posix_time::ptime const &t_datetime);
 
 	CHeaderError CloseFile();
-	CHeaderError GetFileName(string & filename);
-	CHeaderError OpenFile(string const & filename);			// Loads specified filename in memory table
-	CHeaderError OpenFile(boost::filesystem::path & filename);
-	CHeaderError WriteFile(string & filename);
-	CHeaderError WriteFile(boost::filesystem::path const & filename);
-	int IsFileOpen();
-	int NumTags(void);
+	CHeaderError GetFileName(string &filename) const;
+	CHeaderError OpenFile(string const &filename);			// Loads specified filename in memory table
+	CHeaderError OpenFile(boost::filesystem::path &filename);
+	CHeaderError WriteFile(string &filename);
+	CHeaderError WriteFile(boost::filesystem::path const &filename);
+	int IsFileOpen() const;
+	int NumTags(void) const;
 	CHeader();
 	virtual ~CHeader();
 
@@ -171,13 +173,12 @@ public:
 protected:
 	CHeaderError ReadFile();
 	CHeaderError InsertTag(string buffer);
-	tag_iterator FindTag(string const &key) ;
-	template <typename T>CHeaderError convertString(string &s, T &val);
-	template <typename T>CHeaderError ReadNum(string const &tag, T &val);
+	tag_iterator       FindTag(string const &key);
+	const_tag_iterator FindTag(string const &key) const;
+	template <typename T>CHeaderError convertString(string &s, T &val) const;
+	template <typename T>CHeaderError ReadNum(string const &tag, T &val) const;
 	template <typename T>int ReadHeaderNum(string & filename, string & tag, T & val);
 
-	// Moved here from hrrt_util.hpp
-	CHeaderError ReadDateTime (string const &t_tag, string const &t_format, boost::posix_time::ptime       &t_pt);
 	// CHeaderError WriteDateTime(string const &t_tag, string const &t_format, boost::posix_time::ptime const &t_pt);
 
 	CHeaderError StringToPTime(string const &t_time, string const &t_format, boost::posix_time::ptime &t_datetime);

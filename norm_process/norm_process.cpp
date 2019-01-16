@@ -68,6 +68,7 @@
 #include "rod_dwell.h"
 #include "scanner_params.h"
 #include "rotation_dwell_sino.h"
+#include "histogram_mp.hpp"
 
 extern float inter(float x1, float y1, float x2, float y2, float r, float *xi, float *yi);
 
@@ -573,7 +574,7 @@ int check_end_of_frame(struct FS_L64_Args &src) {
   while (pos >= 0) {
     ew1 = in_buf[pos];
     ew2 = in_buf[pos + 1];
-    type = ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
+    type = HISTOGRAM_MP::ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
     if (type == 2) {
       // tag word
       tag = (ew1 & 0xffff) | ((ew2 & 0xffff) << 16);
@@ -1189,32 +1190,32 @@ int main(int argc, char **argv)
   rotation_cx *= 0.1f;
   rotation_cy *= 0.1f;
 
-  init_segment_info(&m_nsegs, &nplanes, &m_d_tan_theta, maxrd_, span, NYCRYS,
+  SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &m_d_tan_theta, maxrd_, span, NYCRYS,
                     m_crystal_radius, m_plane_sep);
   if (strlen(rebinner_lut_file) == 0) {
     fprintf(stdout, "Error: Rebinner LUT file not defined (opt 'r')\n");
     exit(1);
   }
   fprintf(log_fp, "Using Rebinner LUT file %s \n", rebinner_lut_file);
-  init_lut_sol(rebinner_lut_file, m_segzoffset);
+  init_lut_sol(rebinner_lut_file, SegmentInfo::m_segzoffset);
 
   npixels = nprojs * nviews;
   nvoxels = npixels * nplanes;
 
   // compute planes per segment
   if (span == 9) {
-    nsegs = m_nsegs / 3;
+    nsegs = SegmentInfo::m_nsegs / 3;
     seg_planes = (short*)calloc(nsegs, sizeof(short));
     seg_planes[0] = 2 * NYCRYS - 1;
     for (i = 1, segnum = 3; i < nsegs; i += 2, segnum += 6) {
-      seg_planes[i] = seg_planes[i + 1] = m_segzmax[segnum] - m_segz0[segnum] + 1;
+      seg_planes[i] = seg_planes[i + 1] = SegmentInfo::m_segzmax[segnum] - SegmentInfo::m_segz0[segnum] + 1;
     }
   } else {
-    nsegs = m_nsegs;
+    nsegs = SegmentInfo::m_nsegs;
     seg_planes = (short*)calloc(nsegs, sizeof(short));
     seg_planes[0] = 2 * NYCRYS - 1;
     for (i = 1; i < nsegs; i += 2)  {
-      seg_planes[i] = seg_planes[i + 1] = m_segzmax[i] - m_segz0[i] + 1;
+      seg_planes[i] = seg_planes[i + 1] = SegmentInfo::m_segzmax[i] - SegmentInfo::m_segz0[i] + 1;
     }
   }
   cosphi = (float*)calloc(nsegs, sizeof(float));

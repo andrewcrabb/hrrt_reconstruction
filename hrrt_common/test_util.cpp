@@ -17,7 +17,7 @@ namespace bt = boost::posix_time;
 
 int test_date(const string &str) {
 	bt::ptime t0;
-	bool ret = parse_interfile_date(str, t0);
+	bool ret = CHeader::parse_interfile_date(str, t0);
 	cout << "parse_interfile_date(" << str << ") returned " << ret << ": " << t0 << endl;
 	return 0;
 }
@@ -27,7 +27,7 @@ int test_time (const string &str) {
 	boost::io::ios_all_saver ias( cout );
 	bt::time_facet* facet(new bt::time_facet("%H%M%S"));
 	std::cout.imbue(std::locale(std::cout.getloc(), facet));
-	parse_interfile_time(str, pt);
+	CHeader::parse_interfile_time(str, pt);
 	cout << "test_time(" << str << "): " << pt << endl;
 	return 0;
 }
@@ -41,7 +41,7 @@ int test_time (const string &str) {
 // 		sregex reg = sregex::compile(CHeader::DOSE_ASSAY_DATE + "\\s+:=\\s+(?P<value>.+)$");
 // 		if (regex_match(str, match, reg)) {
 // 			bt::ptime t;
-// 			parse_interfile_time(match["key"], t);
+// 			CHeader::parse_interfile_time(match["key"], t);
 // 		}
 // 	}
 // }
@@ -58,8 +58,8 @@ int main() {
 	}
 
 	bt::ptime t0, t1;
-	parse_interfile_time("10:30:00", t0);
-	parse_interfile_time("10:35:00", t1);
+	CHeader::parse_interfile_time("10:30:00", t0);
+	CHeader::parse_interfile_time("10:35:00", t1);
 	bt::time_duration diff = t1 - t0;
 	cout << "diff: " << diff.total_seconds() << endl;
 

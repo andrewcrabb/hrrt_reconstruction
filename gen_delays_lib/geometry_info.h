@@ -8,6 +8,7 @@
 */
 #pragma once
 
+#include <istream>
 #include <vector>
 
 enum class LR_Type {
@@ -16,8 +17,13 @@ enum class LR_Type {
   LR_24
 };
 
+// Allow Boost program_options to parse an LR_Type
+// https://stackoverflow.com/questions/5211988/boost-custom-validator-for-enum
+
+extern std::istream& operator>>(std::istream& t_in, LR_Type& t_lr_type);
+
 namespace GeometryInfo {
-LR_Type LR_type = LR_Type::LR_0;
+extern LR_Type LR_type;
 
 const int NDOIS   = 2;
 const int NXCRYS  = 72;
@@ -49,6 +55,7 @@ const float PITCH     = 0.24375f;    //=cptich
 const float RDIAM     = 46.9f;       //=diam
 const float LTHICK    = 1.0f;        //=thick
 const float TX_RADIUS = 22.357f;
+const float CRYSTAL_RADIUS = 23.45;  // cm 
 
 // ahc 1/14/19 
 // Moved here from gen_delays.h
@@ -108,8 +115,9 @@ extern double *m_crystal_zpos;
 extern int    m_nprojs;
 extern int    m_nviews;
 extern int maxrd_, nsino;
-extern float *head_crystal_depth;
 
+// extern float *head_crystal_depth;
+extern std::vector<float> head_crystal_depth_;
 
 extern void init_geometry_hrrt ( int np, int nv, float cpitch, float diam, float thick);
 //void calc_det_to_phy( int head, int layer, int detx, int dety, float location[3]);

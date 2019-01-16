@@ -7,7 +7,8 @@ include_directories (hrrt_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 find_package(Boost REQUIRED)
 
 add_executable(test_util test_util.cpp)
-target_link_libraries(test_util hrrt_common fmt boost_system)
+link_directories(${PROJECT_SOURCE_DIR}/cheader_lib)
+target_link_libraries(test_util hrrt_common fmt boost_system boost_date_time cheader_lib)
 target_include_directories (test_util PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/lmhistogram_mp)
 
 install(TARGETS hrrt_common

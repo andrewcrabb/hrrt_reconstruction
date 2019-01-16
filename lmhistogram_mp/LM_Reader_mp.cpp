@@ -55,13 +55,14 @@
 namespace fs = boost::filesystem;
 using namespace std;
 
-L64EventPacket *l64_container = NULL;
-L32EventPacket *l32_container = NULL;
+L64EventPacket *g_l64_container = NULL;
+L32EventPacket *g_l32_container = NULL;
 int verbose = 0;
 
 // char *L64EventPacket::in_fname = NULL;
 // FILE *L64EventPacket::in_fp = NULL;
 boost::filesystem::path L64EventPacket::in_fname;
+std::ifstream L64EventPacket::in_fp;
 FILE *L64EventPacket::hc_out = NULL;
 
 unsigned L64EventPacket::packet_size = PACKET_SIZE;
@@ -73,6 +74,7 @@ std::vector<int> L64EventPacket::frame_skip;
 
 // char *L32EventPacket::in_fname = NULL;
 // FILE *L32EventPacket::in_fp = NULL;
+boost::filesystem::path L32EventPacket::in_fname;
 unsigned L32EventPacket::packet_size = PACKET_SIZE;
 int L32EventPacket::current_time = 0;
 
@@ -114,16 +116,18 @@ L32EventPacket::~L32EventPacket() {
  *  4. Sets L64EventPacket::file_status to L64EventPacket::done when read is done or to
  *     L64EventPacket::error to notify consumer and returns
  */
-static unsigned int ewtypes[16] = {3,3,1,0,3,3,2,2,3,3,3,3,3,3,3,3};
+// static unsigned int ewtypes[16] = {3,3,1,0,3,3,2,2,3,3,3,3,3,3,3,3};
 
-void lm64_reader (const fs::path &infile) : L64EventPacket::in_fname(infile) {
-  L64EventPacket::in_fp = open_istream(L64EventPacket::in_fname, ios::in | ios::binary);
-  L64EventPacket::in_fp.read(l64_container[0].events, sizeof(int64_t) * L64EventPacket::packet_size);
+void lm64_reader (const fs::path &infile) {
+  L64EventPacket::in_fname = infile;
+  // L64EventPacket::in_fp = open_istream(L64EventPacket::in_fname, ios::in | ios::binary);
+  open_istream(L64EventPacket::in_fp, L64EventPacket::in_fname, ios::in | ios::binary);
+  L64EventPacket::in_fp.read((char *)g_l64_container[0].events, sizeof(int64_t) * L64EventPacket::packet_size);
   if (L64EventPacket::in_fp.good()) {
-    l64_container = new L64EventPacket[2];
-    l32_container = new L32EventPacket;
-    l64_container[0].num_events = L64EventPacket::packet_size;
-    l64_container[0].status = L64EventPacket::used;
+    g_l64_container = new L64EventPacket[2];
+    g_l32_container = new L32EventPacket;
+    g_l64_container[0].num_events = L64EventPacket::packet_size;
+    g_l64_container[0].status = L64EventPacket::used;
   } else {
     cerr << "lm64_reader: error reading " << L64EventPacket::in_fname.string() << endl;
   }
@@ -142,13 +146,14 @@ void lm64_reader (const fs::path &infile) : L64EventPacket::in_fname(infile) {
  *  4. Sets L32EventPacket::file_status to L32EventPacket::done when read is done or
  *     to  L32EventPacket::error to notify consumer and returns
  */
-void lm32_reader (const fs::path &infile) : L32EventPacket::in_fname(infile) {
-  L32EventPacket::in_fp = open_istream(L32EventPacket::in_fname, ios::in | ios::binary);
-  L32EventPacket::in_fp.read(l32_container->events, 2 * sizeof(unsigned) * L32EventPacket::packet_size);
+void lm32_reader (const fs::path &infile) {
+  L32EventPacket::in_fname = infile;
+  open_istream(L64EventPacket::in_fp, L32EventPacket::in_fname, ios::in | ios::binary);
+  L32EventPacket::in_fp.read((char *)g_l32_container->events, 2 * sizeof(unsigned) * L32EventPacket::packet_size);
   if (L32EventPacket::in_fp.good()) {
-    l32_container = new L32EventPacket[2];
-    l32_container[0].num_events = L32EventPacket::packet_size;
-    l32_container[0].status = L32EventPacket::used;
+    g_l32_container = new L32EventPacket[2];
+    g_l32_container[0].num_events = L32EventPacket::packet_size;
+    g_l32_container[0].status = L32EventPacket::used;
   } else {
     cerr << "lm64_reader: error reading " << L32EventPacket::in_fname << endl;
   }
@@ -160,14 +165,14 @@ void lm32_reader (const fs::path &infile) : L32EventPacket::in_fname(infile) {
  *  It waits up to MAX_TRY*TIME_SLICE when no packet is available.
  */
 L64EventPacket *load_buffer_64() {
-  if (l64_container[0].status == L64EventPacket::empty) {
+  if (g_l64_container[0].status == L64EventPacket::empty) {
     // copy buffer 1 if busy
-    if (l64_container[1].status == L64EventPacket::used) {
-      memcpy(l64_container[0].events, l64_container[1].events, l64_container[1].num_events * sizeof(int64_t));
-      l64_container[1].status = L64EventPacket::empty;
+    if (g_l64_container[1].status == L64EventPacket::used) {
+      memcpy(g_l64_container[0].events, g_l64_container[1].events, g_l64_container[1].num_events * sizeof(int64_t));
+      g_l64_container[1].status = L64EventPacket::empty;
     } else {
       // Read in new buffer
-      L64EventPacket::in_fp.read(l64_container[0].events, sizeof(int64_t) * L64EventPacket::packet_size);
+      L64EventPacket::in_fp.read((char *)g_l64_container[0].events, sizeof(int64_t) * L64EventPacket::packet_size);
       if (L64EventPacket::in_fp.fail()) {
         std::cerr << "lm64_reader: error reading " << L64EventPacket::in_fname.string() << std::endl;
         exit(1);
@@ -176,24 +181,24 @@ L64EventPacket *load_buffer_64() {
         std::cout << "lm64_reader: " << L64EventPacket::in_fname.string() << " file done" << std::endl;
         return NULL;
       }
-      l64_container[0].num_events = L64EventPacket::packet_size;
+      g_l64_container[0].num_events = L64EventPacket::packet_size;
     }
   }
-  if (l64_container[0].num_events < 1)
+  if (g_l64_container[0].num_events < 1)
     return NULL;
-  l64_container[0].status = L64EventPacket::used;
+  g_l64_container[0].status = L64EventPacket::used;
 
   // check end of frame
   if (frame_duration > 0) {
-    int eof_pos = check_end_of_frame(l64_container[0]);
+    int eof_pos = check_end_of_frame(g_l64_container[0]);
     if (eof_pos > 0) {
       // include the end-of-frame timetag in this packet and set next_frame_num_events
-      l64_container[1].num_events = l64_container[0].num_events - (eof_pos + 1);
-      l64_container[0].num_events = eof_pos + 1;
-      memcpy(l64_container[1].events, l64_container[0].events + (2 * (eof_pos + 1)), l64_container[1].num_events * sizeof(int64_t));
+      g_l64_container[1].num_events = g_l64_container[0].num_events - (eof_pos + 1);
+      g_l64_container[0].num_events = eof_pos + 1;
+      memcpy(g_l64_container[1].events, g_l64_container[0].events + (2 * (eof_pos + 1)), g_l64_container[1].num_events * sizeof(int64_t));
     }
   }
-  return &l64_container[0];
+  return &g_l64_container[0];
 }
 
 /*
@@ -206,7 +211,7 @@ L32EventPacket *load_buffer_32() {
   L64EventPacket *l64;
   if ((l64 = load_buffer_64()) == NULL) 
     return NULL;
-  rebin_packet(*l64, *l32_container);
+  rebin_packet(*l64, *g_l32_container);
   l64->status = L64EventPacket::empty;
-  return (l32_container->num_events > 0) ? l32_container : NULL;
+  return (g_l32_container->num_events > 0) ? g_l32_container : NULL;
 }

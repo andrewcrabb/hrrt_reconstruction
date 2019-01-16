@@ -226,15 +226,15 @@ CHeaderError CHeader::WriteFile(string &fname) {
   return CHeaderError::OK;
 }
 
-int CHeader::NumTags(void) {
+int CHeader::NumTags(void) const {
   return tags_.size();
 }
 
-int CHeader::IsFileOpen() {
+int CHeader::IsFileOpen() const {
   return hdr_file_.is_open();
 }
 
-CHeaderError CHeader::GetFileName(string &filename) {
+CHeaderError CHeader::GetFileName(string &filename) const {
   if (IsFileOpen()) {
     filename = m_FileName_;
     return CHeaderError::OK;
@@ -252,17 +252,33 @@ CHeaderError CHeader::CloseFile() {
 }
 
 // Locate tag having given key
+// Const and non-const variants depending on whether the found tag will be modified.
+// Use of 'auto' here doesn't work as we have to specify const-ness.
+// Could try this to eliminate duplication:
+// https://stackoverflow.com/questions/856542/elegant-solution-to-duplicate-const-and-non-const-getters
 
-tag_iterator CHeader::FindTag(string const &key) {
+const_tag_iterator CHeader::FindTag(string const &key) const {
   auto pred = [key](Tag const & tag) { return tag.key == key; };
   // return std::find_if(std::begin(tags_), std::end(tags_), pred);
 
-  // tag_iterator ibegin = tags_.begin();
-  // tag_iterator iend = tags_.end();
-  auto ibegin = tags_.begin();
-  auto iend = tags_.end();
+  const_tag_iterator ibegin = tags_.begin();
+  const_tag_iterator iend = tags_.end();
+  // auto ibegin = tags_.begin();
+  // auto iend = tags_.end();
+  auto found = std::find_if(ibegin, iend, pred);
+  // tag_iterator tfound = found;
+  return found;
+}
+
+tag_iterator CHeader::FindTag(string const &key) {
+  auto pred = [key](Tag const & tag) { return tag.key == key; };
+
+  // auto ibegin = tags_.begin();
+  // auto iend = tags_.end();
+  tag_iterator ibegin = tags_.begin();
+  tag_iterator iend = tags_.end();
+  // auto found = std::find_if(ibegin, iend, pred);
   tag_iterator found = std::find_if(ibegin, iend, pred);
-  // return std::find_if(std::begin(tags_), std::end(tags_), pred);
   return found;
 }
 
@@ -306,16 +322,18 @@ CHeaderError CHeader::WriteChar(string const &key, string const &val) {
     tags_.push_back({key, val});
     ret = CHeaderError::TAG_APPENDED;  // Not an error but consistent with other methods.
   } else {
-    it->value.assign(val);
+    // it->value.assign(val);
+    it->value = val;
   }
   return ret;
 }
 
 // Fill in val if tag is found.
+// Can't make this const as it calls ReadTag (see its doc)
 
 CHeaderError CHeader::ReadChar(string const &key, string &val) const {
   CHeaderError ret = CHeaderError::OK;
-  tag_iterator it = FindTag(key);
+  const_tag_iterator it = FindTag(key);
   if (it == std::end(tags_)) {
     string file_name;
     GetFileName(file_name);
@@ -335,7 +353,7 @@ CHeaderError CHeader::ReadChar(string const &key, string &val) const {
  * @tparam     T     Numeric type to convert to: int, float, int64_t
  * @return     0 on success, else 1
  */
-template <typename T>CHeaderError CHeader::convertString(string &str, T &val) {
+template <typename T>CHeaderError CHeader::convertString(string &str, T &val) const {
   CHeaderError ret = CHeaderError::OK;
   try {
     val = boost::lexical_cast<T>(str);

@@ -26,8 +26,20 @@ double *m_crystal_ypos = NULL;
 double *m_crystal_zpos = NULL;
 int    m_nprojs;
 int    m_nviews;
-float *head_crystal_depth = NULL;
+// float *head_crystal_depth = NULL;  This is defined in geomety_info.h
 
+std::istream& operator>>(std::istream& t_in, LR_Type& t_lr_type) {
+    std::string token;
+    t_in >> token;
+    int ival = stoi(token);
+    if ((ival >= (int)LR_Type::LR_0) && (ival <= (int)LR_Type::LR_24))
+      t_lr_type = (LR_Type)stoi(token);
+    // else 
+        // t_in.setstate(std::ios_base::failbit);
+    return t_in;
+}
+LR_Type LR_type = LR_Type::LR_0;
+std::vector<float> head_crystal_depth_(GeometryInfo::NHEADS);
 
 /**********************************************************
 /
@@ -95,7 +107,7 @@ void calc_det_to_phy( int head, int layer, int detx, int dety, float location[3]
   blk = detx / 8;
   x = blk * (GeometryInfo::BSIZE + GeometryInfo::BGAP) + bcrys * (GeometryInfo::CSIZE + GeometryInfo::CGAP) - GeometryInfo::XHSIZE / 2.0 + GeometryInfo::CSIZE / 2.0; // +GeometryInfo::CGAP/2.0 //dsaint31
 //    y = m_crystal_radius+1.0f*(1-layer)+0.5f;
-  y = m_crystal_radius + head_crystal_depth[head] * (1 - layer) + 0.5 * head_crystal_depth[head];
+  y = m_crystal_radius + head_crystal_depth_[head] * (1 - layer) + 0.5 * head_crystal_depth_[head];
 
   bcrys = dety % 8;
   blk = dety / 8;
@@ -153,12 +165,8 @@ void init_geometry_hrrt ( int np, int nv, float cpitch, float diam, float thick)
   if ((m_crystal_zpos = (double*) calloc( GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, sizeof(double))) == NULL)
     printf("Can't allocate memory for crystal_zpos array\n");
 
-  if (head_crystal_depth == NULL) {
-    head_crystal_depth = (float*)calloc(GeometryInfo::NHEADS, sizeof(float));
-    for (int i = 0; i < GeometryInfo::NHEADS; i++)
-      head_crystal_depth[i] = lthick;
-    printf("  layer_thickness = %0.4f cm\n", lthick);
-  }
+  head_crystal_depth_.assign(GeometryInfo::NHEADS, lthick);
+  printf("  layer_thickness = %0.4f cm\n", lthick);
 
   float pos[3];
   int i;

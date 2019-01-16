@@ -69,7 +69,7 @@ public:
 class L32EventPacket {
 public:
   static unsigned packet_size;
-  static char *in_fname;
+  static boost::filesystem::path in_fname;
   // static FILE* in_fp;
   static std::ifstream in_fp;
   static int current_time;

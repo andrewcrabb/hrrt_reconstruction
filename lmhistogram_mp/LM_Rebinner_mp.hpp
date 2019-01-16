@@ -34,6 +34,8 @@
 # pragma once
 
 #include <stdio.h>
+#include <string>
+
 constexpr int MODEL_HRRT = 328;
 
 /**
@@ -63,8 +65,18 @@ extern int rebin_event_tx(int mp, int alayer, int ax, int ay, int blayer, int bx
 
 extern int model_number;
 
+// ahc from here.
+
 namespace LM_Rebinner {
-	std::string *rebinner_lut_file;
+	extern std::string rebinner_lut_file;
 };
+
+enum class HeadType { 
+	LSO_LSO  = 0, 
+	LSO_NAI  = 1, 
+	LSO_ONLY = 2, 
+	LSO_GSO  = 3, 
+	LSO_LYSO = 4 
+} ;
 
 extern int tx_span;

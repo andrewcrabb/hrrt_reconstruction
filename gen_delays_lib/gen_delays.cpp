@@ -26,6 +26,7 @@
 #include <time.h>
 #include <xmmintrin.h>
 #include <string>
+#include <boost/filesystem.hpp>
 
 #define _MAX_PATH 256
 #include <pthread.h>
@@ -36,6 +37,8 @@
 #include "segment_info.h"
 #include "geometry_info.h"
 #include "lor_sinogram_map.h"
+
+namespace bf = boost::filesystem;
 
 // #define LUT_FILENAME "hrrt_rebinner.lut"
 
@@ -302,7 +305,8 @@ int gen_delays(int argc, char **argv, int is_inline, float scan_duration,
                float ***result, FILE *p_coins_file, char *p_delays_file,
                int t_span, int t_maxrd,
                // My addition ahc: Rebinner LUT file now a required argument.
-               char *p_rebinner_lut_file
+               // char *p_rebinner_lut_file
+               const boost::filesystem &p_rebinner_lut_file
               )
 {
   int i, n, mp, j;
@@ -310,7 +314,8 @@ int gen_delays(int argc, char **argv, int is_inline, float scan_duration,
   // int dtime1, dtime2, dtime3, dtime4;
   FILE *fptr;
   // ahc
-  char *rebinner_lut_file = NULL;
+  char *rebinner_lut_file_ptr = NULL;   // TODO Take this out once all moved to bf
+  bf::path rebinner_lut_file;
   char *csingles_file = NULL;
   char *delays_file = NULL;
   char *coins_file = NULL;
@@ -331,7 +336,7 @@ int gen_delays(int argc, char **argv, int is_inline, float scan_duration,
   int nplanes = 0;
 
   // int quiet = 1;
-  int kflag = 0;
+  // int kflag = 0;
   float *csings = NULL;
 
   int threadnum ;
@@ -370,27 +375,28 @@ int gen_delays(int argc, char **argv, int is_inline, float scan_duration,
 
       switch (c) {
       // ahc
-      case 'r' : rebinner_lut_file = optarg;  // hrrt_rebinner.lut
+      case 'r' : rebinner_lut_file_ptr = optarg;  // hrrt_rebinner.lut
       // case 'v':   quiet = 0; break;   // -v don't be quiet any longer
       case 'h':   coins_file = optarg; break; // coincidence histogram (int 72,8,104,4)
       case 'p':   sscanf( optarg, "%d,%d", &nprojs, &nviews); break; // -p nprojs,nviews - set sinogram size
       case 's':   sscanf( optarg, "%d,%d", &span, &maxrd_); break;    // -s span,maxrd - set 3D parameters
       case 'g':   sscanf( optarg, "%f,%f,%f", &pitch, &diam, &thick); break;    // -g pitch,diam,thick
       case 'C':   csingles_file = optarg; break;  // -C crystal singles file
-      case 'k':   kflag = 1; break;          // user Koln geometry
+      // case 'k':   kflag = 1; break;          // user Koln geometry
       case 'O':   delays_file = optarg; break;  // -O delays_file
       case 'S':   output_csings_file = optarg; break; // -S save_csings_file
       case 'T':   sscanf( optarg, "%f", &tau); break;
       case 't':   sscanf( optarg, "%f", &ftime); break;
       }
     }
-    if ( coins_file == NULL || delays_file == NULL || rebinner_lut_file == NULL )
+    if ( coins_file == NULL || delays_file == NULL || rebinner_lut_file_ptr == NULL )
       usage("gen_delays");
+    rebinner_lut_file = bf::path(rebinner_lut_file_ptr);
   } else {
     // inline mode.
     coins_file  = (char *)"memory_mode";
     // ahc this value is overridden by argv if called as main
-    if (strlen(p_rebinner_lut_file)) {
+    if (!p_rebinner_lut_file.empty()) {
       rebinner_lut_file = p_rebinner_lut_file;
     } else {
       fprintf(stderr, "gen_delays.cpp:main(): Rebinner file must be specified\n");
@@ -406,13 +412,10 @@ int gen_delays(int argc, char **argv, int is_inline, float scan_duration,
 
   gettimeofday( &t0, NULL ) ;
 
-  head_crystal_depth = (float*)calloc(GeometryInfo::NHEADS, sizeof(float));
-  for (i = 0; i < GeometryInfo::NHEADS; i++)
-    if (kflag) head_crystal_depth[i] = koln_lthick[i];
-    else head_crystal_depth[i] = 1.0f;
+  head_crystal_depth_.assign(GeometryInfo::NHEADS, 1.0f);
 
   init_geometry_hrrt( nprojs, nviews, pitch, diam, thick);
-  init_segment_info(&m_nsegs, &nplanes, &m_d_tan_theta, maxrd_, span, GeometryInfo::NYCRYS, m_crystal_radius, m_plane_sep);
+  SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &SegmentInfo::m_d_tan_theta, maxrd_, span, GeometryInfo::NYCRYS, m_crystal_radius, m_plane_sep);
 
 
   // ahc hrrt_rebinner.lut now a required command line argument.
@@ -422,21 +425,18 @@ int gen_delays(int argc, char **argv, int is_inline, float scan_duration,
   //     exit(1);
   //   }
   // fprintf(stdout,"Using Rebinner LUT file %s\n", rebinner_lut_file);
-  // init_lut_sol(rebinner_lut_file, m_segzoffset);
+  // init_lut_sol(rebinner_lut_file, SegmentInfo::m_segzoffset);
   fprintf(stderr, "Using Rebinner LUT file %s\n", rebinner_lut_file);
-  init_lut_sol(rebinner_lut_file, m_segzoffset);
-
-  clean_segment_info();
+  init_lut_sol(rebinner_lut_file, SegmentInfo::m_segzoffset);
 
   free(m_crystal_xpos);
   free(m_crystal_ypos);
   free(m_crystal_zpos);
-  free(head_crystal_depth);
 
   //-------------------------------------------------------
   // delayed true output value init.
   nsino = nprojs * nviews;
-  //printf("nplanes= %d %d\n",nplanes,m_nsegs);
+  //printf("nplanes= %d %d\n",nplanes,SegmentInfo::m_nsegs);
   bin_number_to_nview  = (int *) calloc(nsino, sizeof(int));
   bin_number_to_nproj = (int *) calloc(nsino, sizeof(int));
   for (j = 0, n = 0; j < m_nviews; j++) {

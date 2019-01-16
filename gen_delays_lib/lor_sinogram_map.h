@@ -10,6 +10,9 @@
 */
 # pragma once
 
+#include <boost/filesystem.hpp>
+namespace bf = boost::filesystem;
+
 typedef struct {
 	int    nsino;
 	float d;
@@ -26,8 +29,8 @@ extern void init_sol(int *segzoffset);
 extern void init_sol_tx(int tx_span);
 // init_lut_sol: initialize m_solution, m_c_z_pos, m_c_zpos2, m_segplane
 // and load lut_filename. Load m_solution only if segzoffset==NULL
-extern int init_lut_sol(const char* lut_filename, int *segzoffset);
-extern int save_lut_sol(const char* lut_filename);
-extern int init_lut_sol_tx(const char* lut_filename);
-extern int save_lut_sol_tx(const char* lut_filename);
+extern int init_lut_sol(const boost::filesystem::path &lut_filename, int *segzoffset);
+extern int save_lut_sol(const boost::filesystem::path &lut_filename);
+extern int init_lut_sol_tx(const boost::filesystem:path &lut_filename);
+extern int save_lut_sol_tx(const boost::filesystem:path &lut_filename);
 

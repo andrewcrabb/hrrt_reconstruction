@@ -95,7 +95,7 @@ extern std::shared_ptr<spdlog::logger> g_logger;
 unsigned int start_countrate_ = 0;
 
 int quiet = 0;
-HIST_MODE g_hist_mode = HM_TRU;              // 0=Trues (Default), 1=Prompts and Randoms, 2=Prompts only, 7=transmission
+HISTOGRAM_MODE g_hist_mode = HISTOGRAM_MODE::TRU;              // 0=Trues (Default), 1=Prompts and Randoms, 2=Prompts only, 7=transmission
 int timetag_processing = 1;     // 0=Use timetag count for time, 1=decode time from timetag event
 unsigned eg_rebinner_method = SW_REBINNER;
 int g_max_rd = GeometryInfo::MAX_RINGDIFF;
@@ -150,9 +150,38 @@ static int nevents = 0, nsync = 0;  // # of events and syncs in current buffer
 static long terminate_frame = 0;        // End frame flag set by time tag process
 static int clock_reset = 0;
 
+std::map <FILE_TYPE, std::string> HISTOGRAM_MP::FILE_EXTENSIONS = {
+  // Constant names
+  {FILE_TYPE::SINO    , ".s"},
+  {FILE_TYPE::SINO_HDR, ".s.hdr"},
+  {FILE_TYPE::LM_HC   , "_lm.hc"},
+  {FILE_TYPE::RA_S    , ".ra.s"},
+  {FILE_TYPE::TR_S    , ".tr.s"},
+  {FILE_TYPE::DYN     , ".dyn"},
+  {FILE_TYPE::HC      , ".hc"},
+  {FILE_TYPE::L64_HDR , ".l64.hdr"},
+  // Names with frame number
+  {FILE_TYPE::FR_S    , "_frame{:2d}.s"}
+};
+
+std::map <HISTOGRAM_MODE, std::string> HISTOGRAM_MP::MODES = {
+  {HISTOGRAM_MODE::TRU    , "Nett trues"},
+  {HISTOGRAM_MODE::PRO_RAN, "Prompts and randoms"},
+  {HISTOGRAM_MODE::PRO    , "Prompts only"},
+  {HISTOGRAM_MODE::TRA    , "Transmission"}
+};
+
+// Required for fmt::format
+
+std::ostream &operator<<(std::ostream& os, FILE_TYPE ft) {
+  return os << static_cast<int>(ft);
+}
+
+std::ostream &operator<<(std::ostream& os, HISTOGRAM_MODE hm) {
+  return os << static_cast<int>(hm);
+}
 
 int open_ostream(std::ofstream &t_outs, const bf::path &t_path, std::ios_base::openmode t_mode) {
-  // boost::filesystem::ofstream outs();
   t_outs.open(t_path.string(), t_mode);
   if (!t_outs.is_open()) {
     g_logger->error("Could not open output file {}", t_path);
@@ -424,9 +453,6 @@ static int goto_event_32(int target)
   return 1;
 }
 
-
-static unsigned int ewtypes[16] = {3, 3, 1, 0, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3};
-
 inline void load_buffer_64(unsigned *&buf, int &nevents, int &nsync)
 {
   /*
@@ -478,14 +504,14 @@ static int goto_event_64(int target)
     }
     ew1 = listptr[0];
     ew2 = listptr[1];
-    type = ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
+    type = HISTOGRAM_MP::ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
     while (type == 3) {
       // sync
       nsync++;
       listptr++;
       ew1 = listptr[0];
       ew2 = listptr[1];
-      type = ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
+      type = HISTOGRAM_MP::ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
       if ((nevents - (nsync + 1) / 2) == 0) {
         load_buffer_64(listbuf, nevents, nsync);
         if (!nevents) terminate = 2;
@@ -543,7 +569,7 @@ static int next_event_64(Event_32 &cew, int scan_flag)
   }
   ew1 = listptr[0];
   ew2 = listptr[1];
-  type = ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
+  type = HISTOGRAM_MP::ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
   unsigned doi_processing = (eg_rebinner_method & NODOI_PROCESSING) == 0 ? 1 : 0;
   while (type == 3) {
     // sync
@@ -551,7 +577,7 @@ static int next_event_64(Event_32 &cew, int scan_flag)
     listptr++;
     ew1 = listptr[0];
     ew2 = listptr[1];
-    type = ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
+    type = HISTOGRAM_MP::ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
     if ((nevents - (nsync + 1) / 2) == 0) {
       load_buffer_64(listbuf, nevents, nsync);
       if (!nevents) return 2;
@@ -759,7 +785,7 @@ int check_start_of_frame(L64EventPacket &src)
   while (pos < src.num_events * 2) {
     ew1 = in_buf[pos];
     ew2 = in_buf[pos + 1];
-    type = ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
+    type = HISTOGRAM_MP::ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
     if (type == 2) {
       // tag word
       tag = (ew1 & 0xffff) | ((ew2 & 0xffff) << 16);
@@ -827,7 +853,7 @@ static int find_start_countrate_lm(const bf::path &l64_file) {
     while (pos < num_events * 2) {
       ew1 = buf[pos];
       ew2 = buf[pos + 1];
-      type = ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
+      type = HISTOGRAM_MP::ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
       switch (type) {
       case 3:   // sync
         pos += 1;
@@ -878,7 +904,7 @@ static int find_start_countrate_lm(const bf::path &l64_file) {
 bf::path &make_path(const bf::path &infile, FILE_TYPE file_type) {
   // Range checking is handled by enum.
   bf::path new_path = infile;
-  return new_path.replace_extension(FILE_EXTENSIONS[file_type]);
+  return new_path.replace_extension(HISTOGRAM_MP::FILE_EXTENSIONS[file_type]);
 }
 
   // Parse line of HC file with contents:
@@ -996,7 +1022,7 @@ int check_end_of_frame(L64EventPacket &src) {
   while (pos >= 0) {
     ew1 = in_buf[pos];
     ew2 = in_buf[pos + 1];
-    type = ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
+    type = HISTOGRAM_MP::ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
     if (type == 2) {
       // tag word
       tag = (ew1 & 0xffff) | ((ew2 & 0xffff) << 16);
@@ -1056,7 +1082,7 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
     //  cerr << "xxx src_pos " << src_pos << endl;
     ew1 = in_buf[src_pos];
     ew2 = in_buf[src_pos + 1];
-    type = ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
+    type = HISTOGRAM_MP::ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
     switch (type) {
     case 3: // not in sync
       src_pos++;
@@ -1064,7 +1090,7 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
     case 2: // tag word
       src_pos += 2;
       tag = (ew1 & 0xffff) | ((ew2 & 0xffff) << 16);
-      if (g_hist_mode == HM_TRA) {
+      if (g_hist_mode == HISTOGRAM_MODE::TRA) {
         // transmission mode
         if ((tag & 0xE0000000) == 0x80000000) {
           // timetag
@@ -1112,10 +1138,10 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
       ay = ((ew1 & 0xff00) >> 8);
       bx = (ew2 & 0xff);
       by = ((ew2 & 0xff00) >> 8);
-      if (doi_processing || g_hist_mode == HM_TRA) {
+      if (doi_processing || g_hist_mode == HISTOGRAM_MODE::TRA) {
         doia = (ew1 & 0x01C00000) >> 22;
         doib = (ew2 & 0x01C00000) >> 22;
-        if (g_hist_mode == HM_TRA)
+        if (g_hist_mode == HISTOGRAM_MODE::TRA)
           if (doia != 7 && doib != 7) {
             g_logger->error("{}: Invalid crystal DOI fro TX event ({},{}) ({},{}) ", doia, ay, bx, by);
             error_flag++;
@@ -1190,7 +1216,7 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
           if (ignore_border_crystal && (ax * bx == 0 || ax == xhigh || bx == xhigh )) {
             address = -1;
           } else {
-            if (g_hist_mode == HM_PRO) {
+            if (g_hist_mode == HISTOGRAM_MODE::PRO) {
               if (type == 0) {
                 // prompt
                 address = rebin_event( mpe, doia, ax, ay, doib, bx, by /*, type*/);
@@ -1266,7 +1292,7 @@ void process_tagword(const L64EventPacket &src, std::ofstream out_hc)
   while (i < 2 * nevents) {
     ew1 = buf[i];
     ew2 = buf[i + 1];
-    type = ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
+    type = HISTOGRAM_MP::ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
     switch (type) {
     case 3: // not in sync
       i++;
@@ -1313,8 +1339,8 @@ template <class T> int histogram(T *t_sino, char *delayed, int sino_size, int &t
 
   g_logger->info("Time(sec),Randoms,Prompts,Singles,Event Time(ms)");
   switch (g_hist_mode) {
-  case HM_TRU: // randoms subtraction
-  case HM_PRO: // prompts only
+  case HISTOGRAM_MODE::TRU: // randoms subtraction
+  case HISTOGRAM_MODE::PRO: // prompts only
     while (next_event_32(cew, 0) == 0) {
       if (cew.type == Event_32::TAG) {
         process_tagword(cew.value, t_duration, t_out_hc);
@@ -1333,7 +1359,7 @@ template <class T> int histogram(T *t_sino, char *delayed, int sino_size, int &t
     }
     break;
 
-  case HM_PRO_RAN: // separate randoms/prompts
+  case HISTOGRAM_MODE::PRO_RAN: // separate randoms/prompts
     while (next_event_32(cew, 0) == 0) {
       if (cew.type == Event_32::TAG) {
         process_tagword(cew.value, t_duration, t_out_hc);
@@ -1360,7 +1386,7 @@ template <class T> int histogram(T *t_sino, char *delayed, int sino_size, int &t
         break;
     }
     break;
-  case HM_TRA: // Transmission
+  case HISTOGRAM_MODE::TRA: // Transmission
     while (next_event_32(cew, 0) == 0) {
       if (cew.type == Event_32::TAG)
         process_tagword(cew.value, t_duration, t_out_hc);

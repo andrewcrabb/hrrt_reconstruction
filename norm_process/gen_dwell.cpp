@@ -8,12 +8,7 @@
 #include <gen_delays_lib/geometry_info.h>
 #include <gen_delays_lib/segment_info.h>
 #include <gen_delays_lib/lor_sinogram_map.h>
-#ifdef WIN32
-  extern int getopt(int argc, char *argv[], char *opstring);
-  extern char *optarg;
-  extern int   optind;
-  extern int   opterr;
-#endif
+#include <boost/filesystem.hpp>
 
 void usage(const char *pgm)
 {
@@ -23,11 +18,10 @@ void usage(const char *pgm)
   exit(1);
 }
 
-void main(int argc, char ** argv)
-{
-  int ax, ay, bx, by;
+void main(int argc, char ** argv) {
+  // int ax, ay, bx, by;
   int alayer, blayer, rd;
-	int axx,bxx;
+	// int axx,bxx;
 	int headxcrys = GeometryInfo::NHEADS * GeometryInfo::NXCRYS;
 	float cay;
   float *dptr;
@@ -39,7 +33,7 @@ void main(int argc, char ** argv)
   float *dwell_data=NULL, **dwell_data2 = NULL;
   int maxrd=GeometryInfo::MAX_RINGDIFF, span=9, nplanes=0;
   int i, npixels=0, nvoxels=0;
-  const char *rebinner_lut_file=NULL;
+  // const char *rebinner_lut_file=NULL;
   const char *out_file =NULL;
   double m_d_tan_theta=0;
   int layer=GeometryInfo::NDOIS; // all layers
@@ -65,17 +59,17 @@ void main(int argc, char ** argv)
     }
   }
   if (out_file ==NULL) usage(argv[0]);
+  boost::filesystem::path rebinner_lut_file;
   if ((rebinner_lut_file=hrrt_rebinner_lut_path())==NULL)
   {
     fprintf(stdout,"Rebinner LUT file not found\n");
     exit(1);
   }
-  init_segment_info(&m_nsegs,&nplanes,&m_d_tan_theta,maxrd,span,GeometryInfo::NYCRYS,
-    m_crystal_radius,m_plane_sep);
+  SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &m_d_tan_theta, maxrd, span, GeometryInfo::NYCRYS, m_crystal_radius, m_plane_sep);
   npixels=nprojs*nviews;
   nvoxels=npixels*nplanes;
 
-  init_lut_sol(rebinner_lut_file, m_segzoffset);
+  init_lut_sol(rebinner_lut_file, SegmentInfo::m_segzoffset);
   if ((dwell_data = (float *) calloc( nvoxels, sizeof(float) )) == NULL)
 	{
 		printf("memory allocation failed\n");
@@ -106,18 +100,18 @@ void main(int argc, char ** argv)
 					  if(be<by) be=by; //end   ring # of detB
 				  }
 			  }
-			  for (ax=0; ax<GeometryInfo::NXCRYS; ax++){
-				  axx=ax+GeometryInfo::NXCRYS*alayer;
+			  for (int ax=0; ax<GeometryInfo::NXCRYS; ax++){
+				  int axx=ax+GeometryInfo::NXCRYS*alayer;
 				  for (blayer=0; blayer<GeometryInfo::NDOIS; blayer++){
             if (layer<GeometryInfo::NDOIS && blayer != layer) continue; // not requested layer
-					  bxx=GeometryInfo::NXCRYS*blayer;
-					  for (bx=0; bx<GeometryInfo::NXCRYS; bx++,bxx++){
+					  int bxx=GeometryInfo::NXCRYS*blayer;
+					  for (int bx=0; bx<GeometryInfo::NXCRYS; bx++,bxx++){
 						  if(m_solution[mp][axx][bxx].nsino==-1) continue;
 						  sol=&m_solution[mp][axx][bxx];
   						
 						  dptr = dwell_data2[sol->nsino];//result bin location
 
-						  for (by=bs; by<=be; by++){
+						  for (int by=bs; by<=be; by++){
                 plane        = (cay+sol->z*dz2[by]);
                 segnum = seg = (0.5+dz2[by] * sol->d);
 							  if(seg<0) segnum=1-(segnum<<1);

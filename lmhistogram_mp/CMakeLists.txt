@@ -12,6 +12,7 @@ find_package(Boost REQUIRED)
 
 add_executable (lmhistogram_mp convert_span9.cpp dtc.cpp gantryinfo.cpp 
 	histogram_mp.cpp lmhistogram_mp.cpp LM_Reader_mp.cpp LM_Rebinner_mp.cpp )
+link_directories(${PROJECT_SOURCE_DIR}/cheader_lib)
 target_link_libraries(lmhistogram_mp LINK_PUBLIC gen_delays hrrt_common cheader fmt)
 # target_link_libraries(lmhistogram_mp LINK_PUBLIC fmt)
 target_include_directories (lmhistogram_mp PUBLIC ${LIB_INCLUDE_DIRS})
