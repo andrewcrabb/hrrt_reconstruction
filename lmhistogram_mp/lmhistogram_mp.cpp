@@ -154,6 +154,8 @@ bf::path g_out_fname_hdr;  //current frame sinogram header file name
 bf::path g_out_fname_ra;   //current frame sinogram randoms file name
 bf::path g_out_fname_pr;   //current frame sinogram prompts file name
 bf::path g_out_fname_tr;   //current frame sinogram Trues file name
+// ahc: hrrt_rebinner.lut is now a required cmd line arg
+bf::path g_lut_file;
 
 std::string g_logfile;
 
@@ -193,8 +195,6 @@ std::string g_prev_sino;        // 1: add to existing normalization scan
 static float g_decay_rate = 0.0;      // Default no decay correction in seconds
 static int g_lld = DEFAULT_LLD;
 
-// ahc: hrrt_rebinner.lut is now a required cmd line arg
-std::string g_lut_file;
 
 static string sw_version("HRRT_U 1.1");
 
@@ -298,18 +298,13 @@ void on_infile(const std::string &instr) {
   g_fname_l64 = bf::path(instr);
 }
 
-void on_lrtype(LR_Type lr_type) {
-  switch (lr_type) {
-  case LR_Type::LR_20:
-    GeometryInfo::LR_type = LR_Type::LR_20;
-    break;
-  case LR_Type::LR_24:
-    GeometryInfo::LR_type = LR_Type::LR_24;
-    break;
-  default:
-    std::cerr << "*** invalid LR mode ***" << std::endl;
-    exit(0);
-  }
+void on_lut_file(const std::string &lutfile) {
+  g_lut_file = bf::path(lutfile);
+}
+
+void on_lrtype(int intval) {
+  LR_type t = GeometryInfo::to_lrtype(intval, good_vals);
+  GeometryInfo::LR_type = t;
   g_span = 7;
   g_max_rd = 38;
 }
@@ -423,8 +418,8 @@ void parse_boost(int argc, char **argv) {
     ("help,h", "Show options")
     ("out,o"        , po::value<std::string>()->notifier(&on_out)                    , "output sinogram, 32 or 64-bit listmode file from file extension")
     ("infile,i"     , po::value<std::string>()->notifier(&on_infile)                 , "Input file")
-    // ("lr_type,L"    , po::value<LR_Type>()->notifier(on_lrtype)                      , "low resolution (mode 1/2: binsize 2/2.4375mm, nbins 160/128, span 7, maxrd 38)")
-    ("lr_type,L"    , po::value<LR_Type>(&lrtype)                      , "low resolution (mode 1/2: binsize 2/2.4375mm, nbins 160/128, span 7, maxrd 38)")
+    ("lr_type,L"    , po::value<int>()->notifier(on_lrtype)                      , "low resolution (mode 1/2: binsize 2/2.4375mm, nbins 160/128, span 7, maxrd 38)")
+    // ("lr_type,L"    , po::value<LR_Type>(&lrtype)                      , "low resolution (mode 1/2: binsize 2/2.4375mm, nbins 160/128, span 7, maxrd 38)")
     ("span"         , po::value<int>()->notifier(on_span)                            , "Span size - valid values: 0(TX), 1,3,5,7,9")
     ("PR"           , po::bool_switch()->notifier(&on_pr)                            , "Separate prompts and randoms")
     ("ra"           , po::bool_switch()->notifier(&on_ra)                            , "Output randoms sinogram file (emission only)")
@@ -440,7 +435,7 @@ void parse_boost(int argc, char **argv) {
     ("EB"           , po::bool_switch()->notifier(&on_eb)                            , "Exclude border crystals")
     ("count"        , po::value<int>(&stop_count_)->notifier(&assert_positive)        , "Stop after N events")
     ("start"        , po::value<unsigned int>(&start_countrate_)->notifier(&assert_positive)  , "Start histogramming when trues/sec is higher than N")
-    ("lut_file,r"   , po::value<std::string>(&g_lut_file)->required()                , "Full path to rebinner.lut file" )
+    ("lut_file,r"   , po::value<std::string>()->notifier(&on_lut_file)             , "Full path to rebinner.lut file" )
     ("duration,d"   , po::value<std::vector<std::string>>()->multitoken()
      ->composing()
      ->notifier(&on_duration) , "Frame [duration] or [duration,skip] or [duration*repeat]")
@@ -1077,7 +1072,7 @@ void do_find_start_countrate(void) {
 void do_init_rebinner(CHeader &hdr) {
   int span_bak = g_span;
   int rd_bak = g_max_rd;
-  init_rebinner(g_span, g_max_rd, g_lut_file);
+  LM_Rebinner::init_rebinner(g_span, g_max_rd, g_lut_file);
   hdr.WriteInt(CHeader::LM_REBINNER_METHOD, (int)eg_rebinner_method);
   hdr.WriteInt(CHeader::AXIAL_COMPRESSION, g_span);
   hdr.WriteInt(CHeader::MAXIMUM_RING_DIFFERENCE, g_max_rd);

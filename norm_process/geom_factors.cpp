@@ -110,6 +110,7 @@ void main(int argc, char ** argv)
 {
   int i=0;
 
+  // TODO use boost::program_options to read in a file_path for rebinner_lut_file
   const char *rebinner_lut_file=NULL;
   int *m_segzoffset=NULL;
   int mp, al, bl, ax, axx, bx, bxx;

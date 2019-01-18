@@ -13,74 +13,82 @@
 #include <gen_delays_lib/segment_info.h>
 #include <gen_delays_lib/geometry_info.h>
 #include <unistd.h>
+#include <vector>
 
-static void usage() {
-  printf("\nhrrt_rebinner_lut build %s %s\n\n", __DATE__, __TIME__);
-  printf("usage: hrrt_rebinner_lut -o em_lut_out_file [-t tx_lut_out_file] [-k] [-L mode] \n");
-  printf("    -t          : Transmission LUT output\n");
-  printf("    -L mode     : set Low Resolution mode (1: binsize=2mm, nbins=160, nviews=144, 2:binsize=2.4375)\n");
-  exit(1);
+#include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+#include "spdlog/sinks/basic_file_sink.h"
+
+namespace po = boost::program_options;
+namespace bf = boost::filesystem;
+
+std::string g_logfile;
+extern std::shared_ptr<spdlog::logger> g_logger;
+
+bf::path g_out_fname;
+int g_tx_flag{0};
+int g_span{9};
+int g_maxrd{GeometryInfo::MAX_RINGDIFF};
+
+void on_out(const std::string &outstr) {
+  g_out_fname = bf::path(outstr);
+  g_logger->debug("output file {}", g_out_fname.string());
+}
+
+void on_transmission(const std::string &outstr) {
+  g_out_fname = bf::path(outstr);
+  g_tx_flag = 1;
+  g_span = 21;
+  g_maxrd = 10;
+}
+
+void on_low(int intval) {
+  std::vector<LR_Type> good_vals = {LR_Type::LR_20, LR_Type::LR_24};
+  LR_type t = GeometryInfo::to_lrtype(intval, good_vals);
+  GeometryInfo::LR_type = t;
 }
 
 void main(int argc, char* argv[]) {
-  int nprojs = 256;
-  int nviews = 288;
-  float pitch = 0.0;
-  float diam = 0.0;
-  float thick = 0.0;
-  int span = 9, maxrd = GeometryInfo::MAX_RINGDIFF;
-  int nplanes = 0;
-  int i = 0, kflag = 0, type = 0, tx_flag = 0;
-  char *lut_fname = NULL;
+  try {
+    po::options_description desc("Options");
+    desc.add_options()
+    ("help,h", "Show options")
+    ("out,o"         , po::value<std::string>()->notifier(&on_out)         , "Output LUT file" )
+    ("transmission,t", po::value<std::string>()->notifier(&on_transmission), "Transmission LUT output file" )
+    ("low,L"         , po::value<int>()->notifier(&on_low)                 , "set Low Resolution mode (1: binsize=2mm, nbins=160, nviews=144, 2:binsize=2.4375" )
+    ;
 
-  if (argc == 1) usage();
-  while ((i = getopt( argc, argv, "o:t:L:k")) != -1) {
-    switch (i) {
-    case 'o':
-      lut_fname = optarg;
-      break;
-    case 't':
-      lut_fname = optarg;
-      tx_flag = 1;
-      span = 21;
-      maxrd = 10;
-      break;
-    case 'L':
-      if (sscanf( optarg, "%d", &type) == 1) {
-        switch (type) {
-        case LR_20:
-          GeometryInfo::LR_type = LR_20;
-          break;
-        case LR_24:
-          GeometryInfo::LR_type = LR_24;
-          break;
-        }
-      }
-      if (GeometryInfo::LR_type != LR_20 && GeometryInfo::LR_type != LR_24) {
-        fprintf(stderr, "Invalid LR mode %d\n", type);
-        usage();
-      }
-      break;
-    default:
-      usage();
-    }
+    po::variables_map vm;
+    po::store(
+      po::command_line_parser(argc, argv)
+      .options(desc)
+      .style(
+        po::command_line_style::unix_style
+        | po::command_line_style::allow_long_disguise)
+      .positional(pos_opts)
+      .run(), vm
+    );
+    po::notify(vm);
+    if (vm.count("help"))
+      std::cout << desc << '\n';
   }
-  // head_crystal_depth = (float*)calloc(NHEADS, sizeof(float));
-  // for (i=0; i<NHEADS;i++)
-  //   if (kflag) head_crystal_depth[i] = koln_lthick[i];
-  //   else head_crystal_depth[i] = 1.0f;
-  for (auto &head_depth : head_crystal_depth_)
-    head_depth = 1.0f;
+  catch (const po::error &ex) {
+    std::cerr << ex.what() << std::endl;
+  }
 
-  init_geometry_hrrt( nprojs, nviews, pitch, diam, thick);
-  SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &SegmentInfo::m_d_tan_theta, maxrd, span, NYCRYS, m_crystal_radius, m_plane_sep);
-  // short *sino = (short*)calloc(m_nprojs*m_nviews, sizeof(short));
-  if (!tx_flag) {
+  head_crystal_depth_.assign(1.0f);
+  GeometryInfo::init_geometry_hrrt();
+  int nplanes = 0;
+  SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &SegmentInfo::m_d_tan_theta, g_maxrd, g_span, NYCRYS, m_crystal_radius, m_plane_sep);
+
+  if (!g_tx_flag) {
     init_sol(SegmentInfo::m_segzoffset);
-    save_lut_sol(lut_fname);
+    save_lut_sol(g_out_fname);
   } else {
-    init_sol_tx(span);
-    save_lut_sol_tx(lut_fname);
+    init_sol_tx(g_span);
+    save_lut_sol_tx(g_out_fname);
   }
   exit(0);
 }

@@ -115,17 +115,17 @@ void init_seginfo2( int t_nrings, int t_span, int t_maxrd, double *d_tan_theta
 }
 
 int SegmentInfo::init_segment_info(int *nsegs, int *t_nplanes, double *d_tan_theta
-                      , int t_maxrd, int t_span, int NYCRYS, double crystal_radius, double plane_sep) {
+                      , int t_maxrd, int t_span, int t_nycrys, double crystal_radius, double plane_sep) {
 
   int i = 0;
   *nsegs = 2 * (t_maxrd / t_span) + 1;
   // SegmentInfo::m_segzoffset_span9 = (int *) (calloc(*nsegs, sizeof(int)));
   *nsegs = 2 * (t_maxrd / 3) + 1;
   // SegmentInfo::m_segzoffset = (int *) (calloc(*nsegs, sizeof(int)));
-  init_seginfo( NYCRYS, t_span, t_maxrd, t_nplanes, d_tan_theta
+  init_seginfo( t_nycrys, t_span, t_maxrd, t_nplanes, d_tan_theta
                 , nsegs
                 , crystal_radius, plane_sep);
-  init_seginfo2(NYCRYS, 3, t_maxrd, d_tan_theta
+  init_seginfo2(t_nycrys, 3, t_maxrd, d_tan_theta
                 , nsegs
                 , crystal_radius, plane_sep);
   if (t_span == 9) {

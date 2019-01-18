@@ -35,6 +35,7 @@
 #include <gen_delays_lib/segment_info.h>
 #include <gen_delays_lib/geometry_info.h>
 #include <gen_delays_lib/gen_delays.h>
+#include <boost/filesystem.hpp>
 
 // ahc
 #include <string.h>
@@ -47,8 +48,7 @@ int model_number = MODEL_HRRT;
 int tx_span = 21;
 static int em_span = 9;
 
-std::string LM_Rebinner::rebinner_lut_file;
-
+boost::filesystem::path LM_Rebinner::rebinner_lut_file;
 
 /*
  * Gets  configuration values from GantryModel and calls init_sort3d_hrrt with read or default values.
@@ -56,7 +56,7 @@ std::string LM_Rebinner::rebinner_lut_file;
  * maxrd is set to (span-1)/2.
  * Returns 1 if OK and 0 if gm328.ini not found or if a key is not found.
  */
-int init_rebinner(int &t_span, int &t_max_ringdiff, const std::string &t_lut_file) {
+int LM_Rebinner::init_rebinner(int &t_span, int &t_max_ringdiff, const boost::filesystem::path &t_lut_file) {
   int i = 0,  uniform_flag = -1;
   // int *head_type = (int*)calloc(GeometryInfo::NHEADS, sizeof(int));
   std::vector<int> head_type(GeometryInfo::NHEADS);
@@ -81,10 +81,7 @@ int init_rebinner(int &t_span, int &t_max_ringdiff, const std::string &t_lut_fil
         break;
       }
       if (i == 1) {
-        if (head_type[0] == head_type[1])
-          uniform_flag = 1;
-        else
-          uniform_flag = 0;
+        uniform_flag = (head_type[0] == head_type[1]) ? 1 : 0;
       } else if (head_type[i] != head_type[0]) {
         uniform_flag = 0;
       }

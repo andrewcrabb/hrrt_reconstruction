@@ -40,16 +40,8 @@
 
 namespace bf = boost::filesystem;
 
-// #define LUT_FILENAME "hrrt_rebinner.lut"
-
 float tau = 6.0e-9f;
 float ftime = 1.0f;
-
-int *bin_number_to_nview;
-int *bin_number_to_nproj;
-
-//dsaint31 float *head_lthick = NULL;
-//dsaint31 float *head_irad   = NULL;
 
 typedef struct {
   int mp;
@@ -57,14 +49,27 @@ typedef struct {
   float *csings;
 } COMPUTE_DELAYS;
 
+std::shared_ptr<spdlog::logger> g_logger;
+boost::filesystem::path g_logfile;
+boost::filesystem::path g_rebinner_lut_file;
+boost::filesystem::path g_coincidence_histogram_file;
+boost::filesystem::path g_crystal_singles_file;
+boost::filesystem::path g_delayed_coincidence_file;
+boost::filesystem::path g_output_csings_file;
+int g_num_elems = GeometryInfo::NUM_ELEMS;
+int g_num_views = GeometryInfo::NUM_VIEWS;
+int g_span = 9;
+int g_max_ringdiff = GeometryInfo::MAX_RINGDIFF;
+float g_pitch = 0.0f;
+float g_diam  = 0.0f;
+float g_thick = 0.0f;
+float g_tau   = 6.0e-9f;
+
+
 
 static std::string progid = "$Id: gen_delays.c,v 1.3 2007/01/08 06:04:55 cvsuser Exp $";
 
-
-float koln_lthick[8]   = {0.75f, 0.75f, 1.0f, 0.75f, 0.75f, 0.75f, 1.0f, 0.75f};
-
-static void usage(const char *prog)
-{
+static void usage(const char *prog) {
   printf("%s - generate delayed coincidence data from crystal singles\n", prog);
   printf("usage: gen_delays -h coincidence_histogram -O delayed_coincidence_file -t count_time <other switches>\n");
   printf("    -v              : verbose\n");
@@ -79,42 +84,26 @@ static void usage(const char *prog)
   exit(1);
 }
 
-int compute_delays( int mp, float **delays_data, float *csings)
-{
-  int ax, ay, bx, by;
-  // , ahead, bhead;
-  int alayer, blayer, rd;
-  int axx, bxx, nbd;
-  int headxcrys = GeometryInfo::NHEADS * GeometryInfo::NXCRYS;
-  float aw;
-  float cay;
-  float awtauftime;
-  float *dptr;
-  // int current_view;
-  // int current_proj;
-  // int num=0;
-  int bs, be;
-  SOL *sol;
-  int segnum, plane;
-  float dz2[104], seg;
-  float tauftime;
+int compute_delays(int mp, float **delays_data, float *csings) {
+  std::array<float, 104> dz2;
 
   // int ahead = GeometryInfo::HRRT_MPAIRS[mp][0];
   int bhead = GeometryInfo::HRRT_MPAIRS[mp][1];
-  tauftime = tau * ftime;
-  //fprintf(stdout,"2 Generating delays for MP %d [H%d,H%d]\n", mp, ahead, bhead);
-  fflush(stdout);
+  float tauftime = tau * ftime;
 
-  for (alayer = 0; alayer < GeometryInfo::NDOIS; alayer++) {
+  for (int alayer = 0; alayer < GeometryInfo::NDOIS; alayer++) {
     for (ay = 0; ay < GeometryInfo::NYCRYS; ay++) {
       //  if (ay%10==0) printf("Generating delays for MP %d [H%d,H%d] %d\t%d \r", mp, ahead, bhead,alayer,ay);
-      cay = m_c_zpos2[ay];
-      bs = 1000; be = -1000;
+      float cay = m_c_zpos2[ay];
+      int bs = 1000; 
+      int be = -1000;
 
       //get rd,dz2[by],bs,be
       for (by = 0; by < GeometryInfo::NYCRYS; by++) {
         dz2[by] = m_c_zpos[by] - m_c_zpos[ay]; // z diff. between det A and det B
-        rd = ay - by; if (rd < 0) rd = by - ay;
+        int rd = ay - by; 
+        if (rd < 0) 
+          rd = by - ay;
         if (rd < maxrd_ + 6) {  // dsaint31 : why 6??
           if (bs > by)
             bs = by; //start ring # of detB
@@ -123,32 +112,30 @@ int compute_delays( int mp, float **delays_data, float *csings)
         }
       }
 
-      for (ax = 0; ax < GeometryInfo::NXCRYS; ax++) {
-
-        axx = ax + GeometryInfo::NXCRYS * alayer;
-        aw = csings[alayer * GeometryInfo::NUM_CRYSTALS_X_Y_HEADS + ay * GeometryInfo::NUM_CRYSTALS_X_Y_HEADS + ax];
-        awtauftime = aw * tauftime; // 2 * tau * singles at detA
+      for (int ax = 0; ax < GeometryInfo::NXCRYS; ax++) {
+        int axx = ax + GeometryInfo::NXCRYS * alayer;
+        float aw = csings[alayer * GeometryInfo::NUM_CRYSTALS_X_Y_HEADS + ay * GeometryInfo::NUM_CRYSTALS_X_Y_HEADS + ax];
+        float awtauftime = aw * tauftime; // 2 * tau * singles at detA
         if (awtauftime == 0)
           continue;
 
-        for (blayer = 0; blayer < 2; blayer++) {
-          bxx = GeometryInfo::NXCRYS * blayer;
-          for (bx = 0; bx < GeometryInfo::NXCRYS; bx++, bxx++) {
+        for (int blayer = 0; blayer < 2; blayer++) {
+          int bxx = GeometryInfo::NXCRYS * blayer;
+          for (int bx = 0; bx < GeometryInfo::NXCRYS; bx++, bxx++) {
             if (m_solution[mp][axx][bxx].nsino == -1)
               continue;
-            sol = &m_solution[mp][axx][bxx];
+            SOL *sol = &m_solution[mp][axx][bxx];
 
             //dsaint31
-            dptr = delays_data[sol->nsino];//result bin location
-            // current_view = bin_number_to_nview[sol->nsino];
-            // current_proj = bin_number_to_nproj[sol->nsino];
+            float *dptr = delays_data[sol->nsino];//result bin location
 
-            nbd  = blayer * GeometryInfo::NUM_CRYSTALS_X_Y_HEADS + bhead * GeometryInfo::NXCRYS + bx + headxcrys * bs;
+            int headxcrys = GeometryInfo::NHEADS * GeometryInfo::NXCRYS;
+            int nbd  = blayer * GeometryInfo::NUM_CRYSTALS_X_Y_HEADS + bhead * GeometryInfo::NXCRYS + bx + headxcrys * bs;
             for (by = bs; by <= be; by++, nbd += headxcrys) {
-              plane = (int)(cay + sol->z * dz2[by]);
+              int plane = (int)(cay + sol->z * dz2[by]);
 
-              seg = (float)(0.5 + dz2[by] * sol->d);
-              segnum = (int)seg;
+              float seg = (float)(0.5 + dz2[by] * sol->d);
+              int segnum = (int)seg;
               if (seg < 0)
                 segnum = 1 - (segnum << 1);
               else
@@ -172,176 +159,196 @@ int compute_delays( int mp, float **delays_data, float *csings)
 
 // Compute the delayed crystal coincidence rates for the specified crystal singles rates
 
-void compute_drate( float *srate, float tau, float *drate)
-{
-  float hsum[GeometryInfo::NHEADS], ohead_sum;
-  int head, layer, cx, cy, i, j, ohead;
+template <std::size_t SIZE>
+void compute_drate(float *srate, float tau, std::array<float, SIZE> &drate) {
+  std::array<float, GeometryInfo::NHEADS> hsum;
 
   // First we compute the total singles rates for each of the heads...
 
-  for (head = 0; head < GeometryInfo::NHEADS; head++) {
+  for (int head = 0; head < GeometryInfo::NHEADS; head++) {
     hsum[head] = 0.0;
-    for (layer = 0; layer < GeometryInfo::NDOIS; layer++)
-      for (cx = 0; cx < GeometryInfo::NXCRYS; cx++)
-        for (cy = 0; cy < GeometryInfo::NYCRYS; cy++) {
-          i = GeometryInfo::NXCRYS * head + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
+    for (lint ayer = 0; layer < GeometryInfo::NDOIS; layer++)
+      for (int cx = 0; cx < GeometryInfo::NXCRYS; cx++)
+        for (int cy = 0; cy < GeometryInfo::NYCRYS; cy++) {
+          int i = GeometryInfo::NXCRYS * head + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
           hsum[head] += srate[i];
         }
   }
 
   // Now we compute the delayed coincidence rate for each crystal...
 
-  for (head = 0; head < GeometryInfo::NHEADS; head++) {
-    ohead_sum = 0.0;
-    for (j = 0; j < 5; j++) {
-      ohead = (head + j + 2) % GeometryInfo::NHEADS;
+  for (int head = 0; head < GeometryInfo::NHEADS; head++) {
+    int head_xcrys = GeometryInfo::NXCRYS * head;
+    float ohead_sum = 0.0;
+    for (int j = 0; j < 5; j++) {
+      int ohead = (head + j + 2) % GeometryInfo::NHEADS;
       ohead_sum += hsum[ohead];
     }
-    for (layer = 0; layer < GeometryInfo::NDOIS; layer++)
-      for (cx = 0; cx < GeometryInfo::NXCRYS; cx++)
-        for (cy = 0; cy < GeometryInfo::NYCRYS; cy++) {
-          i = GeometryInfo::NXCRYS * head + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
+    for (lint ayer = 0; layer < GeometryInfo::NDOIS; layer++)
+      int layer_crystals = GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
+      for (int cx = 0; cx < GeometryInfo::NXCRYS; cx++)
+        for (int cy = 0; cy < GeometryInfo::NYCRYS; cy++) {
+          int i = head_xcrys + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + layer_crystals;
           drate[i] = srate[i] * tau * ohead_sum;
         }
   }
 }
 
-void estimate_srate( float *drate, float tau, float *srate)
-{
-  float hsum[GeometryInfo::NHEADS], ohead_sum;
-  int head, layer, cx, cy, i, j, ohead;
+void estimate_srate(float *drate, float tau, float *srate) {
+  float hsum[GeometryInfo::NHEADS];
 
   // First we compute the total singles rates for each of the heads...
 
-  for (head = 0; head < GeometryInfo::NHEADS; head++) {
+  for (int head = 0; head < GeometryInfo::NHEADS; head++) {
     hsum[head] = 0.0;
-    for (layer = 0; layer < GeometryInfo::NDOIS; layer++)
-      for (cx = 0; cx < GeometryInfo::NXCRYS; cx++)
-        for (cy = 0; cy < GeometryInfo::NYCRYS; cy++) {
-          i = GeometryInfo::NXCRYS * head + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
+    for (lint ayer = 0; layer < GeometryInfo::NDOIS; layer++)
+      for (int cx = 0; cx < GeometryInfo::NXCRYS; cx++)
+        for (int cy = 0; cy < GeometryInfo::NYCRYS; cy++) {
+          int i = GeometryInfo::NXCRYS * head + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
           hsum[head] += srate[i];
         }
   }
 
   // Now we update the estimated singles rate for each crystal...
 
-  for (head = 0; head < GeometryInfo::NHEADS; head++) {
-    ohead_sum = 0.0;
-    for (j = 0; j < 5; j++) {
+  for (int head = 0; head < GeometryInfo::NHEADS; head++) {
+    float ohead_sum = 0.0;
+    for (int j = 0; j < 5; j++) {
       ohead = (head + j + 2) % GeometryInfo::NHEADS;
       ohead_sum += hsum[ohead];
     }
-    for (layer = 0; layer < GeometryInfo::NDOIS; layer++)
-      for (cx = 0; cx < GeometryInfo::NXCRYS; cx++)
-        for (cy = 0; cy < GeometryInfo::NYCRYS; cy++) {
-          i = GeometryInfo::NXCRYS * head + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
+    for (lint ayer = 0; layer < GeometryInfo::NDOIS; layer++)
+      for (int cx = 0; cx < GeometryInfo::NXCRYS; cx++)
+        for (int cy = 0; cy < GeometryInfo::NYCRYS; cy++) {
+          int i = GeometryInfo::NXCRYS * head + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
           srate[i] = (srate[i] + drate[i] / (tau * ohead_sum)) / 2.0f;
-          //                    if (drate[i] == 0.0) srate[i]=0.0;  // dead crystal - no delayed coins
         }
   }
 }
 
-void compute_initial_srate( float *drate, float tau, float *srate) {
-  float dtotal = 0.0, stotal;
-  int i;
+template<std::size_t SIZE>
+void compute_initial_srate(std::array<float, SIZE> const &drate, float tau, float *srate) {
+  float dtotal = 0.0;
 
-  for (i = 0; i < GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS; i++)
+  for (int i = 0; i < GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS; i++)
     dtotal += drate[i];
-  stotal = (float)(8.0 * sqrt(dtotal / (40. * tau)));
-  for (i = 0; i < GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS; i++)
+  float stotal = (float)(8.0 * sqrt(dtotal / (40. * tau)));
+  for (int i = 0; i < GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS; i++)
     srate[i] = drate[i] * stotal / dtotal;
 }
 
-int errtotal( int *ich, float *srate, int nvals, float dt)
-{
-  int i;
-  int errsum = 0, err;
+template<std::size_t SIZE>
+int errtotal(int *ich, std::array<float, SIZE> const &srate, int nvals, float dt) {
+  int errsum = 0;
 
-  for (i = 0; i < nvals; i++) {
-    err = (int)(ich[i] - (0.5 + srate[i] * dt));
+  for (iint  = 0; i < nvals; i++) {
+    int err = (int)(ich[i] - (0.5 + srate[i] * dt));
     errsum += err * err;
   }
   return (errsum);
 }
 
-int compute_csings_from_drates( int ncrys, int *dcoins, float tau, float dt, float *srates)
-{
-  int iter, i;
-  float *xrates, *drates;
-  int err;
-  // int erbest;
+int compute_csings_from_drates(int ncrys, int *dcoins, float tau, float dt, float *srates) {
+  std::array<float, ncrys> drates;
+  std::array<float, ncrys> xrates;
 
-  drates = (float*) calloc( ncrys, sizeof(float));
-  xrates = (float*) calloc( ncrys, sizeof(float));
-  for (i = 0; i < ncrys; i++) drates[i] = dcoins[i] / dt;
-  compute_initial_srate( drates, tau, srates);
-  for (iter = 0; iter < 100; iter++) {
-    compute_drate( srates, tau, xrates);  // compute the expected delayed rate
-    err = errtotal( dcoins, xrates, ncrys, dt);       // compute the error
-    //        if (!quiet) printf("%3d %i\n", iter, err);
-    //        if (iter && ((err >= erbest) || (err==0))) break;    // time to stop?
+  for (int i = 0; i < ncrys; i++)
+    drates[i] = dcoins[i] / dt;
+  compute_initial_srate(drates, tau, srates);
+  for (int iter = 0; iter < 100; iter++) {
+    compute_drate(srates, tau, xrates);  // compute the expected delayed rate
+    int err = errtotal(dcoins, xrates, ncrys, dt);       // compute the error
     if (iter && (err == 0))
       break; // only stop when we converge
-    // erbest = err;
-    estimate_srate( drates, tau, srates); // update the estimate
+    estimate_srate(drates, tau, srates); // update the estimate
   }
-  free(drates);
-  free(xrates);
   return (iter);
 }
 
-void *pt_compute_delays(void *ptarg)
-{
+void *pt_compute_delays(void *ptarg) {
   COMPUTE_DELAYS *arg = (COMPUTE_DELAYS *) ptarg;
   //  printf("%x\t%x\t%d\n",delays_data,arg->delaydata,arg->mp);
   compute_delays(arg->mp, arg->delaydata, arg->csings);
-  pthread_exit( NULL ) ;
+  pthread_exit(NULL ) ;
 }
 
-/**
- * in_inline : 0:file save and alone | 1: file save and inline | 2: file unsave and inline
- */
-int gen_delays(int argc, char **argv, int is_inline, float scan_duration,
-               float ***result, FILE *p_coins_file, char *p_delays_file,
+long int time_diff(struct timeval const &start, struct timeval const &stop) {
+  long int start_msec = t2.tv_sec * 1000 + (int)(double)t2.tv_usec / 1000.0;
+  long int stop_msec  = t2.tv_sec * 1000 + (int)(double)t2.tv_usec / 1000.0;
+  long int diff_msec  = stop_msec - start_msec;
+  return diff_msec;
+}
+
+// TODO reimplement this using std::shared_ptr<float> crystal_singles when I understand them better...
+
+int read_crystal_singles_file(int *csings) {
+  if (!g_crystal_singles_file.empty()) {
+    std::ifstream instream;
+    instream.open(g_crystal_singles_file.string(), std::ifstream::in | std::ifstream::binary);
+    if (!instream.is_open()) {
+      g_logger->error("Cound not open crystal singles file: {}", g_crystal_singles_file);
+      return 1;
+    }
+    int nbytes = GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * sizeof(int);
+    instream.read((char *)csings, nbytes);
+    if (instream.fail()) {
+      g_logger->error("Cound not read crystal singles file: {}", g_crystal_singles_file);
+      return 1;
+    }
+    instream.close();
+  }
+  return 0;
+}
+
+// TODO reimplement this as shared_ptr and ifstream.  Though other routines call gen_delays with a FILE*
+
+int read_coincidence_sinogram_file(int *t_coincidence_sinogram, FILE *t_coincidence_file_ptr) {
+    FILE *fptr;
+    if (t_coincidence_file_ptr == NULL) 
+      fptr = fopen(g_coincidence_histogram_file, "rb");
+    else 
+      fptr = t_coincidence_file_ptr;
+
+    if (!fptr) {
+      if (t_coincidence_file_ptr) {
+        g_logger->error("Can't open supplied sinogram FILE")
+      } else {
+        g_logger->error("Can't open coincidence histogram file {}", g_coincidence_histogram_file);
+      }
+      return(1);
+    }
+    // std::vector<int> coincidence_sinogram(GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * 2); // prompt followed by delayed
+    // if (!coincidence_sinogram) 
+    //   printf("calloc failure for coincidence_sinogram array\n");
+    int n = (int)fread(t_coincidence_sinogram, sizeof(int), GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * 2, fptr);
+    if (fptr != t_coincidence_file_ptr) 
+      fclose(fptr);
+    if (n != 2 * GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS)  {
+      g_logger->error("Not enough data in coinsfile '{}' (only {} of {})", g_coincidence_histogram_file, n, GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * 2);
+      return(1);
+    }
+    return 0;
+}
+
+// in_inline : 0:file save and alone | 1: file save and inline | 2: file unsave and inline
+
+int gen_delays(int is_inline, float scan_duration,
+               float ***result, FILE *t_coincidence_file_ptr, char *p_delays_file,
                int t_span, int t_maxrd,
-               // My addition ahc: Rebinner LUT file now a required argument.
-               // char *p_rebinner_lut_file
-               const boost::filesystem &p_rebinner_lut_file
+               boost::filesystem const &t_rebinner_lut_file
               )
 {
-  int i, n, mp, j;
   struct timeval t0, t1, t2, t3;
-  // int dtime1, dtime2, dtime3, dtime4;
-  FILE *fptr;
-  // ahc
-  char *rebinner_lut_file_ptr = NULL;   // TODO Take this out once all moved to bf
-  bf::path rebinner_lut_file;
+  // FILE *fptr;
+  // char *rebinner_lut_file_ptr = NULL;   // TODO Take this out once all moved to bf
+  // bf::path rebinner_lut_file;
   char *csingles_file = NULL;
   char *delays_file = NULL;
   char *coins_file = NULL;
   char *output_csings_file = NULL;
   char *optarg;
-  int c;
-  int nprojs = 256;
-  int nviews = 288;
-  int nvals;
-  float pitch = 0.0;
-  float diam = 0.0;
-  float thick = 0.0;
-  float *dtmp;
-  int *coins = NULL;
   float **delays_data;
-  int niter = 0;
-  int span = t_span;
-  int nplanes = 0;
-
-  // int quiet = 1;
-  // int kflag = 0;
-  float *csings = NULL;
-
-  int threadnum ;
-  pthread_t threads[ 4 ] ;
-  pthread_attr_t attr;
+  // int threadnum ;
   // unsigned int threadID;
 
   COMPUTE_DELAYS comdelay[4];
@@ -354,15 +361,16 @@ int gen_delays(int argc, char **argv, int is_inline, float scan_duration,
   // const char *rebinner_lut_file=NULL;
 
   delays_file = p_delays_file;
-  if (scan_duration > 0) ftime = scan_duration;
+  if (scan_duration > 0) 
+    ftime = scan_duration;
   maxrd_ = t_maxrd;
 
   // Process command line arguments.
   if (is_inline == 0) {
-    for (i = 0; i < argc; i++) {
+    for (int i = 0; i < argc; i++) {
       if (argv[i][0] != '-')
         continue;
-      c = argv[i][1];
+      int c = argv[i][1];
       if (argv[i][2] == 0) {
         if (i < argc - 1 ) {
           if (argv[i + 1][0] != '-')
@@ -374,60 +382,49 @@ int gen_delays(int argc, char **argv, int is_inline, float scan_duration,
       }
 
       switch (c) {
-      // ahc
       case 'r' : rebinner_lut_file_ptr = optarg;  // hrrt_rebinner.lut
-      // case 'v':   quiet = 0; break;   // -v don't be quiet any longer
       case 'h':   coins_file = optarg; break; // coincidence histogram (int 72,8,104,4)
-      case 'p':   sscanf( optarg, "%d,%d", &nprojs, &nviews); break; // -p nprojs,nviews - set sinogram size
-      case 's':   sscanf( optarg, "%d,%d", &span, &maxrd_); break;    // -s span,maxrd - set 3D parameters
-      case 'g':   sscanf( optarg, "%f,%f,%f", &pitch, &diam, &thick); break;    // -g pitch,diam,thick
+      case 'p':   sscanf(optarg, "%d,%d", &nprojs, &nviews); break; // -p nprojs,nviews - set sinogram size
+      case 's':   sscanf(optarg, "%d,%d", &span, &maxrd_); break;    // -s span,maxrd - set 3D parameters
+      case 'g':   sscanf(optarg, "%f,%f,%f", &pitch, &diam, &thick); break;    // -g pitch,diam,thick
       case 'C':   csingles_file = optarg; break;  // -C crystal singles file
-      // case 'k':   kflag = 1; break;          // user Koln geometry
       case 'O':   delays_file = optarg; break;  // -O delays_file
       case 'S':   output_csings_file = optarg; break; // -S save_csings_file
-      case 'T':   sscanf( optarg, "%f", &tau); break;
-      case 't':   sscanf( optarg, "%f", &ftime); break;
+      case 'T':   sscanf(optarg, "%f", &tau); break;
+      case 't':   sscanf(optarg, "%f", &ftime); break;
       }
     }
-    if ( coins_file == NULL || delays_file == NULL || rebinner_lut_file_ptr == NULL )
-      usage("gen_delays");
-    rebinner_lut_file = bf::path(rebinner_lut_file_ptr);
+    // if (coins_file == NULL || delays_file == NULL || rebinner_lut_file_ptr == NULL )
+    //   usage("gen_delays");
+    // rebinner_lut_file = bf::path(rebinner_lut_file_ptr);
   } else {
     // inline mode.
     coins_file  = (char *)"memory_mode";
     // ahc this value is overridden by argv if called as main
-    if (!p_rebinner_lut_file.empty()) {
-      rebinner_lut_file = p_rebinner_lut_file;
-    } else {
-      fprintf(stderr, "gen_delays.cpp:main(): Rebinner file must be specified\n");
-      exit(1);
-    }
+    // if (!p_rebinner_lut_file.empty()) {
+    //   rebinner_lut_file = p_rebinner_lut_file;
+    // } else {
+    //   fprintf(stderr, "gen_delays.cpp:main(): Rebinner file must be specified\n");
+    //   exit(1);
+    // }
   }
-  if (is_inline < 2 && !delays_file) {
-    fprintf(stdout, "Output File must be specified with -O <filename>\n");
-    exit(1);
-  }
-  if (!csingles_file && !coins_file && p_coins_file == NULL)
-    fprintf(stdout, "Input Crystal Singles or Coincidence Histogram file must be specified with -h or -C <filename>\n");
 
-  gettimeofday( &t0, NULL ) ;
+  // delays and coins files are required anyway
+  // if (is_inline < 2 && !delays_file) {
+  //   fprintf(stdout, "Output File must be specified with -O <filename>\n");
+  //   exit(1);
+  // }
+  // if (!csingles_file && !coins_file && t_coincidence_file_ptr == NULL)
+  //   fprintf(stdout, "Input Crystal Singles or Coincidence Histogram file must be specified with -h or -C <filename>\n");
 
+  gettimeofday(&t0, NULL ) ;
   head_crystal_depth_.assign(GeometryInfo::NHEADS, 1.0f);
+  GeometryInfo::init_geometry_hrrt(g_pitch, g_diam, g_thick);
+  int nplanes = 0;
+  SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &SegmentInfo::m_d_tan_theta, maxrd_, t_span, GeometryInfo::NYCRYS, m_crystal_radius, m_plane_sep);
 
-  init_geometry_hrrt( nprojs, nviews, pitch, diam, thick);
-  SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &SegmentInfo::m_d_tan_theta, maxrd_, span, GeometryInfo::NYCRYS, m_crystal_radius, m_plane_sep);
-
-
-  // ahc hrrt_rebinner.lut now a required command line argument.
-  // if ((rebinner_lut_file=hrrt_rebinner_lut_path())==NULL)
-  //   {
-  //     fprintf(stdout,"Rebinner LUT file not found\n");
-  //     exit(1);
-  //   }
-  // fprintf(stdout,"Using Rebinner LUT file %s\n", rebinner_lut_file);
-  // init_lut_sol(rebinner_lut_file, SegmentInfo::m_segzoffset);
-  fprintf(stderr, "Using Rebinner LUT file %s\n", rebinner_lut_file);
-  init_lut_sol(rebinner_lut_file, SegmentInfo::m_segzoffset);
+  // fprintf(stderr, "Using Rebinner LUT file %s\n", rebinner_lut_file);
+  init_lut_sol(t_rebinner_lut_file, SegmentInfo::m_segzoffset);
 
   free(m_crystal_xpos);
   free(m_crystal_ypos);
@@ -435,36 +432,25 @@ int gen_delays(int argc, char **argv, int is_inline, float scan_duration,
 
   //-------------------------------------------------------
   // delayed true output value init.
-  nsino = nprojs * nviews;
-  //printf("nplanes= %d %d\n",nplanes,SegmentInfo::m_nsegs);
-  bin_number_to_nview  = (int *) calloc(nsino, sizeof(int));
-  bin_number_to_nproj = (int *) calloc(nsino, sizeof(int));
-  for (j = 0, n = 0; j < m_nviews; j++) {
-    for (c = 0; c < m_nprojs; c++) {
-      //dsaint31
-      bin_number_to_nview[n] = j;
-      bin_number_to_nproj[n] = c;
-      n++;
-    }
-  }
 
   if (is_inline == 2 && result == NULL) {
     result = (float ***) malloc(nplanes * sizeof(float**));
-    for (i = 0; i < nplanes; i++) {
+    for (int i = 0; i < nplanes; i++) {
       result[i] = (float **) malloc(m_nviews * sizeof(float*));
-      for (j = 0; j < m_nviews; j++) {
+      for (int j = 0; j < m_nviews; j++) {
         result[i][j] = (float *) malloc(m_nprojs * sizeof(float));
       }
     }
   }
   if (result != NULL) {
-    for (i = 0; i < nplanes; i++)
-      for (j = 0; j < m_nviews; j++)
+    for (int i = 0; i < nplanes; i++)
+      for (int j = 0; j < m_nviews; j++)
         memset(&result[i][j][0], 0, m_nprojs * sizeof(float));
   }
 
-  delays_data = (float**) calloc( nsino, sizeof(float*));
-  for (i = 0; i < nsino; i++) {
+  int nsino = g_num_elems * g_num_views;
+  delays_data = (float**) calloc(nsino, sizeof(float*));
+  for (int i = 0; i < nsino; i++) {
     delays_data[i] = (float *) calloc (nplanes, sizeof(float));
     if (delays_data[i] == NULL) {
       printf("error allocation delays_data\n");
@@ -472,46 +458,36 @@ int gen_delays(int argc, char **argv, int is_inline, float scan_duration,
     }
     memset(delays_data[i], 0, nplanes * sizeof(float));
   }
-  if (!delays_data) printf("malloc failed for delays_data\n");
+  if (!delays_data) 
+    printf("malloc failed for delays_data\n");
 
   //-------------------------------------------------------
-  // make singles. ( load or estimate)
-  nvals  = GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS; // # of detecters
+  // make singles. (load or estimate)
 
-  csings = (float*) calloc( nvals, sizeof(float));
-  if (!csings) printf("malloc failed for csings data\n");
-  if (csingles_file) {
-    fptr = fopen( csingles_file, "rb");
-    if (!fptr) printf("Can't open crystal singles file '%s'\n", csingles_file);
-    n = (int)fread( csings, sizeof(float), nvals, fptr);
-    fclose( fptr);
-    if (n != nvals) printf("Only read %d of %d values from csings file '%s'\n", n, nvals, csingles_file);
-  }
-  if (coins_file || p_coins_file != NULL ) {
-    if (p_coins_file == NULL) fptr = fopen( coins_file, "rb");
-    else fptr = p_coins_file;
+  float *csings = (float*) calloc(GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, sizeof(float));
+  // TODO implement this as below.  Requires knowing how to read from a std::ifstream to a std::shared_ptr<float>
+  // std::shared_ptr<float> crystal_singles(new float[GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS], std::default_delete<int[]>());
+  if (read_crystal_singles_file(csings))
+    exit(1);
 
-    if (!fptr) {
-      printf("Can't open coincidence histogram file '%s'\n", coins_file);
+  if (g_coincidence_histogram_file || t_coincidence_file_ptr != NULL ) {
+    // TODO reimplement this with shared_ptr and ifstream
+    int *coincidence_sinogram = (int*) calloc(GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * 2, sizeof(int)); // prompt followed by delayed
+    if (read_coincidence_sinogram_file(coincidence_sinogram))
       exit(1);
-    }
-    coins = (int*) calloc( nvals * 2, sizeof(int)); // prompt followed by delayed
-    if (!coins) printf("calloc failure for coins array\n");
-    n = (int)fread( coins, sizeof(int), nvals * 2, fptr);
-    if (fptr != p_coins_file) fclose(fptr);
-    if (n != 2 * nvals) printf("Not enough data in coinsfile '%s' (only %d of %d)\n", coins_file, n, nvals * 2);
-    gettimeofday( &t2, NULL);
-    // we only used the delayed coins (coins+nvals)vvvvvv
-    niter = compute_csings_from_drates( nvals, coins + nvals, tau, ftime, csings);
-    gettimeofday( &t3, NULL);
-    printf("csings computed from drates in %d iterations (%ld msec)\n", niter, ((( t3.tv_sec * 1000 ) + (int)( (double)t3.tv_usec / 1000.0 ) ) - ((t2.tv_sec * 1000 ) + (int)( (double)t2.tv_usec / 1000.0 ))));
-    free(coins);
+
+    gettimeofday(&t2, NULL);
+    // we only used the delayed coincidence_sinogram (coincidence_sinogram+GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS)vvvvvv
+    int niter = compute_csings_from_drates(GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, coincidence_sinogram + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, tau, ftime, csings);
+    gettimeofday(&t3, NULL);
+    printf("csings computed from drates in %d iterations (%ld msec)\n", niter, (((t3.tv_sec * 1000 ) + (int)((double)t3.tv_usec / 1000.0 ) ) - ((t2.tv_sec * 1000 ) + (int)((double)t2.tv_usec / 1000.0 ))));
+    free(coincidence_sinogram);
     if (output_csings_file) {
-      fptr = fopen( output_csings_file, "wb");
+      fptr = fopen(output_csings_file, "wb");
       if (!fptr) printf("ERROR - unable to save computed singles data to '%s'...continuing\n",
                           output_csings_file);
       else {
-        fwrite( csings, sizeof(float), nvals, fptr);
+        fwrite(csings, sizeof(float), GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, fptr);
         fclose(fptr);
         printf("Computed Singles (from Delayed Coincidence Histogram) stored in '%s'\n",
                output_csings_file);
@@ -522,7 +498,7 @@ int gen_delays(int argc, char **argv, int is_inline, float scan_duration,
   //-------------------------------------------------------
   // check if the delay_file is writable.
   if (is_inline < 2) {
-    fptr = fopen( delays_file, "wb");
+    fptr = fopen(delays_file, "wb");
     if (!fptr) {
       fprintf(stdout, "Can't create delayed coincidence output file '%s'\n", delays_file);
       exit(1);
@@ -541,8 +517,10 @@ int gen_delays(int argc, char **argv, int is_inline, float scan_duration,
   comdelay[2].csings = csings;
   comdelay[3].csings = csings;
 
-  for (mp = 0; mp < 5; mp++) {
-    gettimeofday( &t1, NULL );
+  pthread_t threads[ 4 ] ;
+  pthread_attr_t attr;
+  for (int mp = 0; mp < 5; mp++) {
+    gettimeofday(&t1, NULL );
     comdelay[0].mp = mporder[0][mp];
     comdelay[1].mp = mporder[1][mp];
     comdelay[2].mp = mporder[0][mp + 5];
@@ -550,28 +528,24 @@ int gen_delays(int argc, char **argv, int is_inline, float scan_duration,
     /* Initialize and set thread detached attribute */
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-    for ( threadnum = 0 ; threadnum < 4 ; threadnum += 1 )
-    {
-      pthread_create( &threads[ threadnum ], &attr, &pt_compute_delays, &comdelay[ threadnum ] ) ;
+    for (int threadnum = 0 ; threadnum < 4 ; threadnum += 1 ) {
+      pthread_create(&threads[ threadnum ], &attr, &pt_compute_delays, &comdelay[ threadnum ] ) ;
     }
     /* Free attribute and wait for the other threads */
-    pthread_attr_destroy( &attr ) ;
-    for ( threadnum = 0 ; threadnum < 4 ; threadnum += 1 ) {
-      pthread_join( threads[ threadnum ] , NULL ) ;
+    pthread_attr_destroy(&attr ) ;
+    for (int threadnum = 0 ; threadnum < 4 ; threadnum += 1 ) {
+      pthread_join(threads[ threadnum ] , NULL ) ;
     }
-    gettimeofday( &t2, NULL);
-    fprintf(stdout, "%d\t%ld msec   \n", mp + 1             , ((( t2.tv_sec * 1000 ) + (int)((double)t2.tv_usec / 1000.0 )) - ((t1.tv_sec * 1000) + (int)((double)t1.tv_usec / 1000.0 ))));
+    gettimeofday(&t2, NULL);
+    fprintf(stdout, "%d\t%ld msec   \n", mp + 1          , time_diff(t1, t2));
     fflush(stdout);
   }
-  gettimeofday( &t1, NULL);
-  fprintf(stdout, "Smooth Delays computed in %ld msec.\n", (((t1.tv_sec * 1000) + (int)((double)t1.tv_usec / 1000.0 )) - ((t0.tv_sec * 1000) + (int)((double)t0.tv_usec / 1000.0 ))));
-  gettimeofday( &t2, NULL );
-  fprintf(stdout, "...reduced in %ld msec   \n",           (((t2.tv_sec * 1000) + (int)((double)t2.tv_usec / 1000.0 )) - ((t1.tv_sec * 1000) + (int)((double)t1.tv_usec / 1000.0 ))));
-  fflush(stdout);
+  gettimeofday(&t1, NULL);
+  g_logger->info("Smooth Delays computed in {ld} msec", time_diff(t0, t1));
 
   free(m_solution[0]);
   for (i = 1; i < 21; i++) {
-    for (j = 0; j < GeometryInfo::NXCRYS * GeometryInfo::NDOIS; j++) {
+    for (int j = 0; j < GeometryInfo::NXCRYS * GeometryInfo::NDOIS; j++) {
       //fprintf(stdout,"%d:%d\n",i,j);
       if (m_solution[i][j] != NULL) free(m_solution[i][j]);
     }
@@ -584,7 +558,7 @@ int gen_delays(int argc, char **argv, int is_inline, float scan_duration,
   free(m_c_zpos);
   free(m_c_zpos2);
 
-  for (i = 0; i < 63; i++) {
+  for (int i = 0; i < 63; i++) {
     free(m_segplane[i]);
   }
 
@@ -593,17 +567,17 @@ int gen_delays(int argc, char **argv, int is_inline, float scan_duration,
 
   //-------------------------------------------------------
   // file write
-  dtmp  = (float *) calloc( nsino, sizeof(float));
-  for (i = 0; i < nplanes; i++) {
-    for (n = 0; n < nsino; n++) {
+  float *dtmp  = (float *) calloc(nsino, sizeof(float));
+  for (int i = 0; i < nplanes; i++) {
+    for (int n = 0; n < nsino; n++) {
       dtmp[n] = delays_data[n][i];
     }
     if (is_inline < 2) {
-      fwrite( dtmp, sizeof(float), nsino, fptr);
-    }
-    else {
-      for (j = 0, n = 0; j < m_nviews; j++) {
-        memcpy(result[i][j], &dtmp[n], sizeof(float)*m_nprojs); // = dtmp[n];
+      fwrite(dtmp, sizeof(float), nsino, fptr);
+    } else {
+      int n = 0;
+      for (int j = 0; j < m_nviews; j++) {
+        memcpy(result[i][j], &dtmp[n], sizeof(float) * m_nprojs); // = dtmp[n];
         n = n + m_nprojs;
       }
     }
@@ -612,20 +586,18 @@ int gen_delays(int argc, char **argv, int is_inline, float scan_duration,
   free(bin_number_to_nview);
   free(bin_number_to_nproj);
 
-  for (n = 0; n < nsino; n++) {
+  for (int n = 0; n < nsino; n++) {
     free(delays_data[n]);
   }
   free(delays_data);
   free(dtmp);
   if (is_inline < 2) {
-    fclose( fptr);
+    fclose(fptr);
   }
 
-  gettimeofday( &t3, NULL);
-  // int dtime1 = ((( t1.tv_sec * 1000 ) + (int)( (double)t1.tv_usec / 1000.0 ) ) - ((t0.tv_sec * 1000 ) + (int)( (double)t0.tv_usec / 1000.0 ) ) ) ;
-  // int dtime2 = ((( t2.tv_sec * 1000 ) + (int)( (double)t2.tv_usec / 1000.0 ) ) - ((t1.tv_sec * 1000 ) + (int)( (double)t1.tv_usec / 1000.0 ) ) ) ;
-  int dtime3 = ((( t3.tv_sec * 1000 ) + (int)( (double)t3.tv_usec / 1000.0 ) ) - ((t2.tv_sec * 1000 ) + (int)( (double)t2.tv_usec / 1000.0 ) ) ) ;
-  int dtime4 = ((( t3.tv_sec * 1000 ) + (int)( (double)t3.tv_usec / 1000.0 ) ) - ((t0.tv_sec * 1000 ) + (int)( (double)t0.tv_usec / 1000.0 ) ) ) ;
+  gettimeofday(&t3, NULL);
+  int dtime3 = (((t3.tv_sec * 1000 ) + (int)((double)t3.tv_usec / 1000.0 ) ) - ((t2.tv_sec * 1000 ) + (int)((double)t2.tv_usec / 1000.0 ) ) ) ;
+  int dtime4 = (((t3.tv_sec * 1000 ) + (int)((double)t3.tv_usec / 1000.0 ) ) - ((t0.tv_sec * 1000 ) + (int)((double)t0.tv_usec / 1000.0 ) ) ) ;
   printf("...stored to disk in %d msec.\n", dtime3);
   printf("Total time %d msec.\n", dtime4);
   return 1;

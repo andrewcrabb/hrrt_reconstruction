@@ -1184,7 +1184,7 @@ int main(int argc, char **argv)
     if (rank0) printf("*** Using Koln HRRT Geometry.\n");
   }
 
-  init_geometry_hrrt( nprojs, nviews, pitch, diam, thick);
+  GeometryInfo::init_geometry_hrrt(pitch, diam, thick);
   // convert mm to cm
   rotation_radius *= 0.1f; rod_radius *= 0.1f;
   rotation_cx *= 0.1f;

@@ -14,7 +14,8 @@
 enum class LR_Type {
   LR_0, 
   LR_20, 
-  LR_24
+  LR_24,
+  MAX_LR_TYPE  // Use this to implement range checks
 };
 
 // Allow Boost program_options to parse an LR_Type
@@ -25,6 +26,8 @@ extern std::istream& operator>>(std::istream& t_in, LR_Type& t_lr_type);
 namespace GeometryInfo {
 extern LR_Type LR_type;
 
+const int NUM_ELEMS = 256;
+const int NUM_VIEWS = 288;
 const int NDOIS   = 2;
 const int NXCRYS  = 72;
 const int NYCRYS  = 104;
@@ -68,7 +71,24 @@ const std::vector<std::vector<int>> HRRT_MPAIRS{{-1,-1},{0,2},{0,3},{0,4},{0,5},
                                                 {4,6},{4,7},
                                                 {5,7}};
 
+struct LR_Geom {
+    int nprojs;
+    int nviews;
+    double binsize;
+    int plane_sep;
+};
+extern const std::vector<LR_Geom> lr_geometries_;
 
+// Move methods into the namespace as they are processed by the Great Rewrite of 2018-19
+extern void init_geometry_hrrt (float cpitch, float diam, float thick);
+extern void init_geometry_hrrt(void);
+
+}
+extern LR_Type to_lrtype(int i);
+
+// Move member variables into the namespace as they are processed by the Great Rewrite of 2018-19
+extern std::vector<double> m_sin_head;
+extern std::vector<double> m_cos_head;
 }
 
 
@@ -105,8 +125,6 @@ const std::vector<std::vector<int>> HRRT_MPAIRS{{-1,-1},{0,2},{0,3},{0,4},{0,5},
 
 
 extern double m_binsize;
-extern double *m_sin_head;
-extern double *m_cos_head;
 extern double m_crystal_radius;
 extern double m_plane_sep,  m_crystal_x_pitch, m_crystal_y_pitch;
 extern double *m_crystal_xpos;
@@ -119,12 +137,8 @@ extern int maxrd_, nsino;
 // extern float *head_crystal_depth;
 extern std::vector<float> head_crystal_depth_;
 
-extern void init_geometry_hrrt ( int np, int nv, float cpitch, float diam, float thick);
 //void calc_det_to_phy( int head, int layer, int detx, int dety, float location[3]);
 extern void det_to_phy( int head, int layer, int xcrys, int ycrys, float pos[3]);
-inline void init_geometry_hrrt() {
-  init_geometry_hrrt(0,0,0.0f,0.0f,0.0f);
-}
 
 inline int num_projs(LR_Type type) {
   if (type == LR_Type::LR_20) 
