@@ -65,7 +65,7 @@ int main() {
 
 	string sdate = "!study date (dd:mm:yryr) := 18:09:2017";
 	string key, value;
-	if (!parse_interfile_line(sdate, key, value)) {
-		std::cout << fmt::format("key '{key}' value '{value}'\n", fmt::arg("key", key), fmt::arg("value", value)) << std::endl;
-	}
+	// if (!parse_interfile_line(sdate, key, value)) {
+	// 	std::cout << fmt::format("key '{key}' value '{value}'\n", fmt::arg("key", key), fmt::arg("value", value)) << std::endl;
+	// }
 }
