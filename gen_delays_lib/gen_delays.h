@@ -19,8 +19,8 @@ int gen_delays(int is_inline,
                FILE *p_coins_file,
                char *p_delays_file,
                int span = 9,
-               int t_maxrd = GeometryInfo::MAX_RINGDIFF,
-               boost::filesystem::path const &p_rebinner_lut_file
+               int t_maxrd = GeometryInfo::MAX_RINGDIFF
+               // boost::filesystem::path const &p_rebinner_lut_file
               );
 const char *hrrt_rebinner_lut_path(int tx_flag = 0);
 

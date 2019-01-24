@@ -45,6 +45,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string>
+
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/stdout_color_sinks.h" //support for stdout logging
+#include "spdlog/sinks/basic_file_sink.h" // support for basic file logging
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 
 #define _MAX_PATH 256
 #define _MAX_DRIVE 0
@@ -72,7 +79,7 @@
 
 extern float inter(float x1, float y1, float x2, float y2, float r, float *xi, float *yi);
 
-//***** #define fprintf(stderr, args...) {fprintf(stderr, args); exit(1);}
+//***** #define g_logger->error( args...) {g_logger->error( args); exit(1);}
 
 int mpi_myrank = 0;
 int mpi_nprocs = 0;
@@ -128,6 +135,10 @@ int compute_csings_from_drates( int ncrys, int *dcoins, float tau, float dt, flo
 int NumberOfProcessors;
 int NumberOfThreads;
 
+std::string g_logfile;
+extern std::shared_ptr<spdlog::logger> g_logger;
+
+
 static const char *prog_id = "norm_process";
 static const char *sw_version = "HRRT_U 1.1";
 
@@ -141,7 +152,7 @@ float *head_lthick = NULL;
 float *head_irad   = NULL;
 
 void crash(const char *args) {
-  fprintf(stderr, args);
+  g_logger->error( args);
   exit(1);
 }
 
@@ -155,28 +166,34 @@ int mp_num(int ahead, int bhead) {
   return 0;
 }
 
+void init_logging(void) {
+  if (g_logfile.length() == 0) {
+    g_logfile = fmt::format("{}_norm_process.log", hrrt_util::time_string());
+  }
+  g_logger = spdlog::basic_logger_mt("HRRT", g_logfile);
+}
+
+
 static char build_id[80];
 
 static void usage(char *prog) {
-  printf("%s: Version %s Build %s\n", prog, sw_version, build_id);
-  printf("%s - process component-based normalization to sinogram format\n", prog);
-  printf("usage: %s [lm_file|fs_file|ce_file]  -o norm_file [options]\n", prog);
-  printf("    -v          : verbose\n");
-  printf("    -L mode     : set Low Resolution mode (1: binsize=2mm, nbins = 160, nviews = 144, 2:binsize=2.4375)\n");
-  printf("    -s span, rd  : set span and maxrd_ values [9, 67]\n");
-  printf("    -R rdwell_file  : Rotation dwell correction sinogram (default 155, 0, 0)\n");
-  printf("    -I max_iterations  : set maximum number of iterations (default=30)\n");
-  printf("    -T max_rotation_dwell  : set maximum rotation dwell for LOR fansum(default = 100)\n");
-  printf("    -M min_rmse : Minimum RMSE for convergence criteria (default = 10e-9)\n");
-  printf("    -g geo_fname: radial and axial geometry filename (default %%GMINI%%\\gr_ga.dat\n");
-  printf("    -d duration : Only process the specified scan duration for listmode input\n");
-  printf("    -b      : ignore LOR with border crystals \n");
-  printf("    -c correction_bits: Obliqueness = 0x1, RotationDwell = 0x2, SolidAngle = 0x4, GR = 0x8, GA = 0x10\n");
-  printf("                         Default=all corrections; example \"-c 7\" to exclude GR and GA\n");
-  printf("    -k          : use Koln HRRT geometry (default to normal)\n");
-  printf("    -l layer    : 0=back layer, 1=front layer, 2=all layers (default=2)\n");
-  // ahc hrrt_rebinner.lut file now a required argument 'r'.
-  printf(" *  -r rebinner_file : Fully qualified path to hrrt_rebinner.lut (required)\n");
+  printf("%s: Version %s Build %s", prog, sw_version, build_id);
+  printf("%s - process component-based normalization to sinogram format", prog);
+  printf("usage: %s [lm_file|fs_file|ce_file]  -o norm_file [options]", prog);
+  printf("    -v          : verbose");
+  printf("    -L mode     : set Low Resolution mode (1: binsize=2mm, nbins = 160, nviews = 144, 2:binsize=2.4375)");
+  printf("    -s span, rd  : set span and maxrd_ values [9, 67]");
+  printf("    -R rdwell_file  : Rotation dwell correction sinogram (default 155, 0, 0)");
+  printf("    -I max_iterations  : set maximum number of iterations (default=30)");
+  printf("    -T max_rotation_dwell  : set maximum rotation dwell for LOR fansum(default = 100)");
+  printf("    -M min_rmse : Minimum RMSE for convergence criteria (default = 10e-9)");
+  printf("    -g geo_fname: radial and axial geometry filename (default %%GMINI%%\\gr_ga.dat");
+  printf("    -d duration : Only process the specified scan duration for listmode input");
+  printf("    -b      : ignore LOR with border crystals ");
+  printf("    -c correction_bits: Obliqueness = 0x1, RotationDwell = 0x2, SolidAngle = 0x4, GR = 0x8, GA = 0x10");
+  printf("                         Default=all corrections; example \"-c 7\" to exclude GR and GA");
+  printf("    -k          : use Koln HRRT geometry (default to normal)");
+  printf("    -l layer    : 0=back layer, 1=front layer, 2=all layers (default=2)");
   exit(1);
 }
 
@@ -206,16 +223,16 @@ static short *mp_read(const char *diamond_file) {
   signed char *c_data = (signed char*)calloc(MP_SIZE, 1);
   short *mp_data = (short*)calloc(MP_SIZE, sizeof(short));
   if (c_data == NULL || mp_data == NULL) {
-    perror("memory allocation");
+    g_logger->error("memory allocation");
     exit(1);
   }
 
   if ((fptr = fopen( diamond_file, "rb")) != NULL) {
-    //    printf("Reading %s\n", diamond_file);
+    //    printf("Reading %s", diamond_file);
     // read first part
     count = fread(c_data, sizeof(char), MP_SIZE, fptr);
     if (count != MP_SIZE) {
-      printf("Error reading %s\n", diamond_file);
+      g_logger->error("Error reading {}", diamond_file);
       exit(1);
     }
     for (i = 0; i < count; i++)
@@ -237,9 +254,9 @@ static short *mp_read(const char *diamond_file) {
         mp_min = mp_data[i];
       tot += mp_data[i];
     }
-    printf("Reading %s done; buffers=%d  total, max, min= %g, %d, %d\n", diamond_file, nbuffers, tot, mp_max, mp_min);
+    g_logger->info("Reading {} done; buffers = {} total, max, min= {}, {}, {}", diamond_file, nbuffers, tot, mp_max, mp_min);
   } else {
-    perror(diamond_file);
+    g_logger->error(diamond_file);
     exit(1);
   }
   free(c_data);
@@ -251,11 +268,11 @@ static short *mp_reads(const char *diamond_file) {
   FILE *fptr = NULL;
   short *mp_data = (short*)calloc(MP_SIZE, sizeof(short));
   if ((fptr = fopen( diamond_file, "rb")) != NULL) {
-    //    printf("Reading %s\n", diamond_file);
+    //    printf("Reading %s", diamond_file);
     // read first part
     count = fread(mp_data, sizeof(short), MP_SIZE, fptr);
     if (count != MP_SIZE) {
-      printf("Error reading %s\n", diamond_file);
+      g_logger->error("Error reading diamond_file {}", diamond_file);
       exit(1);
     }
     int mp_min = mp_data[0];
@@ -268,9 +285,9 @@ static short *mp_reads(const char *diamond_file) {
         mp_min = mp_data[i];
       tot += mp_data[i];
     }
-    printf("Reading %s done; total, max, min= %g, %d, %d\n", diamond_file, tot, mp_max, mp_min);
+    g_logger->info("Reading {} done; total, max, min= {}, {}, {}", diamond_file, tot, mp_max, mp_min);
   } else {
-    perror(diamond_file);
+    g_logger->error(diamond_file);
     exit(1);
   }
   return mp_data;
@@ -292,9 +309,9 @@ void init_corrections() {
 
   // create default dwell sino
   if (rdwell_sino == NULL) {
-    printf("using default rotation dwell\n");
+    g_logger->info("using default rotation dwell");
     if ((rdwell_sino = (float*)calloc(m_nprojs * m_nviews, sizeof(float))) == NULL) {
-      fprintf(stderr, "Can't allocate memory for dwell correction array\n");
+      g_logger->error("Can't allocate memory for dwell correction array");
       exit(1);
     }
     for (int mp = 1; mp <= GeometryInfo::NMPAIRS; mp++) {
@@ -316,14 +333,14 @@ void init_corrections() {
       }
     }
   } else {
-    printf("using measured rotation dwell\n");
+    g_logger->info("using measured rotation dwell");
   }
 
   // Create default omega
   if (omega_sino == NULL) {
-    printf("using default solid angle dwell\n");
+    g_logger->info("using default solid angle dwell");
     if ((omega_sino = (float*)calloc(m_nprojs * m_nviews, sizeof(float))) == NULL) {
-      fprintf(stderr, "Can't allocate memory for LOR correction arrays\n");
+      g_logger->error("Can't allocate memory for LOR correction arrays");
       exit(1);
     }
 
@@ -370,7 +387,7 @@ void init_corrections() {
       }
     }
   } else {
-    printf("using measured solid angle dwell\n");
+    g_logger->info("using measured solid angle dwell");
   }
 
 }
@@ -383,7 +400,7 @@ void init_omega2() {
   for (int i = 0; i < 104; i++) {
     double x = a * (i * scale) / (N / 2);
     omega2[i] = 1.0f + (float)(nfactor * exp(-(x * x) / 2));
-    //printf("gaussian(%d=%g)=%g\n", i, x, omega2[i]);
+    //printf("gaussian(%d=%g)=%g", i, x, omega2[i]);
   }
 
 }
@@ -455,8 +472,8 @@ void *CNThread2( void *arglist ) {
   ahead = GeometryInfo::HRRT_MPAIRS[mp][0];
   bhead = GeometryInfo::HRRT_MPAIRS[mp][1];
 
-  //  printf("processing mp %d\t%d\t%d\n", args->mp, ahead, bhead);
-  printf("CNThread[%d]: ahead %d bhead %d \n", mp, ahead, bhead);
+  //  printf("processing mp %d\t%d\t%d", args->mp, ahead, bhead);
+  g_logger->info("CNThread[{}]: ahead {} bhead {}", mp, ahead, bhead);
 
   for (alayer = 0; alayer < NLAYERS; alayer++) {
     // skip if not requested layer
@@ -581,10 +598,10 @@ int check_end_of_frame(struct FS_L64_Args &src) {
       if ((tag & 0xE0000000) == 0x80000000) {
         current_time = (tag & 0x3fffffff); //msec
         current_time /= 1000; // in sec
-        printf("Time in sec : %d\r", current_time);
+        g_logger->info("Time in sec : {}", current_time);
         if (current_time != last_time) {
           last_time = current_time;
-          printf("Time in sec : %d\r", current_time);
+          g_logger->info("Time in sec : {}", current_time);
         }
         if (current_time > duration)
           return pos;
@@ -615,7 +632,7 @@ static void compute_fan_sum(const char *l64_file, float *fan_sum) {
 
   FILE *fp = fopen(l64_file, "rb");
   if (fp == NULL) {
-    fprintf(stderr, "Can't open listmode file '%s'\n", l64_file);
+    g_logger->error("Can't open listmode file {}", l64_file);
     exit(1);
   }
   // Initialize thread arguments
@@ -624,7 +641,7 @@ static void compute_fan_sum(const char *l64_file, float *fan_sum) {
     FS_L64_args[thread].in = (unsigned*)calloc(EV_BUFSIZE, 2 * sizeof(unsigned));
     FS_L64_args[thread].out = (float*)calloc(NUM_CRYSTALS, sizeof(float));
     if (FS_L64_args[thread].in == NULL || FS_L64_args[thread].out == NULL) {
-      fprintf(stderr, "Thread buffers memory allocation failed\n");
+      g_logger->error("Thread buffers memory allocation failed");
       exit(1);
     }
     FS_L64_args[thread].count  = 0;
@@ -956,10 +973,10 @@ void fix_back_layer_ce()
 /*                              MAIN ROUTINE                              */
 /*------------------------------------------------------------------------*/
 
-int main(int argc, char **argv)
-{
-  int i, n, mp, nrings = NYCRYS;
-  FILE *fptr = NULL, *log_fp = NULL;
+int main(int argc, char **argv) {
+  int nrings = NYCRYS;
+  FILE *fptr = NULL;
+  // , *log_fp = NULL;
   char *lm_file = NULL, *ce_file = NULL, *fs_file = NULL;
   char *geom_fname = NULL;
   char norm_file[_MAX_PATH], base_name[_MAX_PATH];
@@ -995,10 +1012,7 @@ int main(int argc, char **argv)
   int layer = NLAYERS;
   char rdwell_path[_MAX_PATH], *omega_file = NULL;
 
-  // ahc: changed this to required argument.
-  // const char *rebinner_lut_file=NULL;
-  char rebinner_lut_file[_MAX_PATH];
-
+  init_logging();
 
   //***** MPI_Init( &argc, &argv);
   //***** MPI_Comm_rank( MPI_COMM_WORLD, &mpi_myrank);
@@ -1017,7 +1031,7 @@ int main(int argc, char **argv)
     usage(argv[0]);
 
   memset(rdwell_path, 0, sizeof(rdwell_path));
-  memset(rebinner_lut_file, 0, sizeof(rebinner_lut_file));
+  // memset(rebinner_lut_file, 0, sizeof(rebinner_lut_file));
   _splitpath(argv[1], drive, dir, fname, ext);
   if (_stricmp(ext, ".l64") == 0) {
     lm_file = argv[1];
@@ -1081,40 +1095,41 @@ int main(int argc, char **argv)
         break;
       case 'L':   // low resolution
         if (sscanf( optarg, "%d", &LR_type) != 1) crash("invalid -L argument");
-        if (LR_type != LR_20 && LR_type != LR_24)
-        {
-          fprintf(stderr, "Invalid LR mode %d\n", LR_type);
+        if (LR_type != LR_20 && LR_type != LR_24) {
+          g_logger->error("Invalid LR mode {}", LR_type);
           usage(argv[0]);
         }
         span = 7;
         maxrd_ = 38;
         nviews = 144;
         nrings = NYCRYS / 2;
-        if (LR_type == LR_20) nprojs = 160;
-        else nprojs = 128;
+        if (LR_type == LR_20) 
+          nprojs = 160;
+        else 
+          nprojs = 128;
         break;
       case 'l':
-        if (sscanf(optarg, "%d", &layer) != 1) crash("invalid -l argument");
-        if (layer < 0 || layer > NLAYERS)
-        {
-          fprintf(stderr, "Invalid layer %d\n", layer);
+        if (sscanf(optarg, "%d", &layer) != 1) 
+          crash("invalid -l argument");
+        if (layer < 0 || layer > NLAYERS) {
+          g_logger->error("Invalid layer {}", layer);
           usage(argv[0]);
         }
         break;
       case 'd':
-        if (sscanf(optarg, "%d", &duration) != 1) crash("invalid -d argument");
-        break;
-
+        if (sscanf(optarg, "%d", &duration) != 1) 
+          g_logger->error("invalid -d argument");
+        exit(1);
       case 'O':
         omega_file = optarg;
         break;
       case 'R':
         /*
-          printf("Default Rotation radius=%g mm, center=(%g, %g)mm\n",
+          printf("Default Rotation radius=%g mm, center=(%g, %g)mm",
           rotation_radius, rotation_cx, rotation_cy);
           if (sscanf(optarg, "%f, %f, %f", &rotation_radius, &rotation_cx,
           &rotation_cy) != 3) usage(argv[0]);
-          printf("Rotation radius=%g mm, center=(%g, %g)mm\n",
+          printf("Rotation radius=%g mm, center=(%g, %g)mm",
           rotation_radius, rotation_cx, rotation_cy);
         */
         strcpy(rdwell_path, optarg);
@@ -1124,23 +1139,22 @@ int main(int argc, char **argv)
         break;
       // ahc
       // hrrt_rebinner.lut file now a required argument.
-      case 'r':
-        strcpy(rebinner_lut_file, optarg);
+      // case 'r':
+      //   strcpy(rebinner_lut_file, optarg);
 
         break;
       }
     }
 
-  // Create log file and use stderr if creation fails
-  sprintf(fname, "%s.log", norm_file);
-  log_fp = fopen(fname, "wt");
-  if (log_fp == NULL) log_fp = stderr;
   /* Program build date & time --> log file */
-  fprintf( log_fp, "\n%s build %s %s\n\n", argv[0], __DATE__, __TIME__ ) ;
-  if (ce_file != NULL) fprintf( log_fp, "input crystal efficiencies file %s \n", ce_file);
-  else fprintf(log_fp, "input listmode file %s \n", lm_file);
-  fprintf(log_fp, "output normalization file %s \n", norm_file);
-  if (duration > 0) fprintf(log_fp, "Used scan duration %d", duration);
+  g_logger->info("{} build {} {}", argv[0], __DATE__, __TIME__ );
+  if (ce_file != NULL) 
+    g_logger->info( "input crystal efficiencies file {}", ce_file);
+  else 
+    g_logger->info( "input listmode file {}", lm_file);
+  g_logger->info( "output normalization file {}", norm_file);
+  if (duration > 0) 
+    g_logger->info( "Used scan duration {}", duration);
 
   /*--------------------------------*/
   /* determine number of processors */
@@ -1151,15 +1165,16 @@ int main(int argc, char **argv)
   nprocstring = getenv("NUMBER_OF_PROCESSORS");
 
   if ( nprocstring == NULL ) {
-    printf("Cannot determine the number of processors. Assuming 1.\n");
+    g_logger->info("Cannot determine the number of processors. Assuming 1.");
     NumberOfProcessors = 1;
   }
   else {
     if ( sscanf(nprocstring, "%d", &NumberOfProcessors) != 1 ) {
-      printf("Error converting environment variable. Assuming nprocs = 1\n");
+      g_logger->error("Error converting environment variable. Assuming nprocs = 1");
       NumberOfProcessors = 1;
+    } else {
+      g_logger->info("Running on {} processors", NumberOfProcessors );
     }
-    else printf("Running on %d processors.\n", NumberOfProcessors );
   }
 #endif
 
@@ -1173,16 +1188,10 @@ int main(int argc, char **argv)
   /*---------------------*/
   /* initialize geometry */
 
-  printf("Initializing geometry ...\n");
+  g_logger->info("Initializing geometry");
 
   head_lthick = normal_lthick;
   head_irad = normal_irad;
-
-  if (kflag) {
-    head_lthick = koln_lthick;
-    head_irad = koln_irad;
-    if (rank0) printf("*** Using Koln HRRT Geometry.\n");
-  }
 
   GeometryInfo::init_geometry_hrrt(pitch, diam, thick);
   // convert mm to cm
@@ -1192,12 +1201,13 @@ int main(int argc, char **argv)
 
   SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &m_d_tan_theta, maxrd_, span, NYCRYS,
                     m_crystal_radius, m_plane_sep);
-  if (strlen(rebinner_lut_file) == 0) {
-    fprintf(stdout, "Error: Rebinner LUT file not defined (opt 'r')\n");
-    exit(1);
-  }
-  fprintf(log_fp, "Using Rebinner LUT file %s \n", rebinner_lut_file);
-  lor_sinogram::init_lut_sol(rebinner_lut_file, SegmentInfo::m_segzoffset);
+  // if (strlen(rebinner_lut_file) == 0) {
+  //   fprintf(stdout, "Error: Rebinner LUT file not defined (opt 'r')");
+  //   exit(1);
+  // }
+  // g_logger->info( "Using Rebinner LUT file %s ", rebinner_lut_file);
+  // lor_sinogram::init_lut_sol(rebinner_lut_file, SegmentInfo::m_segzoffset);
+  lor_sinogram::init_lut_sol(SegmentInfo::m_segzoffset);
 
   npixels = nprojs * nviews;
   nvoxels = npixels * nplanes;
@@ -1207,19 +1217,19 @@ int main(int argc, char **argv)
     nsegs = SegmentInfo::m_nsegs / 3;
     seg_planes = (short*)calloc(nsegs, sizeof(short));
     seg_planes[0] = 2 * NYCRYS - 1;
-    for (i = 1, segnum = 3; i < nsegs; i += 2, segnum += 6) {
+    for (int i = 1, int segnum = 3; i < nsegs; i += 2, segnum += 6) {
       seg_planes[i] = seg_planes[i + 1] = SegmentInfo::m_segzmax[segnum] - SegmentInfo::m_segz0[segnum] + 1;
     }
   } else {
     nsegs = SegmentInfo::m_nsegs;
     seg_planes = (short*)calloc(nsegs, sizeof(short));
     seg_planes[0] = 2 * NYCRYS - 1;
-    for (i = 1; i < nsegs; i += 2)  {
+    for (int i = 1; i < nsegs; i += 2)  {
       seg_planes[i] = seg_planes[i + 1] = SegmentInfo::m_segzmax[i] - SegmentInfo::m_segz0[i] + 1;
     }
   }
   cosphi = (float*)calloc(nsegs, sizeof(float));
-  for (segnum = 0; segnum < nsegs; segnum++) {
+  for (int segnum = 0; segnum < nsegs; segnum++) {
     int seg = (segnum + 1) / 2;
     double phi_r = atan(seg * span * m_crystal_y_pitch / (2 * m_crystal_radius)); // in radian
     cosphi[segnum] = (float)(1 / cos(phi_r));
@@ -1227,9 +1237,9 @@ int main(int argc, char **argv)
 
   //Read rotation Dwell Sino
   if (strlen(rdwell_path)) {
-    fprintf(log_fp, "Using directory %s for rotation dwell parameter files\n", rdwell_path);
+    g_logger->info( "Using directory {} for rotation dwell parameter files", rdwell_path);
     if ((rdwell_sino = rotation_dwell_sino(rdwell_path, log_fp)) == NULL) {
-      fprintf(stderr, "Error creating rotation dwell sino from %s\n", rdwell_path);
+      g_logger->error("Error creating rotation dwell sino from {}", rdwell_path);
       exit(1);
     }
   }
@@ -1237,15 +1247,15 @@ int main(int argc, char **argv)
   //Read solid angle Sino
   if (omega_file != NULL) {
     if ((fptr = fopen(omega_file, "rb")) == NULL) {
-      perror(omega_file);
+      g_logger->error(omega_file);
       exit(1);
     }
     if ((omega_sino = (float*) calloc( npixels, sizeof(float))) == NULL)  {
-      fprintf(stderr, "memory allocation failed\n");
+      g_logger->error("memory allocation failed");
       exit(1);
     }
     if ((fread(omega_sino, sizeof(float), npixels, fptr)) != npixels) {
-      fprintf(stderr, "Error reading %s\n", omega_file);
+      g_logger->error("Error reading {}", omega_file);
       exit(1);
     }
   }
@@ -1254,7 +1264,7 @@ int main(int argc, char **argv)
   init_corrections();
 
   // Truncate high dwell values
-  for (i = 0; i < npixels; i++) {
+  for (int i = 0; i < npixels; i++) {
     if (rdwell_sino[i] > max_rotation_dwell)
       rdwell_sino[i] = max_rotation_dwell;
   }
@@ -1272,33 +1282,30 @@ int main(int argc, char **argv)
   create_omega_sino(debug_sino);
 #endif
 
-  printf("Initializing geometry completed.\n");
+  g_logger->info("Initializing geometry completed");
 
   /*-----------------*/
   /* allocate memory */
-
-  printf("Allocating memory ...\n");
-
-
-  printf("Allocating memory for crystal efficiencies ... (%d bytes)\n", NUM_CRYSTALS * sizeof(float));
+  g_logger->info("Allocating memory");
+  g_logger->info("Allocating memory for crystal efficiencies ({} bytes)", NUM_CRYSTALS * sizeof(float));
   if ((ce = (float*) calloc( NUM_CRYSTALS, sizeof(float))) == NULL) {
-    fprintf(stderr, "memory allocation failed\n");
+    g_logger->error("memory allocation failed");
     exit(1);
   }
 
-  printf("Allocating memory for radial geometric factors ... (%d bytes)\n", GR_SIZE * sizeof(float));
+  g_logger->info("Allocating memory for radial geometric factors ... (%d bytes)", GR_SIZE * sizeof(float));
   cangle = (short*) calloc( GR_SIZE, sizeof(short));
   if ((gr = (float*) calloc( GR_SIZE, sizeof(float))) == NULL) {
-    fprintf(stderr, "memory allocation failed\n");
+    g_logger->error( "memory allocation failed");
     exit(1);
   }
-  printf("Allocating memory for axial geometric factors ... (%d bytes)\n", GA_SIZE * sizeof(float));
+  g_logger->info("Allocating memory for axial geometric factors ... (%d bytes)", GA_SIZE * sizeof(float));
   if ((ga = (float*) calloc( GA_SIZE, sizeof(float))) == NULL) {
-    fprintf(stderr, "memory allocation failed\n");
+    g_logger->error( "memory allocation failed");
     exit(1);
   }
 
-  printf("Allocating memory completed.\n");
+  g_logger->info("Allocating memory completed.");
 
   if (!get_gs(geom_fname, log_fp)) exit(1);
 
@@ -1319,24 +1326,22 @@ int main(int argc, char **argv)
     sprintf(fname, "%s%s%s.l64.hdr", drive, dir, fname);
     if (cheader.OpenFile(fname) != -1) cheader.CloseFile();
 
-    fprintf(log_fp, "Reading Crystal efficiencies file %s ...\n", ce_file);
+    g_logger->info( "Reading Crystal efficiencies file {}", ce_file);
     if ((fptr = fopen( ce_file, "rb")) == NULL) {
-      fprintf(log_fp, "Can't open crystal efficiencies file '%s'\n", ce_file);
+      g_logger->error( "Can't open crystal efficiencies file {}", ce_file);
       exit(1);
     }
-    n = fread( ce, sizeof(float), NUM_CRYSTALS, fptr);
+    int n = fread( ce, sizeof(float), NUM_CRYSTALS, fptr);
     fclose( fptr);
     if ( n != NUM_CRYSTALS ) {
-      fprintf(log_fp, "Only read %d of %d values from efficiencies file '%s'\n",
-              n, NUM_CRYSTALS, ce_file);
+      g_logger->error( "Only read {} of {} values from efficiencies file {}", n, NUM_CRYSTALS, ce_file);
       exit(1);
     }
   } else {
     // 64-bit lismode input
     float *fsum = (float*)calloc(NUM_CRYSTALS, sizeof(float));
-    if (fsum == NULL)
-    {
-      perror("memory allocation");
+    if (fsum == NULL) {
+      g_logger->error("memory allocation");
       exit(1);
     }
 
@@ -1351,18 +1356,17 @@ int main(int argc, char **argv)
       fwrite(fsum, NUM_CRYSTALS, sizeof(float), fptr);
       fclose(fptr);
     } else {
-      fprintf(log_fp, "Can't create crystal efficiencies output file '%s'\n", fname);
+      g_logger->error( "Can't create crystal efficiencies output file {}", fname);
     }
 
     sprintf(fname, "%s.hdr", lm_file);
     // Copy listmode header to output directory
     if (cheader.OpenFile(fname) != -1) {
-      fprintf(log_fp, "Copy '%s' to %s%s\n", fname, drive, dir);
+      g_logger->info( "Copy {} to {}{}", fname, drive, dir);
       sprintf(fname, "%s.l64.hdr", base_name);
       cheader.CloseFile();
       cheader.WriteFile(fname);
     }
-
 
     // calculate crystal efficienies from fansum and save to file
     // Crystal efficiencies computed for the border of the heads are unreliable
@@ -1375,7 +1379,7 @@ int main(int argc, char **argv)
       fwrite(ce, NUM_CRYSTALS, sizeof(float), fptr);
       fclose(fptr);
     } else {
-      fprintf(log_fp, "Can't create crystal efficiencies output file '%s'\n", fname);
+      g_logger->error( "Can't create crystal efficiencies output file {}", fname);
     }
 
     //free allocated memory for fansum
@@ -1388,16 +1392,13 @@ int main(int argc, char **argv)
 
   if (LR_type == 0) {
     calibration_scale = 9.0f / span; // 3 for span 3 and 1.0 for span9
-    fprintf(log_fp, "Normalization span=%d, max_rd=%d, calibration scale=%g\n",
-            span, maxrd_, calibration_scale);
+    g_logger->info( "Normalization span = {}, max_rd = {}, calibration scale = {}", span, maxrd_, calibration_scale);
   } else {
     calibration_scale = (float)((9.0f / 14.0f) * (0.5f * m_crystal_x_pitch / m_binsize) / 4);
     // 14: High resolution equivalent span
     // 4: 2 times fewer angles and planes
-    fprintf(log_fp, "LR normalization: span=%d, max_rd=%d, calibration scale=%g\n",
-            span, maxrd_, calibration_scale);
-    fprintf(log_fp, "                  nprojs=%d, nviews=%d, bin_size %g mm\n",
-            nprojs, nviews, m_binsize);
+    g_logger->info( "LR normalization: span = {}, max_rd = {}, calibration scale = {}", span, maxrd_, calibration_scale);
+    g_logger->info( "                  nprojs = {}, nviews = {}, bin_size {} mm", nprojs, nviews, m_binsize);
   }
   fflush(log_fp);
 
@@ -1412,23 +1413,23 @@ int main(int argc, char **argv)
 
   //initialization and memory allocation
   StartTimer("Compute Normalization");
-  printf("Allocating memory for normalization ... (%d bytes)\n", nvoxels * sizeof(float));
+  g_logger->info("Allocating memory for normalization ({} bytes)", nvoxels * sizeof(float));
   // Use calloc to initialize the values to 0
   if ((norm_data = (float *) calloc( nvoxels, sizeof(float) )) == NULL) {
-    fprintf(log_fp, "memory allocation failed\n");
+    g_logger->error( "memory allocation failed");
     exit(1);
   }
 
   // Use calloc to initialize the values to 0
   if ((norm_data2 = (float **) calloc( npixels, sizeof(float*) )) == NULL) {
-    fprintf(log_fp, "memory allocation failed\n");
+    g_logger->error( "memory allocation failed");
     exit(1);
   }
-  for (i = 0; i < npixels; i++)
+  for (int i = 0; i < npixels; i++)
     norm_data2[i] =  norm_data + i * nplanes;
 
   if ((tmp_sino = (float *) calloc(npixels, sizeof(float) )) == NULL) {
-    fprintf(log_fp, "memory allocation failed\n");
+    g_logger->error( "memory allocation failed");
     exit(1);
   }
 
@@ -1442,20 +1443,20 @@ int main(int argc, char **argv)
   pthread_attr_t  attr ;
 #else
   HANDLE *threadhandles = (HANDLE *) malloc( GeometryInfo::NMPAIRS * sizeof( HANDLE ) );
-  if ( threadhandles == NULL )  printf("BP: ERROR malloc threadhandles\n");
+  if ( threadhandles == NULL )  
+    g_logger->error("BP: ERROR malloc threadhandles");
 #endif
 
   struct CNArgs *CNargs = (struct CNArgs *) malloc( GeometryInfo::NMPAIRS * sizeof( struct CNArgs) );;
   if ( CNargs == NULL )
-    printf("BP: ERROR malloc CNargs\n");
+    g_logger->error("BP: ERROR malloc CNargs");
 
 #ifdef __linux__
   /* Initialize and set thread detached attribute */
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 #endif
-  for (mp = 0; mp < GeometryInfo::NMPAIRS; mp++)
-  {
+  for (int mp = 0; mp < GeometryInfo::NMPAIRS; mp++) {
     CNargs[mp].alayer = CNargs[mp].blayer = layer;
     CNargs[mp].mp = mp + 1;
     CNargs[mp].TNumber = mp;
@@ -1469,7 +1470,7 @@ int main(int argc, char **argv)
   /* Free attribute and wait for the other threads */
   pthread_attr_destroy(&attr);
 #endif
-  for (mp = 0; mp < GeometryInfo::NMPAIRS; mp++) {
+  for (int mp = 0; mp < GeometryInfo::NMPAIRS; mp++) {
 #ifdef __linux__
     pthread_join( ThreadHandles[mp] , NULL ) ;
 #else
@@ -1490,19 +1491,16 @@ int main(int argc, char **argv)
   StartTimer("Normalization Rescale");
 
   // scale by calibration_scale and invert sinogram
-  for (i = 0, psino = norm_data; i < nvoxels; i++, psino++)
+  for (int i = 0, psino = norm_data; i < nvoxels; i++, psino++)
     if (*psino > 0.0f) *psino = 1.0f / (*psino);
 
   // Find seg0 average
   sum = 0;
   count = 0;
-  for (i = 0; i < npixels; i++, psino++)
-  {
-    for (plane = 0, psino = norm_data2[i]; plane < seg_planes[0]; plane++, psino++)
-    {
+  for (int i = 0; i < npixels; i++, psino++) {
+    for (int plane = 0, psino = norm_data2[i]; plane < seg_planes[0]; plane++, psino++) {
       // remove outliers before rescaling
-      if (*psino > 0.0f && *psino < NORM_MAX)
-      {
+      if (*psino > 0.0f && *psino < NORM_MAX) {
         sum += *psino;
         count++;
       }
@@ -1510,35 +1508,31 @@ int main(int argc, char **argv)
   }
 
   // scale norm
-  if (count > 0)
-  {
+  if (count > 0) {
     float norm_avg = (float)(sum / count);
     float norm_min = NORM_MIN * calibration_scale;
     float norm_max = NORM_MAX * calibration_scale;
-    fprintf(log_fp, "segment 0 normalization average(excluding gaps): %g\n", norm_avg);
+    g_logger->info( "segment 0 normalization average(excluding gaps): {}", norm_avg);
     scale = calibration_scale / norm_avg;
-    fprintf(log_fp, "Rescale Norm with %g (%g/%g) and threshold to min=%g, max = %g...\n",
+    g_logger->info( "Rescale Norm with {} ({}/{}) and threshold to min = {}, max = {}",
             scale, calibration_scale, norm_avg, norm_min, norm_max);
-    for (i = 0, psino = norm_data; i < nvoxels; i++)
-    {
-      if (*psino > 0.0f)
-      {
+    for (int i = 0, psino = norm_data; i < nvoxels; i++) {
+      if (*psino > 0.0f) {
         norm_data[i] *= scale;
-        if (norm_data[i] < norm_min || norm_data[i] > norm_max) norm_data[i] = 0.0;
+        if (norm_data[i] < norm_min || norm_data[i] > norm_max) 
+          norm_data[i] = 0.0;
       }
     }
   }
 
   // Apply inverse cosine correction to be compatible with Forward Projection in OSEM-3D
   // and omega2 solid angle correction
-  for (i = 0; i < npixels; i++)
-  {
+  for (int i = 0; i < npixels; i++) {
     psino = norm_data2[i];
-    for (segnum = 0; segnum < nsegs; segnum++)
-    {
+    for (int segnum = 0; segnum < nsegs; segnum++) {
       int mid_rd = (segnum / 2) * span; // mid-ring difference
       scale = cosphi[segnum]; // Don't use yet, * omega2[mid_rd];
-      for (plane = 0; plane < seg_planes[segnum]; plane++, psino++)
+      for (int plane = 0; plane < seg_planes[segnum]; plane++, psino++)
         *psino *= scale;
     }
   }
@@ -1554,32 +1548,27 @@ int main(int argc, char **argv)
 
 #ifndef VTUNE_RUN
 
-  printf("Writing to disk...\n");
+  g_logger->info("Writing to disk");
 
   StartTimer("Disk Write");
 
-  fptr = fopen(norm_file, "wb");
-  if (!fptr)
-  {
-    fprintf(log_fp, "Can't create normalization output file '%s'\n", fname);
-  }
-  else
-  {
+  FILE *fptr = fopen(norm_file, "wb");
+  if (!fptr) {
+    g_logger->error( "Can't create normalization output file '%s'", fname);
+    exit(1);
+  } else {
     int num_sinos = 0;
     // first and last 2 planes in segment 0 are all 0, set the diamonds to 1
     // using a central plane
     plane = 0;
-    for (segnum = 0; segnum < nsegs; segnum++)
-    {
-      fprintf(log_fp, " writing segment %d: nplanes=%d\n", segnum, seg_planes[segnum]);
+    for (int segnum = 0; segnum < nsegs; segnum++) {
+      g_logger->info( " writing segment {}: nplanes={}", segnum, seg_planes[segnum]);
       num_sinos +=  seg_planes[segnum];
-      for (int segplane = 0; segplane < seg_planes[segnum]; segplane++, plane++)
-      {
-        for (i = 0; i < npixels; i++) tmp_sino[i] = norm_data2[i][plane];
-        if ((n = fwrite(tmp_sino, sizeof(float), npixels, fptr)) != npixels)
-        {
-          fprintf(log_fp, "Write to disk error for '%s' segment %d plane %d\n",
-                  norm_file, segnum, plane + 1);
+      for (int segplane = 0; segplane < seg_planes[segnum]; segplane++, plane++) {
+        for (int i = 0; i < npixels; i++) 
+          tmp_sino[i] = norm_data2[i][plane];
+        if ((int n = fwrite(tmp_sino, sizeof(float), npixels, fptr)) != npixels) {
+          g_logger->error( "Write to disk error for '{}' segment {} plane {}", norm_file, segnum, plane + 1);
         }
       }
     }
@@ -1610,10 +1599,10 @@ int main(int argc, char **argv)
     cheader.WriteInt(CHeader::SCALING_FACTOR_2         , 1);
     cheader.WriteFloat(CHeader::SCALING_FACTOR_3         , 1.218750f);
     sprintf(fname, "%s.cheader", norm_file);
-    fprintf(log_fp, "Write header %s\n", fname);
+    g_logger->info( "Write header {}", fname);
     cheader.WriteFile(fname);
 
-    fprintf(log_fp, "Write to disk completed\n");
+    g_logger->info( "Write to disk completed");
   }
 
   StopTimer("Disk Write");

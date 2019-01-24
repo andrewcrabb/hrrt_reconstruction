@@ -10,6 +10,7 @@
 */
 # pragma once
 
+#include <string>
 #include <boost/filesystem.hpp>
 namespace bf = boost::filesystem;
 
@@ -21,7 +22,7 @@ typedef struct {
   float z; //plane
 } SOL;
 
-static string const LUT_FILENAME_ENVT_VAR;
+static std::string const LUT_FILENAME_ENVT_VAR;
 
 extern short **m_segplane;
 extern float *m_c_zpos;  // "physical z position" of Ycrys index.

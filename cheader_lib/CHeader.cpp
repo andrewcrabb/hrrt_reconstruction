@@ -185,7 +185,7 @@ CHeaderError CHeader::InsertTag(string t_buffer) {
 
 CHeaderError CHeader::ReadFile() {
   string buffer;
-  while (safeGetline(hdr_file_, buffer)) {
+  while (hrrt_util::safeGetline(hdr_file_, buffer)) {
     InsertTag(buffer);
   }
   return CHeaderError::OK;

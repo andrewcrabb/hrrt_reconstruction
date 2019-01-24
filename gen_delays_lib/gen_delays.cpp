@@ -28,6 +28,12 @@
 #include <string>
 #include <boost/filesystem.hpp>
 
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/stdout_color_sinks.h" //support for stdout logging
+#include "spdlog/sinks/basic_file_sink.h" // support for basic file logging
+
 #define _MAX_PATH 256
 #include <pthread.h>
 #include <sys/time.h>
@@ -92,17 +98,17 @@ int compute_delays(int mp, float **delays_data, float *csings) {
   float tauftime = g_tau * g_ftime;
 
   for (int alayer = 0; alayer < GeometryInfo::NDOIS; alayer++) {
-    for (ay = 0; ay < GeometryInfo::NYCRYS; ay++) {
+    for (int ay = 0; ay < GeometryInfo::NYCRYS; ay++) {
       //  if (ay%10==0) printf("Generating delays for MP %d [H%d,H%d] %d\t%d \r", mp, ahead, bhead,alayer,ay);
       float cay = lor_sinogram::m_c_zpos2[ay];
-      int bs = 1000; 
+      int bs = 1000;
       int be = -1000;
 
       //get rd,dz2[by],bs,be
-      for (by = 0; by < GeometryInfo::NYCRYS; by++) {
+      for (int by = 0; by < GeometryInfo::NYCRYS; by++) {
         dz2[by] = lor_sinogram::m_c_zpos[by] - lor_sinogram::m_c_zpos[ay]; // z diff. between det A and det B
-        int rd = ay - by; 
-        if (rd < 0) 
+        int rd = ay - by;
+        if (rd < 0)
           rd = by - ay;
         if (rd < maxrd_ + 6) {  // dsaint31 : why 6??
           if (bs > by)
@@ -131,7 +137,7 @@ int compute_delays(int mp, float **delays_data, float *csings) {
 
             int headxcrys = GeometryInfo::NHEADS * GeometryInfo::NXCRYS;
             int nbd  = blayer * GeometryInfo::NUM_CRYSTALS_X_Y_HEADS + bhead * GeometryInfo::NXCRYS + bx + headxcrys * bs;
-            for (by = bs; by <= be; by++, nbd += headxcrys) {
+            for (int by = bs; by <= be; by++, nbd += headxcrys) {
               int plane = (int)(cay + sol->z * dz2[by]);
 
               float seg = (float)(0.5 + dz2[by] * sol->d);
@@ -185,12 +191,12 @@ void compute_drate(float *t_srate, float t_tau, std::array<float, SIZE> &t_drate
       ohead_sum += hsum[ohead];
     }
     for (int layer = 0; layer < GeometryInfo::NDOIS; layer++)
-      int layer_crystals = GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
-      for (int cx = 0; cx < GeometryInfo::NXCRYS; cx++)
-        for (int cy = 0; cy < GeometryInfo::NYCRYS; cy++) {
-          int i = head_xcrys + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + layer_crystals;
-          t_drate[i] = t_srate[i] * t_tau * ohead_sum;
-        }
+      layer_crystals = GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
+    for (int cx = 0; cx < GeometryInfo::NXCRYS; cx++)
+      for (int cy = 0; cy < GeometryInfo::NYCRYS; cy++) {
+        int i = head_xcrys + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + layer_crystals;
+        t_drate[i] = t_srate[i] * t_tau * ohead_sum;
+      }
   }
 }
 
@@ -303,31 +309,31 @@ int read_crystal_singles_file(int *csings) {
 // TODO reimplement this as shared_ptr and ifstream.  Though other routines call gen_delays with a FILE*
 
 int read_coincidence_sinogram_file(int *t_coincidence_sinogram, FILE *t_coincidence_file_ptr) {
-    FILE *fptr;
-    if (t_coincidence_file_ptr == NULL) 
-      fptr = fopen(g_coincidence_histogram_file, "rb");
-    else 
-      fptr = t_coincidence_file_ptr;
+  FILE *fptr;
+  if (t_coincidence_file_ptr == NULL)
+    fptr = fopen(g_coincidence_histogram_file, "rb");
+  else
+    fptr = t_coincidence_file_ptr;
 
-    if (!fptr) {
-      if (t_coincidence_file_ptr) {
-        g_logger->error("Can't open supplied sinogram FILE")
-      } else {
-        g_logger->error("Can't open coincidence histogram file {}", g_coincidence_histogram_file);
-      }
-      return(1);
+  if (!fptr) {
+    if (t_coincidence_file_ptr) {
+      g_logger->error("Can't open supplied sinogram FILE")
+    } else {
+      g_logger->error("Can't open coincidence histogram file {}", g_coincidence_histogram_file);
     }
-    // std::vector<int> coincidence_sinogram(GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * 2); // prompt followed by delayed
-    // if (!coincidence_sinogram) 
-    //   printf("calloc failure for coincidence_sinogram array\n");
-    int n = (int)fread(t_coincidence_sinogram, sizeof(int), GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * 2, fptr);
-    if (fptr != t_coincidence_file_ptr) 
-      fclose(fptr);
-    if (n != 2 * GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS)  {
-      g_logger->error("Not enough data in coinsfile '{}' (only {} of {})", g_coincidence_histogram_file, n, GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * 2);
-      return(1);
-    }
-    return 0;
+    return (1);
+  }
+  // std::vector<int> coincidence_sinogram(GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * 2); // prompt followed by delayed
+  // if (!coincidence_sinogram)
+  //   printf("calloc failure for coincidence_sinogram array\n");
+  int n = (int)fread(t_coincidence_sinogram, sizeof(int), GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * 2, fptr);
+  if (fptr != t_coincidence_file_ptr)
+    fclose(fptr);
+  if (n != 2 * GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS)  {
+    g_logger->error("Not enough data in coinsfile '{}' (only {} of {})", g_coincidence_histogram_file, n, GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * 2);
+    return (1);
+  }
+  return 0;
 }
 
 // in_inline : 0:file save and alone | 1: file save and inline | 2: file unsave and inline
@@ -365,7 +371,7 @@ int gen_delays(int is_inline,
   // const char *rebinner_lut_file=NULL;
 
   delays_file = p_delays_file;
-  if (scan_duration > 0) 
+  if (scan_duration > 0)
     g_ftime = scan_duration;
   maxrd_ = t_maxrd;
 
@@ -461,7 +467,7 @@ int gen_delays(int is_inline,
     }
     memset(delays_data[i], 0, nplanes * sizeof(float));
   }
-  if (!delays_data) 
+  if (!delays_data)
     printf("malloc failed for delays_data\n");
 
   //-------------------------------------------------------
