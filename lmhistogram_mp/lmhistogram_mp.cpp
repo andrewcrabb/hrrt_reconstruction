@@ -805,21 +805,9 @@ bf::path make_file_name(FILE_TYPE file_type, bf::path stem, int frame_no) {
   return file_path;
 }
 
-const std::string time_string(void) {
-  time_t rawtime;
-  struct tm * timeinfo;
-  char buffer [80];
-
-  time (&rawtime);
-  timeinfo = localtime (&rawtime);
-  strftime (buffer, 80, "%y%m%d_%H%M%S", timeinfo);
-  std::string s(buffer);
-  return s;
-}
-
 void init_logging(void) {
   if (g_logfile.length() == 0) {
-    g_logfile = fmt::format("{}_lmhistogram.log", time_string());
+    g_logfile = fmt::format("{}_lmhistogram.log", hrrt_util::time_string());
   }
   g_logger = spdlog::basic_logger_mt("basic_logger", g_logfile);
 }

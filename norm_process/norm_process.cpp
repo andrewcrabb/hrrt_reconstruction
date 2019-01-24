@@ -182,7 +182,7 @@ static void usage(char *prog) {
 
 float omega_elem(int mp, int ax, int bx) {
   float omega = 0.0f;
-  int idx = m_solution[mp][NXCRYS + ax][NXCRYS + bx].nsino; //coincident head index
+  int idx = lor_sinogram::solution_[mp][NXCRYS + ax][NXCRYS + bx].nsino; //coincident head index
   if (idx >= 0) {
     omega = omega_sino[idx];
     if (abs(GeometryInfo::HRRT_MPAIRS[mp][0] - GeometryInfo::HRRT_MPAIRS[mp][1]) == 4) {
@@ -195,7 +195,7 @@ float omega_elem(int mp, int ax, int bx) {
 }
 
 float dwell_elem(int mp, int ax, int bx) {
-  int idx = m_solution[mp][NXCRYS + ax][NXCRYS + bx].nsino; //coincident head index
+  int idx = lor_sinogram::solution_[mp][NXCRYS + ax][NXCRYS + bx].nsino; //coincident head index
   if (idx >= 0) return rdwell_sino[idx];
   else return 0.0f;
 }
@@ -308,7 +308,7 @@ void init_corrections() {
             for (blayer = 0; blayer < NLAYERS; blayer++) {
               axx = NXCRYS * alayer + ax;
               bxx = NXCRYS * blayer + bx;
-              idx = m_solution[mp][axx][bxx].nsino; // front layer crystals
+              idx = lor_sinogram::solution_[mp][axx][bxx].nsino; // front layer crystals
               if (idx >= 0)
                 rdwell_sino[idx] = rd;
             }
@@ -362,7 +362,7 @@ void init_corrections() {
             for (blayer = 0; blayer < NLAYERS; blayer++) {
               axx = NXCRYS * alayer + ax;
               bxx = NXCRYS * blayer + bx;
-              idx = m_solution[mp][axx][bxx].nsino;
+              idx = lor_sinogram::solution_[mp][axx][bxx].nsino;
               if (idx >= 0)
                 omega_sino[idx] = so * so;
             }
@@ -442,7 +442,7 @@ void *CNThread2( void *arglist ) {
   int bys, bye; // crystal b y start and end
   float dz2[NYCRYS], seg, cay;
   int segnum, plane;
-  SOL *sol;
+  lor_sinogram::SOL *sol;
   float *dptr = NULL;
 
   char TimeStr[ 32 ] ;
@@ -466,13 +466,13 @@ void *CNThread2( void *arglist ) {
     for (ay = 0; ay < NYCRYS; ay++) {
       //  if (ay%10= = 0) printf("Generating delays for MP %d [H%d, H%d] %d\t%d \r",
       // mp, ahead, bhead, alayer, ay);
-      cay = m_c_zpos2[ay];
+      cay = lor_sinogram::m_c_zpos2[ay];
       bys = 1000;
       bye = -1000;
 
       // precalculate segment info: get rd, dz2[by], bs, be
       for (by = 0; by < NYCRYS; by++) {
-        dz2[by] = m_c_zpos[by] - m_c_zpos[ay]; // z diff. between det A and det B
+        dz2[by] = lor_sinogram::m_c_zpos[by] - lor_sinogram::m_c_zpos[ay]; // z diff. between det A and det B
         rd = ay - by;
         if (rd < 0)
           rd = by - ay;
@@ -506,8 +506,8 @@ void *CNThread2( void *arglist ) {
           // loop and crystal b x, ignore x border crystals
           bxx = NXCRYS * blayer + border;
           for (bx = border; bx < NXCRYS - border; bx++, bxx++) {
-            if (m_solution[mp][axx][bxx].nsino == -1) continue;
-            sol = &m_solution[mp][axx][bxx];
+            if (lor_sinogram::solution_[mp][axx][bxx].nsino == -1) continue;
+            sol = &lor_sinogram::solution_[mp][axx][bxx];
             dptr = norm_data2[sol->nsino];//result bin location
             if (corrections & GR_C) {
               gra =  * (gr_elem(ax, bx, bhead - ahead - 2, lc, 0));
@@ -529,9 +529,9 @@ void *CNThread2( void *arglist ) {
                 segnum = 1 - (segnum << 1);
               else
                 segnum = segnum << 1;
-              if (m_segplane[segnum][plane] != -1 && omega > eps)
-                dptr[m_segplane[segnum][plane]] += ae * be * gra * grb * ga_sq / omega;
-              //                 dptr[m_segplane[segnum][plane]] += ae*be*gra*grb/omega;
+              if (lor_sinogram::m_segplane[segnum][plane] != -1 && omega > eps)
+                dptr[lor_sinogram::m_segplane[segnum][plane]] += ae * be * gra * grb * ga_sq / omega;
+              //                 dptr[lor_sinogram::m_segplane[segnum][plane]] += ae*be*gra*grb/omega;
             } // end by
           } // end bx
         }  // end blayer
@@ -727,7 +727,7 @@ void create_omega_sino(float * &sino) {
       int axx = NXCRYS + ax;   // front layer
       for (int bx = 0; bx < NXCRYS; bx++) {
         int bxx = NXCRYS + bx; // front layer
-        int bin = m_solution[mp][axx][bxx].nsino;
+        int bin = lor_sinogram::solution_[mp][axx][bxx].nsino;
         if (bin >= 0)
           sino[bin] =  omega_elem(mp, ax, bx);
       }
@@ -749,7 +749,7 @@ void create_dwell_sino(float * &sino) {
       int axx = NXCRYS + ax;   // front layer
       for (int bx = 0; bx < NXCRYS; bx++) {
         int bxx = NXCRYS + bx;   // front layer
-        int bin = m_solution[mp][axx][bxx].nsino;
+        int bin = lor_sinogram::solution_[mp][axx][bxx].nsino;
         if (bin >= 0)
           sino[bin] =  dwell_elem(mp, ax, bx);
       }
@@ -1197,7 +1197,7 @@ int main(int argc, char **argv)
     exit(1);
   }
   fprintf(log_fp, "Using Rebinner LUT file %s \n", rebinner_lut_file);
-  init_lut_sol(rebinner_lut_file, SegmentInfo::m_segzoffset);
+  lor_sinogram::init_lut_sol(rebinner_lut_file, SegmentInfo::m_segzoffset);
 
   npixels = nprojs * nviews;
   nvoxels = npixels * nplanes;

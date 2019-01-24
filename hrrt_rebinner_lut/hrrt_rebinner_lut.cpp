@@ -84,11 +84,11 @@ void main(int argc, char* argv[]) {
   SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &SegmentInfo::m_d_tan_theta, g_maxrd, g_span, NYCRYS, m_crystal_radius, m_plane_sep);
 
   if (!g_tx_flag) {
-    init_sol(SegmentInfo::m_segzoffset);
-    save_lut_sol(g_out_fname);
+    lor_sinogram::init_sol(SegmentInfo::m_segzoffset);
+    lor_sinogram::save_lut_sol(g_out_fname);
   } else {
-    init_sol_tx(g_span);
-    save_lut_sol_tx(g_out_fname);
+    lor_sinogram::init_sol_tx(g_span);
+    lor_sinogram::save_lut_sol_tx(g_out_fname);
   }
   exit(0);
 }

@@ -640,8 +640,8 @@ static  int  flip_xy(float *data,int x_dim,int y_dim) {
 	float    **tmp; 
 	tmp = (float **)matrixfloat(0,y_pixels-1,0,x_pixels-1);
 	if ( tmp == NULL ) return 0;
-	for(y=0;y<y_dim;y++)
-		for(x=0;x<x_dim;x++) 
+	for (y = 0; y < y_dim;y++)
+		for (x = 0; x <x_dim;x++) 
 			tmp[y][x] = data[x*y_dim+y]; 
 	memcpy(data, &tmp[0][0], x_dim*y_dim*sizeof(float) );
 	free_matrix(tmp,0,y_pixels-1,0,x_pixels-1);
@@ -650,9 +650,9 @@ static  int  flip_xy(float *data,int x_dim,int y_dim) {
 /*    data[z][x][y] --> data'[z][y][x]   */
 static  int  flip_xyz(float ***datain,float *** dataout,int x_dim,int y_dim,int z_dim) {
 	int     x,y,z;
-	for(z=0; z<z_dim; z++)
-		for(y=0;y<y_dim;y++)
-			for(x=0;x<x_dim;x++)
+	for (z = 0; z<z_dim; z++)
+		for (y = 0; y < y_dim;y++)
+			for (x = 0; x <x_dim;x++)
 				dataout[z][y][x] = datain[z][x][y]; 
 	return 1;
 }
@@ -1753,7 +1753,7 @@ void prepare_osem3dw3(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
   } else { // compute random smoothing from .ch file into largeprj3
     fprintf(stderr,"computing smooth randoms from %s to memory and scan duration %g\n", 
           delayed_file, scan_duration);
-    gen_delays(0, NULL, 2, scan_duration, largeprj3, dsinofp, NULL,
+    gen_delays(2, scan_duration, largeprj3, dsinofp, NULL,
                 osem3dpar->span, osem3dpar->maxdel);
   }
 
@@ -1932,7 +1932,7 @@ FUNCPTR pt_normfac_calculate(void *ptarg)
 			mptr=(__m128 *) ptr1;
 			if (mapemflag) {
 				memcpy(ptr1,ptr2,z_pixels_simd*4*4);
-				for(z=0;z<z_pixels_simd;z++) {
+				for (z = 0;z<z_pixels_simd;z++) {
 					mmsum=_mm_add_ps(mmsum,mptr[z]);
 				}
 				continue;
@@ -2002,15 +2002,15 @@ void calculate_derivative_mapem(float ***image,float ***gradient,float ***laplac
 						            {{ 0.8165f ,1.0f,0.8165f}, { 1.0f ,1.4142f ,1.0f},    { 0.8165f ,1.0f ,0.8165f} }};
 	float normtotal=0;
 
-	for(x=0;x<3;x++) {
+	for (x = 0; x <3;x++) {
 		for(y=0;y<3;y++) {
-			for(z=0;z<3;z++) {
+			for (z = 0;z<3;z++) {
 				normtotal+=omega[x][y][z];
 			}
 		}
 	}
 
-	for(x=0;x<x_pixels;x++) {
+	for (x = 0; x <x_pixels;x++) {
 		for(y=cylwiny[x][0];y<cylwiny[x][1];y++) {
 			
 			for(z=1;z<z_pixels-1;z++) {
@@ -2061,7 +2061,7 @@ BPFP_ptargs *arg;
 			nptr2=(float *)mptr2;
 			nptr3=(float *)mptr3;
 			nptr4=(float *)mptr4;
-			for(z=0;z<z_pixels_simd;z++) {
+			for (z = 0;z<z_pixels_simd;z++) {
 				mptr1[z]=_mm_mul_ps(mptr1[z],_mm_div_ps(_mm_sub_ps(mptr2[z],_mm_mul_ps(mmeps,_mm_sub_ps(mptr4[z],mptr1[z]))),_mm_add_ps(mptr3[z],_mm_mul_ps(mmeps,mptr1[z]))));
 //				mptr1[z]=_mm_add_ps(mptr1[z],_mm_mul_ps(mptr1[z],_mm_mul_ps(mptr2[z],mptr3[z])));
 //				mptr1[z]=_mm_min_ps(coef,_mm_mul_ps(mptr1[z],_mm_mul_ps(mptr2[z],mptr3[z])));
@@ -2102,7 +2102,7 @@ FUNCPTR pt_cal_updateimage(void *ptarg)
 			nptr1=(float *)mptr1;
 			nptr2=(float *)mptr2;
 			nptr3=(float *)mptr3;
-			for(z=0;z<z_pixels_simd;z++) {
+			for (z = 0;z<z_pixels_simd;z++) {
 //				mptr1[z]=_mm_add_ps(mptr1[z],_mm_mul_ps(mptr1[z],_mm_mul_ps(mptr2[z],mptr3[z])));
 //				mptr1[z]=_mm_min_ps(coef,_mm_mul_ps(mptr1[z],_mm_mul_ps(mptr2[z],mptr3[z])));
 				mptr1[z]=_mm_min_ps(coef,_mm_mul_ps(mptr1[z],_mm_mul_ps(_mm_min_ps(amax,_mm_max_ps(amin,mptr2[z])),mptr3[z])));
@@ -2678,25 +2678,25 @@ float *** alloc_imagexyzf_thread()
 	float ***image;
 	image=(float ***) _mm_malloc( (size_t) ( x_pixels*sizeof(float **) ),16 );
 
-	for(x=0;x<x_pixels;x++) {
+	for (x = 0; x <x_pixels;x++) {
 			image[x]=(float **) _mm_malloc( (size_t) ( y_pixels*sizeof(float *) ),16 );
 		memset(image[x],0,y_pixels*sizeof(float *));
 	}
-	for(x=0;x<x_pixels;x++) {
-		for(y=0;y<y_pixels;y++) {
+	for (x = 0; x <x_pixels;x++) {
+		for (y = 0; y < y_pixels;y++) {
 			image[x][y]=(float *) _mm_malloc( (size_t) ( z_pixels_simd*sizeof(__m128) ),16 );
 			memset(image[x][y],0,z_pixels_simd*sizeof(__m128));
 		}
 	}
 
-/*	for(x=0;x<x_pixels;x++) {
+/*	for (x = 0; x <x_pixels;x++) {
 		if (cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
 		for(y=cylwiny[x][0]-2;y<cylwiny[x][1]+2;y++) {
 			image[x][y]=(float *) _mm_malloc( (size_t) ( z_pixels_simd*sizeof(__m128) ),64 );
 			memset(image[x][y],0,z_pixels_simd*sizeof(__m128));
 		}
 	}
-	for(x=0;x<x_pixels;x++) {
+	for (x = 0; x <x_pixels;x++) {
 		if (cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
 		for(y=cylwiny[x][0]-2;y<cylwiny[x][1]+2;y++) {
 			if (image[y][x]==NULL) {
@@ -2716,19 +2716,19 @@ float *** alloc_imagepack()
 	float ***image;
 	image=(float ***) _mm_malloc( (size_t) ( x_pixels*sizeof(float **) ),16 );
 
-	for(x=0;x<=x_pixels/2;x++) {
+	for (x = 0; x <=x_pixels/2;x++) {
 			image[x]=(float **) _mm_malloc( (size_t) ( y_pixels*sizeof(float *) ),16 );
 			memset(image[x],0,y_pixels*sizeof(float *));
 	}
 
-	for(x=0;x<=x_pixels/2;x++) {
+	for (x = 0; x <=x_pixels/2;x++) {
 		if (cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
 		for(y=cylwiny[x][0]-2;y<=y_pixels/2;y++) {
 			image[x][y]=(float *) _mm_malloc( (size_t) ( z_pixels_simd*4*sizeof(__m128) ),64 );
 			memset(image[x][y],0,z_pixels_simd*4*sizeof(__m128));
 		}
 	}
-	for(x=0;x<x_pixels;x++) {
+	for (x = 0; x <x_pixels;x++) {
 		if (cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
 		for(y=cylwiny[x][0]-2;y<=y_pixels/2;y++) {
 			if (image[y][x]==NULL) {
@@ -2747,12 +2747,12 @@ float *** alloc_imagexyzf_thread2()
 	float *ptr;
 	image=(float ***) _mm_malloc( (size_t) ( x_pixels*sizeof(float **) ),16 );
 
-	for(x=0;x<x_pixels;x++) {
+	for (x = 0; x <x_pixels;x++) {
 			image[x]=(float **) _mm_malloc( (size_t) ( y_pixels*sizeof(float *) ),16 );
 		memset(image[x],0,y_pixels*sizeof(float *));
 	}
 
-	for(x=0;x<x_pixels/2;x++) {
+	for (x = 0; x <x_pixels/2;x++) {
 		if (cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
 		for(y=cylwiny[x][0]-2;y<y_pixels/2;y++) {
 //			image[x][y]=(float *) _mm_malloc( (size_t) ( z_pixels_simd*sizeof(__m128) ),16 );
@@ -2764,7 +2764,7 @@ float *** alloc_imagexyzf_thread2()
 			image[x_pixels-x][y_pixels-y]=&ptr[z_pixels_simd*12];
 		}
 	}
-	for(x=0;x<x_pixels/2;x++) {
+	for (x = 0; x <x_pixels/2;x++) {
 		if (cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
 		for(y=cylwiny[x][0]-2;y<y_pixels/2;y++) {
 			if (image[y][x]==NULL) {
@@ -2826,7 +2826,7 @@ void pack_image()
 	int x,y,z,z4;
 	int xi,yi;
 	float *optr,*ptr1,*ptr2,*ptr3,*ptr4;;
-	for(x=0;x<=x_pixels/2;x++) {
+	for (x = 0; x <=x_pixels/2;x++) {
 		xi=x_pixels-x;
 		if (cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
 		for(y=cylwiny[x][0];y<=y_pixels/2;y++) {
@@ -2836,7 +2836,7 @@ void pack_image()
 			ptr3=image[yi][x];
 			ptr4=image[y][xi];
 			optr=imagepack[x][y];
-			for(z=0,z4=0;z<z_pixels;z++,z4+=4) {
+			for (z = 0,z4=0;z<z_pixels;z++,z4+=4) {
 				optr[z4]=ptr1[z];
 				optr[z4+1]=ptr2[z];
 				optr[z4+2]=ptr3[z];
@@ -2882,23 +2882,23 @@ void free_imagexyzf_thread2(float ***image)
 {
 	int x,y;
 
-	for(x=0;x<x_pixels/2;x++) {
-		for(y=0;y<y_pixels/2;y++) {
+	for (x = 0; x <x_pixels/2;x++) {
+		for (y = 0; y < y_pixels/2;y++) {
 			if (image[x][y]!=NULL) _mm_free(image[x][y]);
 		}
 	}
 	printf("free done\n");
 	x=x_pixels/2;
-	for(y=0;y<y_pixels;y++) {
+	for (y = 0; y < y_pixels;y++) {
 		if (image[x][y]!=NULL) _mm_free(image[x][y]);
 	}
 
 	x=x_pixels/2;
-	for(y=0;y<y_pixels;y++) {
+	for (y = 0; y < y_pixels;y++) {
 		if (image[y][x]!=NULL) _mm_free(image[y][x]);
 	}
 
-	for(x=0;x<x_pixels;x++) {
+	for (x = 0; x <x_pixels;x++) {
 		if (cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
 		if (image[x]!=NULL) _mm_free(image[x]);
 	}
@@ -2908,13 +2908,13 @@ void free_imagexyzf_thread(float ***image)
 {
 	int x,y;
 
-	for(x=0;x<x_pixels;x++) {
-		for(y=0;y<y_pixels;y++) {
+	for (x = 0; x <x_pixels;x++) {
+		for (y = 0; y < y_pixels;y++) {
 			if (image[x][y]!=NULL) _mm_free(image[x][y]);
 		}
 	}
 
-	for(x=0;x<x_pixels;x++) {
+	for (x = 0; x <x_pixels;x++) {
 		if (cylwiny[x][0]==0 && cylwiny[x][1]==0) continue;
 		if (image[x]!=NULL) _mm_free(image[x]);
 	}
@@ -3667,18 +3667,18 @@ void Output_CorrectedScan()
 			if (tmpfp==NULL) 
 				crash2("  Main(): error in read_flat_image() when reading the initial image from %s \n", in_img_file );
 			tmpfptr2d=matrixfloat(0,x_pixels-1,0,y_pixels-1);
-			for(z=0;z<z_pixels;z++) {
+			for (z = 0;z<z_pixels;z++) {
 				fread(&tmpfptr2d[0][0],x_pixels*y_pixels,sizeof(float),tmpfp);
 				if (inflipFlag) {
 					/* Flip x<->y (in place, since first time) */
-					for(x=0;x<x_pixels;x++) {
-						for(y=0;y<y_pixels;y++) {
+					for (x = 0; x <x_pixels;x++) {
+						for (y = 0; y < y_pixels;y++) {
 							image[y][x][z]=tmpfptr2d[x][y];
 						}
 					}
 				} else {
-					for(x=0;x<x_pixels;x++) {
-						for(y=0;y<y_pixels;y++) {
+					for (x = 0; x <x_pixels;x++) {
+						for (y = 0; y < y_pixels;y++) {
 							image[x][y][z]=tmpfptr2d[y][x];
 						}
 					}
@@ -3870,7 +3870,7 @@ void CalculateNormfac()
     }
 
 		if (blur) {
-//			for(x=0;x<x_pixels;x++) {
+//			for (x = 0; x <x_pixels;x++) {
 //				for(y=cylwiny[x][0];y<cylwiny[x][1];y++) memcpy(image_psf[x][y],normfac[x][y],z_pixels_simd*16);
 //			convolve3d(normfac,image_psf,imagexyzf_thread[0]);
 			convolve3d(normfac,normfac,imagexyzf_thread[0]);
@@ -4009,17 +4009,17 @@ void Init_Image()
 		if (tmpfp==NULL) crash2("  Main(): error when opening initial image from %s \n", in_img_file );
 		tmpfptr2d=matrixfloat(0,x_pixels-1,0,y_pixels-1);
 
-		for(z=0;z<z_pixels;z++) {
+		for (z = 0;z<z_pixels;z++) {
 			fread(&tmpfptr2d[0][0],x_pixels*y_pixels,sizeof(float),tmpfp);
 			if (inflipFlag) {
 				/* Flip x<->y (in place, since first time) */
-				for(x=0;x<x_pixels;x++) {
+				for (x = 0; x <x_pixels;x++) {
 					for(y=cylwiny[x][0];y<cylwiny[x][1];y++) {
 						image[x][y][z]=tmpfptr2d[x][y];
 					}
 				}
 			} else {
-				for(x=0;x<x_pixels;x++) {
+				for (x = 0; x <x_pixels;x++) {
 					for(y=cylwiny[x][0];y<cylwiny[x][1];y++) {
 						image[y][x][z]=tmpfptr2d[x][y];
 					}
@@ -4064,13 +4064,16 @@ void SaveImage(char *out_img_file,int iter, int frame)
 	memset(&tmpimage[0][0][0],0, x_pixels*y_pixels*z_pixels*sizeof(float));
 
 	if (outflipFlag) { 
-		for(x=0;x<x_pixels;x++) for(y=cylwiny[x][0];y<cylwiny[x][1];y++) for(z=0;z<z_pixels;z++) tmpimage[z][y][x]=image[y][x][z];
+		for (x = 0; x < x_pixels; x++) 
+			for (y = cylwiny[x][0]; y < cylwiny[x][1]; y++) 
+				for (z = 0; z < z_pixels; z++) 
+					tmpimage[z][y][x]=image[y][x][z];
 		fprintf(stdout,"  Intermediate image has been flipped \n");
 	} 
 	else {
-		for(x=0;x<x_pixels;x++) 
+		for (x = 0; x <x_pixels;x++) 
 			for(y=cylwiny[x][0];y<cylwiny[x][1];y++)
-				for(z=0;z<z_pixels;z++) 
+				for (z = 0;z<z_pixels;z++) 
 					tmpimage[z][y][x]=image[x][y][z];
 	}
 
@@ -4484,7 +4487,7 @@ int main(int argc, char* argv[])
           ra_smo_file, scan_duration);
 
        // provide program path for LUT location
-        gen_delays(0,NULL,1, scan_duration, NULL, dsinofp, ra_smo_file,
+        gen_delays(1, scan_duration, NULL, dsinofp, ra_smo_file,
                     osem3dpar->span, osem3dpar->maxdel);
         // close ch file and open created smoothed random file
         fclose(dsinofp);

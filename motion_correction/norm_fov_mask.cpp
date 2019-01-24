@@ -1157,7 +1157,7 @@ int main(int argc, char* argv[])
   allocation_memory();
 
   if (chFlag)
-       gen_delays(0, NULL, 2, scan_duration, delayedprj3, dsinofp, NULL,span, maxdel);
+       gen_delays(2, scan_duration, delayedprj3, dsinofp, NULL,span, maxdel);
 
   Output_CorrectedScan();
 	return 0;

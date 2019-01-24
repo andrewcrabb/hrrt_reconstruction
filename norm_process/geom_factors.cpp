@@ -6,6 +6,14 @@
 #include <gen_delays_lib/gen_delays.h>
 #include <gen_delays_lib/geometry_info.h>
 #include <gen_delays_lib/lor_sinogram_map.h>
+#include "hrrt_util.hpp"
+
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "my_spdlog.hpp"
+#include <boost/filesystem.hpp>
+namespace bf = boost::filesystem;
 
 using namespace std;
 #define NPROJS 256
@@ -106,26 +114,33 @@ static void pass3(int i)
   }
 }
 
+void init_logging(void) {
+  if (g_logfile.length() == 0) {
+    g_logfile = fmt::format("{}_geom_factors.log", hrrt_util::time_string());
+  }
+  g_logger = spdlog::basic_logger_mt("HRRT", g_logfile);
+}
+
 void main(int argc, char ** argv)
 {
   int i=0;
 
   // TODO use boost::program_options to read in a file_path for rebinner_lut_file
-  const char *rebinner_lut_file=NULL;
+  // const char *rebinner_lut_file=NULL;
   int *m_segzoffset=NULL;
   int mp, al, bl, ax, axx, bx, bxx;
   float d_theta=1.0, plane_sep=1.21875f, crystal_radius=234.5f;
 
-  if ((rebinner_lut_file=hrrt_rebinner_lut_path())==NULL)
-  {
-    fprintf(stdout,"Rebinner LUT file not found\n");
-    exit(1);
-  }
-  init_lut_sol(rebinner_lut_file, m_segzoffset);
+  // if ((rebinner_lut_file=hrrt_rebinner_lut_path())==NULL)
+  // {
+  //   fprintf(stdout,"Rebinner LUT file not found\n");
+  //   exit(1);
+  // }
+  // lor_sinogram::init_lut_sol(rebinner_lut_file, m_segzoffset);
+  lor_sinogram::init_lut_sol(m_segzoffset);
 
   al=bl=1; // front layer
-	if (argc != 4) 
-	{
+	if (argc != 4) {
     printf("usage: %s gragrb_sino a_angle b_angle\n", argv[0]);
     exit(1);
   }
@@ -153,7 +168,7 @@ void main(int argc, char ** argv)
       for(bx=0;bx<NXCRYS;bx++)
       {
         bxx=bx+NXCRYS*bl;
-        if ((i=m_solution[ordered_mp[mp]][axx][bxx].nsino) >=0 ) pass1(i);
+        if ((i=lor_sinogram::solution_[ordered_mp[mp]][axx][bxx].nsino) >=0 ) pass1(i);
       }
     }
   }
@@ -167,7 +182,7 @@ void main(int argc, char ** argv)
       for(bx=0;bx<NXCRYS;bx++)
       {
         bxx=bx+NXCRYS*bl;
-        if ((i=m_solution[ordered_mp[mp]][axx][bxx].nsino) >=0 ) pass2(i);
+        if ((i=lor_sinogram::solution_[ordered_mp[mp]][axx][bxx].nsino) >=0 ) pass2(i);
       }
     }
   for (i=48; i<=58; i++) gmap.erase(i);
@@ -180,7 +195,7 @@ void main(int argc, char ** argv)
       for(bx=0;bx<NXCRYS;bx++)
       {
         bxx=bx+NXCRYS*bl;
-        if ((i=m_solution[ordered_mp[mp]][axx][bxx].nsino) >=0 ) pass3(i);
+        if ((i=lor_sinogram::solution_[ordered_mp[mp]][axx][bxx].nsino) >=0 ) pass3(i);
       }
     }
 

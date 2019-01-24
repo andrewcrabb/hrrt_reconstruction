@@ -64,13 +64,14 @@ extern int model_number;
 // ahc from here.
 
 namespace LM_Rebinner {
-extern boost::filesystem::path rebinner_lut_file;
+// extern boost::filesystem::path rebinner_lut_file;
 
 // Get span from configuration file (gm328.ini) for transmission mode (span=0)
 // and initialize the rebinner with the specified span and max_rd
 // ahc: lut file now passed rather than found in this fn
 // int init_rebinner(int &span, int &max_rd);
-int init_rebinner(int &span, int &max_rd, boost::filesystem::path const &lut_file);
+// int init_rebinner(int &span, int &max_rd, boost::filesystem::path const &lut_file);
+int init_rebinner(int &span, int &max_rd);
 };
 
 enum class HeadType {

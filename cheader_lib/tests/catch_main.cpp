@@ -29,18 +29,6 @@ bf::path temp_file;
 // string const VALID_INT_TAG    = CHeader::IMAGE_DURATION;
 // int const VALID_INT_VAL       = 5400;
 
-const std::string time_string(void) {
-  time_t rawtime;
-  struct tm * timeinfo;
-  char buffer [80];
-
-  time (&rawtime);
-  timeinfo = localtime (&rawtime);
-  strftime (buffer, 80, "%y%m%d_%H%M%S", timeinfo);
-  std::string s(buffer);
-  return s;
-}
-
 void init_logging(void) {
   auto logger = spdlog::get("CHeader");
   if (logger)
@@ -48,7 +36,7 @@ void init_logging(void) {
 
   spdlog::set_level(spdlog::level::info); // Set global log level to info
   if (g_logfile.length() == 0) {
-    g_logfile = fmt::format("catch_{}.log", time_string());
+    g_logfile = fmt::format("catch_{}.log", hrrt_util::time_string());
   }
 
   std::vector<spdlog::sink_ptr> sinks;

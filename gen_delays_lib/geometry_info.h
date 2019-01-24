@@ -89,7 +89,6 @@ extern LR_Type to_lrtype(int i);
 // Move member variables into the namespace as they are processed by the Great Rewrite of 2018-19
 extern std::vector<double> m_sin_head;
 extern std::vector<double> m_cos_head;
-}
 
 
 // namespace GeometryInfo {

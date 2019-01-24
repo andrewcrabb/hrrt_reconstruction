@@ -85,6 +85,14 @@ static void divide_planes(FILE *fp1, FILE *fp2, int seg, int nplns)
   printf("\n");
 }
 
+void init_logging(void) {
+  if (g_logfile.length() == 0) {
+    g_logfile = fmt::format("{}_segment_divide.log", hrrt_util::time_string());
+  }
+  g_logger = spdlog::basic_logger_mt("HRRT", g_logfile);
+}
+
+
 void main(int argc, char ** argv)
 {
   int i=0, j=0, sino=0;
@@ -92,7 +100,7 @@ void main(int argc, char ** argv)
   int ntotal_3, ntotal_9, nplns=0, nplns0=207;
 	struct _stat st1, st2;
   FILE *fp1=NULL, *fp2=NULL;
-  const char *rebinner_lut_file=NULL;
+  // const char *rebinner_lut_file=NULL;
   int *m_segzoffset=NULL;
   int mp, al, bl, ax, axx, bx, bxx, idx;
   float d_theta=1.0, plane_sep=1.21875f, crystal_radius=234.5f;
@@ -109,27 +117,22 @@ void main(int argc, char ** argv)
     double g = exp(-(x1 *x1)/2);
     printf("gaussian(%g)=%g\n",x,g);
   }
-  if ((rebinner_lut_file=hrrt_rebinner_lut_path())==NULL)
-  {
-    fprintf(stdout,"Rebinner LUT file not found\n");
-    exit(1);
-  }
-  init_lut_sol(rebinner_lut_file, m_segzoffset);
+  // if ((rebinner_lut_file=hrrt_rebinner_lut_path())==NULL)
+  // {
+  //   fprintf(stdout,"Rebinner LUT file not found\n");
+  //   exit(1);
+  // }
+  lor_sinogram::init_lut_sol(m_segzoffset);
   memset(rebin_dwell,0,NPROJS*NVIEWS);
-  for (mp=1; mp<=GeometryInfo::NMPAIRS; mp++)
-  {
-    for(al=0;al<GeometryInfo::NDOIS;al++)
-    { //layer
-      for(ax=0;ax<GeometryInfo::NXCRYS;ax++)
-      { 
+  for (mp=1; mp<=GeometryInfo::NMPAIRS; mp++)  {
+    for (al=0;al<GeometryInfo::NDOIS;al++)    { 
+    //layer
+      for (ax=0;ax<GeometryInfo::NXCRYS;ax++)      { 
         axx=ax+GeometryInfo::NXCRYS*al; 
-        for(bl=0;bl<GeometryInfo::NDOIS;bl++)
-        {
-          for(bx=0;bx<GeometryInfo::NXCRYS;bx++)
-          {
+        for (bl=0;bl<GeometryInfo::NDOIS;bl++)        {
+          for (bx=0;bx<GeometryInfo::NXCRYS;bx++)          {
             bxx=bx+GeometryInfo::NXCRYS*bl;
-            if ((idx=m_solution[mp][axx][bxx].nsino) >=0 )
-            {
+            if ((idx=lor_sinogram::solution_[mp][axx][bxx].nsino) >=0 ) {
               mp_mask[0][idx] = mp;
               mp_mask[1][idx] = GeometryInfo::HRRT_MPAIRS[mp][0];
               mp_mask[2][idx] = GeometryInfo::HRRT_MPAIRS[mp][1];
@@ -140,8 +143,7 @@ void main(int argc, char ** argv)
       }
     }
   }
-  if ((fp1=fopen("mp_mask.s","wb")) != NULL)
-  {
+  if ((fp1=fopen("mp_mask.s","wb")) != NULL)  {
     fwrite(mp_mask[0], sizeof(char),NPROJS*NVIEWS, fp1);
     fwrite(mp_mask[1], sizeof(char),NPROJS*NVIEWS, fp1);
     fwrite(mp_mask[2], sizeof(char),NPROJS*NVIEWS, fp1);
@@ -149,43 +151,36 @@ void main(int argc, char ** argv)
     fclose(fp1);
   }
 
-  if (argc > 1)
-	{
-    if (_stat(argv[1],&st1) == -1)
-    {
+  if (argc > 1)	{
+    if (_stat(argv[1],&st1) == -1)    {
       perror(argv[1]);
       exit(1);
     }
     size_t data_size = st1.st_size;
-    if (data_size== (size_t)(NPROJS*NVIEWS*ntotal_3*sizeof(float))) span = 3;
-    else if (data_size == (size_t)(NPROJS*NVIEWS*ntotal_9*sizeof(float))) span = 9;
-    else 
-    {
+    if (data_size== (size_t)(NPROJS*NVIEWS*ntotal_3*sizeof(float))) 
+      span = 3;
+    else if (data_size == (size_t)(NPROJS*NVIEWS*ntotal_9*sizeof(float))) 
+      span = 9;
+    else     {
       printf("%s size= %d : not span3 or span9 size\n", argv[1], data_size);
       exit(1);
     }
-    if (argc>2)
-    {
-      if (_stat(argv[2],&st2) == -1)
-      {
+    if (argc>2)    {
+      if (_stat(argv[2],&st2) == -1)      {
         perror(argv[2]);
         exit(1);
       }
-      if (st1.st_size != st2.st_size)
-      {
+      if (st1.st_size != st2.st_size)      {
         printf("%s and %s sizes are different\n", argv[1], argv[2]);
         exit(1);
       }
     }
-		if ((fp1 = fopen(argv[1],"rb")) == NULL) 
-    {
+		if ((fp1 = fopen(argv[1],"rb")) == NULL)     {
       perror(argv[1]);
       exit(1);
     }
-		if (argc>2)
-    {
-      if ((fp2 = fopen(argv[2],"rb")) == NULL)
-      {
+		if (argc>2)    {
+      if ((fp2 = fopen(argv[2],"rb")) == NULL)      {
         perror(argv[2]);
         exit(1);
       }
@@ -203,8 +198,7 @@ void main(int argc, char ** argv)
     printf("segment 0 planes %d\n", nplns0);
     divide_planes(fp1, fp2, nseg/2, nplns0);
 
-		for (seg=1; (2*seg)<nseg;  seg++)
-		{
+		for (seg=1; (2*seg)<nseg;  seg++)		{
       nplns = 2*GeometryInfo::NRINGS - span*(2*seg -1) -2;  
       printf("segment +/- %d planes %d\n", seg, nplns);
       divide_planes(fp1, fp2, nseg/2 -seg, nplns); // -
@@ -212,8 +206,7 @@ void main(int argc, char ** argv)
     }
     fclose(fp1);
     if (fp2!=NULL) fclose(fp2);
-    for (i=0; i<nseg; i++)
-    {
+    for (i=0; i<nseg; i++)    {
       int omp; // ordered mp
       seg = i -nseg/2;
       omp = ordered_mp[1];
@@ -228,18 +221,17 @@ void main(int argc, char ** argv)
     }
     fclose(log_fp);
     // compute all mp average
-    for (i=0; i<nseg; i++)
-    {
+    for (i=0; i<nseg; i++)    {
       ratio[i][0] /= count[i][0];
     }
     seg=0; //segment 0
     double seg_ratio = ratio[nseg/2][0];
     printf("%d, %g, %g\n", seg, seg*d_theta,span==3? seg_ratio/3:seg_ratio);
-    for (seg=1; (2*seg)<nseg;  seg++) 
-    {
+    for (seg=1; (2*seg)<nseg;  seg++)     {
       seg_ratio = (ratio[nseg/2-seg][0]+ratio[nseg/2+seg][0])/2;
       printf("%d, %g, %g\n", seg, seg*d_theta,span==3? seg_ratio/3:seg_ratio);
     }
 	}
-	else printf("usage: %s norm1_file norm2_file\n", argv[0]);
+	else 
+    printf("usage: %s norm1_file norm2_file\n", argv[0]);
 }

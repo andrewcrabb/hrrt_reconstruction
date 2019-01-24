@@ -11,6 +11,7 @@
 
 */
 #include "gen_delays.h"
+#include "hrrt_util.hpp"
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 
@@ -32,21 +33,9 @@ float g_diam  = 0.0f;
 float g_thick = 0.0f;
 float g_tau   = 6.0e-9f;
 
-const std::string time_string(void) {
-  time_t rawtime;
-  struct tm * timeinfo;
-  char buffer [80];
-
-  time (&rawtime);
-  timeinfo = localtime (&rawtime);
-  strftime (buffer, 80, "%y%m%d_%H%M%S", timeinfo);
-  std::string s(buffer);
-  return s;
-}
-
 void init_logging(void) {
   if (g_logfile.length() == 0) {
-    g_logfile = fmt::format("{}_gen_delays.log", time_string());
+    g_logfile = fmt::format("{}_gen_delays.log", hrrt_util::time_string());
   }
   g_logger = spdlog::basic_logger_mt("basic_logger", g_logfile);
 }

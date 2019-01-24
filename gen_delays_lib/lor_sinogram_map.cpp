@@ -16,14 +16,16 @@
 #include "geometry_info.h"
 #include "lor_sinogram_map.h"
 
+namespace lor_sinogram {
 
 //lor_sinogram_map.h
 float *m_c_zpos = NULL;
 float *m_c_zpos2 = NULL;
 short **m_segplane = NULL;
-SOL ***m_solution = NULL;
-SOL ***m_solution_tx[2];
+SOL ***solution_ = NULL;
+SOL ***solution_tx_[2];
 
+string const LUT_FILENAME_ENVT_VAR = 'LUT_FILENAME';
 
 // ahc this is duplicate
 
@@ -44,6 +46,43 @@ int open_istream(std::ifstream &t_ins, const bf::path &t_path, std::ios_base::op
   }
   return 0;
 }
+
+// ahc 1/22/19
+
+/**
+ * @brief      Gets the LUT filename from envt var LUT_FILENAME.
+ * rebinner_lut_file was a required argument passed through many functions but only used in init_lut_sol()
+ *  Now get it from required environment variable LUT_FILENAME, defined in LUT_FILENAME_ENVT_VAR
+ *
+ * @return  boost::filesystem::path which is empty on failure.
+ */
+
+
+bf::path get_lut_filename(void) {
+  bf::path lut_filename;
+  std::shared_ptr<spdlog::logger> logger = spdlog::get("HRRT");  // Must define logger named HRRT in your main application
+
+  if (const char *env_p = std::getenv(LUT_FILENAME_ENVT_VAR)) {
+    bf::path env_path{env_p};
+    if (bf::exists(env_path)) {
+      logger->debug("Using LUT filename {} from environment variable {}", env_path.string(), LUT_FILENAME_ENVT_VAR);
+      lut_filename = env_path;
+    } else {
+      logger->error("Cannot find LUT filename {} from environment variable {}", env_path.string(), LUT_FILENAME_ENVT_VAR);
+    }
+  } else {
+    logger->error("Cannot file required environment variable {}", LUT_FILENAME_ENVT_VAR);
+  }
+  return lut_filename;
+}
+
+// Return true if this is a LUT file
+
+bool valid_lut_filename(bf::path const &t_path) {
+  // Some test goes here.
+  return false;
+}
+
 
 // ahc 1/14/19 this was in gen_delays.h, moved to geometry_info.h
 
@@ -143,9 +182,9 @@ void init_sol(int *segzoffset)
   }
 
   // Initialize and populate solution if NULL
-  if (m_solution == NULL) {
-    //m_solution = phi(=view angle)
-    m_solution = (SOL ***) calloc(21, sizeof(SOL **));
+  if (solution_ == NULL) {
+    //solution_ = phi(=view angle)
+    solution_ = (SOL ***) calloc(21, sizeof(SOL **));
     for (int i = 1; i <= 20; i++) {
       /*    5, 10
           4  9  14
@@ -153,9 +192,9 @@ void init_sol(int *segzoffset)
           7  12 16 19
           11 15 18
       */
-      m_solution[i] = (SOL**) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS, sizeof(SOL *));
+      solution_[i] = (SOL**) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS, sizeof(SOL *));
       for (int ax = 0; ax < GeometryInfo::NUM_CRYSTALS_X_DOIS; ax++) {
-        m_solution[i][ax] = (SOL *) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS, sizeof(SOL));
+        solution_[i][ax] = (SOL *) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS, sizeof(SOL));
       }
     }
     /*  solution[10]=solution[5];
@@ -181,7 +220,7 @@ void init_sol(int *segzoffset)
             for (int bx = 0; bx < GeometryInfo::NXCRYS; bx++) {
               int bxx = bx + GeometryInfo::NXCRYS * bl;
               det_to_phy( bhead, bl, bx, 0, detb_pos);
-              init_phy_to_pro(deta_pos, detb_pos, &m_solution[i][axx][bxx]);
+              init_phy_to_pro(deta_pos, detb_pos, &solution_[i][axx][bxx]);
             }
           }
         }
@@ -209,26 +248,35 @@ void init_sol(int *segzoffset)
 }
 
 
-int init_lut_sol(const bf::path &lut_filename, int *segzoffset) {
-  if (m_solution != NULL)
+int init_lut_sol(int *segzoffset) {
+  std::shared_ptr<spdlog::logger> logger = spdlog::get("HRRT");  // Must define logger named HRRT in your main application
+  bf::path lut_filename = get_lut_filename();
+  if (!bf::exits(lut_filename)) 
     return 1;
+  if (solution_ != NULL) {
+    logger->error("solution_ not NULL");
+    return 1;
+  }
 
   std::ifstream instream;
-  if (open_istream(lut_filename, instream, std::ifstream::in | std::ifstream::binary))
+  if (open_istream(lut_filename, instream, std::ifstream::in | std::ifstream::binary)) {
+    logger->error("Could not open LUT file {}", lut_filename.string());
     exit(1);
+  }
 
   // Initialize and populate solution if NULL
-  if (m_solution == NULL) {
-    //m_solution = phi(=view angle)
-    m_solution = (SOL ***) calloc(21, sizeof(SOL **));
+  if (solution_ == NULL) {
+    //solution_ = phi(=view angle)
+    solution_ = (SOL ***) calloc(21, sizeof(SOL **));
     for (int i = 1; i <= 20; i++) {
-      m_solution[i] = (SOL**) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS, sizeof(SOL *));
+      solution_[i] = (SOL**) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS, sizeof(SOL *));
       for (int ax = 0; ax < GeometryInfo::NUM_CRYSTALS_X_DOIS; ax++) {
-        m_solution[i][ax] = (SOL *) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS, sizeof(SOL));
-        // if (fread(m_solution[i][ax],sizeof(SOL),GeometryInfo::NUM_CRYSTALS_X_DOIS, fp) != GeometryInfo::NUM_CRYSTALS_X_DOIS)
-        instream.read((char *)m_solution[i][ax], sizeof(SOL) * GeometryInfo::NUM_CRYSTALS_X_DOIS);
+        solution_[i][ax] = (SOL *) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS, sizeof(SOL));
+        // if (fread(solution_[i][ax],sizeof(SOL),GeometryInfo::NUM_CRYSTALS_X_DOIS, fp) != GeometryInfo::NUM_CRYSTALS_X_DOIS)
+        instream.read((char *)solution_[i][ax], sizeof(SOL) * GeometryInfo::NUM_CRYSTALS_X_DOIS);
         if (!instream.good()) {
           instream.close();
+          logger->error("instream not good for {}", lut_filename.string());
           return 0;  // TODO really return 0 on error?
         }
       }
@@ -240,7 +288,6 @@ int init_lut_sol(const bf::path &lut_filename, int *segzoffset) {
     return 1;
   }
 
-  printf("\n");
   m_c_zpos   = (float *)  calloc(GeometryInfo::NYCRYS, sizeof(float ));
   m_c_zpos2  = (float *)  calloc(GeometryInfo::NYCRYS, sizeof(float ));
   m_segplane = (short **) calloc(63, sizeof(short *));
@@ -252,12 +299,14 @@ int init_lut_sol(const bf::path &lut_filename, int *segzoffset) {
   // if (fread(m_c_zpos,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
   instream.read((char *)m_c_zpos, sizeof(float) * GeometryInfo::NYCRYS);
   if (!instream.good()) {
+    logger->error("instream not good for {}", lut_filename.string());
     instream.close();
     return 0;
   }
   // if (fread(m_c_zpos2,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
   instream.read((char *)m_c_zpos2, sizeof(float) * GeometryInfo::NYCRYS);
   if (!instream.good()) {
+    logger->error("instream not good for {}", lut_filename.string());
     instream.close();
     return 0;
   }
@@ -269,25 +318,30 @@ int init_lut_sol(const bf::path &lut_filename, int *segzoffset) {
         m_segplane[i][plane] = -1;
         continue;
       }
-      if (plane < SegmentInfo::m_segz0[i]) m_segplane[i][plane] = -1;
-      if (plane > SegmentInfo::m_segzmax[i]) m_segplane[i][plane] = -1;
-      if (m_segplane[i][plane] != -1) m_segplane[i][plane] = plane + segzoffset[i];
+      if (plane < SegmentInfo::m_segz0[i]) 
+        m_segplane[i][plane] = -1;
+      if (plane > SegmentInfo::m_segzmax[i]) 
+        m_segplane[i][plane] = -1;
+      if (m_segplane[i][plane] != -1) 
+        m_segplane[i][plane] = plane + segzoffset[i];
     }
   }
   return 1;
 }
 
-int save_lut_sol(const bf::Path &lut_filename) {
+int save_lut_sol(bf::path const &lut_filename) {
+  std::shared_ptr<spdlog::logger> logger = spdlog::get("HRRT");  // Must define logger named HRRT in your main application
 
-  if (m_solution != NULL) {
+  if (solution_ != NULL) {
     std::ofstream outstream;
     if (open_ostream(lut_filename, outstream, std::ifstream::out | std::ifstream::binary))
       return 0;
     for (int i = 1; i <= 20; i++)    {
       for (int ax = 0; ax < GeometryInfo::NUM_CRYSTALS_X_DOIS; ax++) {
-        // if (fwrite(m_solution[i][ax],sizeof(SOL),GeometryInfo::NUM_CRYSTALS_X_DOIS, fp) != GeometryInfo::NUM_CRYSTALS_X_DOIS)
-        outstream.write(m_solution[i][ax], sizeof(SOL) *GeometryInfo::NUM_CRYSTALS_X_DOIS);
+        // if (fwrite(solution_[i][ax],sizeof(SOL),GeometryInfo::NUM_CRYSTALS_X_DOIS, fp) != GeometryInfo::NUM_CRYSTALS_X_DOIS)
+        outstream.write(solution_[i][ax], sizeof(SOL) *GeometryInfo::NUM_CRYSTALS_X_DOIS);
         if (!outstream.good()) {
+          logger->error("outstream not good for {}", lut_filename.string());
           outstream.close()
           return 0;
         }
@@ -296,12 +350,14 @@ int save_lut_sol(const bf::Path &lut_filename) {
     // if (fwrite(m_c_zpos,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
     outstream.write(m_c_zpos, sizeof(float) * GeometryInfo::NYCRYS);
     if (!outstream.good()) {
+          logger->error("outstream not good for {}", lut_filename.string());
       outstream.close()
       return 0;
     }
     // if (fwrite(m_c_zpos2,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
     outstream.write(m_c_zpos, sizeof(float) * GeometryInfo::NYCRYS);
     if (!outstream.good()) {
+          logger->error("outstream not good for {}", lut_filename.string());
       outstream.close()
       return 0;
     }
@@ -310,22 +366,15 @@ int save_lut_sol(const bf::Path &lut_filename) {
   return 1;
 }
 
-void init_sol_tx(int tx_span)
-{
+void init_sol_tx(int tx_span) {
   float deta_pos[3], detb_pos[3];
-
-  /*
-    m_c_zpos   = (float *)  calloc(GeometryInfo::NYCRYS,sizeof(float ));
-    m_c_zpos2  = (float *)  calloc(GeometryInfo::NYCRYS,sizeof(float ));
-    m_segplane = NULL;
-  */
 
   m_d_tan_theta = (float)(tx_span * m_plane_sep / m_crystal_radius);
   // Initialize and populate solution if NULL
   // TX m_sol
-  //m_solution = phi(=view angle)
-  m_solution_tx[0] = (SOL ***) calloc(GeometryInfo::NMPAIRS + 1, sizeof(SOL **));
-  m_solution_tx[1] = (SOL ***) calloc(GeometryInfo::NMPAIRS + 1, sizeof(SOL **));
+  //solution_ = phi(=view angle)
+  solution_tx_[0] = (SOL ***) calloc(GeometryInfo::NMPAIRS + 1, sizeof(SOL **));
+  solution_tx_[1] = (SOL ***) calloc(GeometryInfo::NMPAIRS + 1, sizeof(SOL **));
   for (int i = 1; i <= GeometryInfo::NMPAIRS; i++) {
     /*    5, 10
         4  9  14
@@ -333,11 +382,11 @@ void init_sol_tx(int tx_span)
         7  12 16 19
         11 15 18
     */
-    m_solution_tx[0][i] = (SOL**) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS, sizeof(SOL *));
-    m_solution_tx[1][i] = (SOL**) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS, sizeof(SOL *));
+    solution_tx_[0][i] = (SOL**) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS, sizeof(SOL *));
+    solution_tx_[1][i] = (SOL**) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS, sizeof(SOL *));
     for ( int ax = 0; ax < GeometryInfo::NUM_CRYSTALS_X_DOIS; ax++) {
-      m_solution_tx[0][i][ax] = (SOL *) calloc(GeometryInfo::NXCRYS, sizeof(SOL));
-      m_solution_tx[1][i][ax] = (SOL *) calloc(GeometryInfo::NXCRYS, sizeof(SOL));
+      solution_tx_[0][i][ax] = (SOL *) calloc(GeometryInfo::NXCRYS, sizeof(SOL));
+      solution_tx_[1][i][ax] = (SOL *) calloc(GeometryInfo::NXCRYS, sizeof(SOL));
     }
   }
   // Table 0,  B is  TX source
@@ -350,7 +399,7 @@ void init_sol_tx(int tx_span)
         det_to_phy( ahead, al, ax, 0, deta_pos);
         for (int bx = 0; bx < GeometryInfo::NXCRYS; bx++) {
           det_to_phy( bhead, 7, bx, 0, detb_pos);
-          init_phy_to_pro(deta_pos, detb_pos, &m_solution_tx[0][i][axx][bx]);
+          init_phy_to_pro(deta_pos, detb_pos, &solution_tx_[0][i][axx][bx]);
         }
       }
     }
@@ -366,32 +415,27 @@ void init_sol_tx(int tx_span)
         for (int bx = 0; bx < GeometryInfo::NXCRYS; bx++) {
           int bxx = bx + GeometryInfo::NXCRYS * bl;
           det_to_phy( bhead, bl, bx, 0, detb_pos);
-          init_phy_to_pro(deta_pos, detb_pos, &m_solution_tx[1][i][bxx][ax]);
+          init_phy_to_pro(deta_pos, detb_pos, &solution_tx_[1][i][bxx][ax]);
         }
       }
     }
   }
-  /*
-    printf("\n");
-    for (int i = 0; i <GeometryInfo::NYCRYS;i++){
-      det_to_phy( 0,0, 0, i, deta_pos);
-      m_c_zpos[i] =deta_pos[2];
-      m_c_zpos2[i]=(float)(deta_pos[2]/m_plane_sep+0.5);
-    }
-  */
 }
 
-int save_lut_sol_tx(const bf::path &lut_filename) {
+int save_lut_sol_tx(bf::path const &lut_filename) {
+  std::shared_ptr<spdlog::logger> logger = spdlog::get("HRRT");  // Must define logger named HRRT in your main application
+
   std::ofstream outstream;
   if (open_ostream(lut_filename, outstream, std::ifstream::out | std::ifstream::binary))
     return 0;
   for (int i = 1; i <= GeometryInfo::NMPAIRS; i++) {
     for (int ax = 0; ax < GeometryInfo::NUM_CRYSTALS_X_DOIS; ax++) {
-      // if (fwrite(m_solution_tx[0][i][ax], sizeof(SOL), GeometryInfo::NXCRYS, fp) != GeometryInfo::NXCRYS ||
-      //     fwrite(m_solution_tx[1][i][ax], sizeof(SOL), GeometryInfo::NXCRYS, fp) != GeometryInfo::NXCRYS)
-        outstream.write(m_solution_tx[0][i][ax], sizeof(SOL) * GeometryInfo::NXCRYS);
-        outstream.write(m_solution_tx[1][i][ax], sizeof(SOL) * GeometryInfo::NXCRYS);
+      // if (fwrite(solution_tx_[0][i][ax], sizeof(SOL), GeometryInfo::NXCRYS, fp) != GeometryInfo::NXCRYS ||
+      //     fwrite(solution_tx_[1][i][ax], sizeof(SOL), GeometryInfo::NXCRYS, fp) != GeometryInfo::NXCRYS)
+        outstream.write(solution_tx_[0][i][ax], sizeof(SOL) * GeometryInfo::NXCRYS);
+        outstream.write(solution_tx_[1][i][ax], sizeof(SOL) * GeometryInfo::NXCRYS);
         if (!outstream.good()) {
+          logger->error("outstream not good for {}", lut_filename.string());
         fclose(fp);
         return 0;
       }
@@ -401,8 +445,12 @@ int save_lut_sol_tx(const bf::path &lut_filename) {
   return 1;
 }
 
-int init_lut_sol_tx(const bf::path &lut_filename) {
-  if (m_solution != NULL) 
+int init_lut_sol_tx(void) {
+  std::shared_ptr<spdlog::logger> logger = spdlog::get("HRRT");  // Must define logger named HRRT in your main application
+  bf::path lut_filename = get_lut_filename();
+  if (!bf::exits(lut_filename)) 
+    return 1;
+  if (solution_ != NULL) 
     return 1;
 
   std::ifstream instream;
@@ -410,50 +458,31 @@ int init_lut_sol_tx(const bf::path &lut_filename) {
     exit(1);
 
   // Initialize and populate solution if NULL
-  if (m_solution_tx[0] == NULL) {
-    //m_solution = phi(=view angle)
-    m_solution_tx[0] = (SOL ***) calloc(21, sizeof(SOL **));
-    m_solution_tx[1] = (SOL ***) calloc(21, sizeof(SOL **));
+  if (solution_tx_[0] == NULL) {
+    //solution_ = phi(=view angle)
+    solution_tx_[0] = (SOL ***) calloc(21, sizeof(SOL **));
+    solution_tx_[1] = (SOL ***) calloc(21, sizeof(SOL **));
     for (int i = 1; i <= 20; i++) {
-      m_solution_tx[0][i] = (SOL**) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS, sizeof(SOL *));
-      m_solution_tx[1][i] = (SOL**) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS, sizeof(SOL *));
+      solution_tx_[0][i] = (SOL**) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS, sizeof(SOL *));
+      solution_tx_[1][i] = (SOL**) calloc(GeometryInfo::NUM_CRYSTALS_X_DOIS, sizeof(SOL *));
       for (int ax = 0; ax < GeometryInfo::NUM_CRYSTALS_X_DOIS; ax++) {
-        m_solution_tx[0][i][ax] = (SOL *) calloc(GeometryInfo::NXCRYS, sizeof(SOL));
-        m_solution_tx[1][i][ax] = (SOL *) calloc(GeometryInfo::NXCRYS, sizeof(SOL));
-        // if (fread(m_solution_tx[0][i][ax], sizeof(SOL), GeometryInfo::NXCRYS, fp) != GeometryInfo::NXCRYS ||
-        //     fread(m_solution_tx[1][i][ax], sizeof(SOL), GeometryInfo::NXCRYS, fp) != GeometryInfo::NXCRYS)
-          instream.read(m_solution_tx[0][i][ax], sizeof(SOL) * GeometryInfo::NXCRYS);
-          instream.read(m_solution_tx[1][i][ax], sizeof(SOL) * GeometryInfo::NXCRYS);
+        solution_tx_[0][i][ax] = (SOL *) calloc(GeometryInfo::NXCRYS, sizeof(SOL));
+        solution_tx_[1][i][ax] = (SOL *) calloc(GeometryInfo::NXCRYS, sizeof(SOL));
+        // if (fread(solution_tx_[0][i][ax], sizeof(SOL), GeometryInfo::NXCRYS, fp) != GeometryInfo::NXCRYS ||
+        //     fread(solution_tx_[1][i][ax], sizeof(SOL), GeometryInfo::NXCRYS, fp) != GeometryInfo::NXCRYS)
+          instream.read(solution_tx_[0][i][ax], sizeof(SOL) * GeometryInfo::NXCRYS);
+          instream.read(solution_tx_[1][i][ax], sizeof(SOL) * GeometryInfo::NXCRYS);
           if (!instream.good()) {
-          fclose(fp);
+          logger->error("instream not good for {}", lut_filename.string());
+          instream.close();
           return 0;
         }
       }
     }
   }
 
-  /*
-    printf("\n");
-    m_c_zpos   = (float *)  calloc(GeometryInfo::NYCRYS,sizeof(float ));
-    m_c_zpos2  = (float *)  calloc(GeometryInfo::NYCRYS,sizeof(float ));
-    m_segplane = (short **) calloc(63,sizeof(short *));
-
-    for (int i = 0; i <63;i++) {
-      m_segplane[i]=(short *) calloc(GeometryInfo::NYCRYS*2-1,sizeof(short));
-    }
-
-    if (fread(m_c_zpos,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
-    {
-      fclose(fp);
-      return 0;
-    }
-    if (fread(m_c_zpos2,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
-    {
-      fclose(fp);
-      return 0;
-    }
-  */
-
   instream.close();
   return 1;
 }
+
+}  // namespace lor_sinogram

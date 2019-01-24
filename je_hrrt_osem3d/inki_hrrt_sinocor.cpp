@@ -1173,7 +1173,7 @@ int main(int argc, char* argv[])
         chFlag = true;                // inline random in prepare_osem3dw3
        LogMessage("Inline  randoms from %s, scan duration %g\n", 
           delayed_file, scan_duration);
-       gen_delays(0, NULL, 2, scan_duration, delayedprj3, dsinofp, NULL);
+       gen_delays(2, scan_duration, delayedprj3, dsinofp, NULL);
       } else {
         if (st.st_size != (xr_pixels*views*segmentsize)*sizeof(float)) {
         fprintf(stdout,"%s: invalid file size %d, expected %d\n", delayed_file,

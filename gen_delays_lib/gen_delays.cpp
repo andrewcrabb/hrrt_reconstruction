@@ -40,8 +40,6 @@
 
 namespace bf = boost::filesystem;
 
-float tau = 6.0e-9f;
-float ftime = 1.0f;
 
 typedef struct {
   int mp;
@@ -51,7 +49,7 @@ typedef struct {
 
 std::shared_ptr<spdlog::logger> g_logger;
 boost::filesystem::path g_logfile;
-boost::filesystem::path g_rebinner_lut_file;
+// boost::filesystem::path g_rebinner_lut_file;
 boost::filesystem::path g_coincidence_histogram_file;
 boost::filesystem::path g_crystal_singles_file;
 boost::filesystem::path g_delayed_coincidence_file;
@@ -64,6 +62,8 @@ float g_pitch = 0.0f;
 float g_diam  = 0.0f;
 float g_thick = 0.0f;
 float g_tau   = 6.0e-9f;
+// float tau = 6.0e-9f;
+float g_ftime = 1.0f;
 
 
 
@@ -80,7 +80,7 @@ static void usage(const char *prog) {
   printf("    -k              : use Koln HRRT geometry (default to normal)\n");
   printf("    -T tau          : time window parameter [6.0 10-9 sec]\n");
   // ahc
-  printf("  * -r rebinner_file: Full path of 'hrrt_rebinner.lut' file (required)\n");
+  // printf("  * -r rebinner_file: Full path of 'hrrt_rebinner.lut' file (required)\n");
   exit(1);
 }
 
@@ -89,18 +89,18 @@ int compute_delays(int mp, float **delays_data, float *csings) {
 
   // int ahead = GeometryInfo::HRRT_MPAIRS[mp][0];
   int bhead = GeometryInfo::HRRT_MPAIRS[mp][1];
-  float tauftime = tau * ftime;
+  float tauftime = g_tau * g_ftime;
 
   for (int alayer = 0; alayer < GeometryInfo::NDOIS; alayer++) {
     for (ay = 0; ay < GeometryInfo::NYCRYS; ay++) {
       //  if (ay%10==0) printf("Generating delays for MP %d [H%d,H%d] %d\t%d \r", mp, ahead, bhead,alayer,ay);
-      float cay = m_c_zpos2[ay];
+      float cay = lor_sinogram::m_c_zpos2[ay];
       int bs = 1000; 
       int be = -1000;
 
       //get rd,dz2[by],bs,be
       for (by = 0; by < GeometryInfo::NYCRYS; by++) {
-        dz2[by] = m_c_zpos[by] - m_c_zpos[ay]; // z diff. between det A and det B
+        dz2[by] = lor_sinogram::m_c_zpos[by] - lor_sinogram::m_c_zpos[ay]; // z diff. between det A and det B
         int rd = ay - by; 
         if (rd < 0) 
           rd = by - ay;
@@ -122,9 +122,9 @@ int compute_delays(int mp, float **delays_data, float *csings) {
         for (int blayer = 0; blayer < 2; blayer++) {
           int bxx = GeometryInfo::NXCRYS * blayer;
           for (int bx = 0; bx < GeometryInfo::NXCRYS; bx++, bxx++) {
-            if (m_solution[mp][axx][bxx].nsino == -1)
+            if (lor_sinogram::solution_[mp][axx][bxx].nsino == -1)
               continue;
-            SOL *sol = &m_solution[mp][axx][bxx];
+            lor_sinogram::SOL *sol = &lor_sinogram::solution_[mp][axx][bxx];
 
             //dsaint31
             float *dptr = delays_data[sol->nsino];//result bin location
@@ -142,10 +142,10 @@ int compute_delays(int mp, float **delays_data, float *csings) {
                 segnum = segnum << 1;
 
               //dsaint31
-              if (m_segplane[segnum][plane] != -1)
-                dptr[m_segplane[segnum][plane]] += csings[nbd] * awtauftime;
-              //if (m_segplane[segnum][plane]!=-1)
-              //  delays_data[m_segplane[segnum][plane]][current_view][current_proj] +=csings[nbd]*awtauftime;
+              if (lor_sinogram::m_segplane[segnum][plane] != -1)
+                dptr[lor_sinogram::m_segplane[segnum][plane]] += csings[nbd] * awtauftime;
+              //if (lor_sinogram::m_segplane[segnum][plane]!=-1)
+              //  delays_data[lor_sinogram::m_segplane[segnum][plane]][current_view][current_proj] +=csings[nbd]*awtauftime;
             }
           }
         }
@@ -160,18 +160,18 @@ int compute_delays(int mp, float **delays_data, float *csings) {
 // Compute the delayed crystal coincidence rates for the specified crystal singles rates
 
 template <std::size_t SIZE>
-void compute_drate(float *srate, float tau, std::array<float, SIZE> &drate) {
+void compute_drate(float *t_srate, float t_tau, std::array<float, SIZE> &t_drate) {
   std::array<float, GeometryInfo::NHEADS> hsum;
 
   // First we compute the total singles rates for each of the heads...
 
   for (int head = 0; head < GeometryInfo::NHEADS; head++) {
     hsum[head] = 0.0;
-    for (lint ayer = 0; layer < GeometryInfo::NDOIS; layer++)
+    for (int layer = 0; layer < GeometryInfo::NDOIS; layer++)
       for (int cx = 0; cx < GeometryInfo::NXCRYS; cx++)
         for (int cy = 0; cy < GeometryInfo::NYCRYS; cy++) {
           int i = GeometryInfo::NXCRYS * head + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
-          hsum[head] += srate[i];
+          hsum[head] += t_srate[i];
         }
   }
 
@@ -184,12 +184,12 @@ void compute_drate(float *srate, float tau, std::array<float, SIZE> &drate) {
       int ohead = (head + j + 2) % GeometryInfo::NHEADS;
       ohead_sum += hsum[ohead];
     }
-    for (lint ayer = 0; layer < GeometryInfo::NDOIS; layer++)
+    for (int layer = 0; layer < GeometryInfo::NDOIS; layer++)
       int layer_crystals = GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
       for (int cx = 0; cx < GeometryInfo::NXCRYS; cx++)
         for (int cy = 0; cy < GeometryInfo::NYCRYS; cy++) {
           int i = head_xcrys + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + layer_crystals;
-          drate[i] = srate[i] * tau * ohead_sum;
+          t_drate[i] = t_srate[i] * t_tau * ohead_sum;
         }
   }
 }
@@ -201,7 +201,7 @@ void estimate_srate(float *drate, float tau, float *srate) {
 
   for (int head = 0; head < GeometryInfo::NHEADS; head++) {
     hsum[head] = 0.0;
-    for (lint ayer = 0; layer < GeometryInfo::NDOIS; layer++)
+    for (int layer = 0; layer < GeometryInfo::NDOIS; layer++)
       for (int cx = 0; cx < GeometryInfo::NXCRYS; cx++)
         for (int cy = 0; cy < GeometryInfo::NYCRYS; cy++) {
           int i = GeometryInfo::NXCRYS * head + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
@@ -217,7 +217,7 @@ void estimate_srate(float *drate, float tau, float *srate) {
       ohead = (head + j + 2) % GeometryInfo::NHEADS;
       ohead_sum += hsum[ohead];
     }
-    for (lint ayer = 0; layer < GeometryInfo::NDOIS; layer++)
+    for (int layer = 0; layer < GeometryInfo::NDOIS; layer++)
       for (int cx = 0; cx < GeometryInfo::NXCRYS; cx++)
         for (int cy = 0; cy < GeometryInfo::NYCRYS; cy++) {
           int i = GeometryInfo::NXCRYS * head + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
@@ -332,10 +332,14 @@ int read_coincidence_sinogram_file(int *t_coincidence_sinogram, FILE *t_coincide
 
 // in_inline : 0:file save and alone | 1: file save and inline | 2: file unsave and inline
 
-int gen_delays(int is_inline, float scan_duration,
-               float ***result, FILE *t_coincidence_file_ptr, char *p_delays_file,
-               int t_span, int t_maxrd,
-               boost::filesystem const &t_rebinner_lut_file
+int gen_delays(int is_inline,
+               float scan_duration,
+               float ***result,
+               FILE *t_coincidence_file_ptr,
+               char *p_delays_file,
+               int t_span,
+               int t_maxrd
+               // boost::filesystem const &t_rebinner_lut_file
               )
 {
   struct timeval t0, t1, t2, t3;
@@ -362,38 +366,37 @@ int gen_delays(int is_inline, float scan_duration,
 
   delays_file = p_delays_file;
   if (scan_duration > 0) 
-    ftime = scan_duration;
+    g_ftime = scan_duration;
   maxrd_ = t_maxrd;
 
   // Process command line arguments.
   if (is_inline == 0) {
-    for (int i = 0; i < argc; i++) {
-      if (argv[i][0] != '-')
-        continue;
-      int c = argv[i][1];
-      if (argv[i][2] == 0) {
-        if (i < argc - 1 ) {
-          if (argv[i + 1][0] != '-')
-            i++;
-        }
-        optarg = argv[i];
-      } else {
-        optarg = (char *) &argv[i][2];
-      }
-
-      switch (c) {
-      case 'r' : rebinner_lut_file_ptr = optarg;  // hrrt_rebinner.lut
-      case 'h':   coins_file = optarg; break; // coincidence histogram (int 72,8,104,4)
-      case 'p':   sscanf(optarg, "%d,%d", &nprojs, &nviews); break; // -p nprojs,nviews - set sinogram size
-      case 's':   sscanf(optarg, "%d,%d", &span, &maxrd_); break;    // -s span,maxrd - set 3D parameters
-      case 'g':   sscanf(optarg, "%f,%f,%f", &pitch, &diam, &thick); break;    // -g pitch,diam,thick
-      case 'C':   csingles_file = optarg; break;  // -C crystal singles file
-      case 'O':   delays_file = optarg; break;  // -O delays_file
-      case 'S':   output_csings_file = optarg; break; // -S save_csings_file
-      case 'T':   sscanf(optarg, "%f", &tau); break;
-      case 't':   sscanf(optarg, "%f", &ftime); break;
-      }
-    }
+    // for (int i = 0; i < argc; i++) {
+    //   if (argv[i][0] != '-')
+    //     continue;
+    //   int c = argv[i][1];
+    //   if (argv[i][2] == 0) {
+    //     if (i < argc - 1 ) {
+    //       if (argv[i + 1][0] != '-')
+    //         i++;
+    //     }
+    //     optarg = argv[i];
+    //   } else {
+    //     optarg = (char *) &argv[i][2];
+    //   }
+    //   switch (c) {
+    //   case 'r' : rebinner_lut_file_ptr = optarg;  // hrrt_rebinner.lut
+    //   case 'h':   coins_file = optarg; break; // coincidence histogram (int 72,8,104,4)
+    //   case 'p':   sscanf(optarg, "%d,%d", &nprojs, &nviews); break; // -p nprojs,nviews - set sinogram size
+    //   case 's':   sscanf(optarg, "%d,%d", &span, &maxrd_); break;    // -s span,maxrd - set 3D parameters
+    //   case 'g':   sscanf(optarg, "%f,%f,%f", &pitch, &diam, &thick); break;    // -g pitch,diam,thick
+    //   case 'C':   csingles_file = optarg; break;  // -C crystal singles file
+    //   case 'O':   delays_file = optarg; break;  // -O delays_file
+    //   case 'S':   output_csings_file = optarg; break; // -S save_csings_file
+    //   case 'T':   sscanf(optarg, "%f", &tau); break;
+    //   case 't':   sscanf(optarg, "%f", &g_ftime); break;
+    //   }
+    // }
     // if (coins_file == NULL || delays_file == NULL || rebinner_lut_file_ptr == NULL )
     //   usage("gen_delays");
     // rebinner_lut_file = bf::path(rebinner_lut_file_ptr);
@@ -424,7 +427,7 @@ int gen_delays(int is_inline, float scan_duration,
   SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &SegmentInfo::m_d_tan_theta, maxrd_, t_span, GeometryInfo::NYCRYS, m_crystal_radius, m_plane_sep);
 
   // fprintf(stderr, "Using Rebinner LUT file %s\n", rebinner_lut_file);
-  init_lut_sol(t_rebinner_lut_file, SegmentInfo::m_segzoffset);
+  lor_sinogram::init_lut_sol(SegmentInfo::m_segzoffset);
 
   free(m_crystal_xpos);
   free(m_crystal_ypos);
@@ -478,7 +481,7 @@ int gen_delays(int is_inline, float scan_duration,
 
     gettimeofday(&t2, NULL);
     // we only used the delayed coincidence_sinogram (coincidence_sinogram+GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS)vvvvvv
-    int niter = compute_csings_from_drates(GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, coincidence_sinogram + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, tau, ftime, csings);
+    int niter = compute_csings_from_drates(GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, coincidence_sinogram + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, tau, g_ftime, csings);
     gettimeofday(&t3, NULL);
     printf("csings computed from drates in %d iterations (%ld msec)\n", niter, (((t3.tv_sec * 1000 ) + (int)((double)t3.tv_usec / 1000.0 ) ) - ((t2.tv_sec * 1000 ) + (int)((double)t2.tv_usec / 1000.0 ))));
     free(coincidence_sinogram);
@@ -543,27 +546,27 @@ int gen_delays(int is_inline, float scan_duration,
   gettimeofday(&t1, NULL);
   g_logger->info("Smooth Delays computed in {ld} msec", time_diff(t0, t1));
 
-  free(m_solution[0]);
+  free(lor_sinogram::solution_[0]);
   for (i = 1; i < 21; i++) {
     for (int j = 0; j < GeometryInfo::NXCRYS * GeometryInfo::NDOIS; j++) {
       //fprintf(stdout,"%d:%d\n",i,j);
-      if (m_solution[i][j] != NULL) free(m_solution[i][j]);
+      if (lor_sinogram::solution_[i][j] != NULL) free(lor_sinogram::solution_[i][j]);
     }
     //fprintf(stdout,"%d:%d\n",i,j);
-    free(m_solution[i]);
+    free(lor_sinogram::solution_[i]);
   }
 
-  free(m_solution);
+  free(lor_sinogram::solution_);
   free(csings);
-  free(m_c_zpos);
-  free(m_c_zpos2);
+  free(lor_sinogram::m_c_zpos);
+  free(lor_sinogram::m_c_zpos2);
 
   for (int i = 0; i < 63; i++) {
-    free(m_segplane[i]);
+    free(lor_sinogram::m_segplane[i]);
   }
 
-  if (m_segplane != NULL)
-    free(m_segplane);
+  if (lor_sinogram::m_segplane != NULL)
+    free(lor_sinogram::m_segplane);
 
   //-------------------------------------------------------
   // file write

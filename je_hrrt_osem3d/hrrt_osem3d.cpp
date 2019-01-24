@@ -1803,7 +1803,7 @@ void prepare_osem3dw3(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
   } else { // compute random smoothing from .ch file into largeprj3
     fprintf(stderr,"computing smooth randoms from %s to memory and scan duration %g\n", 
             delayed_file, scan_duration);
-    gen_delays(0, NULL, 2, scan_duration, largeprj3, dsinofp, NULL,
+    gen_delays(2, scan_duration, largeprj3, dsinofp, NULL,
                osem3dpar->span, osem3dpar->maxdel,
                // ahc rebinner_lut_file now a required argument.
                rebinner_lut_file
@@ -4836,7 +4836,7 @@ int main(int argc, char* argv[]) {
                    ra_smo_file, scan_duration);
 
         // provide program path for LUT location
-        gen_delays(0,NULL,1, scan_duration, NULL, dsinofp, ra_smo_file,
+        gen_delays(1, scan_duration, NULL, dsinofp, ra_smo_file,
                    osem3dpar->span, osem3dpar->maxdel,
                    // ahc rebinner_lut_file now a required argument.
                    rebinner_lut_file

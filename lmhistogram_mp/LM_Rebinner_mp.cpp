@@ -23,6 +23,7 @@
   lm64_consumer_wait which may timeout because of first frame writing.
   20-MAY-2009: Use a single fast LUT rebinner
   04-AUG-2009: Bug fix segment computation was wrong (segment -1 empty)
+  1/22/19 rebinner lut file now got from envt var
 */
 #include "LM_Rebinner_mp.hpp"
 #include "histogram_mp.hpp"
@@ -48,7 +49,7 @@ int model_number = MODEL_HRRT;
 int tx_span = 21;
 static int em_span = 9;
 
-boost::filesystem::path LM_Rebinner::rebinner_lut_file;
+// boost::filesystem::path LM_Rebinner::rebinner_lut_file;
 
 /*
  * Gets  configuration values from GantryModel and calls init_sort3d_hrrt with read or default values.
@@ -56,7 +57,8 @@ boost::filesystem::path LM_Rebinner::rebinner_lut_file;
  * maxrd is set to (span-1)/2.
  * Returns 1 if OK and 0 if gm328.ini not found or if a key is not found.
  */
-int LM_Rebinner::init_rebinner(int &t_span, int &t_max_ringdiff, const boost::filesystem::path &t_lut_file) {
+// int LM_Rebinner::init_rebinner(int &t_span, int &t_max_ringdiff, const boost::filesystem::path &t_lut_file) {
+int LM_Rebinner::init_rebinner(int &t_span, int &t_max_ringdiff) {
   int i = 0,  uniform_flag = -1;
   // int *head_type = (int*)calloc(GeometryInfo::NHEADS, sizeof(int));
   std::vector<int> head_type(GeometryInfo::NHEADS);
@@ -134,12 +136,12 @@ int LM_Rebinner::init_rebinner(int &t_span, int &t_max_ringdiff, const boost::fi
 
   init_geometry_hrrt();
   SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &SegmentInfo::m_d_tan_theta, maxrd_, t_span, GeometryInfo::NYCRYS, m_crystal_radius, m_plane_sep);
-  LM_Rebinner::rebinner_lut_file = t_lut_file;
+  // LM_Rebinner::rebinner_lut_file = t_lut_file;
 
   if (!tx_flag)
-    init_lut_sol(LM_Rebinner::rebinner_lut_file, SegmentInfo::m_segzoffset);
+    lor_sinogram::init_lut_sol(SegmentInfo::m_segzoffset);
   else
-    init_lut_sol_tx(LM_Rebinner::rebinner_lut_file);
+    lor_sinogram::init_lut_sol_tx();
   SegmentInfo::m_d_tan_theta = (float)(tx_span * m_plane_sep / m_crystal_radius);
   return ret;
 }
@@ -167,13 +169,13 @@ int rebin_event_tx( int mp, int alayer, int ax, int ay, int blayer, int bx, int 
   int axx = ax + GeometryInfo::NXCRYS * alayer;
   int bxx = bx + GeometryInfo::NXCRYS * blayer;
   if (blayer == 7) {
-    sino_addr = m_solution_tx[0][mp][axx][bx].nsino; // b is TX source
-    z = m_solution_tx[0][mp][axx][bx].z;
-    d = m_solution_tx[0][mp][axx][bx].d;
+    sino_addr = lor_sinogram::solution_tx_[0][mp][axx][bx].nsino; // b is TX source
+    z = lor_sinogram::solution_tx_[0][mp][axx][bx].z;
+    d = lor_sinogram::solution_tx_[0][mp][axx][bx].d;
   } else {
-    sino_addr = m_solution_tx[1][mp][bxx][ax].nsino; // a is TX source
-    z = m_solution_tx[1][mp][bxx][ax].z;
-    d = m_solution_tx[1][mp][bxx][ax].d;
+    sino_addr = lor_sinogram::solution_tx_[1][mp][bxx][ax].nsino; // a is TX source
+    z = lor_sinogram::solution_tx_[1][mp][bxx][ax].z;
+    d = lor_sinogram::solution_tx_[1][mp][bxx][ax].d;
   }
   if (sino_addr >= 0) {
     if (seg == 0) {
@@ -191,12 +193,12 @@ int rebin_event( int mp, int alayer, int ax, int ay, int blayer, int bx, int by)
 
   axx = ax + GeometryInfo::NXCRYS * alayer;
   bxx = bx + GeometryInfo::NXCRYS * blayer;
-  if ((sino_addr = m_solution[mp][axx][bxx].nsino) == -1)
+  if ((sino_addr = lor_sinogram::solution_[mp][axx][bxx].nsino) == -1)
     return -1;
-  cay = m_c_zpos2[ay];
-  dz2 = m_c_zpos[by] - m_c_zpos[ay];
-  z = m_solution[mp][axx][bxx].z;
-  d = m_solution[mp][axx][bxx].d;
+  cay = lor_sinogram::m_c_zpos2[ay];
+  dz2 = lor_sinogram::m_c_zpos[by] - lor_sinogram::m_c_zpos[ay];
+  z = lor_sinogram::solution_[mp][axx][bxx].z;
+  d = lor_sinogram::solution_[mp][axx][bxx].d;
   plane = (int)(cay + z * dz2);
   seg = (float)(0.5 + dz2 * d);
   segnum = (int)seg;
@@ -207,7 +209,7 @@ int rebin_event( int mp, int alayer, int ax, int ay, int blayer, int bx, int by)
     segnum = segnum << 1;
   if (segnum >= SegmentInfo::m_nsegs)
     return -1;
-  if (m_segplane[segnum][plane] != -1) {
+  if (lor_sinogram::m_segplane[segnum][plane] != -1) {
     offset = SegmentInfo::m_segzoffset[segnum];
     addr = (plane + offset) * m_nprojs * m_nviews + sino_addr;
   } else {
