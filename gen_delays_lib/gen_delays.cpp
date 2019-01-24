@@ -190,13 +190,14 @@ void compute_drate(float *t_srate, float t_tau, std::array<float, SIZE> &t_drate
       int ohead = (head + j + 2) % GeometryInfo::NHEADS;
       ohead_sum += hsum[ohead];
     }
-    for (int layer = 0; layer < GeometryInfo::NDOIS; layer++)
-      layer_crystals = GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
-    for (int cx = 0; cx < GeometryInfo::NXCRYS; cx++)
-      for (int cy = 0; cy < GeometryInfo::NYCRYS; cy++) {
-        int i = head_xcrys + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + layer_crystals;
-        t_drate[i] = t_srate[i] * t_tau * ohead_sum;
+    for (int layer = 0; layer < GeometryInfo::NDOIS; layer++) {
+      for (int cx = 0; cx < GeometryInfo::NXCRYS; cx++) {
+        for (int cy = 0; cy < GeometryInfo::NYCRYS; cy++) {
+          int i = head_xcrys + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
+          t_drate[i] = t_srate[i] * t_tau * ohead_sum;
+        }
       }
+    }
   }
 }
 
@@ -207,12 +208,14 @@ void estimate_srate(float *drate, float tau, float *srate) {
 
   for (int head = 0; head < GeometryInfo::NHEADS; head++) {
     hsum[head] = 0.0;
-    for (int layer = 0; layer < GeometryInfo::NDOIS; layer++)
-      for (int cx = 0; cx < GeometryInfo::NXCRYS; cx++)
+    for (int layer = 0; layer < GeometryInfo::NDOIS; layer++) {
+      for (int cx = 0; cx < GeometryInfo::NXCRYS; cx++) {
         for (int cy = 0; cy < GeometryInfo::NYCRYS; cy++) {
           int i = GeometryInfo::NXCRYS * head + cx + GeometryInfo::NXCRYS * GeometryInfo::NHEADS * cy + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS * layer;
           hsum[head] += srate[i];
         }
+      }
+    }
   }
 
   // Now we update the estimated singles rate for each crystal...
