@@ -10,20 +10,20 @@
 
 #include <istream>
 #include <vector>
+#include <array>
 
+// Allow Boost program_options to parse an LR_Type
+// https://stackoverflow.com/questions/5211988/boost-custom-validator-for-enum
+
+
+namespace GeometryInfo {
 enum class LR_Type {
   LR_0, 
   LR_20, 
   LR_24,
   MAX_LR_TYPE  // Use this to implement range checks
 };
-
-// Allow Boost program_options to parse an LR_Type
-// https://stackoverflow.com/questions/5211988/boost-custom-validator-for-enum
-
 extern std::istream& operator>>(std::istream& t_in, LR_Type& t_lr_type);
-
-namespace GeometryInfo {
 extern LR_Type LR_type;
 
 const int NUM_ELEMS = 256;
@@ -77,76 +77,37 @@ struct LR_Geom {
     double binsize;
     int plane_sep;
 };
-extern const std::vector<LR_Geom> lr_geometries_;
+// extern const std::vector<LR_Geom> lr_geometries_;
+extern const std::map<LR_Type, LR_Geom> lr_geometries_;
 
 // Move methods into the namespace as they are processed by the Great Rewrite of 2018-19
 extern void init_geometry_hrrt (float cpitch, float diam, float thick);
 extern void init_geometry_hrrt(void);
-
-}
 extern LR_Type to_lrtype(int i);
 
 // Move member variables into the namespace as they are processed by the Great Rewrite of 2018-19
-extern std::vector<double> m_sin_head;
-extern std::vector<double> m_cos_head;
+extern std::vector<double> sin_head_;
+extern std::vector<double> cos_head_;
 
+extern double binsize_;
+extern double crystal_radius_;
+extern double plane_sep_, crystal_x_pitch_, crystal_y_pitch_;
 
-// namespace GeometryInfo {
-//   extern const int NDOIS  ;
-//   extern const int NXCRYS ;
-//   extern const int NYCRYS ;
-//   extern const int NHEADS ;
-//   extern const int NBLOCKS;
-//   extern const int NUM_CRYSTALS_X_Y;             // Detectors per plane
-//   extern const int NUM_CRYSTALS_X_Y_HEADS;       // Detectors per DOI
-//   extern const int NUM_CRYSTALS_X_Y_HEADS_DOIS;  // Total detectors
-//   extern const int NUM_CRYSTALS_X_DOIS;
+extern std::array<double, NUM_CRYSTALS_X_Y_HEADS_DOIS> crystal_xpos_;
+extern std::array<double, NUM_CRYSTALS_X_Y_HEADS_DOIS> crystal_ypos_;
+extern std::array<double, NUM_CRYSTALS_X_Y_HEADS_DOIS> crystal_zpos_;
 
-//   extern const int NUM_CRYSTALS_PER_BLOCK;   // 8
-//   extern const int NUM_BLOCKS_PER_BRACKET;   // 9
-//   extern const int NUM_CRYSTALS_PER_BRACKET; // 72
-//   extern const int NUM_BRACKETS_PER_RING;    // 8
-//   extern const int NUM_CRYSTALS_PER_RING;    // 576
-
-//   extern const float  CSIZE ;   // the cristal size
-//   extern const float  CGAP  ;   // the gap between neighboring cristals.
-//   extern const float  BSIZE ;
-//   extern const float  BGAP  ;   // the gap between neighboring blocks.
-//   extern const float  XHSIZE;   // the head's x length.
-
-//   extern const float PITCH ;    //=cptich
-//   extern const float RDIAM ;    //=diam
-//   extern const float LTHICK;    //=thick
-//   extern const float TX_RADIUS;
-
-//   extern LR_Type LR_type;
-// };
-
-
-extern double m_binsize;
-extern double m_crystal_radius;
-extern double m_plane_sep,  m_crystal_x_pitch, m_crystal_y_pitch;
-extern double *m_crystal_xpos;
-extern double *m_crystal_ypos;
-extern double *m_crystal_zpos;
-extern int    m_nprojs;
-extern int    m_nviews;
-extern int maxrd_, nsino;
+extern int    nprojs_;
+extern int    nviews_;
+extern int    maxrd_, nsino;
 
 // extern float *head_crystal_depth;
-extern std::vector<float> head_crystal_depth_;
+extern std::array<float, NHEADS> head_crystal_depth_;
 
 //void calc_det_to_phy( int head, int layer, int detx, int dety, float location[3]);
 extern void det_to_phy( int head, int layer, int xcrys, int ycrys, float pos[3]);
 
-inline int num_projs(LR_Type type) {
-  if (type == LR_Type::LR_20) 
-    return 160;
-  else if (type == LR_Type::LR_24) 
-    return 128;
-  return 256;  // default LR_0
-}
+} // namespace GeometryInfo
 
-inline int num_views(LR_Type type) {
-  return (type == LR_Type::LR_0 ? 288 : 144);
-}
+
+

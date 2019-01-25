@@ -39,7 +39,7 @@ static void init_cosine(unsigned corrections) {
         int bcrys =  i % 8;
       int blk   =  i / 8;
       float dz  =  (float)(blk * (GeometryInfo::BSIZE + GeometryInfo::BGAP) + bcrys * (GeometryInfo::CSIZE + GeometryInfo::CGAP));
-      elem = (float)(cos(atan(dz / (2 * m_crystal_radius))));
+      elem = (float)(cos(atan(dz / (2 * GeometryInfo::crystal_radius_))));
     }
   } else {
     g_cosine.assign(1.0f);

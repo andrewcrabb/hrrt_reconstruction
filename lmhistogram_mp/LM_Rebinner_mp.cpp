@@ -91,21 +91,21 @@ int LM_Rebinner::init_rebinner(int &t_span, int &t_max_ringdiff) {
     if (i == GeometryInfo::NHEADS) { // all heads defines
       for (i = 0; i < GeometryInfo::NHEADS; i++) {
         if (static_cast<HeadType>(head_type[i]) == HeadType::LSO_LYSO)
-          head_crystal_depth_[i] = def_depth;
+          GeometryInfo::head_crystal_depth_[i] = def_depth;
         else
-          head_crystal_depth_[i] = 0.75; //HeadType::LSO_LSO or HeadType::LSO_GSO
+          GeometryInfo::head_crystal_depth_[i] = 0.75; //HeadType::LSO_LSO or HeadType::LSO_GSO
       }
       if (uniform_flag)
-        cout << "Layer thickness for all heads = " << head_crystal_depth_[0] << endl;
+        cout << "Layer thickness for all heads = " << GeometryInfo::head_crystal_depth_[0] << endl;
       else {
         cout << "Layer thickness per head = ";
         for (i = 0; i < GeometryInfo::NHEADS; i++)
-          cout << " " << head_crystal_depth_[i];
+          cout << " " << GeometryInfo::head_crystal_depth_[i];
         cout << endl;
       }
     } else {
-      // for (i = 0; i < GeometryInfo::NHEADS; i++) head_crystal_depth_[i] = def_depth;
-      head_crystal_depth_.assign(GeometryInfo::NHEADS, def_depth);
+      // for (i = 0; i < GeometryInfo::NHEADS; i++) GeometryInfo::head_crystal_depth_[i] = def_depth;
+      GeometryInfo::head_crystal_depth_.assign(GeometryInfo::NHEADS, def_depth);
       cout << "Layer thickness for all heads = " << def_depth << endl;
     }
 
@@ -119,7 +119,7 @@ int LM_Rebinner::init_rebinner(int &t_span, int &t_max_ringdiff) {
         cout << "Tramsission mode: using default span " << t_span << endl;
       }
       tx_span = t_span;
-      if (GeometryInfo::LR_type > LR_Type::LR_0 ) {
+      if (GeometryInfo::LR_type > GeometryInfo::LR_Type::LR_0 ) {
         t_span = t_span / 2 + 1; // 21==>11; 9==>5
         cout << "Low Resolution mode: span changed to " << t_span << endl;
       }
@@ -135,14 +135,14 @@ int LM_Rebinner::init_rebinner(int &t_span, int &t_max_ringdiff) {
   }
 
   init_geometry_hrrt();
-  SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &SegmentInfo::m_d_tan_theta, maxrd_, t_span, GeometryInfo::NYCRYS, m_crystal_radius, m_plane_sep);
+  SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &SegmentInfo::m_d_tan_theta, maxrd_, t_span, GeometryInfo::NYCRYS, GeometryInfo::crystal_radius_, GeometryInfo::plane_sep_);
   // LM_Rebinner::rebinner_lut_file = t_lut_file;
 
   if (!tx_flag)
     lor_sinogram::init_lut_sol(SegmentInfo::m_segzoffset);
   else
     lor_sinogram::init_lut_sol_tx();
-  SegmentInfo::m_d_tan_theta = (float)(tx_span * m_plane_sep / m_crystal_radius);
+  SegmentInfo::m_d_tan_theta = (float)(tx_span * GeometryInfo::plane_sep_ / GeometryInfo::crystal_radius_);
   return ret;
 }
 
@@ -164,7 +164,7 @@ int rebin_event_tx( int mp, int alayer, int ax, int ay, int blayer, int bx, int 
   float tan_theta = (float)(dz / d);
   float z = (float)(deta[2] + (deta[0] * dx + deta[1] * dy) * dz / (d * d));
   int seg =  ((int)(tan_theta / SegmentInfo::m_d_tan_theta + 1024.5)) - 1024;
-  int plane = (int)(0.5 + z / m_plane_sep);
+  int plane = (int)(0.5 + z / GeometryInfo::plane_sep_);
 
   int axx = ax + GeometryInfo::NXCRYS * alayer;
   int bxx = bx + GeometryInfo::NXCRYS * blayer;
@@ -179,7 +179,7 @@ int rebin_event_tx( int mp, int alayer, int ax, int ay, int blayer, int bx, int 
   }
   if (sino_addr >= 0) {
     if (seg == 0) {
-      addr = plane * m_nprojs * m_nviews + sino_addr;
+      addr = plane * GeometryInfo::nprojs_ * GeometryInfo::nviews_ + sino_addr;
     }
   }
   return addr;
@@ -211,7 +211,7 @@ int rebin_event( int mp, int alayer, int ax, int ay, int blayer, int bx, int by)
     return -1;
   if (lor_sinogram::m_segplane[segnum][plane] != -1) {
     offset = SegmentInfo::m_segzoffset[segnum];
-    addr = (plane + offset) * m_nprojs * m_nviews + sino_addr;
+    addr = (plane + offset) * GeometryInfo::nprojs_ * GeometryInfo::nviews_ + sino_addr;
   } else {
     addr = -1;
   }

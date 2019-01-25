@@ -212,8 +212,8 @@ template <class T> int init_sino(T *sino, int t_span) {
   if (g_hist_mode != HISTOGRAM_MODE::TRA) {
     // emission
     g_logger->debug("Using HRRT Emission: g_hist_mode = {}", g_hist_mode);
-    g_num_sino = (GeometryInfo::LR_type == LR_Type::LR_0) ? NUM_SINOS[t_span] : LR_NSINOS[t_span];
-    g_sinogram_size = m_nprojs * m_nviews * g_num_sino;
+    g_num_sino = (GeometryInfo::LR_type == GeometryInfo::LR_Type::LR_0) ? NUM_SINOS[t_span] : LR_NSINOS[t_span];
+    g_sinogram_size = GeometryInfo::nprojs_ * GeometryInfo::nviews_ * g_num_sino;
     if (g_hist_mode == HISTOGRAM_MODE::PRO_RAN) {
       // prompts and delayed
       sinogram_subsize = g_sinogram_size;
@@ -221,8 +221,8 @@ template <class T> int init_sino(T *sino, int t_span) {
   } else {
     // transmission
     g_logger->debug("XX Using HRRT Transmission, g_hist_mode = {}", g_hist_mode);
-    g_num_sino = (GeometryInfo::LR_type == LR_Type::LR_0) ? NUM_SINOS[0] : LR_NSINOS[0];
-    g_sinogram_size = m_nprojs * m_nviews * g_num_sino;
+    g_num_sino = (GeometryInfo::LR_type == GeometryInfo::LR_Type::LR_0) ? NUM_SINOS[0] : LR_NSINOS[0];
+    g_sinogram_size = GeometryInfo::nprojs_ * GeometryInfo::nviews_ * g_num_sino;
     sinogram_subsize = g_sinogram_size; // mock memory
   }
 
@@ -231,8 +231,8 @@ template <class T> int init_sino(T *sino, int t_span) {
     return 0;
   }
 
-  g_logger->info("number of elements: {}", m_nprojs);
-  g_logger->info("number of angles: {}"    , m_nviews);
+  g_logger->info("number of elements: {}", GeometryInfo::nprojs_);
+  g_logger->info("number of angles: {}"    , GeometryInfo::nviews_);
   g_logger->info("number of sinograms: {}" , g_num_sino);
   g_logger->info("bits per register: {}"   , r_size * 8);
   g_logger->info("sinogram size: {}"       , g_sinogram_size);
@@ -411,7 +411,7 @@ void validate_arguments(void) {
 }
 
 void parse_boost(int argc, char **argv) {
-  LR_Type lrtype;
+  GeometryInfo::LR_Type lrtype;
   try {
     po::options_description desc("Options");
     desc.add_options()
@@ -419,7 +419,7 @@ void parse_boost(int argc, char **argv) {
     ("out,o"        , po::value<std::string>()->notifier(&on_out)                    , "output sinogram, 32 or 64-bit listmode file from file extension")
     ("infile,i"     , po::value<std::string>()->notifier(&on_infile)                 , "Input file")
     ("lr_type,L"    , po::value<int>()->notifier(on_lrtype)                      , "low resolution (mode 1/2: binsize 2/2.4375mm, nbins 160/128, span 7, maxrd 38)")
-    // ("lr_type,L"    , po::value<LR_Type>(&lrtype)                      , "low resolution (mode 1/2: binsize 2/2.4375mm, nbins 160/128, span 7, maxrd 38)")
+    // ("lr_type,L"    , po::value<GeometryInfo::LR_Type>(&lrtype)                      , "low resolution (mode 1/2: binsize 2/2.4375mm, nbins 160/128, span 7, maxrd 38)")
     ("span"         , po::value<int>()->notifier(on_span)                            , "Span size - valid values: 0(TX), 1,3,5,7,9")
     ("PR"           , po::bool_switch()->notifier(&on_pr)                            , "Separate prompts and randoms")
     ("ra"           , po::bool_switch()->notifier(&on_ra)                            , "Output randoms sinogram file (emission only)")
@@ -563,7 +563,7 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
   short *ssino = (short *)t_sino;
   short *delayed = (short *)(t_sino + t_sino_size * g_elem_size);
   short *mock = (short *)(t_sino + t_sino_size * g_elem_size);
-  int span9_sino_size = m_nprojs * m_nviews * NUM_SINOS[9];
+  int span9_sino_size = GeometryInfo::nprojs_ * GeometryInfo::nviews_ * NUM_SINOS[9];
 
   t_hdr.WriteInt(CHeader::IMAGE_DURATION, g_prev_duration + g_frames_duration[t_frame]);
   t_hdr.WriteInt(CHeader::IMAGE_RELATIVE_START_TIME, relative_start);
@@ -1020,16 +1020,16 @@ void create_hrrt_sinogram_header(CHeader &hdr) {
   hdr.WriteInt(CHeader::NUMBER_OF_DIMENSIONS     , 3);
   hdr.WriteInt(CHeader::MATRIX_SIZE_1            , num_projs(GeometryInfo::LR_type));
   hdr.WriteInt(CHeader::MATRIX_SIZE_2            , num_views(GeometryInfo::LR_type));
-  hdr.WriteInt(CHeader::MATRIX_SIZE_3            , GeometryInfo::LR_type == LR_Type::LR_0 ? NUM_SINOS[g_span] : LR_NSINOS[g_span]);
+  hdr.WriteInt(CHeader::MATRIX_SIZE_3            , GeometryInfo::LR_type == GeometryInfo::LR_Type::LR_0 ? NUM_SINOS[g_span] : LR_NSINOS[g_span]);
   hdr.WriteChar(CHeader::DATA_FORMAT             , "sinogram");
   hdr.WriteChar(CHeader::NUMBER_FORMAT           , "signed integer");
   hdr.WriteInt(CHeader::NUMBER_OF_BYTES_PER_PIXEL, (int)g_elem_size);
   hdr.WriteChar(CHeader::LMHISTOGRAM_VERSION     , sw_version);
   hdr.WriteChar(CHeader::LMHISTOGRAM_BUILD_ID    , sw_build_id);
   hdr.WriteChar(CHeader::HISTOGRAMMER_REVISION   , "2.0");
-  hdr.WriteFloat(CHeader::SCALING_FACTOR_1       , 10.0f * m_binsize); // cm to mm
+  hdr.WriteFloat(CHeader::SCALING_FACTOR_1       , 10.0f * GeometryInfo::binsize_); // cm to mm
   hdr.WriteInt(CHeader::SCALING_FACTOR_2         , 1); // angle
-  hdr.WriteFloat(CHeader::SCALING_FACTOR_3       , 10.0f * m_plane_sep); // cm to mm
+  hdr.WriteFloat(CHeader::SCALING_FACTOR_3       , 10.0f * GeometryInfo::plane_sep_); // cm to mm
 }
 
 // create the .dyn dynamic description file from out_fname if this is a dynamic study

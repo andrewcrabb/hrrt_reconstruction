@@ -45,7 +45,7 @@ void on_transmission(const std::string &outstr) {
 }
 
 void on_low(int intval) {
-  std::vector<LR_Type> good_vals = {LR_Type::LR_20, LR_Type::LR_24};
+  std::vector<GeometryInfo::LR_Type> good_vals = {GeometryInfo::LR_Type::LR_20, GeometryInfo::LR_Type::LR_24};
   LR_type t = GeometryInfo::to_lrtype(intval, good_vals);
   GeometryInfo::LR_type = t;
 }
@@ -78,10 +78,10 @@ void main(int argc, char* argv[]) {
     std::cerr << ex.what() << std::endl;
   }
 
-  head_crystal_depth_.assign(1.0f);
+  GeometryInfo::head_crystal_depth_.assign(1.0f);
   GeometryInfo::init_geometry_hrrt();
   int nplanes = 0;
-  SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &SegmentInfo::m_d_tan_theta, g_maxrd, g_span, NYCRYS, m_crystal_radius, m_plane_sep);
+  SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &SegmentInfo::m_d_tan_theta, g_maxrd, g_span, NYCRYS, GeometryInfo::crystal_radius_, GeometryInfo::plane_sep_);
 
   if (!g_tx_flag) {
     lor_sinogram::init_sol(SegmentInfo::m_segzoffset);

@@ -78,7 +78,7 @@ void main(int argc, char ** argv) {
   //   fprintf(stdout,"Rebinner LUT file not found\n");
   //   exit(1);
   // }
-  SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &m_d_tan_theta, maxrd, span, GeometryInfo::NYCRYS, m_crystal_radius, m_plane_sep);
+  SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &m_d_tan_theta, maxrd, span, GeometryInfo::NYCRYS, GeometryInfo::crystal_radius_, GeometryInfo::plane_sep_);
   npixels=nprojs*nviews;
   nvoxels=npixels*nplanes;
 

@@ -12,13 +12,17 @@
 #include <fstream>
 
 #include "hrrt_util.hpp"
+#include "spdlog/spdlog.h"
+#include <boost/filesystem.hpp>
+
+namespace bf = boost::filesystem;
 
 namespace hrrt_util {
 
 int open_ostream(std::ofstream &t_outs, const bf::path &t_path, std::ios_base::openmode t_mode) {
   t_outs.open(t_path.string(), t_mode);
   if (!t_outs.is_open()) {
-    g_logger->error("Could not open output file {}", t_path);
+    spdlog::get("HRRT")->error("Could not open output file {}", t_path.string());
     return 1;
   }
   return 0;
@@ -27,7 +31,7 @@ int open_ostream(std::ofstream &t_outs, const bf::path &t_path, std::ios_base::o
 int open_istream(std::ifstream &t_ins, const bf::path &t_path, std::ios_base::openmode t_mode) {
   t_ins.open(t_path.string(), t_mode);
   if (!t_ins.is_open()) {
-    g_logger->error("Could not open input file {}", t_path);
+    spdlog::get("HRRT")->error("Could not open input file {}", t_path.string());
     return 1;
   }
   return 0;
@@ -36,15 +40,16 @@ int open_istream(std::ifstream &t_ins, const bf::path &t_path, std::ios_base::op
 template <class T>
 int write_binary_file(T *t_data, int t_num_elems, bf::path const &outpath, std::string const &msg) {
   std::ofstream outstream;
-  if open_ostream(outstream, outpath, std::ios::out | std::ios::binary)
+  std::shared_ptr<spdlog::logger> logger = spdlog::get("HRRT");  // Must define logger named HRRT in your main application
+  if (open_ostream(outstream, outpath, std::ios::out | std::ios::binary))
     return 1;
   outstream.write(t_data, t_num_elems * sizeof(T));
   if (!outstream.good()) {
-    g_logger->error("Error {} {} elements stored in {}", msg, t_num_elems, outpath.string());
+    logger->error("Error {} {} elements stored in {}", msg, t_num_elems, outpath.string());
     outstream.close();
     return 1;
   }
-  g_logger->info("{} {} elements stored in {}", msg, t_num_elems, outpath.string());
+  logger->info("{} {} elements stored in {}", msg, t_num_elems, outpath.string());
   outstream.close();
   return 0;
 }
@@ -57,7 +62,7 @@ bool file_exists (const std::string& name) {
   return ret;
 }
 
-const std::string time_string(void) {
+std::string time_string(void) {
   time_t rawtime;
   struct tm * timeinfo;
   char buffer [80];

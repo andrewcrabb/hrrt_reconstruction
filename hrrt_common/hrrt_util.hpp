@@ -8,13 +8,16 @@
 
 #include <string>
 #include <boost/date_time.hpp>
+#include <boost/filesystem.hpp>
 
 namespace hrrt_util {
 // Utility file-open
-int open_istream(std::ifstream &ifstr, const bf::path &name, std::ios_base::openmode t_mode = std::ios::in );
-int open_ostream(std::ofstream &ofstr, const bf::path &name, std::ios_base::openmode t_mode = std::ios::out );
+int open_istream(std::ifstream &ifstr, const boost::filesystem::path &name, std::ios_base::openmode t_mode = std::ios::in );
+int open_ostream(std::ofstream &ofstr, const boost::filesystem::path &name, std::ios_base::openmode t_mode = std::ios::out );
+template <class T> int write_binary_file(T *t_data, int t_num_elems, boost::filesystem::path const &outpath, std::string const &msg);
 bool parse_interfile_line(const std::string &line, std::string &key, std::string &value);
 extern int run_system_command( char *prog, char *args, FILE *log_fp );
 extern  bool file_exists (const std::string& name);
+std::string time_string(void);
 std::istream& safeGetline(std::istream& is, std::string& t);
 }

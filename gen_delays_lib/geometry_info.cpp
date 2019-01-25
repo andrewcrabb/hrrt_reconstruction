@@ -10,23 +10,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <array>
+#include <algorithm>
+#include <map>
+#include <fmt/format.h>
+
 #include "geometry_info.h"
 
-
-int maxrd_ = GeometryInfo::MAX_RINGDIFF;
 int nsino = 0;
-//geometry_info.h
-double m_binsize;
-std::vector<double> m_sin_head(GeometryInfo::NHEADS);
-std::vector<double> m_cos_head(GeometryInfo::NHEADS);
-double m_crystal_radius;
-double m_plane_sep, m_crystal_x_pitch, m_crystal_y_pitch;
-double *m_crystal_xpos = NULL;
-double *m_crystal_ypos = NULL;
-double *m_crystal_zpos = NULL;
-int    m_nprojs;
-int    m_nviews;
-// float *head_crystal_depth = NULL;  This is defined in geomety_info.h
+
+namespace GeometryInfo {
+
+double binsize_;
+std::vector<double> sin_head_(NHEADS);
+std::vector<double> cos_head_(NHEADS);
+double crystal_radius_;
+// double *crystal_xpos_ = NULL;
+// double *crystal_ypos_ = NULL;
+// double *crystal_zpos_ = NULL;
+int    nprojs_;
+int    nviews_;
+int maxrd_ = MAX_RINGDIFF;
+double plane_sep_, crystal_x_pitch_, crystal_y_pitch_;
 
 std::istream& operator>>(std::istream& t_in, LR_Type& t_lr_type) {
     std::string token;
@@ -41,10 +46,10 @@ std::istream& operator>>(std::istream& t_in, LR_Type& t_lr_type) {
 
 // Return int converted to LR_Type, if valid.  Else raise.
 
-LR_Type GeometryInfo::to_lrtype(int intval, std::vector<LR_Type> goodvals) {
-  LR_Type ret = MAX_LR_TYPE;
+LR_Type to_lrtype(int intval, std::vector<LR_Type> goodvals) {
+  LR_Type ret = LR_Type::MAX_LR_TYPE;
   LR_Type in_lr = static_cast<LR_Type>(intval);
-  if ((in_lr >= 0) && (in_lr < LR_Type::MAX_LR_TYPE)) {
+  if ((in_lr >= LR_Type::LR_0) && (in_lr < LR_Type::MAX_LR_TYPE)) {
     if (goodvals.size() > 0) {
       if(std::find(goodvals.begin(), goodvals.end(), in_lr) != goodvals.end()) {
         ret = in_lr;
@@ -57,23 +62,22 @@ LR_Type GeometryInfo::to_lrtype(int intval, std::vector<LR_Type> goodvals) {
   return ret;
 }
 
-LR_Type GeometryInfo::to_lrtype(int intval) {
+LR_Type to_lrtype(int intval) {
   std::vector<LR_Type> v;
   return(to_lrtype(intval, v));
 }
 
 // Define and initialize variables declared in header
 LR_Type LR_type = LR_Type::LR_0;
-std::vector<float> head_crystal_depth_(GeometryInfo::NHEADS);
-std::vector<float> m_crystal_xpos;
-std::vector<float> m_crystal_ypos;
-std::vector<float> m_crystal_zpos;
+std::array<float, NHEADS> head_crystal_depth_;
+std::array<double, NUM_CRYSTALS_X_Y_HEADS_DOIS> crystal_xpos_;
+std::array<double, NUM_CRYSTALS_X_Y_HEADS_DOIS> crystal_ypos_;
+std::array<double, NUM_CRYSTALS_X_Y_HEADS_DOIS> crystal_zpos_;
 
-
-const std::map<LR_Type, LR_Geom> GeometryInfo::lr_geometries_ = {
-  {LR_Type::LR_0 , {256, 288, GeometryInfo::PITCH / 2.0, GeometryInfo::PITCH / 2.0}},
-  {LR_Type::LR_20, {160, 144, 0.2f                     , GeometryInfo::PITCH      }},
-  {LR_Type::LR_24, {128, 144, GeometryInfo::PITCH      , GeometryInfo::PITCH      }}
+const std::map<LR_Type, LR_Geom> lr_geometries_ = {
+  {LR_Type::LR_0 , {256, 288, PITCH / 2.0, PITCH / 2.0}},
+  {LR_Type::LR_20, {160, 144, 0.2f                     , PITCH      }},
+  {LR_Type::LR_24, {128, 144, PITCH      , PITCH      }}
   };
 
 
@@ -118,32 +122,35 @@ void calc_txsrc_position( int head, int detx, int dety, float location[3]) {
       angle = (float)(M_PI * (i + offset) / 288.0);
       sint = sin(angle);
       cost = cos(angle);
-      xpos[i] = (float)(GeometryInfo::TX_RADIUS * sint);
-      ypos[i] = (float)(GeometryInfo::TX_RADIUS * cost);
+      xpos[i] = (float)(TX_RADIUS * sint);
+      ypos[i] = (float)(TX_RADIUS * cost);
     }
   }
   i = head * 72 + detx;
   location[0] = xpos[i];
   location[1] = ypos[i];
-  location[2] = (float)(dety * GeometryInfo::PITCH);
+  location[2] = (float)(dety * PITCH);
 }
 
 void calc_det_to_phy( int head, int layer, int detx, int dety, float location[3]) {
   double sint, cost, x, y, z, xpos, ypos;
   int bcrys, blk;
 
-  if (layer == 7) {calc_txsrc_position( head, detx, dety, location); return;}
-  sint = m_sin_head[head];
-  cost = m_cos_head[head];
+  if (layer == 7) {
+    calc_txsrc_position( head, detx, dety, location);
+    return;
+  }
+  sint = sin_head_[head];
+  cost = cos_head_[head];
   bcrys = detx % 8;
   blk = detx / 8;
-  x = blk * (GeometryInfo::BSIZE + GeometryInfo::BGAP) + bcrys * (GeometryInfo::CSIZE + GeometryInfo::CGAP) - GeometryInfo::XHSIZE / 2.0 + GeometryInfo::CSIZE / 2.0; // +GeometryInfo::CGAP/2.0 //dsaint31
-//    y = m_crystal_radius+1.0f*(1-layer)+0.5f;
-  y = m_crystal_radius + head_crystal_depth_[head] * (1 - layer) + 0.5 * head_crystal_depth_[head];
+  x = blk * (BSIZE + BGAP) + bcrys * (CSIZE + CGAP) - XHSIZE / 2.0 + CSIZE / 2.0; // +CGAP/2.0 //dsaint31
+//    y = crystal_radius_+1.0f*(1-layer)+0.5f;
+  y = crystal_radius_ + head_crystal_depth_[head] * (1 - layer) + 0.5 * head_crystal_depth_[head];
 
   bcrys = dety % 8;
   blk = dety / 8;
-  z = blk * (GeometryInfo::BSIZE + GeometryInfo::BGAP) + bcrys * (GeometryInfo::CSIZE + GeometryInfo::CGAP); // - GeometryInfo::CGAP-GeometryInfo::CSIZE/2.0 //dsaint31
+  z = blk * (BSIZE + BGAP) + bcrys * (CSIZE + CGAP); // - CGAP-CSIZE/2.0 //dsaint31
 
   xpos = x * cost + y * sint;
   ypos = -x * sint + y * cost;
@@ -157,72 +164,82 @@ void calc_det_to_phy( int head, int layer, int detx, int dety, float location[3]
 // void init_geometry_hrrt ( int np, int nv, float cpitch, float diam, float thick) {
 // Move methods into the namespace as they are processed by the Great Rewrite of 2018-19
 
-void GeometryInfo::init_geometry_hrrt (float cpitch, float diam, float thick) {
-  float pitch  = (cpitch > 0.0) ? cpitch : GeometryInfo::PITCH;
-  float rdiam  = (diam > 0.0)   ? diam   : GeometryInfo::RDIAM;
-  float lthick = (thick > 0.0)  ? thick  : GeometryInfo::LTHICK;
+void init_geometry_hrrt (float cpitch, float diam, float thick) {
+  float pitch  = (cpitch > 0.0) ? cpitch : PITCH;
+  float rdiam  = (diam > 0.0)   ? diam   : RDIAM;
+  float lthick = (thick > 0.0)  ? thick  : LTHICK;
 
-  for (int i = 0; i < GeometryInfo::NHEADS; i++) {
-    m_sin_head[i] = sin(i * 2.0 * M_PI / GeometryInfo::NHEADS);
-    m_cos_head[i] = cos(i * 2.0 * M_PI / GeometryInfo::NHEADS);
+  for (int i = 0; i < NHEADS; i++) {
+    sin_head_[i] = sin(i * 2.0 * M_PI / NHEADS);
+    cos_head_[i] = cos(i * 2.0 * M_PI / NHEADS);
   }
-  m_crystal_radius = rdiam / 2.0;
-  m_crystal_x_pitch = m_crystal_y_pitch = pitch;
-  m_nprojs = GeometryInfo::lr_geometries_[GeometryInfo::LR_type].nprojs;
-  m_nviews = GeometryInfo::lr_geometries_[GeometryInfo::LR_type].nviews;
-  switch (GeometryInfo::LR_type) {
+  crystal_radius_ = rdiam / 2.0;
+  crystal_x_pitch_ = crystal_y_pitch_ = pitch;
+  nprojs_ = lr_geometries_[LR_type].nprojs;
+  nviews_ = lr_geometries_[LR_type].nviews;
+  switch (LR_type) {
   case LR_Type::LR_0:
-    m_binsize   = pitch / 2.0;
-    m_plane_sep = pitch / 2.0;
+    binsize_   = pitch / 2.0;
+    plane_sep_ = pitch / 2.0;
     break;
   case LR_Type::LR_20:
-    m_binsize   = 0.2f; // 2mm
-    m_plane_sep = pitch;
+    binsize_   = 0.2f; // 2mm
+    plane_sep_ = pitch;
     break;
   case LR_Type::LR_24:
-    m_binsize   = pitch;
-    m_plane_sep = pitch;
+    binsize_   = pitch;
+    plane_sep_ = pitch;
     break;
   }
 
-  m_crystal_xpos.reserve(GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS);
-  m_crystal_ypos.reserve(GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS);
-  m_crystal_zpos.reserve(GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS);
-  head_crystal_depth_.assign(GeometryInfo::NHEADS, lthick);
+  head_crystal_depth_.assign(NHEADS, lthick);
   printf("  layer_thickness = %0.4f cm\n", lthick);
 
   float pos[3];
   int i;
-  for (int head = 0; head < GeometryInfo::NHEADS; head++) {
-    for (int layer = 0; layer < GeometryInfo::NDOIS; layer++) {
-      for (int xcrys = 0; xcrys < GeometryInfo::NXCRYS; xcrys++) {
-        for (int ycrys = 0; ycrys < GeometryInfo::NYCRYS; ycrys++, i++) {
+  for (int head = 0; head < NHEADS; head++) {
+    for (int layer = 0; layer < NDOIS; layer++) {
+      for (int xcrys = 0; xcrys < NXCRYS; xcrys++) {
+        for (int ycrys = 0; ycrys < NYCRYS; ycrys++, i++) {
           calc_det_to_phy( head, layer, xcrys, ycrys, pos);
-          m_crystal_xpos[i] = pos[0];
-          m_crystal_ypos[i] = pos[1];
-          m_crystal_zpos[i] = pos[2];
+          crystal_xpos_[i] = pos[0];
+          crystal_ypos_[i] = pos[1];
+          crystal_zpos_[i] = pos[2];
         }
       }
     }
   }
 
-  printf("Geometry configured for HRRT (%d heads of radius %0.2f cm.)\n", GeometryInfo::NHEADS, m_crystal_radius);
+  printf("Geometry configured for HRRT (%d heads of radius %0.2f cm.)\n", NHEADS, crystal_radius_);
   printf("  crystal x,y pitches (cm) = %0.4f, %0.4f\n", pitch, pitch);
-  printf("  x_head_center = %0.4f cm\n", pitch * (GeometryInfo::NXCRYS - 1) / 2.0);
+  printf("  x_head_center = %0.4f cm\n", pitch * (NXCRYS - 1) / 2.0);
 }
 
-void GeometryInfo::init_geometry_hrrt(void) {
-  GeometryInfo::init_geometry_hrrt(0.0f, 0.0f, 0.0f);
+void init_geometry_hrrt(void) {
+  init_geometry_hrrt(0.0f, 0.0f, 0.0f);
+}
+
+int num_projs(LR_Type type) {
+  if (type == LR_Type::LR_20) 
+    return 160;
+  else if (type == LR_Type::LR_24) 
+    return 128;
+  return 256;  // default LR_0
+}
+
+int num_views(LR_Type type) {
+  return (type == LR_Type::LR_0 ? 288 : 144);
 }
 
 void det_to_phy( int head, int layer, int xcrys, int ycrys, float pos[3]) {
-  int i;
   if (layer == 7) {
     calc_det_to_phy( head, layer, xcrys, ycrys, pos);
     return;
   }
-  i = head * GeometryInfo::NDOIS * GeometryInfo::NUM_CRYSTALS_X_Y + layer * GeometryInfo::NUM_CRYSTALS_X_Y + xcrys * GeometryInfo::NYCRYS + ycrys;
-  pos[0] = (float)m_crystal_xpos[i];
-  pos[1] = (float)m_crystal_ypos[i];
-  pos[2] = (float)m_crystal_zpos[i];
+  int i = head * NDOIS * NUM_CRYSTALS_X_Y + layer * NUM_CRYSTALS_X_Y + xcrys * NYCRYS + ycrys;
+  pos[0] = (float)crystal_xpos_[i];
+  pos[1] = (float)crystal_ypos_[i];
+  pos[2] = (float)crystal_zpos_[i];
+}
+
 }

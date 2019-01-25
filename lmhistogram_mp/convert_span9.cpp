@@ -20,7 +20,7 @@ int convert_span9(short *sino, int t_maxrd, int nrings) {
 
   int iseg_9 = 0, nseg_9 = (2 * t_maxrd + 1) / span9;
   // int offset = 0;
-  int npixels =  m_nprojs * m_nviews;
+  int npixels =  GeometryInfo::nprojs_ * GeometryInfo::nviews_;
   int j = 0, nvoxels = npixels * nplns0;
   short *in_p = NULL, *out_p = NULL;
   // short *in_data = NULL;

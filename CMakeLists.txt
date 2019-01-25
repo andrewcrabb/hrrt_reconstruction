@@ -25,7 +25,9 @@ configure_file (
   )
 
 # include_directories (tests PUBLIC ${CMAKE_SOURCE_DIR}/spdlog/include)
-include_directories (${CMAKE_SOURCE_DIR}/spdlog/include)
+include_directories (${CMAKE_SOURCE_DIR}/spdlog/include
+					 ${CMAKE_SOURCE_DIR}/hrrt_common
+	)
 
 # add the binary tree to the search path for include files
 # so that we will find hrrt_recon_config.h

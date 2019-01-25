@@ -1311,7 +1311,7 @@ template <class T> int histogram(T *t_sino, char *delayed, int sino_size, int &t
   int address = 0, tx_flag = 0;
   T *sub_sino = t_sino + sino_size;
 
-  // int tx_sino_size = m_nprojs * m_nviews * (2 * GeometryInfo::NYCRYS - 1);
+  // int tx_sino_size = GeometryInfo::nprojs_ * GeometryInfo::nviews_ * (2 * GeometryInfo::NYCRYS - 1);
   fmt::print(t_out_hc, "Singles,Randoms,Prompts,Time(ms)\n");
 
   Event_32 cew;

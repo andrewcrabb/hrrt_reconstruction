@@ -27,6 +27,8 @@
 #include <xmmintrin.h>
 #include <string>
 #include <boost/filesystem.hpp>
+#include <boost/xpressive/xpressive.hpp>
+#include <boost/program_options.hpp>
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
@@ -39,13 +41,15 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include "hrrt_util.hpp"
 #include "gen_delays.h"
 #include "segment_info.h"
 #include "geometry_info.h"
 #include "lor_sinogram_map.h"
 
 namespace bf = boost::filesystem;
-
+namespace bx = boost::xpressive;
+namespace po = boost::program_options;
 
 typedef struct {
   int mp;
@@ -108,7 +112,7 @@ int compute_delays(int mp, float **delays_data, float *csings) {
         int rd = ay - by;
         if (rd < 0)
           rd = by - ay;
-        if (rd < maxrd_ + 6) {  // dsaint31 : why 6??
+        if (rd < GeometryInfo::maxrd_ + 6) {  // dsaint31 : why 6??
           if (bs > by)
             bs = by; //start ring # of detB
           if (be < by)
@@ -355,11 +359,11 @@ int gen_delays(int is_inline,
   // FILE *fptr;
   // char *rebinner_lut_file_ptr = NULL;   // TODO Take this out once all moved to bf
   // bf::path rebinner_lut_file;
-  char *csingles_file = NULL;
-  char *delays_file = NULL;
-  char *coins_file = NULL;
-  char *output_csings_file = NULL;
-  char *optarg;
+  // char *csingles_file = NULL;
+  // char *delays_file = NULL;
+  // char *coins_file = NULL;
+  // char *output_csings_file = NULL;
+  // char *optarg;
   float **delays_data;
   // int threadnum ;
   // unsigned int threadID;
@@ -373,52 +377,29 @@ int gen_delays(int is_inline,
   };
   // const char *rebinner_lut_file=NULL;
 
-  delays_file = p_delays_file;
+  // delays_file = p_delays_file;
+  if (p_delays_file)
+      g_delayed_coincidence_file = boost::filesystem::path(p_delays_file);
   if (scan_duration > 0)
     g_ftime = scan_duration;
-  maxrd_ = t_maxrd;
+  GeometryInfo::maxrd_ = t_maxrd;
 
   // Process command line arguments.
   if (is_inline == 0) {
-    // for (int i = 0; i < argc; i++) {
-    //   if (argv[i][0] != '-')
-    //     continue;
-    //   int c = argv[i][1];
-    //   if (argv[i][2] == 0) {
-    //     if (i < argc - 1 ) {
-    //       if (argv[i + 1][0] != '-')
-    //         i++;
-    //     }
-    //     optarg = argv[i];
-    //   } else {
-    //     optarg = (char *) &argv[i][2];
-    //   }
-    //   switch (c) {
     //   case 'r' : rebinner_lut_file_ptr = optarg;  // hrrt_rebinner.lut
     //   case 'h':   coins_file = optarg; break; // coincidence histogram (int 72,8,104,4)
     //   case 'p':   sscanf(optarg, "%d,%d", &nprojs, &nviews); break; // -p nprojs,nviews - set sinogram size
-    //   case 's':   sscanf(optarg, "%d,%d", &span, &maxrd_); break;    // -s span,maxrd - set 3D parameters
+    //   case 's':   sscanf(optarg, "%d,%d", &span, &GeometryInfo::maxrd_); break;    // -s span,maxrd - set 3D parameters
     //   case 'g':   sscanf(optarg, "%f,%f,%f", &pitch, &diam, &thick); break;    // -g pitch,diam,thick
     //   case 'C':   csingles_file = optarg; break;  // -C crystal singles file
     //   case 'O':   delays_file = optarg; break;  // -O delays_file
     //   case 'S':   output_csings_file = optarg; break; // -S save_csings_file
     //   case 'T':   sscanf(optarg, "%f", &tau); break;
     //   case 't':   sscanf(optarg, "%f", &g_ftime); break;
-    //   }
-    // }
-    // if (coins_file == NULL || delays_file == NULL || rebinner_lut_file_ptr == NULL )
-    //   usage("gen_delays");
-    // rebinner_lut_file = bf::path(rebinner_lut_file_ptr);
   } else {
     // inline mode.
-    coins_file  = (char *)"memory_mode";
-    // ahc this value is overridden by argv if called as main
-    // if (!p_rebinner_lut_file.empty()) {
-    //   rebinner_lut_file = p_rebinner_lut_file;
-    // } else {
-    //   fprintf(stderr, "gen_delays.cpp:main(): Rebinner file must be specified\n");
-    //   exit(1);
-    // }
+    // coins_file  = (char *)"memory_mode";
+    g_coincidence_histogram_file = boost::filesystem::path("memory_mode");
   }
 
   // delays and coins files are required anyway
@@ -430,17 +411,14 @@ int gen_delays(int is_inline,
   //   fprintf(stdout, "Input Crystal Singles or Coincidence Histogram file must be specified with -h or -C <filename>\n");
 
   gettimeofday(&t0, NULL ) ;
-  head_crystal_depth_.assign(GeometryInfo::NHEADS, 1.0f);
+  GeometryInfo::head_crystal_depth_.fill(1.0f);
   GeometryInfo::init_geometry_hrrt(g_pitch, g_diam, g_thick);
   int nplanes = 0;
-  SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &SegmentInfo::m_d_tan_theta, maxrd_, t_span, GeometryInfo::NYCRYS, m_crystal_radius, m_plane_sep);
+  SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &SegmentInfo::m_d_tan_theta, GeometryInfo::maxrd_, t_span, GeometryInfo::NYCRYS, GeometryInfo::crystal_radius_, GeometryInfo::plane_sep_);
 
   // fprintf(stderr, "Using Rebinner LUT file %s\n", rebinner_lut_file);
   lor_sinogram::init_lut_sol(SegmentInfo::m_segzoffset);
 
-  free(m_crystal_xpos);
-  free(m_crystal_ypos);
-  free(m_crystal_zpos);
 
   //-------------------------------------------------------
   // delayed true output value init.
@@ -448,16 +426,16 @@ int gen_delays(int is_inline,
   if (is_inline == 2 && result == NULL) {
     result = (float ***) malloc(nplanes * sizeof(float**));
     for (int i = 0; i < nplanes; i++) {
-      result[i] = (float **) malloc(m_nviews * sizeof(float*));
-      for (int j = 0; j < m_nviews; j++) {
-        result[i][j] = (float *) malloc(m_nprojs * sizeof(float));
+      result[i] = (float **) malloc(GeometryInfo::nviews_ * sizeof(float*));
+      for (int j = 0; j < GeometryInfo::nviews_; j++) {
+        result[i][j] = (float *) malloc(GeometryInfo::nprojs_ * sizeof(float));
       }
     }
   }
   if (result != NULL) {
     for (int i = 0; i < nplanes; i++)
-      for (int j = 0; j < m_nviews; j++)
-        memset(&result[i][j][0], 0, m_nprojs * sizeof(float));
+      for (int j = 0; j < GeometryInfo::nviews_; j++)
+        memset(&result[i][j][0], 0, GeometryInfo::nprojs_ * sizeof(float));
   }
 
   int nsino = g_num_elems * g_num_views;
@@ -497,7 +475,7 @@ int gen_delays(int is_inline,
     free(coincidence_sinogram);
     if (!g_output_csings_file.empty())
       // write_output_csings_file(csings);
-      if hrrt_util::write_binary_file<float>(csings, num_crystals, g_output_csings_file, "Singles from delayed coincidence histogram")
+      if (hrrt_util::write_binary_file<float>(csings, num_crystals, g_output_csings_file, "Singles from delayed coincidence histogram"))
         exit(1);
   }
 
@@ -540,7 +518,7 @@ int gen_delays(int is_inline,
   g_logger->info("Smooth Delays computed in {ld} msec", time_diff(t0, t1));
 
   free(lor_sinogram::solution_[0]);
-  for (i = 1; i < 21; i++) {
+  for (int i = 1; i < 21; i++) {
     for (int j = 0; j < GeometryInfo::NXCRYS * GeometryInfo::NDOIS; j++) {
       //fprintf(stdout,"%d:%d\n",i,j);
       if (lor_sinogram::solution_[i][j] != NULL) free(lor_sinogram::solution_[i][j]);
@@ -569,20 +547,17 @@ int gen_delays(int is_inline,
       dtmp[n] = delays_data[n][i];
     }
     if (is_inline < 2) {
-      if hrrt_util::write_binary_file<float>(dtmp, nsino, g_delayed_coincidence_file, "Delayed coincidence");
+      if (hrrt_util::write_binary_file<float>(dtmp, nsino, g_delayed_coincidence_file, "Delayed coincidence"))
         exit(1);
       // write_delays_file(dtmp, nsino);
     } else {
       int n = 0;
-      for (int j = 0; j < m_nviews; j++) {
-        memcpy(result[i][j], &dtmp[n], sizeof(float) * m_nprojs); // = dtmp[n];
-        n = n + m_nprojs;
+      for (int j = 0; j < GeometryInfo::nviews_; j++) {
+        memcpy(result[i][j], &dtmp[n], sizeof(float) * GeometryInfo::nprojs_); // = dtmp[n];
+        n = n + GeometryInfo::nprojs_;
       }
     }
   }
-
-  free(bin_number_to_nview);
-  free(bin_number_to_nproj);
 
   for (int n = 0; n < nsino; n++) {
     free(delays_data[n]);
@@ -599,16 +574,16 @@ int gen_delays(int is_inline,
 }
 
 void init_logging(void) {
-  if (g_logfile.length() == 0) {
+  if (g_logfile.empty()) {
     g_logfile = fmt::format("{}_gen_delays.log", hrrt_util::time_string());
   }
-  g_logger = spdlog::basic_logger_mt("basic_logger", g_logfile);
+  g_logger = spdlog::basic_logger_mt("basic_logger", g_logfile.string());
 }
 
 
-void on_rebinner(std::string const &instring) {
-  g_rebinner_lut_file = boost::filesystem::path(instring);
-}
+// void on_rebinner(std::string const &instring) {
+//   g_rebinner_lut_file = boost::filesystem::path(instring);
+// }
 
 void on_coincidence(std::string const &instring) {
   g_coincidence_histogram_file = boost::filesystem::path(instring);
@@ -635,7 +610,7 @@ void on_sino_size(std::string const &instring) {
   bx::sregex re_size = bx::sregex::compile("(?P<nelements>[0-9]+)\\,(<?P<nviews>[0-9]+)");
   bx::smatch match;
 
-  if (bx::regex_match(instring, match, re_skip)) {
+  if (bx::regex_match(instring, match, re_size)) {
     g_num_elems = boost::lexical_cast<int>(match["nelements"]);
     g_num_views = boost::lexical_cast<int>(match["nviews"]);
   } else {
@@ -650,10 +625,10 @@ void on_sino_size(std::string const &instring) {
  */
 
 void on_span(std::string const &instring) {
-  bx::sregex re_size = bx::sregex::compile("(?P<span>[0-9]+)\\,(<?P<ringdiff>[0-9]+)");
+  bx::sregex re_span = bx::sregex::compile("(?P<span>[0-9]+)\\,(<?P<ringdiff>[0-9]+)");
   bx::smatch match;
 
-  if (bx::regex_match(instring, match, re_skip)) {
+  if (bx::regex_match(instring, match, re_span)) {
     g_span         = boost::lexical_cast<int>(match["span"]);
     g_max_ringdiff = boost::lexical_cast<int>(match["ringdiff"]);
   } else {
@@ -668,10 +643,10 @@ void on_span(std::string const &instring) {
  */
 
 void on_geometry(std::string const &instring) {
-  bx::sregex re_size = bx::sregex::compile("(?P<pitch>[0-9]+\\.[0-9]+)\\,(<?P<diam>[0-9]+\\.[0-9]+)\\,(<?P<thick>[0-9]+\\.[0-9]+)");
+  bx::sregex re_geom = bx::sregex::compile("(?P<pitch>[0-9]+\\.[0-9]+)\\,(<?P<diam>[0-9]+\\.[0-9]+)\\,(<?P<thick>[0-9]+\\.[0-9]+)");
   bx::smatch match;
 
-  if (bx::regex_match(instring, match, re_skip)) {
+  if (bx::regex_match(instring, match, re_geom)) {
     g_pitch = boost::lexical_cast<float>(match["pitch"]);
     g_diam  = boost::lexical_cast<float>(match["diam"]);
     g_thick = boost::lexical_cast<float>(match["thick"]);
@@ -685,13 +660,13 @@ void parse_args(int argc, char **argv) {
   try {
     po::options_description desc("Options");
     desc.add_options()
-      ("help,h", "Show options")
+      ("help,H", "Show options")  // Existing code used 'h' for coincidence file
       ("time,t"        , po::value<float>(&g_ftime)->required()                         , "Count time")
-      ("rebinner,r"    , po::value<std::string>()->notifier(on_rebinner)->required()    , "Full path of rebinner LUT file")
+      // ("rebinner,r"    , po::value<std::string>()->notifier(on_rebinner)->required()    , "Full path of rebinner LUT file")
       ("coins,h"       , po::value<std::string>()->notifier(on_coincidence)->required() , "Coincidence histogram file")
       ("delays,O"      , po::value<std::string>()->notifier(on_delay)->required()       , "Delayed coincidence file")
-      ("sino_size,p"   , po::value<std::string>()->notifier(on_sino_size)               , fmt::format("sinogram size 'nelements,nviews' ({},{})", GeometryInfo::NUM_ELEMS, GeometryInfo::NUM_VIEWS))
-      ("span,s"        , po::value<std::string>()->notifier(on_span)                    , fmt::format("span,maxrd ({},{})", 9, GeometryInfo::MAX_RINGDIFF))
+      ("span,s"        , po::value<std::string>()->notifier(on_span)                    , fmt::format("span,maxrd ({},{})", 9, GeometryInfo::MAX_RINGDIFF).c_str())
+      ("sino_size,p"   , po::value<std::string>()->notifier(on_sino_size)               , fmt::format("sinogram size 'nelements,nviews' ({},{})", GeometryInfo::NUM_ELEMS, GeometryInfo::NUM_VIEWS).c_str())
       ("geometry,g"    , po::value<std::string>()->notifier(on_geometry)                , "geometry 'pitch,diam,thick'")
       ("csingles,C"    , po::value<std::string>()->notifier(on_csingles)                , "Crystal singles file; old method specifying precomputed crystal singles data")
       ("outsing,S"     , po::value<std::string>()->notifier(on_outsing)                 , "Output crystal singles file")
@@ -722,7 +697,7 @@ int main(int argc, char* argv[]) {
   init_logging();
   parse_args(argc, argv);
   // gen_delays is expecting to see all the globals.  Bring it in this file or pass them explicitly.
-  gen_delays(0, 0.0f, NULL, NULL, NULL, g_span, g_max_ringdiff, g_rebinner_lut_file);
+  gen_delays(0, 0.0f, NULL, NULL, NULL, g_span, g_max_ringdiff);
   return 0;
 }
 

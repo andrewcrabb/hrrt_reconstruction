@@ -301,7 +301,7 @@ void init_corrections() {
   int ax, bx, idx;
   int axx, bxx, alayer, blayer;
   float deta[3], detb[3], rd;
-  float rdiam = (float)m_crystal_radius * 2.0f; //cm
+  float rdiam = (float)GeometryInfo::crystal_radius_ * 2.0f; //cm
   float inner_xi[2], inner_yi[2];  // LOR and inner circle intersection coordinates
   float outer_xi[2], outer_yi[2];  // LOR and outer circle intersection coordinates
   double a_sq, b_sq, c_sq, d_sq;             // distance sqwared between interection and detectors
@@ -310,7 +310,7 @@ void init_corrections() {
   // create default dwell sino
   if (rdwell_sino == NULL) {
     g_logger->info("using default rotation dwell");
-    if ((rdwell_sino = (float*)calloc(m_nprojs * m_nviews, sizeof(float))) == NULL) {
+    if ((rdwell_sino = (float*)calloc(GeometryInfo::nprojs_ * GeometryInfo::nviews_, sizeof(float))) == NULL) {
       g_logger->error("Can't allocate memory for dwell correction array");
       exit(1);
     }
@@ -339,7 +339,7 @@ void init_corrections() {
   // Create default omega
   if (omega_sino == NULL) {
     g_logger->info("using default solid angle dwell");
-    if ((omega_sino = (float*)calloc(m_nprojs * m_nviews, sizeof(float))) == NULL) {
+    if ((omega_sino = (float*)calloc(GeometryInfo::nprojs_ * GeometryInfo::nviews_, sizeof(float))) == NULL) {
       g_logger->error("Can't allocate memory for LOR correction arrays");
       exit(1);
     }
@@ -707,7 +707,7 @@ static void compute_fan_sum(const char *l64_file, float *fan_sum) {
 // in oblique sinograms. These bins are filled with neighbor values
 //
 static void fill_sino(float *sino) {
-  int nprojs = m_nprojs, nviews = m_nviews;
+  int nprojs = GeometryInfo::nprojs_, nviews = GeometryInfo::nviews_;
   float *temp = (float*)calloc(nprojs * nviews, sizeof(float));
   memcpy(temp, sino, nprojs * nviews * sizeof(float));
   for (int view = 1; view < nviews - 1; view++) {
@@ -735,9 +735,9 @@ static void fill_sino(float *sino) {
 
 void create_omega_sino(float * &sino) {
   if (sino == NULL)
-    sino = (float*)calloc(m_nprojs * m_nviews, sizeof(float));
+    sino = (float*)calloc(GeometryInfo::nprojs_ * GeometryInfo::nviews_, sizeof(float));
   else
-    memset(sino, 0, m_nprojs * m_nviews * sizeof(float));
+    memset(sino, 0, GeometryInfo::nprojs_ * GeometryInfo::nviews_ * sizeof(float));
 
   for (int mp = 1; mp <= GeometryInfo::NMPAIRS; mp++) {
     for (int ax = 0; ax < NXCRYS; ax++) {
@@ -753,14 +753,14 @@ void create_omega_sino(float * &sino) {
   fill_sino(sino);
   FILE *fp = fopen("omega.s", "wb");
   if (fp != NULL) {
-    fwrite(sino, m_nprojs * m_nviews, sizeof(float), fp);
+    fwrite(sino, GeometryInfo::nprojs_ * GeometryInfo::nviews_, sizeof(float), fp);
     fclose(fp);
   }
 }
 
 void create_dwell_sino(float * &sino) {
-  if (sino == NULL) sino = (float*)calloc(m_nprojs * m_nviews, sizeof(float));
-  else memset(sino, 0, m_nprojs * m_nviews * sizeof(float));
+  if (sino == NULL) sino = (float*)calloc(GeometryInfo::nprojs_ * GeometryInfo::nviews_, sizeof(float));
+  else memset(sino, 0, GeometryInfo::nprojs_ * GeometryInfo::nviews_ * sizeof(float));
   for (int mp = 1; mp <= GeometryInfo::NMPAIRS; mp++)  {
     for (int ax = 0; ax < NXCRYS; ax++) {
       int axx = NXCRYS + ax;   // front layer
@@ -775,7 +775,7 @@ void create_dwell_sino(float * &sino) {
   fill_sino(sino);
   FILE *fp = fopen("rotation_dwell.s", "wb");
   if (fp != NULL) {
-    fwrite(sino, m_nprojs * m_nviews, sizeof(float), fp);
+    fwrite(sino, GeometryInfo::nprojs_ * GeometryInfo::nviews_, sizeof(float), fp);
     fclose(fp);
   }
 }
@@ -789,7 +789,7 @@ void create_gr_sino(int layer)
   double dx, dy, d;
   float pi = (float)M_PI;
   float gra, grb;
-  int nprojs = m_nprojs, nviews = m_nviews;
+  int nprojs = GeometryInfo::nprojs_, nviews = GeometryInfo::nviews_;
 
   float *sino = (float*)calloc(nprojs * nviews, sizeof(float));
 
@@ -815,7 +815,7 @@ void create_gr_sino(int layer)
           phi = 0.0;
           r *= -1.0;
         }
-        bin = (int)(nprojs / 2 + (r / m_binsize + 0.5)); // pro[0] is r
+        bin = (int)(nprojs / 2 + (r / GeometryInfo::binsize_ + 0.5)); // pro[0] is r
         view = (int)(nviews * phi / M_PI);          // pro[1] is phi
         if (bin >= 0 && bin < nprojs && view >= 0 && view < nviews) {
 #ifdef GRGR
@@ -1200,7 +1200,7 @@ int main(int argc, char **argv) {
   rotation_cy *= 0.1f;
 
   SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &m_d_tan_theta, maxrd_, span, NYCRYS,
-                    m_crystal_radius, m_plane_sep);
+                    GeometryInfo::crystal_radius_, GeometryInfo::plane_sep_);
   // if (strlen(rebinner_lut_file) == 0) {
   //   fprintf(stdout, "Error: Rebinner LUT file not defined (opt 'r')");
   //   exit(1);
@@ -1231,7 +1231,7 @@ int main(int argc, char **argv) {
   cosphi = (float*)calloc(nsegs, sizeof(float));
   for (int segnum = 0; segnum < nsegs; segnum++) {
     int seg = (segnum + 1) / 2;
-    double phi_r = atan(seg * span * m_crystal_y_pitch / (2 * m_crystal_radius)); // in radian
+    double phi_r = atan(seg * span * GeometryInfo::crystal_y_pitch_ / (2 * GeometryInfo::crystal_radius_)); // in radian
     cosphi[segnum] = (float)(1 / cos(phi_r));
   }
 
@@ -1394,11 +1394,11 @@ int main(int argc, char **argv) {
     calibration_scale = 9.0f / span; // 3 for span 3 and 1.0 for span9
     g_logger->info( "Normalization span = {}, max_rd = {}, calibration scale = {}", span, maxrd_, calibration_scale);
   } else {
-    calibration_scale = (float)((9.0f / 14.0f) * (0.5f * m_crystal_x_pitch / m_binsize) / 4);
+    calibration_scale = (float)((9.0f / 14.0f) * (0.5f * GeometryInfo::crystal_x_pitch_ / GeometryInfo::binsize_) / 4);
     // 14: High resolution equivalent span
     // 4: 2 times fewer angles and planes
     g_logger->info( "LR normalization: span = {}, max_rd = {}, calibration scale = {}", span, maxrd_, calibration_scale);
-    g_logger->info( "                  nprojs = {}, nviews = {}, bin_size {} mm", nprojs, nviews, m_binsize);
+    g_logger->info( "                  nprojs = {}, nviews = {}, bin_size {} mm", nprojs, nviews, GeometryInfo::binsize_);
   }
   fflush(log_fp);
 

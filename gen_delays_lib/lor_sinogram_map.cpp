@@ -128,7 +128,7 @@ void init_phy_to_pro( float deta[3], float detb[3], SOL *sol)
     d = -d; //(float)(-dy);
   }
 
-  view = (int)(m_nviews * phi / M_PI);
+  view = (int)(GeometryInfo::nviews_ * phi / M_PI);
   if (view >= 288) view = 0;
   if (view <= -1) {
     view = 0;
@@ -136,12 +136,12 @@ void init_phy_to_pro( float deta[3], float detb[3], SOL *sol)
   }
   float z = (float)((deta[0] * dx + deta[1] * dy) / (d * d)); //????
 //    view = nviews*phi/M_PI;
-  bin = (int)(m_nprojs / 2 + (r / m_binsize + 0.5));
-  if ((bin < 0) || (bin > m_nprojs - 1)) {
+  bin = (int)(GeometryInfo::nprojs_ / 2 + (r / GeometryInfo::binsize_ + 0.5));
+  if ((bin < 0) || (bin > GeometryInfo::nprojs_ - 1)) {
     sol->nsino = -1;
-  } else  sol->nsino = bin + view * m_nprojs;
+  } else  sol->nsino = bin + view * GeometryInfo::nprojs_;
   sol->d = (float)(1.0 / d / SegmentInfo::m_d_tan_theta);
-  sol->z = (float)( z / m_plane_sep);
+  sol->z = (float)( z / GeometryInfo::plane_sep_);
 }
 
 
@@ -211,7 +211,7 @@ void init_sol(int *segzoffset)
   for (int i = 0; i < GeometryInfo::NYCRYS; i++) {
     det_to_phy( 0, 0, 0, i, deta_pos);
     m_c_zpos[i] = deta_pos[2];
-    m_c_zpos2[i] = (float)(deta_pos[2] / m_plane_sep + 0.5);
+    m_c_zpos2[i] = (float)(deta_pos[2] / GeometryInfo::plane_sep_ + 0.5);
   }
 
   for (int i = 0; i < 63; i++) {
@@ -349,7 +349,7 @@ int save_lut_sol(bf::path const &lut_filename) {
 void init_sol_tx(int tx_span) {
   float deta_pos[3], detb_pos[3];
 
-  m_d_tan_theta = (float)(tx_span * m_plane_sep / m_crystal_radius);
+  m_d_tan_theta = (float)(tx_span * GeometryInfo::plane_sep_ / GeometryInfo::crystal_radius_);
   // Initialize and populate solution if NULL
   // TX m_sol
   //solution_ = phi(=view angle)
