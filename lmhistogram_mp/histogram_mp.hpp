@@ -67,9 +67,6 @@ typedef struct {
   long singles; // in counts/second
 } head_curve;
 
-// Utility file-open used in histogram_mp and lmhistogram_mp
-int open_istream(std::ifstream &ifstr, const bf::path &name, std::ios_base::openmode t_mode = std::ios::in );
-int open_ostream(std::ofstream &ofstr, const bf::path &name, std::ios_base::openmode t_mode = std::ios::out );
 
 // Process time tag
 extern long process_tagword(long tagword, long duration, std::ofstream &out_hc);

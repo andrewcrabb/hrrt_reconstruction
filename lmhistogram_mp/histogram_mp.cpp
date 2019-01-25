@@ -181,23 +181,6 @@ std::ostream &operator<<(std::ostream& os, HISTOGRAM_MODE hm) {
   return os << static_cast<int>(hm);
 }
 
-int open_ostream(std::ofstream &t_outs, const bf::path &t_path, std::ios_base::openmode t_mode) {
-  t_outs.open(t_path.string(), t_mode);
-  if (!t_outs.is_open()) {
-    g_logger->error("Could not open output file {}", t_path);
-    return 1;
-  }
-  return 0;
-}
-
-int open_istream(std::ifstream &t_ins, const bf::path &t_path, std::ios_base::openmode t_mode) {
-  t_ins.open(t_path.string(), t_mode);
-  if (!t_ins.is_open()) {
-    g_logger->error("Could not open input file {}", t_path);
-    return 1;
-  }
-  return 0;
-}
 
 
 //

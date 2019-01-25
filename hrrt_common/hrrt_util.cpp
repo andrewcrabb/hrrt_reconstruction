@@ -15,6 +15,40 @@
 
 namespace hrrt_util {
 
+int open_ostream(std::ofstream &t_outs, const bf::path &t_path, std::ios_base::openmode t_mode) {
+  t_outs.open(t_path.string(), t_mode);
+  if (!t_outs.is_open()) {
+    g_logger->error("Could not open output file {}", t_path);
+    return 1;
+  }
+  return 0;
+}
+
+int open_istream(std::ifstream &t_ins, const bf::path &t_path, std::ios_base::openmode t_mode) {
+  t_ins.open(t_path.string(), t_mode);
+  if (!t_ins.is_open()) {
+    g_logger->error("Could not open input file {}", t_path);
+    return 1;
+  }
+  return 0;
+}
+
+template <class T>
+int write_binary_file(T *t_data, int t_num_elems, bf::path const &outpath, std::string const &msg) {
+  std::ofstream outstream;
+  if open_ostream(outstream, outpath, std::ios::out | std::ios::binary)
+    return 1;
+  outstream.write(t_data, t_num_elems * sizeof(T));
+  if (!outstream.good()) {
+    g_logger->error("Error {} {} elements stored in {}", msg, t_num_elems, outpath.string());
+    outstream.close();
+    return 1;
+  }
+  g_logger->info("{} {} elements stored in {}", msg, t_num_elems, outpath.string());
+  outstream.close();
+  return 0;
+}
+
 bool file_exists (const std::string& name) {
   bool ret = false;
   std::ifstream f(name.c_str());

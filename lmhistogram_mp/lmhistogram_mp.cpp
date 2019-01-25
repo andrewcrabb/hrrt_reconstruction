@@ -261,7 +261,7 @@ template <class T> int fill_prev_sino(T sino, const std::string &prev_sino) {
 
   if (prev_sino.length() > 0) {
     std::ifstream prev_fp;
-    if (open_istream(prev_fp, prev_sino, std::ios::in | std::ios::binary)) {
+    if (hrrt_util::open_istream(prev_fp, prev_sino, std::ios::in | std::ios::binary)) {
       g_logger->error("Could not open prev_sino: {}", prev_sino);
       return 1;
     } else {
@@ -508,7 +508,7 @@ static void create_histogram_files() {
   g_out_fname_hdr = make_file_name(FILE_TYPE::SINO_HDR);
   g_out_fname_hc  = make_file_name(FILE_TYPE::LM_HC);
 
-  open_ostream(g_out_hc, g_out_fname_hc);
+  hrrt_util::open_ostream(g_out_hc, g_out_fname_hc);
 
   if (g_hist_mode == HISTOGRAM_MODE::TRA) {
     // transmission
@@ -516,22 +516,22 @@ static void create_histogram_files() {
       g_logger->error("Byte format not supported in transmission mode");
       exit(1);
     }
-    open_ostream(g_out_true_prompt_sino, g_out_fname_sino, std::ios::out | std::ios::app | std::ios::binary);
+    hrrt_util::open_ostream(g_out_true_prompt_sino, g_out_fname_sino, std::ios::out | std::ios::app | std::ios::binary);
     if (g_outfname_mock.length() > 0) {
-      open_ostream(g_out_ran_sino, g_outfname_mock, std::ios::out | std::ios::app | std::ios::binary);
+      hrrt_util::open_ostream(g_out_ran_sino, g_outfname_mock, std::ios::out | std::ios::app | std::ios::binary);
     }
   } else if (g_hist_mode == HISTOGRAM_MODE::PRO_RAN) {
     // Keep original filename for prompts in prompts or prompts+delayed mode
     g_out_fname_pr = g_out_fname_sino;
-    open_ostream(g_out_true_prompt_sino, g_out_fname_pr, std::ios::out | std::ios::app | std::ios::binary);
+    hrrt_util::open_ostream(g_out_true_prompt_sino, g_out_fname_pr, std::ios::out | std::ios::app | std::ios::binary);
     g_out_fname_ra = make_file_name(FILE_TYPE::RA_S);
-    open_ostream(g_out_ran_sino, g_out_fname_ra, std::ios::out | std::ios::app | std::ios::binary);
+    hrrt_util::open_ostream(g_out_ran_sino, g_out_fname_ra, std::ios::out | std::ios::app | std::ios::binary);
     if (g_elem_size == ELEM_SIZE_SHORT) {
       g_out_fname_tr = make_file_name(FILE_TYPE::TR_S);
-      open_ostream(g_out_true_sino, g_out_fname_tr, std::ios::out | std::ios::app | std::ios::binary);
+      hrrt_util::open_ostream(g_out_true_sino, g_out_fname_tr, std::ios::out | std::ios::app | std::ios::binary);
     }
   } else {
-    open_ostream(g_out_true_prompt_sino, g_out_fname_sino, std::ios::out | std::ios::app | std::ios::binary);
+    hrrt_util::open_ostream(g_out_true_prompt_sino, g_out_fname_sino, std::ios::out | std::ios::app | std::ios::binary);
 
   }
   g_logger->info("Output File: {}", g_out_fname);
@@ -756,7 +756,7 @@ int do_lmscan() {
 
   g_out_fname_hc = make_file_name(FILE_TYPE::LM_HC);
   std::ofstream outfile_hc;
-  open_ostream(outfile_hc, g_out_fname_hc);
+  hrrt_util::open_ostream(outfile_hc, g_out_fname_hc);
   g_frames_duration.clear();
 
   start_reader_thread();
@@ -1038,7 +1038,7 @@ std::ofstream create_outfile_dyn(void) {
   std::ofstream outfile_dyn;
   if (g_frames_duration.size() > 1) {
     const bf::path outfname_dyn = make_file_name(FILE_TYPE::DYN);
-    open_ostream(outfile_dyn, outfname_dyn);
+    hrrt_util::open_ostream(outfile_dyn, outfname_dyn);
     fmt::print(outfile_dyn, "{:d}", g_frames_duration.size());
   }
   return outfile_dyn;

@@ -38,7 +38,7 @@ extern void init_sol_tx(int tx_span);
 // init_lut_sol: initialize m_solution, m_c_z_pos, m_c_zpos2, m_segplane
 // and load lut_filename. Load m_solution only if segzoffset==NULL
 // ahc 1/22/19 now get lut_filename within these methods
-extern int    init_lut_sol(int *segzoffset);
+extern int    init_lut_sol(std::vector<int> const &segzoffset);
 extern int    save_lut_sol(bf::path const &lut_filename);
 extern int init_lut_sol_tx(void);
 extern int save_lut_sol_tx(bf::path const &lut_filename);

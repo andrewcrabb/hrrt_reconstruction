@@ -71,24 +71,22 @@ float g_tau   = 6.0e-9f;
 // float tau = 6.0e-9f;
 float g_ftime = 1.0f;
 
-
-
 static std::string progid = "$Id: gen_delays.c,v 1.3 2007/01/08 06:04:55 cvsuser Exp $";
 
-static void usage(const char *prog) {
-  printf("%s - generate delayed coincidence data from crystal singles\n", prog);
-  printf("usage: gen_delays -h coincidence_histogram -O delayed_coincidence_file -t count_time <other switches>\n");
-  printf("    -v              : verbose\n");
-  printf("    -C csingles     : old method specifying precomputed crystal singles data\n");
-  printf("    -p ne,nv        : set sinogram size (ne=elements, nv=views) [256,288]\n");
-  printf("    -s span,maxrd   : set span and maxrd values [9,67]\n");
-  printf("    -g p,d,t        : adjust physical parameters (pitch, diameter, thickmess)\n");
-  printf("    -k              : use Koln HRRT geometry (default to normal)\n");
-  printf("    -T tau          : time window parameter [6.0 10-9 sec]\n");
-  // ahc
-  // printf("  * -r rebinner_file: Full path of 'hrrt_rebinner.lut' file (required)\n");
-  exit(1);
-}
+// static void usage(const char *prog) {
+//   printf("%s - generate delayed coincidence data from crystal singles\n", prog);
+//   printf("usage: gen_delays -h coincidence_histogram -O delayed_coincidence_file -t count_time <other switches>\n");
+//   printf("    -v              : verbose\n");
+//   printf("    -C csingles     : old method specifying precomputed crystal singles data\n");
+//   printf("    -p ne,nv        : set sinogram size (ne=elements, nv=views) [256,288]\n");
+//   printf("    -s span,maxrd   : set span and maxrd values [9,67]\n");
+//   printf("    -g p,d,t        : adjust physical parameters (pitch, diameter, thickmess)\n");
+//   printf("    -k              : use Koln HRRT geometry (default to normal)\n");
+//   printf("    -T tau          : time window parameter [6.0 10-9 sec]\n");
+//   // ahc
+//   // printf("  * -r rebinner_file: Full path of 'hrrt_rebinner.lut' file (required)\n");
+//   exit(1);
+// }
 
 int compute_delays(int mp, float **delays_data, float *csings) {
   std::array<float, 104> dz2;
@@ -201,7 +199,7 @@ void compute_drate(float *t_srate, float t_tau, std::array<float, SIZE> &t_drate
   }
 }
 
-void estimate_srate(float *drate, float tau, float *srate) {
+void estimate_srate(std::array<float, GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS> const &drate, float tau, float *srate) {
   float hsum[GeometryInfo::NHEADS];
 
   // First we compute the total singles rates for each of the heads...
@@ -223,7 +221,7 @@ void estimate_srate(float *drate, float tau, float *srate) {
   for (int head = 0; head < GeometryInfo::NHEADS; head++) {
     float ohead_sum = 0.0;
     for (int j = 0; j < 5; j++) {
-      ohead = (head + j + 2) % GeometryInfo::NHEADS;
+      int ohead = (head + j + 2) % GeometryInfo::NHEADS;
       ohead_sum += hsum[ohead];
     }
     for (int layer = 0; layer < GeometryInfo::NDOIS; layer++)
@@ -250,23 +248,25 @@ template<std::size_t SIZE>
 int errtotal(int *ich, std::array<float, SIZE> const &srate, int nvals, float dt) {
   int errsum = 0;
 
-  for (iint  = 0; i < nvals; i++) {
+  for (int i = 0; i < nvals; i++) {
     int err = (int)(ich[i] - (0.5 + srate[i] * dt));
     errsum += err * err;
   }
   return (errsum);
 }
 
-int compute_csings_from_drates(int ncrys, int *dcoins, float tau, float dt, float *srates) {
-  std::array<float, ncrys> drates;
-  std::array<float, ncrys> xrates;
+int compute_csings_from_drates(int *dcoins, float tau, float dt, float *srates) {
+  constexpr int num_crystals = GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS;
+  std::array<float, num_crystals> drates;
+  std::array<float, num_crystals> xrates;
 
-  for (int i = 0; i < ncrys; i++)
+  for (int i = 0; i < num_crystals; i++)
     drates[i] = dcoins[i] / dt;
   compute_initial_srate(drates, tau, srates);
-  for (int iter = 0; iter < 100; iter++) {
+  int iter;
+  for (iter = 0; iter < 100; iter++) {
     compute_drate(srates, tau, xrates);  // compute the expected delayed rate
-    int err = errtotal(dcoins, xrates, ncrys, dt);       // compute the error
+    int err = errtotal(dcoins, xrates, num_crystals, dt);       // compute the error
     if (iter && (err == 0))
       break; // only stop when we converge
     estimate_srate(drates, tau, srates); // update the estimate
@@ -282,15 +282,15 @@ void *pt_compute_delays(void *ptarg) {
 }
 
 long int time_diff(struct timeval const &start, struct timeval const &stop) {
-  long int start_msec = t2.tv_sec * 1000 + (int)(double)t2.tv_usec / 1000.0;
-  long int stop_msec  = t2.tv_sec * 1000 + (int)(double)t2.tv_usec / 1000.0;
+  long int start_msec = start.tv_sec * 1000 + (int)(double)start.tv_usec / 1000.0;
+  long int stop_msec  = stop.tv_sec  * 1000 + (int)(double)stop.tv_usec  / 1000.0;
   long int diff_msec  = stop_msec - start_msec;
   return diff_msec;
 }
 
 // TODO reimplement this using std::shared_ptr<float> crystal_singles when I understand them better...
 
-int read_crystal_singles_file(int *csings) {
+int read_crystal_singles_file(float *csings) {
   if (!g_crystal_singles_file.empty()) {
     std::ifstream instream;
     instream.open(g_crystal_singles_file.string(), std::ifstream::in | std::ifstream::binary);
@@ -298,7 +298,7 @@ int read_crystal_singles_file(int *csings) {
       g_logger->error("Cound not open crystal singles file: {}", g_crystal_singles_file);
       return 1;
     }
-    int nbytes = GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * sizeof(int);
+    int nbytes = GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * sizeof(float);
     instream.read((char *)csings, nbytes);
     if (instream.fail()) {
       g_logger->error("Cound not read crystal singles file: {}", g_crystal_singles_file);
@@ -314,13 +314,13 @@ int read_crystal_singles_file(int *csings) {
 int read_coincidence_sinogram_file(int *t_coincidence_sinogram, FILE *t_coincidence_file_ptr) {
   FILE *fptr;
   if (t_coincidence_file_ptr == NULL)
-    fptr = fopen(g_coincidence_histogram_file, "rb");
+    fptr = fopen(g_coincidence_histogram_file.c_str(), "rb");
   else
     fptr = t_coincidence_file_ptr;
 
   if (!fptr) {
     if (t_coincidence_file_ptr) {
-      g_logger->error("Can't open supplied sinogram FILE")
+      g_logger->error("Can't open supplied sinogram FILE");
     } else {
       g_logger->error("Can't open coincidence histogram file {}", g_coincidence_histogram_file);
     }
@@ -476,45 +476,29 @@ int gen_delays(int is_inline,
   //-------------------------------------------------------
   // make singles. (load or estimate)
 
-  float *csings = (float*) calloc(GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, sizeof(float));
+  int num_crystals = GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS;
+  float *csings = (float*) calloc(num_crystals, sizeof(float));
   // TODO implement this as below.  Requires knowing how to read from a std::ifstream to a std::shared_ptr<float>
-  // std::shared_ptr<float> crystal_singles(new float[GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS], std::default_delete<int[]>());
+  // std::shared_ptr<float> crystal_singles(new float[num_crystals], std::default_delete<int[]>());
   if (read_crystal_singles_file(csings))
     exit(1);
 
-  if (g_coincidence_histogram_file || t_coincidence_file_ptr != NULL ) {
+  if (!g_coincidence_histogram_file.empty() || t_coincidence_file_ptr != NULL ) {
     // TODO reimplement this with shared_ptr and ifstream
-    int *coincidence_sinogram = (int*) calloc(GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * 2, sizeof(int)); // prompt followed by delayed
-    if (read_coincidence_sinogram_file(coincidence_sinogram))
+    int *coincidence_sinogram = (int*) calloc(num_crystals * 2, sizeof(int)); // prompt followed by delayed
+    if (read_coincidence_sinogram_file(coincidence_sinogram, t_coincidence_file_ptr))
       exit(1);
 
     gettimeofday(&t2, NULL);
-    // we only used the delayed coincidence_sinogram (coincidence_sinogram+GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS)vvvvvv
-    int niter = compute_csings_from_drates(GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, coincidence_sinogram + GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, tau, g_ftime, csings);
+    // we only used the delayed coincidence_sinogram (coincidence_sinogram+num_crystals)vvvvvv
+    int niter = compute_csings_from_drates(coincidence_sinogram + num_crystals, g_tau, g_ftime, csings);
     gettimeofday(&t3, NULL);
     printf("csings computed from drates in %d iterations (%ld msec)\n", niter, (((t3.tv_sec * 1000 ) + (int)((double)t3.tv_usec / 1000.0 ) ) - ((t2.tv_sec * 1000 ) + (int)((double)t2.tv_usec / 1000.0 ))));
     free(coincidence_sinogram);
-    if (output_csings_file) {
-      fptr = fopen(output_csings_file, "wb");
-      if (!fptr) printf("ERROR - unable to save computed singles data to '%s'...continuing\n",
-                          output_csings_file);
-      else {
-        fwrite(csings, sizeof(float), GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, fptr);
-        fclose(fptr);
-        printf("Computed Singles (from Delayed Coincidence Histogram) stored in '%s'\n",
-               output_csings_file);
-      }
-    }
-  }
-
-  //-------------------------------------------------------
-  // check if the delay_file is writable.
-  if (is_inline < 2) {
-    fptr = fopen(delays_file, "wb");
-    if (!fptr) {
-      fprintf(stdout, "Can't create delayed coincidence output file '%s'\n", delays_file);
-      exit(1);
-    }
+    if (!g_output_csings_file.empty())
+      // write_output_csings_file(csings);
+      if hrrt_util::write_binary_file<float>(csings, num_crystals, g_output_csings_file, "Singles from delayed coincidence histogram")
+        exit(1);
   }
 
   //-------------------------------------------------------
@@ -585,7 +569,9 @@ int gen_delays(int is_inline,
       dtmp[n] = delays_data[n][i];
     }
     if (is_inline < 2) {
-      fwrite(dtmp, sizeof(float), nsino, fptr);
+      if hrrt_util::write_binary_file<float>(dtmp, nsino, g_delayed_coincidence_file, "Delayed coincidence");
+        exit(1);
+      // write_delays_file(dtmp, nsino);
     } else {
       int n = 0;
       for (int j = 0; j < m_nviews; j++) {
@@ -603,9 +589,6 @@ int gen_delays(int is_inline,
   }
   free(delays_data);
   free(dtmp);
-  if (is_inline < 2) {
-    fclose(fptr);
-  }
 
   gettimeofday(&t3, NULL);
   int dtime3 = (((t3.tv_sec * 1000 ) + (int)((double)t3.tv_usec / 1000.0 ) ) - ((t2.tv_sec * 1000 ) + (int)((double)t2.tv_usec / 1000.0 ) ) ) ;
@@ -613,5 +596,133 @@ int gen_delays(int is_inline,
   printf("...stored to disk in %d msec.\n", dtime3);
   printf("Total time %d msec.\n", dtime4);
   return 1;
+}
+
+void init_logging(void) {
+  if (g_logfile.length() == 0) {
+    g_logfile = fmt::format("{}_gen_delays.log", hrrt_util::time_string());
+  }
+  g_logger = spdlog::basic_logger_mt("basic_logger", g_logfile);
+}
+
+
+void on_rebinner(std::string const &instring) {
+  g_rebinner_lut_file = boost::filesystem::path(instring);
+}
+
+void on_coincidence(std::string const &instring) {
+  g_coincidence_histogram_file = boost::filesystem::path(instring);
+}
+
+void on_csingles(std::string const &instring) {
+  g_crystal_singles_file = boost::filesystem::path(instring);
+}
+
+void on_delay(std::string const &instring) {
+  g_delayed_coincidence_file = boost::filesystem::path(instring);
+}
+
+void on_outsing(std::string const &instring) {
+  g_output_csings_file = boost::filesystem::path(instring);
+}
+
+/**
+ * @brief      Parse sino size string
+ * @param      instring  'elements/projections,views' (ints)
+ */
+
+void on_sino_size(std::string const &instring) {
+  bx::sregex re_size = bx::sregex::compile("(?P<nelements>[0-9]+)\\,(<?P<nviews>[0-9]+)");
+  bx::smatch match;
+
+  if (bx::regex_match(instring, match, re_skip)) {
+    g_num_elems = boost::lexical_cast<int>(match["nelements"]);
+    g_num_views = boost::lexical_cast<int>(match["nviews"]);
+  } else {
+    g_logger->error("Invalid sino size string: {}", instring);
+    exit(1);
+  }
+}
+
+/**
+ * @brief      Parse span string
+ * @param      instring  'span,maxrd' (ints)
+ */
+
+void on_span(std::string const &instring) {
+  bx::sregex re_size = bx::sregex::compile("(?P<span>[0-9]+)\\,(<?P<ringdiff>[0-9]+)");
+  bx::smatch match;
+
+  if (bx::regex_match(instring, match, re_skip)) {
+    g_span         = boost::lexical_cast<int>(match["span"]);
+    g_max_ringdiff = boost::lexical_cast<int>(match["ringdiff"]);
+  } else {
+    g_logger->error("Invalid span,ringdiff string: {}", instring);
+    exit(1);
+  }
+}
+
+/**
+ * @brief      Parse input geometry
+ * @param      instring  'pitch,diameter,thickness' (floats)
+ */
+
+void on_geometry(std::string const &instring) {
+  bx::sregex re_size = bx::sregex::compile("(?P<pitch>[0-9]+\\.[0-9]+)\\,(<?P<diam>[0-9]+\\.[0-9]+)\\,(<?P<thick>[0-9]+\\.[0-9]+)");
+  bx::smatch match;
+
+  if (bx::regex_match(instring, match, re_skip)) {
+    g_pitch = boost::lexical_cast<float>(match["pitch"]);
+    g_diam  = boost::lexical_cast<float>(match["diam"]);
+    g_thick = boost::lexical_cast<float>(match["thick"]);
+  } else {
+    g_logger->error("Invalid pitch,diam,thick string: {}", instring);
+    exit(1);
+  }
+}
+
+void parse_args(int argc, char **argv) {
+  try {
+    po::options_description desc("Options");
+    desc.add_options()
+      ("help,h", "Show options")
+      ("time,t"        , po::value<float>(&g_ftime)->required()                         , "Count time")
+      ("rebinner,r"    , po::value<std::string>()->notifier(on_rebinner)->required()    , "Full path of rebinner LUT file")
+      ("coins,h"       , po::value<std::string>()->notifier(on_coincidence)->required() , "Coincidence histogram file")
+      ("delays,O"      , po::value<std::string>()->notifier(on_delay)->required()       , "Delayed coincidence file")
+      ("sino_size,p"   , po::value<std::string>()->notifier(on_sino_size)               , fmt::format("sinogram size 'nelements,nviews' ({},{})", GeometryInfo::NUM_ELEMS, GeometryInfo::NUM_VIEWS))
+      ("span,s"        , po::value<std::string>()->notifier(on_span)                    , fmt::format("span,maxrd ({},{})", 9, GeometryInfo::MAX_RINGDIFF))
+      ("geometry,g"    , po::value<std::string>()->notifier(on_geometry)                , "geometry 'pitch,diam,thick'")
+      ("csingles,C"    , po::value<std::string>()->notifier(on_csingles)                , "Crystal singles file; old method specifying precomputed crystal singles data")
+      ("outsing,S"     , po::value<std::string>()->notifier(on_outsing)                 , "Output crystal singles file")
+      ("tau,T"         , po::value<float>(&g_tau)                                       , "time window parameter (6.0 10-9 sec)" )
+    ;
+    po::positional_options_description pos_opts;
+    pos_opts.add("infile", 1);
+
+    po::variables_map vm;
+    po::store(
+      po::command_line_parser(argc, argv)
+      .options(desc)
+      .style(po::command_line_style::unix_style | po::command_line_style::allow_long_disguise)
+      .positional(pos_opts)
+      .run(), vm
+    );
+    po::notify(vm);
+    if (vm.count("help"))
+      std::cout << desc << '\n';
+  }
+  catch (const po::error &ex) {
+    std::cerr << ex.what() << std::endl;
+  }
+}
+
+
+int main(int argc, char* argv[]) {
+  init_logging();
+  parse_args(argc, argv);
+  // gen_delays is expecting to see all the globals.  Bring it in this file or pass them explicitly.
+  gen_delays(0, 0.0f, NULL, NULL, NULL, g_span, g_max_ringdiff, g_rebinner_lut_file);
+  return 0;
 }
 

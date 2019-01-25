@@ -101,7 +101,8 @@ void main(int argc, char ** argv)
 	struct _stat st1, st2;
   FILE *fp1=NULL, *fp2=NULL;
   // const char *rebinner_lut_file=NULL;
-  int *m_segzoffset=NULL;
+  // int *m_segzoffset=NULL;
+  std::vector<int> m_segzoffset;
   int mp, al, bl, ax, axx, bx, bxx, idx;
   float d_theta=1.0, plane_sep=1.21875f, crystal_radius=234.5f;
 

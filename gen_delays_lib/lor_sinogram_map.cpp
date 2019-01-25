@@ -27,26 +27,6 @@ SOL ***solution_tx_[2];
 
 string const LUT_FILENAME_ENVT_VAR = 'LUT_FILENAME';
 
-// ahc this is duplicate
-
-int open_ostream(std::ofstream &t_outs, const bf::path &t_path, std::ios_base::openmode t_mode) {
-  t_outs.open(t_path.string(), t_mode);
-  if (!t_outs.is_open()) {
-    g_logger->error("Could not open output file {}", t_path);
-    return 1;
-  }
-  return 0;
-}
-
-int open_istream(std::ifstream &t_ins, const bf::path &t_path, std::ios_base::openmode t_mode) {
-  t_ins.open(t_path.string(), t_mode);
-  if (!t_ins.is_open()) {
-    g_logger->error("Could not open input file {}", t_path);
-    return 1;
-  }
-  return 0;
-}
-
 // ahc 1/22/19
 
 /**
@@ -248,7 +228,7 @@ void init_sol(int *segzoffset)
 }
 
 
-int init_lut_sol(int *segzoffset) {
+int init_lut_sol(std::vector<int> const &segzoffset) {
   std::shared_ptr<spdlog::logger> logger = spdlog::get("HRRT");  // Must define logger named HRRT in your main application
   bf::path lut_filename = get_lut_filename();
   if (!bf::exits(lut_filename)) 
@@ -259,7 +239,7 @@ int init_lut_sol(int *segzoffset) {
   }
 
   std::ifstream instream;
-  if (open_istream(lut_filename, instream, std::ifstream::in | std::ifstream::binary)) {
+  if (hrrt_util::open_istream(lut_filename, instream, std::ifstream::in | std::ifstream::binary)) {
     logger->error("Could not open LUT file {}", lut_filename.string());
     exit(1);
   }
@@ -283,7 +263,7 @@ int init_lut_sol(int *segzoffset) {
     }
   }
 
-  if (segzoffset == NULL) {
+  if (segzoffset.empty()) {
     instream.close();
     return 1;
   }
@@ -334,7 +314,7 @@ int save_lut_sol(bf::path const &lut_filename) {
 
   if (solution_ != NULL) {
     std::ofstream outstream;
-    if (open_ostream(lut_filename, outstream, std::ifstream::out | std::ifstream::binary))
+    if (hrrt_util::open_ostream(lut_filename, outstream, std::ifstream::out | std::ifstream::binary))
       return 0;
     for (int i = 1; i <= 20; i++)    {
       for (int ax = 0; ax < GeometryInfo::NUM_CRYSTALS_X_DOIS; ax++) {
@@ -426,7 +406,7 @@ int save_lut_sol_tx(bf::path const &lut_filename) {
   std::shared_ptr<spdlog::logger> logger = spdlog::get("HRRT");  // Must define logger named HRRT in your main application
 
   std::ofstream outstream;
-  if (open_ostream(lut_filename, outstream, std::ifstream::out | std::ifstream::binary))
+  if (hrrt_util::open_ostream(lut_filename, outstream, std::ifstream::out | std::ifstream::binary))
     return 0;
   for (int i = 1; i <= GeometryInfo::NMPAIRS; i++) {
     for (int ax = 0; ax < GeometryInfo::NUM_CRYSTALS_X_DOIS; ax++) {
@@ -454,7 +434,7 @@ int init_lut_sol_tx(void) {
     return 1;
 
   std::ifstream instream;
-  if (open_istream(lut_filename, instream, std::ifstream::in | std::ifstream::binary))
+  if (hrrt_util::open_istream(lut_filename, instream, std::ifstream::in | std::ifstream::binary))
     exit(1);
 
   // Initialize and populate solution if NULL
