@@ -1094,16 +1094,16 @@ int main(int argc, char **argv) {
         if (sscanf(optarg, "%f", &min_rmse) != 1) crash("invalid -M argument");
         break;
       case 'L':   // low resolution
-        if (sscanf( optarg, "%d", &LR_type) != 1) crash("invalid -L argument");
-        if (LR_type != LR_20 && LR_type != LR_24) {
-          g_logger->error("Invalid LR mode {}", LR_type);
+        if (sscanf( optarg, "%d", &GeometryInfo::lr_type_) != 1) crash("invalid -L argument");
+        if (GeometryInfo::lr_type_ != LR_20 && GeometryInfo::lr_type_ != LR_24) {
+          g_logger->error("Invalid LR mode {}", GeometryInfo::lr_type_);
           usage(argv[0]);
         }
         span = 7;
         maxrd_ = 38;
         nviews = 144;
         nrings = NYCRYS / 2;
-        if (LR_type == LR_20) 
+        if (GeometryInfo::lr_type_ == LR_20) 
           nprojs = 160;
         else 
           nprojs = 128;
@@ -1390,7 +1390,7 @@ int main(int argc, char **argv) {
 
   fix_back_layer_ce();
 
-  if (LR_type == 0) {
+  if (GeometryInfo::lr_type_ == 0) {
     calibration_scale = 9.0f / span; // 3 for span 3 and 1.0 for span9
     g_logger->info( "Normalization span = {}, max_rd = {}, calibration scale = {}", span, maxrd_, calibration_scale);
   } else {

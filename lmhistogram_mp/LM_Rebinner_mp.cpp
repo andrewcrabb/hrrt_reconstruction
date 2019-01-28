@@ -119,7 +119,7 @@ int LM_Rebinner::init_rebinner(int &t_span, int &t_max_ringdiff) {
         cout << "Tramsission mode: using default span " << t_span << endl;
       }
       tx_span = t_span;
-      if (GeometryInfo::LR_type > GeometryInfo::LR_Type::LR_0 ) {
+      if (GeometryInfo::lr_type_ > GeometryInfo::LR_Type::LR_0 ) {
         t_span = t_span / 2 + 1; // 21==>11; 9==>5
         cout << "Low Resolution mode: span changed to " << t_span << endl;
       }

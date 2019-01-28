@@ -16,13 +16,14 @@ namespace bf = boost::filesystem;
 
 namespace lor_sinogram {
 
-typedef struct {
+struct SOL {
   int    nsino;
   float d;
   float z; //plane
-} SOL;
+};
 
-static std::string const LUT_FILENAME_ENVT_VAR;
+std::string const LUT_FILENAME_ENVT_VAR = "LUT_FILENAME";
+// static std::string const LUT_FILENAME_ENVT_VAR;
 
 extern short **m_segplane;
 extern float *m_c_zpos;  // "physical z position" of Ycrys index.

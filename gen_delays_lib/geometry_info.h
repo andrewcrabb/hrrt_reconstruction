@@ -11,6 +11,7 @@
 #include <istream>
 #include <vector>
 #include <array>
+#include <map>
 
 // Allow Boost program_options to parse an LR_Type
 // https://stackoverflow.com/questions/5211988/boost-custom-validator-for-enum
@@ -24,7 +25,7 @@ enum class LR_Type {
   MAX_LR_TYPE  // Use this to implement range checks
 };
 extern std::istream& operator>>(std::istream& t_in, LR_Type& t_lr_type);
-extern LR_Type LR_type;
+extern LR_Type lr_type_;
 
 const int NUM_ELEMS = 256;
 const int NUM_VIEWS = 288;
@@ -72,12 +73,11 @@ const std::vector<std::vector<int>> HRRT_MPAIRS{{-1,-1},{0,2},{0,3},{0,4},{0,5},
                                                 {5,7}};
 
 struct LR_Geom {
-    int nprojs;
-    int nviews;
-    double binsize;
-    int plane_sep;
+    int   nprojs;
+    int   nviews;
+    float binsize;
+    float plane_sep;
 };
-// extern const std::vector<LR_Geom> lr_geometries_;
 extern const std::map<LR_Type, LR_Geom> lr_geometries_;
 
 // Move methods into the namespace as they are processed by the Great Rewrite of 2018-19

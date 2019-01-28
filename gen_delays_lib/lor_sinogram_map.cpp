@@ -12,9 +12,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "spdlog/spdlog.h"
+#include "my_spdlog.hpp"
+
 #include "segment_info.h"
 #include "geometry_info.h"
 #include "lor_sinogram_map.h"
+#include "hrrt_util.hpp"
 
 namespace lor_sinogram {
 
@@ -25,7 +29,7 @@ short **m_segplane = NULL;
 SOL ***solution_ = NULL;
 SOL ***solution_tx_[2];
 
-string const LUT_FILENAME_ENVT_VAR = 'LUT_FILENAME';
+// std::string const LUT_FILENAME_ENVT_VAR = "LUT_FILENAME";
 
 // ahc 1/22/19
 
@@ -42,7 +46,7 @@ bf::path get_lut_filename(void) {
   bf::path lut_filename;
   std::shared_ptr<spdlog::logger> logger = spdlog::get("HRRT");  // Must define logger named HRRT in your main application
 
-  if (const char *env_p = std::getenv(LUT_FILENAME_ENVT_VAR)) {
+  if (const char *env_p = std::getenv(LUT_FILENAME_ENVT_VAR.c_str())) {
     bf::path env_path{env_p};
     if (bf::exists(env_path)) {
       logger->debug("Using LUT filename {} from environment variable {}", env_path.string(), LUT_FILENAME_ENVT_VAR);
@@ -195,11 +199,11 @@ void init_sol(int *segzoffset)
       for (int al = 0; al < GeometryInfo::NDOIS; al++) { //layer
         for (int ax = 0; ax < GeometryInfo::NXCRYS; ax++) { //x축
           int axx = ax + GeometryInfo::NXCRYS * al;       //x축+레이어
-          det_to_phy( ahead, al, ax, 0, deta_pos);
+          GeometryInfo::det_to_phy( ahead, al, ax, 0, deta_pos);
           for (int bl = 0; bl < GeometryInfo::NDOIS; bl++) {
             for (int bx = 0; bx < GeometryInfo::NXCRYS; bx++) {
               int bxx = bx + GeometryInfo::NXCRYS * bl;
-              det_to_phy( bhead, bl, bx, 0, detb_pos);
+              GeometryInfo::det_to_phy( bhead, bl, bx, 0, detb_pos);
               init_phy_to_pro(deta_pos, detb_pos, &solution_[i][axx][bxx]);
             }
           }
@@ -209,7 +213,7 @@ void init_sol(int *segzoffset)
   }
   printf("\n");
   for (int i = 0; i < GeometryInfo::NYCRYS; i++) {
-    det_to_phy( 0, 0, 0, i, deta_pos);
+    GeometryInfo::det_to_phy( 0, 0, 0, i, deta_pos);
     m_c_zpos[i] = deta_pos[2];
     m_c_zpos2[i] = (float)(deta_pos[2] / GeometryInfo::plane_sep_ + 0.5);
   }
@@ -231,16 +235,16 @@ void init_sol(int *segzoffset)
 int init_lut_sol(std::vector<int> const &segzoffset) {
   std::shared_ptr<spdlog::logger> logger = spdlog::get("HRRT");  // Must define logger named HRRT in your main application
   bf::path lut_filename = get_lut_filename();
-  if (!bf::exits(lut_filename)) 
+  if (!bf::exists(lut_filename)) 
     return 1;
   if (solution_ != NULL) {
-    logger->error("solution_ not NULL");
+    LOG_ERROR(logger, "solution_ not NULL");
     return 1;
   }
 
   std::ifstream instream;
-  if (hrrt_util::open_istream(lut_filename, instream, std::ifstream::in | std::ifstream::binary)) {
-    logger->error("Could not open LUT file {}", lut_filename.string());
+  if (hrrt_util::open_istream(instream, lut_filename, std::ifstream::in | std::ifstream::binary)) {
+    LOG_ERROR(logger, "Could not open LUT file {}", lut_filename.string());
     exit(1);
   }
 
@@ -256,7 +260,7 @@ int init_lut_sol(std::vector<int> const &segzoffset) {
         instream.read((char *)solution_[i][ax], sizeof(SOL) * GeometryInfo::NUM_CRYSTALS_X_DOIS);
         if (!instream.good()) {
           instream.close();
-          logger->error("instream not good for {}", lut_filename.string());
+          LOG_ERROR(logger, "instream not good for {}", lut_filename.string());
           return 0;  // TODO really return 0 on error?
         }
       }
@@ -279,14 +283,14 @@ int init_lut_sol(std::vector<int> const &segzoffset) {
   // if (fread(m_c_zpos,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
   instream.read((char *)m_c_zpos, sizeof(float) * GeometryInfo::NYCRYS);
   if (!instream.good()) {
-    logger->error("instream not good for {}", lut_filename.string());
+    LOG_ERROR(logger, "instream not good for {}", lut_filename.string());
     instream.close();
     return 0;
   }
   // if (fread(m_c_zpos2,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
   instream.read((char *)m_c_zpos2, sizeof(float) * GeometryInfo::NYCRYS);
   if (!instream.good()) {
-    logger->error("instream not good for {}", lut_filename.string());
+    LOG_ERROR(logger, "instream not good for {}", lut_filename.string());
     instream.close();
     return 0;
   }
@@ -314,31 +318,31 @@ int save_lut_sol(bf::path const &lut_filename) {
 
   if (solution_ != NULL) {
     std::ofstream outstream;
-    if (hrrt_util::open_ostream(lut_filename, outstream, std::ifstream::out | std::ifstream::binary))
+    if (hrrt_util::open_ostream(outstream, lut_filename, std::ifstream::out | std::ifstream::binary))
       return 0;
     for (int i = 1; i <= 20; i++)    {
       for (int ax = 0; ax < GeometryInfo::NUM_CRYSTALS_X_DOIS; ax++) {
         // if (fwrite(solution_[i][ax],sizeof(SOL),GeometryInfo::NUM_CRYSTALS_X_DOIS, fp) != GeometryInfo::NUM_CRYSTALS_X_DOIS)
-        outstream.write(solution_[i][ax], sizeof(SOL) *GeometryInfo::NUM_CRYSTALS_X_DOIS);
+        outstream.write(reinterpret_cast<char *>(solution_[i][ax]), sizeof(SOL) * GeometryInfo::NUM_CRYSTALS_X_DOIS);
         if (!outstream.good()) {
-          logger->error("outstream not good for {}", lut_filename.string());
-          outstream.close()
+          LOG_ERROR(logger, "outstream not good for {}", lut_filename.string());
+          outstream.close();
           return 0;
         }
       }
     }
     // if (fwrite(m_c_zpos,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
-    outstream.write(m_c_zpos, sizeof(float) * GeometryInfo::NYCRYS);
+    outstream.write(reinterpret_cast<char*>(m_c_zpos), sizeof(float) * GeometryInfo::NYCRYS);
     if (!outstream.good()) {
-          logger->error("outstream not good for {}", lut_filename.string());
-      outstream.close()
+          LOG_ERROR(logger, "outstream not good for {}", lut_filename.string());
+      outstream.close();
       return 0;
     }
     // if (fwrite(m_c_zpos2,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
-    outstream.write(m_c_zpos, sizeof(float) * GeometryInfo::NYCRYS);
+    outstream.write(reinterpret_cast<char*>(m_c_zpos2), sizeof(float) * GeometryInfo::NYCRYS);
     if (!outstream.good()) {
-          logger->error("outstream not good for {}", lut_filename.string());
-      outstream.close()
+          LOG_ERROR(logger, "outstream not good for {}", lut_filename.string());
+      outstream.close();
       return 0;
     }
     outstream.close();
@@ -349,7 +353,7 @@ int save_lut_sol(bf::path const &lut_filename) {
 void init_sol_tx(int tx_span) {
   float deta_pos[3], detb_pos[3];
 
-  m_d_tan_theta = (float)(tx_span * GeometryInfo::plane_sep_ / GeometryInfo::crystal_radius_);
+  SegmentInfo::m_d_tan_theta = (float)(tx_span * GeometryInfo::plane_sep_ / GeometryInfo::crystal_radius_);
   // Initialize and populate solution if NULL
   // TX m_sol
   //solution_ = phi(=view angle)
@@ -376,9 +380,9 @@ void init_sol_tx(int tx_span) {
     for (int al = 0; al < GeometryInfo::NDOIS; al++) { //layer
       for (int ax = 0; ax < GeometryInfo::NXCRYS; ax++) { //x축
         int axx = ax + GeometryInfo::NXCRYS * al;       //x축+레이어
-        det_to_phy( ahead, al, ax, 0, deta_pos);
+        GeometryInfo::det_to_phy( ahead, al, ax, 0, deta_pos);
         for (int bx = 0; bx < GeometryInfo::NXCRYS; bx++) {
-          det_to_phy( bhead, 7, bx, 0, detb_pos);
+          GeometryInfo::det_to_phy( bhead, 7, bx, 0, detb_pos);
           init_phy_to_pro(deta_pos, detb_pos, &solution_tx_[0][i][axx][bx]);
         }
       }
@@ -390,11 +394,11 @@ void init_sol_tx(int tx_span) {
     int ahead = GeometryInfo::HRRT_MPAIRS[i][0];
     int bhead = GeometryInfo::HRRT_MPAIRS[i][1];
     for (int ax = 0; ax < GeometryInfo::NXCRYS; ax++) { //x축
-      det_to_phy( ahead, 7, ax, 0, deta_pos);
+      GeometryInfo::det_to_phy( ahead, 7, ax, 0, deta_pos);
       for (int bl = 0; bl < GeometryInfo::NDOIS; bl++) { //layer
         for (int bx = 0; bx < GeometryInfo::NXCRYS; bx++) {
           int bxx = bx + GeometryInfo::NXCRYS * bl;
-          det_to_phy( bhead, bl, bx, 0, detb_pos);
+          GeometryInfo::det_to_phy( bhead, bl, bx, 0, detb_pos);
           init_phy_to_pro(deta_pos, detb_pos, &solution_tx_[1][i][bxx][ax]);
         }
       }
@@ -406,17 +410,17 @@ int save_lut_sol_tx(bf::path const &lut_filename) {
   std::shared_ptr<spdlog::logger> logger = spdlog::get("HRRT");  // Must define logger named HRRT in your main application
 
   std::ofstream outstream;
-  if (hrrt_util::open_ostream(lut_filename, outstream, std::ifstream::out | std::ifstream::binary))
+  if (hrrt_util::open_ostream(outstream, lut_filename, std::ifstream::out | std::ifstream::binary))
     return 0;
   for (int i = 1; i <= GeometryInfo::NMPAIRS; i++) {
     for (int ax = 0; ax < GeometryInfo::NUM_CRYSTALS_X_DOIS; ax++) {
       // if (fwrite(solution_tx_[0][i][ax], sizeof(SOL), GeometryInfo::NXCRYS, fp) != GeometryInfo::NXCRYS ||
       //     fwrite(solution_tx_[1][i][ax], sizeof(SOL), GeometryInfo::NXCRYS, fp) != GeometryInfo::NXCRYS)
-        outstream.write(solution_tx_[0][i][ax], sizeof(SOL) * GeometryInfo::NXCRYS);
-        outstream.write(solution_tx_[1][i][ax], sizeof(SOL) * GeometryInfo::NXCRYS);
+        outstream.write(reinterpret_cast<char *>(solution_tx_[0][i][ax]), sizeof(SOL) * GeometryInfo::NXCRYS);
+        outstream.write(reinterpret_cast<char *>(solution_tx_[1][i][ax]), sizeof(SOL) * GeometryInfo::NXCRYS);
         if (!outstream.good()) {
-          logger->error("outstream not good for {}", lut_filename.string());
-        fclose(fp);
+          LOG_ERROR(logger, "outstream not good for {}", lut_filename.string());
+          outstream.close();
         return 0;
       }
     }
@@ -428,13 +432,13 @@ int save_lut_sol_tx(bf::path const &lut_filename) {
 int init_lut_sol_tx(void) {
   std::shared_ptr<spdlog::logger> logger = spdlog::get("HRRT");  // Must define logger named HRRT in your main application
   bf::path lut_filename = get_lut_filename();
-  if (!bf::exits(lut_filename)) 
+  if (!bf::exists(lut_filename)) 
     return 1;
   if (solution_ != NULL) 
     return 1;
 
   std::ifstream instream;
-  if (hrrt_util::open_istream(lut_filename, instream, std::ifstream::in | std::ifstream::binary))
+  if (hrrt_util::open_istream(instream, lut_filename, std::ifstream::in | std::ifstream::binary))
     exit(1);
 
   // Initialize and populate solution if NULL
@@ -450,10 +454,10 @@ int init_lut_sol_tx(void) {
         solution_tx_[1][i][ax] = (SOL *) calloc(GeometryInfo::NXCRYS, sizeof(SOL));
         // if (fread(solution_tx_[0][i][ax], sizeof(SOL), GeometryInfo::NXCRYS, fp) != GeometryInfo::NXCRYS ||
         //     fread(solution_tx_[1][i][ax], sizeof(SOL), GeometryInfo::NXCRYS, fp) != GeometryInfo::NXCRYS)
-          instream.read(solution_tx_[0][i][ax], sizeof(SOL) * GeometryInfo::NXCRYS);
-          instream.read(solution_tx_[1][i][ax], sizeof(SOL) * GeometryInfo::NXCRYS);
+          instream.read(reinterpret_cast<char *>(solution_tx_[0][i][ax]), sizeof(SOL) * GeometryInfo::NXCRYS);
+          instream.read(reinterpret_cast<char *>(solution_tx_[1][i][ax]), sizeof(SOL) * GeometryInfo::NXCRYS);
           if (!instream.good()) {
-          logger->error("instream not good for {}", lut_filename.string());
+          LOG_ERROR(logger, "instream not good for {}", lut_filename.string());
           instream.close();
           return 0;
         }

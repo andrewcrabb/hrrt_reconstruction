@@ -48,8 +48,10 @@ void init_seginfo( int t_nrings, int t_span, int t_maxrd, int *t_nplanes, double
   int num_planes = 2 * t_nrings - 1;
   int sp2 = (t_span + 1) / 2;
 
-  std::array<int, *nsegs> segnz;
-  std::array<int, *nsegs> segzoff;
+  std::vector<int> segnz;
+  std::vector<int> segzoff;
+  segnz.reserve(nsegs);
+  segzoff.reserve(nsegs);
 
   // SegmentInfo::m_segz0   = (int*)( malloc( *nsegs*sizeof(int)));
   // SegmentInfo::m_segzmax = (int*) malloc( *nsegs*sizeof(int));

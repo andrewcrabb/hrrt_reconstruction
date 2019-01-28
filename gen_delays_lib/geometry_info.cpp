@@ -68,15 +68,17 @@ LR_Type to_lrtype(int intval) {
 }
 
 // Define and initialize variables declared in header
-LR_Type LR_type = LR_Type::LR_0;
+LR_Type lr_type_ = LR_Type::LR_0;
 std::array<float, NHEADS> head_crystal_depth_;
 std::array<double, NUM_CRYSTALS_X_Y_HEADS_DOIS> crystal_xpos_;
 std::array<double, NUM_CRYSTALS_X_Y_HEADS_DOIS> crystal_ypos_;
 std::array<double, NUM_CRYSTALS_X_Y_HEADS_DOIS> crystal_zpos_;
 
+
+// LR_Type: int nprojs, int nviews, float binsize, float plane_sep
 const std::map<LR_Type, LR_Geom> lr_geometries_ = {
   {LR_Type::LR_0 , {256, 288, PITCH / 2.0, PITCH / 2.0}},
-  {LR_Type::LR_20, {160, 144, 0.2f                     , PITCH      }},
+  {LR_Type::LR_20, {160, 144, 0.2f       , PITCH      }},
   {LR_Type::LR_24, {128, 144, PITCH      , PITCH      }}
   };
 
@@ -175,9 +177,10 @@ void init_geometry_hrrt (float cpitch, float diam, float thick) {
   }
   crystal_radius_ = rdiam / 2.0;
   crystal_x_pitch_ = crystal_y_pitch_ = pitch;
-  nprojs_ = lr_geometries_[LR_type].nprojs;
-  nviews_ = lr_geometries_[LR_type].nviews;
-  switch (LR_type) {
+  const LR_Geom geom = lr_geometries_.at(lr_type_);
+  nprojs_ = geom.nprojs;
+  nviews_ = geom.nviews;
+  switch (lr_type_) {
   case LR_Type::LR_0:
     binsize_   = pitch / 2.0;
     plane_sep_ = pitch / 2.0;
@@ -190,9 +193,11 @@ void init_geometry_hrrt (float cpitch, float diam, float thick) {
     binsize_   = pitch;
     plane_sep_ = pitch;
     break;
+  default:  // FOR MAX
+    break;
   }
 
-  head_crystal_depth_.assign(NHEADS, lthick);
+  head_crystal_depth_.fill(lthick);
   printf("  layer_thickness = %0.4f cm\n", lthick);
 
   float pos[3];

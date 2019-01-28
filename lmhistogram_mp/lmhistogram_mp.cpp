@@ -212,7 +212,7 @@ template <class T> int init_sino(T *sino, int t_span) {
   if (g_hist_mode != HISTOGRAM_MODE::TRA) {
     // emission
     g_logger->debug("Using HRRT Emission: g_hist_mode = {}", g_hist_mode);
-    g_num_sino = (GeometryInfo::LR_type == GeometryInfo::LR_Type::LR_0) ? NUM_SINOS[t_span] : LR_NSINOS[t_span];
+    g_num_sino = (GeometryInfo::lr_type_ == GeometryInfo::LR_Type::LR_0) ? NUM_SINOS[t_span] : LR_NSINOS[t_span];
     g_sinogram_size = GeometryInfo::nprojs_ * GeometryInfo::nviews_ * g_num_sino;
     if (g_hist_mode == HISTOGRAM_MODE::PRO_RAN) {
       // prompts and delayed
@@ -221,7 +221,7 @@ template <class T> int init_sino(T *sino, int t_span) {
   } else {
     // transmission
     g_logger->debug("XX Using HRRT Transmission, g_hist_mode = {}", g_hist_mode);
-    g_num_sino = (GeometryInfo::LR_type == GeometryInfo::LR_Type::LR_0) ? NUM_SINOS[0] : LR_NSINOS[0];
+    g_num_sino = (GeometryInfo::lr_type_ == GeometryInfo::LR_Type::LR_0) ? NUM_SINOS[0] : LR_NSINOS[0];
     g_sinogram_size = GeometryInfo::nprojs_ * GeometryInfo::nviews_ * g_num_sino;
     sinogram_subsize = g_sinogram_size; // mock memory
   }
@@ -303,8 +303,8 @@ void on_lut_file(const std::string &lutfile) {
 }
 
 void on_lrtype(int intval) {
-  LR_type t = GeometryInfo::to_lrtype(intval, good_vals);
-  GeometryInfo::LR_type = t;
+  LR_Type t = GeometryInfo::to_lrtype(intval, good_vals);
+  GeometryInfo::lr_type_ = t;
   g_span = 7;
   g_max_rd = 38;
 }
@@ -1018,9 +1018,9 @@ void create_hrrt_sinogram_header(CHeader &hdr) {
   hdr.WriteChar(CHeader::ORIGINATING_SYSTEM      , "HRRT");
   hdr.WritePath(CHeader::NAME_OF_DATA_FILE       , g_out_fname_sino);
   hdr.WriteInt(CHeader::NUMBER_OF_DIMENSIONS     , 3);
-  hdr.WriteInt(CHeader::MATRIX_SIZE_1            , num_projs(GeometryInfo::LR_type));
-  hdr.WriteInt(CHeader::MATRIX_SIZE_2            , num_views(GeometryInfo::LR_type));
-  hdr.WriteInt(CHeader::MATRIX_SIZE_3            , GeometryInfo::LR_type == GeometryInfo::LR_Type::LR_0 ? NUM_SINOS[g_span] : LR_NSINOS[g_span]);
+  hdr.WriteInt(CHeader::MATRIX_SIZE_1            , num_projs(GeometryInfo::lr_type_));
+  hdr.WriteInt(CHeader::MATRIX_SIZE_2            , num_views(GeometryInfo::lr_type_));
+  hdr.WriteInt(CHeader::MATRIX_SIZE_3            , GeometryInfo::lr_type_ == GeometryInfo::LR_Type::LR_0 ? NUM_SINOS[g_span] : LR_NSINOS[g_span]);
   hdr.WriteChar(CHeader::DATA_FORMAT             , "sinogram");
   hdr.WriteChar(CHeader::NUMBER_FORMAT           , "signed integer");
   hdr.WriteInt(CHeader::NUMBER_OF_BYTES_PER_PIXEL, (int)g_elem_size);

@@ -46,8 +46,8 @@ void on_transmission(const std::string &outstr) {
 
 void on_low(int intval) {
   std::vector<GeometryInfo::LR_Type> good_vals = {GeometryInfo::LR_Type::LR_20, GeometryInfo::LR_Type::LR_24};
-  LR_type t = GeometryInfo::to_lrtype(intval, good_vals);
-  GeometryInfo::LR_type = t;
+  LR_Type t = GeometryInfo::to_lrtype(intval, good_vals);
+  GeometryInfo::lr_type_ = t;
 }
 
 void main(int argc, char* argv[]) {

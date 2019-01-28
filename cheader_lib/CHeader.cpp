@@ -589,3 +589,4 @@ bool CHeader::parse_interfile_date(const string &datestr, bt::ptime &pt) {
 bool CHeader::parse_interfile_time(const string &timestr, bt::ptime &pt) {
   return parse_interfile_datetime(timestr, ECAT_TIME_FORMAT, pt);
 }
+
