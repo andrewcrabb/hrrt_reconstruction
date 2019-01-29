@@ -3,7 +3,7 @@
 #include <string.h>
 #include <vector>
 #include <map>
-#include <gen_delays_lib/gen_delays.h>
+#include <gen_delays_lib/gen_delays_lib.hpp>
 #include <gen_delays_lib/geometry_info.h>
 #include <gen_delays_lib/lor_sinogram_map.h>
 #include "hrrt_util.hpp"

@@ -20,7 +20,7 @@ hrrt_sinocor.c
 #include "file_io_processor.h"
 #include "simd_operation.h"
 #include "mm_malloc.h"
-#include "gen_delays.h"
+#include "gen_delays_lib.hpp"
 #include "write_image_header.h"
 
 

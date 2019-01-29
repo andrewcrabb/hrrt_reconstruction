@@ -40,7 +40,7 @@ typedef struct {
 #include "file_io_processor.h"
 #include "simd_operation.h"
 #include "mm_malloc.h"
-#include "gen_delays.h"
+#include "gen_delays_lib.hpp"
 
 #define FILEPTR FILE*
 

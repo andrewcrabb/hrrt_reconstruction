@@ -65,7 +65,7 @@
 #include <gen_delays_lib/lor_sinogram_map.h>
 #include <gen_delays_lib/segment_info.h>
 #include <gen_delays_lib/geometry_info.h>
-#include <gen_delays_lib/gen_delays.h>
+#include <gen_delays_lib/gen_delays_lib.hpp>
 
 #include "cal_sen.h"
 #include "fan_sum.h"

@@ -22,7 +22,7 @@
 #include "fan_sum.h"
 #include "scanner_params.h"
 #include "histogram_mp.hpp"
-#include <gen_delays_lib/gen_delays.h>
+#include <gen_delays_lib/gen_delays_lib.hpp>
 #include <gen_delays_lib/geometry_info.h>
 
 #define MIN_COSINE 0.999

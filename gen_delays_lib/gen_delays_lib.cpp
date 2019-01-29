@@ -42,7 +42,7 @@
 #include <unistd.h>
 
 #include "hrrt_util.hpp"
-#include "gen_delays.h"
+#include "gen_delays_lib.hpp"
 #include "segment_info.h"
 #include "geometry_info.h"
 #include "lor_sinogram_map.h"

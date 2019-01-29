@@ -10,7 +10,7 @@
   21-JUL-2010: Change sw_version to 1.2
 
 */
-#include "gen_delays.h"
+#include "gen_delays_lib.hpp"
 #include "hrrt_util.hpp"
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>

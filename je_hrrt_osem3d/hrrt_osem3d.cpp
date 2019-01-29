@@ -200,7 +200,7 @@
 #include "file_io_processor.h"
 #include "simd_operation.h"
 #include "mm_malloc.h"
-#include <gen_delays_lib/gen_delays.h>
+#include <gen_delays_lib/gen_delays_lib.hpp>
 #include <gen_delays_lib/segment_info.h>
 #ifndef NO_ECAT_SUPPORT
 #include "write_ecat_image.h"

@@ -42,7 +42,7 @@
 #include "LM_Rebinner_mp.hpp"
 #include "hrrt_util.hpp"
 
-#include <gen_delays_lib/gen_delays.h>
+#include <gen_delays_lib/gen_delays_lib.hpp>
 #include <gen_delays_lib/lor_sinogram_map.h>
 #include <gen_delays_lib/segment_info.h>
 #include <gen_delays_lib/geometry_info.h>
