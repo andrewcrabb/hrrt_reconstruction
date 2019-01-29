@@ -106,6 +106,8 @@ extern std::array<float, NHEADS> head_crystal_depth_;
 
 //void calc_det_to_phy( int head, int layer, int detx, int dety, float location[3]);
 extern void det_to_phy( int head, int layer, int xcrys, int ycrys, float pos[3]);
+int num_views(LR_Type type);
+int num_projs(LR_Type type);
 
 } // namespace GeometryInfo
 

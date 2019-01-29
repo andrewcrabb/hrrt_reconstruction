@@ -40,6 +40,7 @@
 #include "histogram_mp.hpp"
 #include "LM_Reader_mp.hpp"
 #include "LM_Rebinner_mp.hpp"
+#include "hrrt_util.hpp"
 
 #include <gen_delays_lib/gen_delays.h>
 #include <gen_delays_lib/lor_sinogram_map.h>
@@ -664,7 +665,7 @@ int write_coin_map(const bf::path &datafile) {
   bf::path ch_file_name = datafile;
   ch_file_name.replace_extension("ch");
   std::ofstream ch_file;
-  if (open_ostream(ch_file, ch_file_name, std::ios::out | std::ios::app | std::ios::binary))
+  if (hrrt_util::open_ostream(ch_file, ch_file_name, std::ios::out | std::ios::app | std::ios::binary))
       return 1;
 
   int error_flag = 0;
@@ -815,7 +816,7 @@ static int find_start_countrate_lm(const bf::path &l64_file) {
   //   exit(1);
   // }
   std::ifstream instream;
-  open_istream(instream, l64_file, std::ios::in | std::ios::binary);
+  hrrt_util::open_istream(instream, l64_file, std::ios::in | std::ios::binary);
   // buf = (unsigned *)calloc(buf_size, 2 * sizeof(unsigned));
 
   char buf[buf_size * 2 * sizeof(unsigned)];
@@ -916,7 +917,7 @@ int find_start_countrate(bf::path l64_file) {
     return find_start_countrate_lm(l64_file);
   }
   std::ifstream instream;
-  if (open_istream(instream, hc_file, std::ios::in | std::ios::binary))
+  if (hrrt_util::open_istream(instream, hc_file, std::ios::in | std::ios::binary))
     return 1;
   // Read and omit the first line of the hc file
   std::string in_line;

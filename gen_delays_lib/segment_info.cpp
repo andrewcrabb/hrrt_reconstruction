@@ -45,102 +45,68 @@ void init_seginfo( int t_nrings, int t_span, int t_maxrd, int *t_nplanes, double
 
   int maxseg = t_maxrd / t_span;
   *nsegs = 2 * maxseg + 1;
-  int num_planes = 2 * t_nrings - 1;
-  int sp2 = (t_span + 1) / 2;
-
   std::vector<int> segnz;
   std::vector<int> segzoff;
-  segnz.reserve(nsegs);
-  segzoff.reserve(nsegs);
-
-  // SegmentInfo::m_segz0   = (int*)( malloc( *nsegs*sizeof(int)));
-  // SegmentInfo::m_segzmax = (int*) malloc( *nsegs*sizeof(int));
-  // segnz   = (int*) malloc( *nsegs*sizeof(int));
-  // segzoff = (int*) malloc( *nsegs*sizeof(int));
-
-  int segnzs   = 0;
+  segnz.reserve(*nsegs);
+  segzoff.reserve(*nsegs);
+  SegmentInfo::m_segz0.reserve(*nsegs);
+  SegmentInfo::m_segzmax.reserve(*nsegs);
   *t_nplanes = 0;      //init_seginfo2엔 없음.
 
+  int num_planes = 2 * t_nrings - 1;
+  int sp2 = (t_span + 1) / 2;
   for (int i = 0; i < *nsegs; i++) {
-    // segnum = (1-2*(i%2))*(i+1)/2;
-    if (i == 0)
-      SegmentInfo::m_segz0[0] = 0;
-    else
-      SegmentInfo::m_segz0[i] = sp2 + t_span * ((i - 1) / 2);
+    SegmentInfo::m_segz0[0] = (i == 0) ? i : sp2 + t_span * ((i - 1) / 2);
     segnz[i] = num_planes - 2 * SegmentInfo::m_segz0[i];
-    segnzs += segnz[i];
-    if (i == 0)
-      segzoff[0] = 0;
-    else
-      segzoff[i] = segzoff[i - 1] + segnz[i - 1];
+    segzoff[i] = (i == 0) ? i : segzoff[i - 1] + segnz[i - 1];
     *t_nplanes += segnz[i]; //init_seginfo2엔 없음.
     SegmentInfo::m_segzmax[i] = SegmentInfo::m_segz0[i] + segnz[i] - 1;
     SegmentInfo::m_segzoffset_span9[i] = -SegmentInfo::m_segz0[i] + segzoff[i];
   }
   *d_tan_theta = t_span * plane_sep / crystal_radius;
-  // free(SegmentInfo::m_segz0);
-  // free(segnz);
-  // free(segzoff);
-  // free(SegmentInfo::m_segzmax);
+  segnz.clear();
+  segzoff.clear();
+  SegmentInfo::m_segz0.clear();
+  SegmentInfo::m_segzmax.clear();
 }
 
 void init_seginfo2( int t_nrings, int t_span, int t_maxrd, double *d_tan_theta
-                    , int *nsegs
-                    , double crystal_radius, double plane_sep)
-{
-  int num_planes, sp2, segnzs;
-  // int *segnz;
-  // int *segzoff;
+                    , int *nsegs, double crystal_radius, double plane_sep) {
   std::vector<int> segnz;
   std::vector<int> segzoff;
-  int maxseg;
+  segnz.reserve(*nsegs);
+  segzoff.reserve(*nsegs);
+  SegmentInfo::m_segz0.reserve(*nsegs);
+  SegmentInfo::m_segzmax.reserve(*nsegs);
 
-  maxseg = t_maxrd / t_span;
+  int maxseg = t_maxrd / t_span;
   *nsegs = 2 * maxseg + 1;
-  num_planes = 2 * t_nrings - 1;
-  sp2 = (t_span + 1) / 2;
+  int num_planes = 2 * t_nrings - 1;
+  int sp2 = (t_span + 1) / 2;
 
-  // SegmentInfo::m_segz0=(int*) malloc( *nsegs*sizeof(int));
-  // SegmentInfo::m_segzmax=(int*) malloc( *nsegs*sizeof(int));
-
-  segnzs = 0;
   for (int i = 0; i < *nsegs; i++) {
-    // segnum=(1-2*(i%2))*(i+1)/2;
-    if (i == 0) SegmentInfo::m_segz0[0] = 0;
-    else SegmentInfo::m_segz0[i] = sp2 + t_span * ((i - 1) / 2);
+    SegmentInfo::m_segz0[i] = (i == 0) ? i : sp2 + t_span * ((i - 1) / 2);
     segnz[i] = num_planes - 2 * SegmentInfo::m_segz0[i];
-    segnzs += segnz[i];
-    if (i == 0) segzoff[0] = 0;
-    else segzoff[i] = segzoff[i - 1] + segnz[i - 1];
+    segzoff[0] = (i == 0) ? i : segzoff[i - 1] + segnz[i - 1];
     SegmentInfo::m_segzmax[i] = SegmentInfo::m_segz0[i] + segnz[i] - 1;
     SegmentInfo::m_segzoffset[i] = -SegmentInfo::m_segz0[i] + segzoff[i];
   }
   *d_tan_theta = t_span * plane_sep / crystal_radius;
-  printf("maxseg=%d\n", maxseg);
+  segnz.clear();
+  segzoff.clear();
 }
 
 int SegmentInfo::init_segment_info(int *nsegs, int *t_nplanes, double *d_tan_theta
                       , int t_maxrd, int t_span, int t_nycrys, double crystal_radius, double plane_sep) {
-
-  int i = 0;
   *nsegs = 2 * (t_maxrd / t_span) + 1;
-  // SegmentInfo::m_segzoffset_span9 = (int *) (calloc(*nsegs, sizeof(int)));
   *nsegs = 2 * (t_maxrd / 3) + 1;
-  // SegmentInfo::m_segzoffset = (int *) (calloc(*nsegs, sizeof(int)));
-  init_seginfo( t_nycrys, t_span, t_maxrd, t_nplanes, d_tan_theta
-                , nsegs
-                , crystal_radius, plane_sep);
-  init_seginfo2(t_nycrys, 3, t_maxrd, d_tan_theta
-                , nsegs
-                , crystal_radius, plane_sep);
+  init_seginfo( t_nycrys, t_span, t_maxrd, t_nplanes, d_tan_theta, nsegs, crystal_radius, plane_sep);
+  init_seginfo2(t_nycrys, 3     , t_maxrd           , d_tan_theta, nsegs, crystal_radius, plane_sep);
   if (t_span == 9) {
-    for (i = 0; i < *nsegs; i++) {
+    for (int i = 0; i < *nsegs; i++) {
       SegmentInfo::m_segzoffset[i] = SegmentInfo::m_segzoffset_span9[SegmentInfo::conversiontable[i]];
     }
   }
-  // free(SegmentInfo::m_segzoffset_span9);
-
-
   return 1;
 }
 

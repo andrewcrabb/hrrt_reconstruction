@@ -105,7 +105,7 @@ int LM_Rebinner::init_rebinner(int &t_span, int &t_max_ringdiff) {
       }
     } else {
       // for (i = 0; i < GeometryInfo::NHEADS; i++) GeometryInfo::head_crystal_depth_[i] = def_depth;
-      GeometryInfo::head_crystal_depth_.assign(GeometryInfo::NHEADS, def_depth);
+      GeometryInfo::head_crystal_depth_.fill(def_depth);
       cout << "Layer thickness for all heads = " << def_depth << endl;
     }
 
@@ -134,8 +134,8 @@ int LM_Rebinner::init_rebinner(int &t_span, int &t_max_ringdiff) {
     ret = 0;
   }
 
-  init_geometry_hrrt();
-  SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &SegmentInfo::m_d_tan_theta, maxrd_, t_span, GeometryInfo::NYCRYS, GeometryInfo::crystal_radius_, GeometryInfo::plane_sep_);
+  GeometryInfo::init_geometry_hrrt();
+  SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &SegmentInfo::m_d_tan_theta, GeometryInfo::maxrd_, t_span, GeometryInfo::NYCRYS, GeometryInfo::crystal_radius_, GeometryInfo::plane_sep_);
   // LM_Rebinner::rebinner_lut_file = t_lut_file;
 
   if (!tx_flag)
@@ -155,8 +155,8 @@ int rebin_event_tx( int mp, int alayer, int ax, int ay, int blayer, int bx, int 
 
   int ahead = GeometryInfo::HRRT_MPAIRS[mp][0];
   int bhead = GeometryInfo::HRRT_MPAIRS[mp][1];
-  det_to_phy( ahead, alayer, ax, ay, deta);
-  det_to_phy( bhead, blayer, bx, by, detb);
+  GeometryInfo::det_to_phy( ahead, alayer, ax, ay, deta);
+  GeometryInfo::det_to_phy( bhead, blayer, bx, by, detb);
   double dz = detb[2] - deta[2];
   double dy = deta[1] - detb[1];
   double dx = deta[0] - detb[0];

@@ -51,6 +51,7 @@
 #include "LM_Reader_mp.hpp"
 #include "LM_Rebinner_mp.hpp"
 #include "histogram_mp.hpp"
+#include "hrrt_util.hpp"
 
 namespace fs = boost::filesystem;
 using namespace std;
@@ -121,7 +122,7 @@ L32EventPacket::~L32EventPacket() {
 void lm64_reader (const fs::path &infile) {
   L64EventPacket::in_fname = infile;
   // L64EventPacket::in_fp = open_istream(L64EventPacket::in_fname, ios::in | ios::binary);
-  open_istream(L64EventPacket::in_fp, L64EventPacket::in_fname, ios::in | ios::binary);
+  hrrt_util::open_istream(L64EventPacket::in_fp, L64EventPacket::in_fname, ios::in | ios::binary);
   L64EventPacket::in_fp.read((char *)g_l64_container[0].events, sizeof(int64_t) * L64EventPacket::packet_size);
   if (L64EventPacket::in_fp.good()) {
     g_l64_container = new L64EventPacket[2];
@@ -148,7 +149,7 @@ void lm64_reader (const fs::path &infile) {
  */
 void lm32_reader (const fs::path &infile) {
   L32EventPacket::in_fname = infile;
-  open_istream(L64EventPacket::in_fp, L32EventPacket::in_fname, ios::in | ios::binary);
+  hrrt_util::open_istream(L64EventPacket::in_fp, L32EventPacket::in_fname, ios::in | ios::binary);
   L32EventPacket::in_fp.read((char *)g_l32_container->events, 2 * sizeof(unsigned) * L32EventPacket::packet_size);
   if (L32EventPacket::in_fp.good()) {
     g_l32_container = new L32EventPacket[2];

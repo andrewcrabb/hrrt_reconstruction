@@ -155,7 +155,7 @@ bf::path g_out_fname_ra;   //current frame sinogram randoms file name
 bf::path g_out_fname_pr;   //current frame sinogram prompts file name
 bf::path g_out_fname_tr;   //current frame sinogram Trues file name
 // ahc: hrrt_rebinner.lut is now a required cmd line arg
-bf::path g_lut_file;
+// bf::path g_lut_file;
 
 std::string g_logfile;
 
@@ -298,12 +298,12 @@ void on_infile(const std::string &instr) {
   g_fname_l64 = bf::path(instr);
 }
 
-void on_lut_file(const std::string &lutfile) {
-  g_lut_file = bf::path(lutfile);
-}
+// void on_lut_file(const std::string &lutfile) {
+//   g_lut_file = bf::path(lutfile);
+// }
 
 void on_lrtype(int intval) {
-  LR_Type t = GeometryInfo::to_lrtype(intval, good_vals);
+  GeometryInfo::LR_Type t = GeometryInfo::to_lrtype(intval);
   GeometryInfo::lr_type_ = t;
   g_span = 7;
   g_max_rd = 38;
@@ -411,7 +411,7 @@ void validate_arguments(void) {
 }
 
 void parse_boost(int argc, char **argv) {
-  GeometryInfo::LR_Type lrtype;
+  // GeometryInfo::LR_Type lrtype;
   try {
     po::options_description desc("Options");
     desc.add_options()
@@ -435,7 +435,7 @@ void parse_boost(int argc, char **argv) {
     ("EB"           , po::bool_switch()->notifier(&on_eb)                            , "Exclude border crystals")
     ("count"        , po::value<int>(&stop_count_)->notifier(&assert_positive)        , "Stop after N events")
     ("start"        , po::value<unsigned int>(&start_countrate_)->notifier(&assert_positive)  , "Start histogramming when trues/sec is higher than N")
-    ("lut_file,r"   , po::value<std::string>()->notifier(&on_lut_file)             , "Full path to rebinner.lut file" )
+    // ("lut_file,r"   , po::value<std::string>()->notifier(&on_lut_file)             , "Full path to rebinner.lut file" )
     ("duration,d"   , po::value<std::vector<std::string>>()->multitoken()
      ->composing()
      ->notifier(&on_duration) , "Frame [duration] or [duration,skip] or [duration*repeat]")
@@ -1018,8 +1018,8 @@ void create_hrrt_sinogram_header(CHeader &hdr) {
   hdr.WriteChar(CHeader::ORIGINATING_SYSTEM      , "HRRT");
   hdr.WritePath(CHeader::NAME_OF_DATA_FILE       , g_out_fname_sino);
   hdr.WriteInt(CHeader::NUMBER_OF_DIMENSIONS     , 3);
-  hdr.WriteInt(CHeader::MATRIX_SIZE_1            , num_projs(GeometryInfo::lr_type_));
-  hdr.WriteInt(CHeader::MATRIX_SIZE_2            , num_views(GeometryInfo::lr_type_));
+  hdr.WriteInt(CHeader::MATRIX_SIZE_1            , GeometryInfo::num_projs(GeometryInfo::lr_type_));
+  hdr.WriteInt(CHeader::MATRIX_SIZE_2            , GeometryInfo::num_views(GeometryInfo::lr_type_));
   hdr.WriteInt(CHeader::MATRIX_SIZE_3            , GeometryInfo::lr_type_ == GeometryInfo::LR_Type::LR_0 ? NUM_SINOS[g_span] : LR_NSINOS[g_span]);
   hdr.WriteChar(CHeader::DATA_FORMAT             , "sinogram");
   hdr.WriteChar(CHeader::NUMBER_FORMAT           , "signed integer");
@@ -1060,7 +1060,7 @@ void do_find_start_countrate(void) {
 void do_init_rebinner(CHeader &hdr) {
   int span_bak = g_span;
   int rd_bak = g_max_rd;
-  LM_Rebinner::init_rebinner(g_span, g_max_rd, g_lut_file);
+  LM_Rebinner::init_rebinner(g_span, g_max_rd);
   hdr.WriteInt(CHeader::LM_REBINNER_METHOD, (int)eg_rebinner_method);
   hdr.WriteInt(CHeader::AXIAL_COMPRESSION, g_span);
   hdr.WriteInt(CHeader::MAXIMUM_RING_DIFFERENCE, g_max_rd);
@@ -1080,7 +1080,7 @@ void do_histogramming(CHeader &hdr) {
   do_find_start_countrate();
   std::ofstream outfile_dyn = create_outfile_dyn();
 
-  g_logger->info("using rebinner LUT {}", LM_Rebinner::rebinner_lut_file);
+  // g_logger->info("using rebinner LUT {}", LM_Rebinner::rebinner_lut_file);
   g_logger->info("Span: {}", g_span);
   g_logger->info("Mode: %s", HISTOGRAM_MP::MODES[g_hist_mode]);
 
