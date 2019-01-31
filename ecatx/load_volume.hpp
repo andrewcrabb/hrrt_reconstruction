@@ -49,7 +49,7 @@
 #include <malloc.h>
 #include <string.h>
 
-#include "matrix.h"
+#include "ecat_matrix.hpp"
 
 typedef struct _Tslice
 {

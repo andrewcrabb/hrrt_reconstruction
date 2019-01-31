@@ -1,4 +1,4 @@
-/*! \file matrix.h
+/*! \file math_matrix.hpp
     \brief This template implements a 2d matrix type with several algebraic
            operations.
     \author Frank Kehren (frank.kehren@cpspet.com)
@@ -6,6 +6,10 @@
     \date 2004/03/18 added Doxygen style comments
     \date 2004/05/18 improved documentation
  */
+
+// ahc 1/29/19
+// This was one of the 6 files named "matrix.h", some for maths and some for ECAT
+// It seems to be the most advanced math one, so it's retained and moved to its own library in hrrt_common
 
 #pragma once
 
@@ -34,30 +38,25 @@ template <typename T> class Matrix
       return(os);
     }
    protected:
-    unsigned long int _rows,                   /*!< number of rows in matrix */
-                      _columns;             /*!< number of columns in matrix */
-    std::vector <T> mat;                                /*!< matrix elements */
+    unsigned long int _rows, _columns;
+    std::vector <T> mat;
    public:
-    Matrix();                                              // initialize object
-                                                      // create an empty matrix
+    Matrix();
     Matrix(const unsigned long int, const unsigned long int);
-                                                             // create a matrix
     Matrix(T * const, const unsigned long int, const unsigned long int);
-    Matrix <T> & operator = (const Matrix <T>&);                // '='-operator
-    Matrix <T> & operator += (const T);                        // '+='-operator
+    Matrix <T> & operator = (const Matrix <T>&);
+    Matrix <T> & operator += (const T);
     Matrix <T> & operator += (const Matrix <T>&);
-    Matrix <T> & operator -= (const T);                        // '-='-operator
+    Matrix <T> & operator -= (const T);
     Matrix <T> & operator -= (const Matrix <T>&);
-    Matrix <T> & operator *= (const T);                        // '*='-operator
+    Matrix <T> & operator *= (const T);
     Matrix <T> & operator *= (const Matrix <T>&);
-                                                 // set value of matrix element
-    T & operator () (const unsigned long int, const unsigned long int);
-                                                 // get value of matrix element
+    T & operator () (const unsigned long int, const unsigned long int);  // get value of matrix element
     T operator () (const unsigned long int, const unsigned long int) const;
-    unsigned long int columns() const;    //request number of columns in matrix
+    unsigned long int columns() const;
     T *data() const;                          // request pointer to matrix data
-    void identity();                                  // create identity matrix
-    void invert();                                             // invert matrix
-    unsigned long int rows() const;         // request number of rows in matrix
-    void transpose();                                       // transpose matrix
+    void identity();
+    void invert();
+    unsigned long int rows() const;
+    void transpose();
  };

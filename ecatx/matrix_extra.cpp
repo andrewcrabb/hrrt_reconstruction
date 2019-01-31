@@ -38,7 +38,7 @@
 #include	<sys/stat.h>
 #include	"interfile.hpp"
 #include	"machine_indep.h"
-#include	"matrix.h"
+#include	"ecat_matrix.hpp"
 #include	"num_sort.h"
 #include	<unistd.h>
 
@@ -1015,17 +1015,17 @@ mat_rdirblk(MatrixFile *file, int blknum)
   }
   ndirs = (MatBLKSIZE / 4 - 4) / 4;
   for (i = 0; i < ndirs; i++) {
-    matdirblk->matdir[i].matnum = 0;
+    matdirblk->matdir[i].matnum  = 0;
     matdirblk->matdir[i].strtblk = 0;
-    matdirblk->matdir[i].endblk = 0;
+    matdirblk->matdir[i].endblk  = 0;
     matdirblk->matdir[i].matstat = 0;
   }
 
   for (i = 0; i < matdirblk->nused; i++) {
     j = i + 1;
-    matdirblk->matdir[i].matnum = dirbufr[j * 4 + 0];
+    matdirblk->matdir[i].matnum  = dirbufr[j * 4 + 0];
     matdirblk->matdir[i].strtblk = dirbufr[j * 4 + 1];
-    matdirblk->matdir[i].endblk = dirbufr[j * 4 + 2];
+    matdirblk->matdir[i].endblk  = dirbufr[j * 4 + 2];
     matdirblk->matdir[i].matstat = dirbufr[j * 4 + 3];
   }
   return (matdirblk);
@@ -1051,9 +1051,9 @@ mat_read_directory(MatrixFile *mptr)
       return (NULL);
     }
     for (i = 0; i < matdirblk->nused; i++) {
-      matdir.matnum = matdirblk->matdir[i].matnum;
+      matdir.matnum  = matdirblk->matdir[i].matnum;
       matdir.strtblk = matdirblk->matdir[i].strtblk;
-      matdir.endblk = matdirblk->matdir[i].endblk;
+      matdir.endblk  = matdirblk->matdir[i].endblk;
       matdir.matstat = matdirblk->matdir[i].matstat;
       insert_mdir(&matdir, dirlist);
     }

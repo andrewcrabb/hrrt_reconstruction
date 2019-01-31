@@ -27,7 +27,7 @@
 // #include <AIR/AIR.h>
 #include "AIR.h"
 
-#include <ecatx/matrix.h>
+#include <ecatx/ecat_matrix.hpp>
 
 #define AIR_ECAT 
 #if defined(__cplusplus)

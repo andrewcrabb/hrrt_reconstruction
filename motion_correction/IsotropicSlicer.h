@@ -45,7 +45,7 @@
 
 inline int round(float x) { return x > 0 ? int(x+0.5) : -int(-x+0.5); }
                                                          
-template <class T> class IsotropicSlicer
+template <typename T> class IsotropicSlicer
 {
   const MatrixData* volume;
   int interpolate;
@@ -80,7 +80,7 @@ public :
   MatrixData* average(float z0, float thickness, float pixel_size) const;
 };
 
-template <class T>
+template <typename T>
 IsotropicSlicer<T>::IsotropicSlicer(const MatrixData* v, Matrix t, int interp)
 {
   volume = v;
@@ -90,7 +90,7 @@ IsotropicSlicer<T>::IsotropicSlicer(const MatrixData* v, Matrix t, int interp)
   interpolate = interp;
 }
 
-template <class T>
+template <typename T>
 MatrixData* IsotropicSlicer<T>::create_slice(T *dptr, int sx, int sy, 
 				       float dx, float dy, float dz) const
 {
@@ -116,7 +116,7 @@ MatrixData* IsotropicSlicer<T>::create_slice(T *dptr, int sx, int sy,
   return(slice);
 }
 
-template <class T>
+template <typename T>
 MatrixData* IsotropicSlicer<T>::create_comp_slice(float *dptr, int sx, int sy, 
 				       float dx, float dy, float dz) const
 {
@@ -136,7 +136,7 @@ MatrixData* IsotropicSlicer<T>::create_comp_slice(float *dptr, int sx, int sy,
   return(slice);
 }
 
-template <class T>
+template <typename T>
 int IsotropicSlicer<T>::transf_x_slice(T *dest, float x_pos,
 int dest_yd, int dest_zd, float pixel_size) const
 {
@@ -223,7 +223,7 @@ int dest_yd, int dest_zd, float pixel_size) const
   return 1;       
 }
 
-template <class T>
+template <typename T>
 int IsotropicSlicer<T>::transf_y_slice(T *dest, float y_pos, int dest_xd,
                                     int dest_zd, float pixel_size) const
 {
@@ -306,7 +306,7 @@ int IsotropicSlicer<T>::transf_y_slice(T *dest, float y_pos, int dest_xd,
   return 1;          
 }
 
-template <class T>
+template <typename T>
 int IsotropicSlicer<T>::transf_z_slice(T *dest, float z_pos,
 int dest_xd, int dest_yd, float pixel_size) const
 {
@@ -398,7 +398,7 @@ int dest_xd, int dest_yd, float pixel_size) const
 }
 
 
-template <class T>
+template <typename T>
 MatrixData *IsotropicSlicer<T>::transverse(float z, float area_x,
                                           float area_y, float pixel_size) const
 {
@@ -425,7 +425,7 @@ MatrixData *IsotropicSlicer<T>::transverse(float z, float area_x,
   return create_slice(dest,sx,sy,pixel_size,pixel_size,dz);
 }
 
-template <class T>
+template <typename T>
 MatrixData* IsotropicSlicer<T>::sagittal(float x, float area_y,
                                          float area_z, float pixel_size) const
 {
@@ -451,7 +451,7 @@ MatrixData* IsotropicSlicer<T>::sagittal(float x, float area_y,
   return create_slice(dest,sy,sz,pixel_size,pixel_size,dx);
 }
 
-template <class T>
+template <typename T>
 MatrixData* IsotropicSlicer<T>::x_projection(float x0 , float x1, int mode ) const
 {
   float *dest=0, *dest_line=0, *curp=0;
@@ -489,7 +489,7 @@ MatrixData* IsotropicSlicer<T>::x_projection(float x0 , float x1, int mode ) con
   return create_comp_slice(dest,sy,sz,dy,dz,x1-x0);
 }
 
-template <class T>
+template <typename T>
 MatrixData* IsotropicSlicer<T>::coronal(float y, float area_x, float area_z,
                                         float pixel_size) const
 {
@@ -515,7 +515,7 @@ MatrixData* IsotropicSlicer<T>::coronal(float y, float area_x, float area_z,
   return create_slice(dest,sx,sz,pixel_size,pixel_size,dy);
 }
 
-template <class T>
+template <typename T>
 MatrixData* IsotropicSlicer<T>::y_projection(float y0, float y1, int mode) const
 {
   float *dest=0, *dest_line=0;
@@ -553,7 +553,7 @@ MatrixData* IsotropicSlicer<T>::y_projection(float y0, float y1, int mode) const
   return create_comp_slice(dest,sx,sz,dx,dz,y1-y0);
 }
 
-template <class T>
+template <typename T>
 MatrixData* IsotropicSlicer<T>::projection(unsigned dimension,
 					float l, float h, float pixel_size,
 					int mode) const {
@@ -576,7 +576,7 @@ MatrixData* IsotropicSlicer<T>::projection(unsigned dimension,
   return ret;
 }
 
-template <class T>
+template <typename T>
 MatrixData* IsotropicSlicer<T>::slice(unsigned dimension, float pos, float area_x,
                                    float area_y, float area_z, float pixel_size) const
 {
@@ -591,7 +591,7 @@ MatrixData* IsotropicSlicer<T>::slice(unsigned dimension, float pos, float area_
   }
   return NULL;
 }
-template <class T>
+template <typename T>
 MatrixData* IsotropicSlicer<T>::average(float z0, float thickness,
                                         float pixel_size) const
 {

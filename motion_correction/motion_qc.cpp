@@ -59,7 +59,7 @@ Purpose B usage:
 #include <stdlib.h>
 #include <string.h>
 #include "frame_info.h"
-#include <ecatx/matrix.h>
+#include <ecatx/ecat_matrix.hpp>
 #include <unistd.h>
 #define		DIR_SEPARATOR '/'
 

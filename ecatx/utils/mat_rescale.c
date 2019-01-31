@@ -18,7 +18,7 @@
 #ifndef FILENAME_MAX 
 #define FILENAME_MAX 256
 #endif
-#include "matrix.h"
+#include "ecat_matrix.hpp"
 #define HISTOGRAM_SIZE 32768
 #define IMAGE_MAX 32766
 

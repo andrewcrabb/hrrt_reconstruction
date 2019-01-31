@@ -23,7 +23,7 @@ int SegmentInfo::m_nsegs = 0;
 // int *SegmentInfo::m_segzmax=NULL;
 // int *SegmentInfo::m_segzoffset = NULL;
 // int *SegmentInfo::m_segzoffset_span9 = NULL;
-std::vector<int> conversiontable = { // convert span3 to span9
+std::vector<int> SegmentInfo::conversiontable = { // convert span3 to span9
   0 , 0  , 0  , 1  , 2  , 1  , 2  , 1  , 2  , 3  , 4  , 3  , 4  , 3  , 4  , 5  , 6  , 5  , 6  , 5  , 6
   , 7 , 8  , 7  , 8  , 7  , 8  , 9  , 10 , 9  , 10 , 9  , 10 , 11 , 12 , 11 , 12 , 11 , 12 , 13 , 14 , 13 , 14 , 13 , 14
 };

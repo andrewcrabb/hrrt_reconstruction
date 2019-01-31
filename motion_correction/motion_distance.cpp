@@ -12,7 +12,7 @@
 // Current AIR 5.3.0 is 2011, so set -I in CMake to AIR src dir.
 // #include <AIR/AIR.h>
 #include <AIR.h>
-#include <ecatx/matrix.h>
+#include <ecatx/ecat_matrix.hpp>
 #include <ecatx/matpkg.h>
 #include <unistd.h>
 

@@ -26,7 +26,7 @@
 #include "gm.h"
 #include "logging.h"
 #include "interfile.h"
-#include "matrix.h"
+#include "hrrt_common/math_matrix.hpp"
 #include "mem_ctrl.h"
 #include "PB_TV_3D.h"
 #include "raw_io.h"

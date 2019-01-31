@@ -3,7 +3,7 @@
  * Updated by Sibomana@topo.ucl.ac.be for ECAT 7.0 support
  */
 
-#include "matrix.h"
+#include "ecat_matrix.hpp"
 
 int main( argc, argv)
   int argc;

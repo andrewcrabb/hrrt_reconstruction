@@ -25,7 +25,7 @@ For commercial use, please contact zcho@gachon.ac.kr or isslhong@kpu.ac.kr
 #include "hrrt_osem3d.h"
 #include "nr_utils.h"
 /* Rebin original sinogram to reconstruction size */
-template <class T> 
+template <typename T> 
 void sino_rebin(T *tmp_buf, T *out_buf, int planes, int norm_flag)
 {
   T *src=NULL, *dst=NULL;
@@ -73,7 +73,7 @@ void sino_rebin(T *tmp_buf, T *out_buf, int planes, int norm_flag)
   }
 }
 
-template <class T> 
+template <typename T> 
 void sino_rebin_float(T *tmp_buf, float *out_buf, int planes)
 {
   T *src=NULL;

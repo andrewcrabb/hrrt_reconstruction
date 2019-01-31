@@ -31,7 +31,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "matrix.hpp"
+#include "ecat_matrix.hpp"
 
 // ahc
 #include <unistd.h>

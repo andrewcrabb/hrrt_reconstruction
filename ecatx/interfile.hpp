@@ -30,7 +30,7 @@
  */
 #pragma once
 
-#include "matrix.hpp"
+#include "ecat_matrix.hpp"
 
 typedef enum {
 	VERSION_OF_KEYS,

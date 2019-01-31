@@ -1,4 +1,4 @@
-/*! \class Matrix matrix.h "matrix.h"
+/*! \class Matrix
     \brief This template implements a 2d matrix type with several algebraic
            operations.
     \author Frank Kehren (frank.kehren@cpspet.com)
@@ -15,44 +15,41 @@
     Here are some examples of how to use the Matrix template class.
  */
 
-#ifndef _MATRIX_CPP
-#define _MATRIX_CPP
-#include "matrix.h"
-#endif
+#include "math_matrix.hpp"
+
 #include "exception.h"
 #include "fastmath.h"
 
-/*- methods -----------------------------------------------------------------*/
-
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 /*! \brief Initialize the object.
 
     Initialize the object.
  */
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 template <typename T>
-Matrix <T>::Matrix()
- { _rows=0;
-   _columns=0;
+Matrix <T>::Matrix() { 
+  _rows= 0;
+   _columns= 0;
  }
 
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 /*! \brief Create an empty matrix.
     \param[in] icolumns   number of columns in the matrix
     \param[in] irows      number of rows in the matrix
 
     Create a matrix of the given size and initialize it with zeros.
  */
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 template <typename T>
 Matrix <T>::Matrix(const unsigned long int icolumns,
-                   const unsigned long int irows)
- { _rows=irows;
+                   const unsigned long int irows) { 
+  _rows=irows;
    _columns=icolumns;
-   if (rows()*columns() > 0) mat.assign(rows()*columns(), 0);
+   if (rows() * columns() > 0) 
+    mat.assign(rows() * columns(), 0);
  }
 
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 /*! \brief Create a matrix.
     \param[in] _mat       data for matrix
     \param[in] icolumns   number of columns in the matrix
@@ -60,16 +57,17 @@ Matrix <T>::Matrix(const unsigned long int icolumns,
 
     Create a matrix of the given size and copy the given data into it.
  */
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 template <typename T>
-Matrix <T>::Matrix(T * const _mat, const unsigned long int icolumns,
-                   const unsigned long int irows)
- { _rows=irows;
-   _columns=icolumns;
-   mat.assign(_mat, _mat+rows()*columns());
- }
+Matrix <T>::Matrix(T * const _mat,
+                   const unsigned long int icolumns,
+                   const unsigned long int irows) {
+  _rows = irows;
+  _columns = icolumns;
+  mat.assign(_mat, _mat + rows()*columns());
+}
 
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 /*! \brief This is the copy operator for a matrix.
     \param[in] m   source matrix
     \return copy of matrix
@@ -77,17 +75,18 @@ Matrix <T>::Matrix(T * const _mat, const unsigned long int icolumns,
     Copy a matrix into this matrix. The original content of this matrix is
     lost.
  */
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 template <typename T>
-Matrix <T> & Matrix <T>::operator = (const Matrix <T> &m)
- { if (this != &m) { mat=m.mat;
-                     _rows=m.rows();
-                     _columns=m.columns();
-                   }
-   return(*this);
- }
+Matrix <T> & Matrix <T>::operator = (const Matrix <T> &m) {
+  if (this != &m) {
+    mat = m.mat;
+    _rows = m.rows();
+    _columns = m.columns();
+  }
+  return (*this);
+}
 
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 /*! \brief Add scalar to matrix.
     \param[in] value   scalar value
     \return resulting matrix
@@ -110,16 +109,16 @@ Matrix <T> & Matrix <T>::operator = (const Matrix <T> &m)
      \right]+s
      \f]
  */
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 template <typename T>
-Matrix <T> & Matrix <T>::operator += (const T value)
- { for (unsigned long int r=0; r < rows(); r++)
-    for (unsigned long int c=0; c < columns(); c++)
-     (*this)(c, r)+=value;
+Matrix <T> & Matrix <T>::operator += (const T value) { 
+  for (unsigned long int r = 0; r < rows(); r++)
+    for (unsigned long int c = 0; c < columns(); c++)
+     (*this)(c, r) += value;
    return(*this);
  }
 
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 /*! \brief Add matrix to matrix.
     \param[in] m   matrix that will be added
     \exception REC_MATRIX_ADD matrices are of different dimensions
@@ -151,20 +150,19 @@ Matrix <T> & Matrix <T>::operator += (const T value)
      \right]
     \f]
  */
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 template <typename T>
-Matrix <T> & Matrix <T>::operator += (const Matrix <T> &m)
- { if ((rows() != m.rows()) || (columns() != m.columns()))
+Matrix <T> & Matrix <T>::operator += (const Matrix <T> &m) { 
+  if ((rows() != m.rows()) || (columns() != m.columns()))
     throw Exception(REC_MATRIX_ADD,
-                    "Matrix addition is not allowed because matrices are of "
-                    "different dimensions.");
-   for (unsigned long int r=0; r < rows(); r++)
-    for (unsigned long int c=0; c < columns(); c++)
-     (*this)(c, r)+=m(c, r);
+                    "Matrix addition is not allowed because matrices are of different dimensions.");
+   for (unsigned long int r = 0; r < rows(); r++)
+    for (unsigned long int c = 0; c < columns(); c++)
+     (*this)(c, r) += m(c, r);
    return(*this);
  }
 
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 /*! \brief Subtract scalar from matrix.
     \param[in] value   scalar value
     \return resulting matrix
@@ -187,13 +185,13 @@ Matrix <T> & Matrix <T>::operator += (const Matrix <T> &m)
      \right]-s
      \f]
  */
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 template <typename T>
-Matrix <T> & Matrix <T>::operator -= (const T value)
- { return((*this)+=-value);
+Matrix <T> & Matrix <T>::operator -= (const T value) { 
+  return((*this) += -value);
  }
 
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 /*! \brief Subtract matrix from matrix.
     \param[in] m   matrix that will be subtracted
     \exception REC_MATRIX_SUB matrices are of different dimensions
@@ -225,20 +223,19 @@ Matrix <T> & Matrix <T>::operator -= (const T value)
      \right]
     \f]
  */
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 template <typename T>
-Matrix <T> & Matrix <T>::operator -= (const Matrix <T> &m)
- { if ((rows() != m.rows()) || (columns() != m.columns()))
+Matrix <T> & Matrix <T>::operator -= (const Matrix <T> &m) { 
+  if ((rows() != m.rows()) || (columns() != m.columns()))
     throw Exception(REC_MATRIX_SUB,
-                    "Matrix subtraction is not allowed because matrices are of"
-                    " different dimensions.");
-   for (unsigned long int r=0; r < rows(); r++)
-    for (unsigned long int c=0; c < columns(); c++)
+                    "Matrix subtraction is not allowed because matrices are of different dimensions.");
+   for (unsigned long int r = 0; r < rows(); r++)
+    for (unsigned long int c = 0; c < columns(); c++)
      (*this)(c, r)-=m(c, r);
    return(*this);
  }
 
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 /*! \brief Multiply matrix with scalar.
     \param[in] value   scalar value
     \return resulting matrix
@@ -261,16 +258,16 @@ Matrix <T> & Matrix <T>::operator -= (const Matrix <T> &m)
      \right]s
      \f]
  */
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 template <typename T>
-Matrix <T> & Matrix <T>::operator *= (const T value)
- { for (unsigned long int r=0; r < rows(); r++)
-    for (unsigned long int c=0; c < columns(); c++)
+Matrix <T> & Matrix <T>::operator *= (const T value) { 
+  for (unsigned long int r = 0; r < rows(); r++)
+    for (unsigned long int c = 0; c < columns(); c++)
      (*this)(c, r)*=value;
    return(*this);
  }
 
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 /*! \brief Multiply matrices.
     \param[in] b   matrix for multiplication
     \exception REC_MATRIX_MULT matrices have wrong sizes
@@ -283,7 +280,7 @@ Matrix <T> & Matrix <T>::operator *= (const T value)
     \f[
      \left[\begin{array}{ccc}
        & \cdots & \\
-      \vdots & \sum_{l=0}^{n-1}a_{li}b_{kl} & \vdots\\
+      \vdots & \sum_{l= 0}^{n-1}a_{li}b_{kl} & \vdots\\
       & \cdots & \\
      \end{array}
      \right]=
@@ -303,24 +300,23 @@ Matrix <T> & Matrix <T>::operator *= (const T value)
      \right]
     \f]
  */
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 template <typename T>
-Matrix <T> & Matrix <T>::operator *= (const Matrix <T> &b)
- { if (columns() != b.rows())
+Matrix <T> & Matrix <T>::operator *= (const Matrix <T> &b) { 
+  if (columns() != b.rows())
     throw Exception(REC_MATRIX_MULT,
-                    "Matrix multiplication is not allowed because matrices "
-                    "have wrong sizes.");
+                    "Matrix multiplication is not allowed because matrices have wrong sizes.");
    std::vector <T> result;
 
-   if (rows()*b.columns() != 0)
-    { result.resize(rows()*b.columns());
-      for (unsigned long int r=0; r < rows(); r++)
-       for (unsigned long int c=0; c < b.columns(); c++)
-        { T *rp;
+   if (rows()*b.columns() != 0) { 
+    result.resize(rows()*b.columns());
+      for (unsigned long int r = 0; r < rows(); r++)
+       for (unsigned long int c = 0; c < b.columns(); c++) { 
+        T *rp;
 
-          rp=&result[r*b.columns()+c];
-          *rp=0;
-          for (unsigned long int k=0; k < columns(); k++)
+          rp = &result[r * b.columns() + c];
+          *rp= 0;
+          for (unsigned long int k= 0; k < columns(); k++)
            *rp+=(*this)(k, r)*b(c, k);
         }
     }
@@ -329,7 +325,7 @@ Matrix <T> & Matrix <T>::operator *= (const Matrix <T> &b)
    return(*this);
  }
 
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 /*! \brief Set the value of a matrix element.
     \param[in] c   column of matrix element
     \param[in] r   row of matrix element
@@ -340,7 +336,7 @@ Matrix <T> & Matrix <T>::operator *= (const Matrix <T> &b)
         a_{cr}=\mbox{value}
     \f]
  */
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 template <typename T>
 T & Matrix <T>::operator () (const unsigned long int c,
                              const unsigned long int r)
@@ -350,7 +346,7 @@ T & Matrix <T>::operator () (const unsigned long int c,
    return(mat[r*columns()+c]);
  }
 
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 /*! \brief Request the value of a matrix element.
     \param[in] c   column of matrix element
     \param[in] r   row of matrix element
@@ -362,7 +358,7 @@ T & Matrix <T>::operator () (const unsigned long int c,
         \mbox{value}=a_{cr}
     \f]
  */
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 template <typename T>
 T Matrix <T>::operator () (const unsigned long int c,
                            const unsigned long int r) const
@@ -372,32 +368,32 @@ T Matrix <T>::operator () (const unsigned long int c,
    return(mat[r*columns()+c]);
  }
 
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 /*! \brief Request the number of columns in this matrix.
     \return number of columns in this matrix
 
     Request the number of columns in this matrix.
  */
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 template <typename T>
 unsigned long int Matrix <T>::columns() const
  { return(_columns);
  }
 
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 /*! \brief Request a pointer to the data of this matrix.
     \return pointer to the data of this matrix
 
     Request a pointer to the data of this matrix.
  */
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 template <typename T>
 T *Matrix <T>::data() const
  { if (mat.size() > 0) return((T *)&mat[0]);
    return(NULL);
  }
 
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 /*! \brief Convert this matrix in an identity matrix.
     \exception REC_MATRIX_IDENT matrix is not square
 
@@ -414,21 +410,25 @@ T *Matrix <T>::data() const
      \right]
    \f]
  */
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 template <typename T>
-void Matrix <T>::identity()
- { if (rows() != columns())
+void Matrix <T>::identity() { 
+  if (rows() != columns())
     throw Exception(REC_MATRIX_IDENT,
                     "Identity undefined because number of rows and columns of "
                     "matrix are different.");
-   if (mat.size() != 0)
-    for (unsigned long int r=0; r < rows(); r++)
-     for (unsigned long int c=0; c < columns(); c++)
-      if (r == c) (*this)(c, r)=(T)1;
-       else (*this)(c, r)=(T)0;
+   if (mat.size() != 0) {
+    for (unsigned long int r = 0; r < rows(); r++)
+     for (unsigned long int c = 0; c < columns(); c++)
+      if (r == c) {
+        (*this)(c, r) = (T)1;
+      } else {
+        (*this)(c, r) = (T)0;
+      }
+     }
  }
 
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 /*! \brief Invert this matrix.
     \exception REC_MATRIX_INVERS matrix is not square
     \exception REC_MATRIX_SINGULAR matrix is singular
@@ -445,48 +445,45 @@ void Matrix <T>::identity()
      \end{array}
      \right]^{-1}
     \f]
- */
-/*---------------------------------------------------------------------------*/
+*/
+// ---------------------------------------------------------------------------
 template <typename T>
-void Matrix <T>::invert()
- { if (rows() != columns())
+void Matrix <T>::invert(){ if (rows() != columns())
     throw Exception(REC_MATRIX_INVERS,
                     "Matrix inversion not allowed because number of rows and "
                     "columns of matrix are different.");
-   if (mat.size() == 0) return;
-   for (unsigned long int i=0; i < rows(); i++)
-    { if (fabsf((*this)(i, i)) <= 1e-16f)
-       throw Exception(REC_MATRIX_SINGULAR,
-                     "Matrix inversion undefined because matrix is singular.");
-      double q;
+  if (mat.size() == 0) return;
+  for (unsigned long int i = 0; i < rows(); i++) {
+    if (fabsf((*this)(i, i)) <= 1e-16f)
+      throw Exception(REC_MATRIX_SINGULAR, "Matrix inversion undefined because matrix is singular.");
+    double q = (T)1 / (*this)(i, i);
+    (*this)(i, i) = (T)1;
+    for (unsigned long int k = 0; k < columns(); k++)  // multiply row i by q
+      (*this)(k, i) *= q;
+    for (unsigned long int j = 0; j < rows(); j++)
+      if (i != j) {
+        q = (*this)(i, j);
+        (*this)(i, j) = (T)0;
+        // subtract q times row i from row j
+        for (unsigned long int k = 0; k < columns(); k++)
+          (*this)(k, j) -= (*this)(k, i) * q;
+      }
+  }
+}
 
-      q=(T)1/(*this)(i, i);
-      (*this)(i, i)=(T)1;
-      for (unsigned long int k=0; k < columns(); k++)    // multiply row i by q
-       (*this)(k, i)*=q;
-      for (unsigned long int j=0; j < rows(); j++)
-       if (i != j) { q=(*this)(i, j);
-                     (*this)(i, j)=(T)0;
-                                           // subtract q times row i from row j
-                     for (unsigned long int k=0; k < columns(); k++)
-                      (*this)(k, j)-=(*this)(k, i)*q;
-                   }
-    }
- }
-
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 /*! \brief Request the number of rows in this matrix.
     \return number of rows in this matrix
 
     Request the number of rows in this matrix.
  */
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 template <typename T>
 unsigned long int Matrix <T>::rows() const
  { return(_rows);
  }
 
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 /*! \brief Transpose this matrix.
 
     Transpose this matrix by flipping it along the first diagonal:
@@ -507,16 +504,17 @@ unsigned long int Matrix <T>::rows() const
      \right]
     \f]
  */
-/*---------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------
 template <typename T>
-void Matrix <T>::transpose()
- { if (mat.size() == 0) return;
-   std::vector <float> mat_t;
+void Matrix <T>::transpose() { 
+  if (mat.size() == 0) 
+    return;
 
+   std::vector <float> mat_t;
    mat_t.resize(mat.size());
-   for (unsigned long int r=0; r < rows(); r++)
-    for (unsigned long int c=0; c < columns(); c++)
-     mat_t[c*rows()+r]=(*this)(c, r);
+   for (unsigned long int r = 0; r < rows(); r++)
+    for (unsigned long int c = 0; c < columns(); c++)
+     mat_t[c * rows() + r] = (*this)(c, r);
    mat=mat_t;
    std::swap(_columns, _rows);
  }

@@ -16,7 +16,7 @@
 */
 
 #include "ecat2air.h"
-#include <ecatx/matrix.h>
+#include <ecatx/ecat_matrix.hpp>
 #include <unistd.h>
 
 #define AIR_SAVE_ERROR 1

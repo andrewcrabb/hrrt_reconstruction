@@ -303,7 +303,7 @@ inline int interpolability(const MatrixFile* file) {
 	return ret;
 }
 
-template <class T> T brightness(T r, T g, T b)
+template <typename T> T brightness(T r, T g, T b)
 {
 	T bt = r>g? r : g;
 	return bt>b? bt : b;

@@ -17,7 +17,7 @@ static char sccsid[]="@(#)imagemath.c	1.1 4/26/91 Copyright 1990 CTI Pet Systems
  */
    
 
-#include "matrix.h"
+#include "ecat_matrix.hpp"
 #include <math.h>
 #include <string.h>
 static char *version = "imagemath V2.4 02-Nov-2001";

@@ -56,7 +56,7 @@
 #include <string.h>
 #include <time.h>
 #include <sys/stat.h>
-#include <ecatx/matrix.h>
+#include <ecatx/ecat_matrix.hpp>
 #include <string>
 #include <dirent.h>
 #include <unistd.h>

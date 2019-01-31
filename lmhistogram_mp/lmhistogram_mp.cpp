@@ -68,6 +68,7 @@
 #include "hrrt_util.hpp"
 
 #include <gen_delays_lib/lor_sinogram_map.h>
+#include <gen_delays_lib/gen_delays_lib.hpp>
 #include <gen_delays_lib/segment_info.h>
 #include <gen_delays_lib/geometry_info.h>
 
@@ -180,7 +181,8 @@ static int g_prev_duration = 0;        // Previous sinogram duration (when -add 
 static long scan_duration = 0;          // P39 TX duration is total time scan duration
 
 // Parameters which default may be overrided in lmhistogram.ini
-static int g_span = 9;                // Default span=9 for l64 if not specified in header
+// These variables were defined here but now in gen_delays_lib.hpp
+// static int g_span = 9;                // Default span=9 for l64 if not specified in header
 static int g_elem_size = ELEM_SIZE_SHORT;        // sinogram elem size: 1 for byte, 2 for short (default)
 static int g_num_sino, g_sinogram_size;  // number of sinogram and size
 // static int compression = 0;         // 0=no compression (default), 1=ER (Efficient Representation)
@@ -195,6 +197,19 @@ std::string g_prev_sino;        // 1: add to existing normalization scan
 static float g_decay_rate = 0.0;      // Default no decay correction in seconds
 static int g_lld = DEFAULT_LLD;
 
+// These globals are declared extern in gen_delays_lib/gen_delays_lib.hpp
+// Default values for globals that may be overridden by command line arguments
+int g_num_elems = GeometryInfo::NUM_ELEMS;   // elements/projections
+int g_num_views = GeometryInfo::NUM_VIEWS;
+int g_span = 9;
+int g_max_ringdiff = GeometryInfo::MAX_RINGDIFF;
+
+float g_pitch = 0.0f;
+float g_diam  = 0.0f;
+float g_thick = 0.0f;
+float g_tau   = 6.0e-9f;
+float g_ftime = 1.0f;
+
 
 static string sw_version("HRRT_U 1.1");
 
@@ -204,7 +219,7 @@ static string sw_version("HRRT_U 1.1");
  * Sets the duration with g_prev_sino duration value from g_prev_sino header.
  * Returns 1 if success and 0 otherwise
  */
-template <class T> int init_sino(T *sino, int t_span) {
+template <typename T> int init_sino(T *sino, int t_span) {
   int sinogram_subsize = 0;
   int r_size = sizeof(T);
 
@@ -253,7 +268,7 @@ template <class T> int init_sino(T *sino, int t_span) {
 
 // T is of type short* or char*
 
-template <class T> int fill_prev_sino(T sino, const std::string &prev_sino) {
+template <typename T> int fill_prev_sino(T sino, const std::string &prev_sino) {
   if (g_hist_mode != HISTOGRAM_MODE::TRU) {
     g_logger->error("Adding to existing sinogram only supported Trues mode");
     return 1;

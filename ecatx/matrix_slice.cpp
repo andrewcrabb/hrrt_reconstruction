@@ -34,7 +34,7 @@
 #include	<string.h>
 #include	"DICOM.h"
 #include	"machine_indep.h"
-#include	"matrix.h"
+#include	"ecat_matrix.hpp"
 #include	"interfile.hpp"
 
 #define MY_ERROR	 -1

@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include "polyfit.h"
-#include "matrix.h"
+#include "math_matrix.h"
 void polyfit(float *x, float *y, int n, int m, float *cof)
 {
 	float *b, *z,*rp, tmp = 0.0, sum=0.0;

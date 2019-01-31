@@ -8,36 +8,42 @@
   02-Jun-2009: Changed sw_version to 1.1
   21-JUL-2010: Bug fix in gen_delays_lib
   21-JUL-2010: Change sw_version to 1.2
-
 */
+
+#include <boost/xpressive/xpressive.hpp>
+#include <boost/program_options.hpp>
+#include "spdlog/spdlog.h"
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+
+#include "gen_delays.hpp"
 #include "gen_delays_lib.hpp"
 #include "hrrt_util.hpp"
-#include <boost/program_options.hpp>
-#include <boost/filesystem.hpp>
 
-static const char *sw_version = "HRRT_U 1.2";
+// static const char *sw_version = "HRRT_U 1.2";
 
-std::shared_ptr<spdlog::logger> g_logger;
-boost::filesystem::path g_logfile;
-// boost::filesystem::path g_rebinner_lut_file;
-boost::filesystem::path g_coincidence_histogram_file;
-boost::filesystem::path g_crystal_singles_file;
-boost::filesystem::path g_delayed_coincidence_file;
-boost::filesystem::path g_output_csings_file;
+namespace bf = boost::filesystem;
+namespace bx = boost::xpressive;
+namespace po = boost::program_options;
+
+
+// Default values for globals that may be overridden by command line arguments
 int g_num_elems = GeometryInfo::NUM_ELEMS;   // elements/projections
 int g_num_views = GeometryInfo::NUM_VIEWS;
 int g_span = 9;
 int g_max_ringdiff = GeometryInfo::MAX_RINGDIFF;
+
 float g_pitch = 0.0f;
 float g_diam  = 0.0f;
 float g_thick = 0.0f;
 float g_tau   = 6.0e-9f;
+float g_ftime = 1.0f;
 
 void init_logging(void) {
   if (g_logfile.empty()) {
     g_logfile = fmt::format("{}_gen_delays.log", hrrt_util::time_string());
   }
-  g_logger = spdlog::basic_logger_mt("HRRT", g_logfile);
+  g_logger = spdlog::basic_logger_mt("HRRT", g_logfile.string());
 }
 
 // void on_rebinner(std::string const &instring) {
@@ -122,14 +128,14 @@ void parse_args(int argc, char **argv) {
       ("help,h", "Show options")
       ("time,t"        , po::value<float>(&g_ftime)->required()                         , "Count time")
       // ("rebinner,r"    , po::value<std::string>()->notifier(on_rebinner)->required()    , "Full path of rebinner LUT file")
-      ("coins,h"       , po::value<std::string>()->notifier(on_coincidence)->required() , "Coincidence histogram file")
       ("delays,O"      , po::value<std::string>()->notifier(on_delay)->required()       , "Delayed coincidence file")
-      ("sino_size,p"   , po::value<std::string>()->notifier(on_sino_size)               , fmt::format("sinogram size 'nelements,nviews' ({},{})", GeometryInfo::NUM_ELEMS, GeometryInfo::NUM_VIEWS))
-      ("span,s"        , po::value<std::string>()->notifier(on_span)                    , fmt::format("span,maxrd ({},{})", 9, GeometryInfo::MAX_RINGDIFF))
       ("geometry,g"    , po::value<std::string>()->notifier(on_geometry)                , "geometry 'pitch,diam,thick'")
       ("csingles,C"    , po::value<std::string>()->notifier(on_csingles)                , "Crystal singles file; old method specifying precomputed crystal singles data")
       ("outsing,S"     , po::value<std::string>()->notifier(on_outsing)                 , "Output crystal singles file")
       ("tau,T"         , po::value<float>(&g_tau)                                       , "time window parameter (6.0 10-9 sec)" )
+      ("sino_size,p"   , po::value<std::string>()->notifier(on_sino_size)               , fmt::format("sinogram size 'nelements,nviews' ({},{})", GeometryInfo::NUM_ELEMS, GeometryInfo::NUM_VIEWS).c_str())
+      ("coins,h"       , po::value<std::string>()->notifier(on_coincidence)->required() , "Coincidence histogram file")
+      ("span,s"        , po::value<std::string>()->notifier(on_span)                    , fmt::format("span,maxrd ({},{})", 9, GeometryInfo::MAX_RINGDIFF).c_str())
     ;
     po::positional_options_description pos_opts;
     pos_opts.add("infile", 1);

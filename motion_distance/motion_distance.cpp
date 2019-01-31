@@ -10,7 +10,7 @@
 // #include <AIR/AIR.h>
 // Now include directly from AIR src dir, path from CMake file
 #include "AIR.h"
-#include <ecatx/matrix.h>
+#include <ecatx/ecat_matrix.hpp>
 #include <ecatx/matpkg.h>
 #include <unistd.h>
 

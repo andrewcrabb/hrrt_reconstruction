@@ -1,5 +1,10 @@
 /* @(#)matrix.h	1.5 2/8/93 */
 
+// ahc 1/29/19
+// This is one of the 6 files named "matrix.h"
+// Probably an older version of ecatx/ecat_matrix.hpp
+// Check that ecat_matrix.hpp can replace this file.
+
 #pragma once
 
 #include <stdio.h>

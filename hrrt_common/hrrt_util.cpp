@@ -37,13 +37,13 @@ int open_istream(std::ifstream &t_ins, const bf::path &t_path, std::ios_base::op
   return 0;
 }
 
-template <class T>
+template <typename T>
 int write_binary_file(T *t_data, int t_num_elems, bf::path const &outpath, std::string const &msg) {
   std::ofstream outstream;
   std::shared_ptr<spdlog::logger> logger = spdlog::get("HRRT");  // Must define logger named HRRT in your main application
   if (open_ostream(outstream, outpath, std::ios::out | std::ios::binary))
     return 1;
-  outstream.write(t_data, t_num_elems * sizeof(T));
+  outstream.write(reinterpret_cast<char *>(t_data), t_num_elems * sizeof(T));
   if (!outstream.good()) {
     logger->error("Error {} {} elements stored in {}", msg, t_num_elems, outpath.string());
     outstream.close();
@@ -152,5 +152,12 @@ std::istream& safeGetline(std::istream& is, std::string& t)
         }
     }
 }
+
+// Required for symbols to be present in the library file.  Otherwise, won't link.
+// https://stackoverflow.com/questions/1022623/c-shared-library-with-templates-undefined-symbols-error
+
+// template <typename T> int write_binary_file(T *t_data, int t_num_elems, boost::filesystem::path const &outpath, std::string const &msg);
+// template <float *> int write_binary_file(float *t_data, int t_num_elems, boost::filesystem::path const &outpath, std::string const &msg);
+template int write_binary_file<float>(float *t_data, int t_num_elems, boost::filesystem::path const &outpath, std::string const &msg);
 
 }

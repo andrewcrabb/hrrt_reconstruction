@@ -2,7 +2,7 @@
 //** author: Frank Kehren
 
 #include <iostream>
-#include "matrix.h"
+#include "math_matrix.h"
 #include <string.h>
 
 //#include "exception.h"
@@ -16,7 +16,7 @@
 /*  iolumns   number of columns in matrix                                    */
 /*  iows      number of rows in matrix                                       */
 /*---------------------------------------------------------------------------*/
-template <class T>
+template <typename T>
 Matrix <T>::Matrix(unsigned int icolumns, unsigned int irows)
  { _rows=irows;
    _columns=icolumns;
@@ -30,7 +30,7 @@ Matrix <T>::Matrix(unsigned int icolumns, unsigned int irows)
 /*  icolumns   number of columns in matrix                                   */
 /*  irows      number of rows in matrix                                      */
 /*---------------------------------------------------------------------------*/
-template <class T>
+template <typename T>
 Matrix <T>::Matrix(T *_mat, unsigned int icolumns, unsigned int irows)
  { _rows=irows;
    _columns=icolumns;
@@ -40,7 +40,7 @@ Matrix <T>::Matrix(T *_mat, unsigned int icolumns, unsigned int irows)
 /*---------------------------------------------------------------------------*/
 /* ~Matrix: destroy matrix                                                   */
 /*---------------------------------------------------------------------------*/
-template <class T>
+template <typename T>
 Matrix <T>::~Matrix()
  { if (mat != NULL) delete[] mat;
  }
@@ -50,7 +50,7 @@ Matrix <T>::~Matrix()
 /*  m   original matrix                                                      */
 /* return: copy of matrix                                                    */
 /*---------------------------------------------------------------------------*/
-template <class T>
+template <typename T>
 Matrix <T> & Matrix <T>::operator = (const Matrix <T> &m)
  { if (this != &m)
     { if (m.mat != NULL)
@@ -74,7 +74,7 @@ Matrix <T> & Matrix <T>::operator = (const Matrix <T> &m)
 /*  value   scalar value                                                     */
 /* return: sum                                                               */
 /*---------------------------------------------------------------------------*/
-template <class T>
+template <typename T>
 Matrix <T> & Matrix <T>::operator += (const T value)
  { T *m1;
 
@@ -90,7 +90,7 @@ Matrix <T> & Matrix <T>::operator += (const T value)
 /*  m   second matrix                                                        */
 /* return: sum                                                               */
 /*---------------------------------------------------------------------------*/
-template <class T>
+template <typename T>
 Matrix <T> & Matrix <T>::operator += (const Matrix <T> &m)
  { if ((_rows != m._rows) || (_columns != m._columns))
  //   throw Exception(ERR_MATRIX, "Matrices have different sizes.");
@@ -110,7 +110,7 @@ Matrix <T> & Matrix <T>::operator += (const Matrix <T> &m)
 /*  value   scalar value                                                     */
 /* return: product                                                           */
 /*---------------------------------------------------------------------------*/
-template <class T>
+template <typename T>
 Matrix <T> & Matrix <T>::operator *= (const T value)
  { T *m1;
 
@@ -126,7 +126,7 @@ Matrix <T> & Matrix <T>::operator *= (const T value)
 /*  m   second matrix                                                        */
 /* return: product                                                           */
 /*---------------------------------------------------------------------------*/
-template <class T>
+template <typename T>
 Matrix <T> & Matrix <T>::operator *= (const Matrix <T> &m)
  { if (_columns != m._rows)
 //    throw Exception(ERR_MATRIX, "Matrices have wrong sizes.");
@@ -156,7 +156,7 @@ Matrix <T> & Matrix <T>::operator *= (const Matrix <T> &m)
 /* columns: request number of columns in matrix                              */
 /* return: number of columns in matrix                                       */
 /*---------------------------------------------------------------------------*/
-template <class T>
+template <typename T>
 unsigned int Matrix <T>::columns() const
  { return(_columns);
  }
@@ -165,7 +165,7 @@ unsigned int Matrix <T>::columns() const
 /* data: request pointer to matrix data                                      */
 /* return: pointer to matrix data                                            */
 /*---------------------------------------------------------------------------*/
-template <class T>
+template <typename T>
 T *Matrix <T>::data() const
  { return(mat);
  }
@@ -173,7 +173,7 @@ T *Matrix <T>::data() const
 /*---------------------------------------------------------------------------*/
 /* dataRemoved: matrix data removed from object                              */
 /*---------------------------------------------------------------------------*/
-template <class T>
+template <typename T>
 void Matrix <T>::dataRemoved()
  { mat=NULL;
    _rows=0;
@@ -183,7 +183,7 @@ void Matrix <T>::dataRemoved()
 /*---------------------------------------------------------------------------*/
 /* identity: create identity matrix                                          */
 /*---------------------------------------------------------------------------*/
-template <class T>
+template <typename T>
 void Matrix <T>::identity() const
  { 
 	//if (_rows != _columns)
@@ -196,7 +196,7 @@ void Matrix <T>::identity() const
 /*---------------------------------------------------------------------------*/
 /* invert: invert square matrix                                              */
 /*---------------------------------------------------------------------------*/
-template <class T>
+template <typename T>
 void Matrix <T>::invert() const
  { //if (_rows != _columns)
     //throw Exception(ERR_MATRIX,
@@ -224,7 +224,7 @@ void Matrix <T>::invert() const
 /*---------------------------------------------------------------------------*/
 /* print: print matrix content to stdout                                     */
 /*---------------------------------------------------------------------------*/
-template <class T>
+template <typename T>
 void Matrix <T>::print() const
  { if (mat == NULL) return;
    T *mp;
@@ -242,7 +242,7 @@ void Matrix <T>::print() const
 /* rows: request number of rows in matrix                                    */
 /* return: number of rows in matrix                                          */
 /*---------------------------------------------------------------------------*/
-template <class T>
+template <typename T>
 unsigned int Matrix <T>::rows() const
  { return(_rows);
  }
@@ -253,7 +253,7 @@ unsigned int Matrix <T>::rows() const
 /*  r       row of matrix element                                            */
 /*  value   value of matrix element                                          */
 /*---------------------------------------------------------------------------*/
-template <class T>
+template <typename T>
 void Matrix <T>::set(unsigned int c, unsigned int r, T value) const
  { //if ((r >= _rows) || (c >= _columns))
    // throw Exception(ERR_MATRIX, "Wrong index in accessing matrix element.");
@@ -264,7 +264,7 @@ void Matrix <T>::set(unsigned int c, unsigned int r, T value) const
 /*---------------------------------------------------------------------------*/
 /* transpose: transpose matrix                                               */
 /*---------------------------------------------------------------------------*/
-template <class T>
+template <typename T>
 void Matrix <T>::transpose()
  { if (mat == NULL) return;
    T *mat_t;

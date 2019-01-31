@@ -54,7 +54,7 @@ MatrixData *matrix_create(const MatrixData *orig)
 }
 
 
-template <class T> 
+template <typename T> 
 void t_histogram(T *src, int nvoxels, float dmin, float dmax, float dv,
 				float *yv, int psize)
 {
@@ -576,7 +576,7 @@ MatrixData *matrix_brightness(const MatrixData *rgb)
 	return ret;
 }
 
-template <class T>
+template <typename T>
 void  matrix_align_4(T *src, MatrixData *data)
 {
 	int x, y, z, xtrail, ytrail, xdim, ydim;
@@ -1074,7 +1074,7 @@ MatrixData* Volume::projection(DimensionName dimension, float abs_l,
    }
 }
 
-template <class T>
+template <typename T>
 void matrix_reverse( T *src, MatrixData *vol, DimensionName dimension)
 {
 	int i1,i2;			// swap indexes i1, i2;

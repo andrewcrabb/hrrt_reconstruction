@@ -5,7 +5,7 @@
 #ifndef FILENAME_MAX /* SunOs 4.1.3 */
 #define FILENAME_MAX 256
 #endif
-#include "matrix.h"
+#include "ecat_matrix.hpp"
 
 void matrix_sum(MatrixData *matrix, MatrixData **sum)
 {

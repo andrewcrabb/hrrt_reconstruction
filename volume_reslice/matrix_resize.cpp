@@ -25,7 +25,7 @@ static unsigned interpolate_rgb(int v0, int v1, float t)
 
 typedef unsigned (*interpolate_func)(int v0, int v1, float t);
 
-template <class T>
+template <typename T>
 int matrix_resize_(T *src, MatrixData* slice, float pixel_size,
 int interpolate, int align, interpolate_func func=0)
 {

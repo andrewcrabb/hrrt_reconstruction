@@ -30,6 +30,4 @@ struct FS_L64_Args {
 extern int fan_sum(unsigned *events, int count, float *sum, unsigned corrections);
 //  fan_sum function to apply geometric and dwell corrections to events stream into sum
 typedef enum {PROMPT_EVENT = 0, DELAYED_EVENT = 1, TAG_EVENT = 2, SYNC_EVENT = 3} EventType;
-// static unsigned int ewtypes[16] = {3, 3, 1, 0, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3};
-// extern float *fan_sum_weight;
 static float  eps = 1.0e-4f;

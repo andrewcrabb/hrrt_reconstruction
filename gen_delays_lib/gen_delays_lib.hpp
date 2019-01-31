@@ -22,15 +22,17 @@ int gen_delays(int is_inline,
                int t_maxrd = GeometryInfo::MAX_RINGDIFF
                // boost::filesystem::path const &p_rebinner_lut_file
               );
-const char *hrrt_rebinner_lut_path(int tx_flag = 0);
+// const char *hrrt_rebinner_lut_path(int tx_flag = 0);
 
-// ahc 1/14/19
-// This seems to be HRRT geometry so moved to geometry_info.hpp
-//
-// static int nmpairs=20;
-// static int hrrt_mpairs[][2]={{-1,-1},{0,2},{0,3},{0,4},{0,5},{0,6},
-//                                      {1,3},{1,4},{1,5},{1,6},{1,7},
-//                                            {2,4},{2,5},{2,6},{2,7},
-//                                                  {3,5},{3,6},{3,7},
-//                                                        {4,6},{4,7},
-//                                                              {5,7}};
+// gen_delays_lib is used in gen_delays and lmhistogram_mp executables.
+// In the hpp containing main() of these, define these globals, which may be set at command line (gen_delays) or use defaults (lmhistogram_mp)
+
+extern int g_num_elems;
+extern int g_num_views;
+extern int g_span;
+extern int g_max_ringdiff;
+extern float g_pitch;
+extern float g_diam;
+extern float g_thick;
+extern float g_tau;
+extern float g_ftime;

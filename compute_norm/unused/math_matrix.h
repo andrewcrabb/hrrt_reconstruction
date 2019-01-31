@@ -1,3 +1,9 @@
+// ahc
+// This was one of the 6 files named 'matrix.h'
+// The version in libconvert/ seems newer, so it replaces this one.
+// libconvert/ version uses vector<T> instead of T*, and has operator -=
+// It does not have the methods print() and set() defined here.
+
 /*@$
 // ELEMENT: Matrix
 // DESCRIPTION:
@@ -23,14 +29,14 @@
 // SEE ALSO:
 @$*/
 
-//** file: matrix.h
+//** file: math_matrix.h
 //** author: Frank Kehren
 
 // #pragma once
 
 /*- definitions -------------------------------------------------------------*/
 
-template <class T> class Matrix
+template <typename T> class Matrix
  { protected:
     unsigned int _rows,                             // number of rows in matrix
                  _columns;                       // number of columns in matrix

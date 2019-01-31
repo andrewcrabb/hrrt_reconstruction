@@ -45,9 +45,7 @@ enum class HISTOGRAM_MODE {
   TRA     = 7   // Transmission
 };
 
-// Not sure if ewtypes belongs here.  It was defined in multiple places.
 namespace HISTOGRAM_MP {
-  static const std::vector<int> ewtypes = {3, 3, 1, 0, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3};
   extern std::map <FILE_TYPE, std::string> FILE_EXTENSIONS;
   extern std::map <HISTOGRAM_MODE, std::string> MODES;
 }
@@ -74,7 +72,7 @@ extern long process_tagword(long tagword, long duration, std::ofstream &out_hc);
 int goto_event( int target_time);
 
 // Histogram input listmode stream to sinogram, fill duration with time extracted from time tags
-template <class T> int histogram(T *out_sino, char *delayed_sino, int sino_size, int &duration, std::ofstream &out_hc);
+template <typename T> int histogram(T *out_sino, char *delayed_sino, int sino_size, int &duration, std::ofstream &out_hc);
 
 // Sort 64-bit events from src, decode event into 32-bit event, add event to dest until src is done or dest packet is full
 void rebin_packet(L64EventPacket &src,  L32EventPacket &dst);
@@ -86,7 +84,7 @@ int check_end_of_frame(L64EventPacket &src);
 int check_start_of_frame(L64EventPacket &src);
 
 // find start countrate from file, returns time in msec
-int find_start_countrate(const bf::path &infile);
+int find_start_countrate(bf::path const &infile);
 
 // Process tagwords from packet
 void process_tagword(const L32EventPacket &src, std::ofstream &out_hc);

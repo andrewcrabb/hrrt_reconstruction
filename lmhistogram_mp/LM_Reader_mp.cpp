@@ -76,6 +76,7 @@ std::vector<int> L64EventPacket::frame_skip;
 // char *L32EventPacket::in_fname = NULL;
 // FILE *L32EventPacket::in_fp = NULL;
 boost::filesystem::path L32EventPacket::in_fname;
+std::ifstream L32EventPacket::in_fp;
 unsigned L32EventPacket::packet_size = PACKET_SIZE;
 int L32EventPacket::current_time = 0;
 
@@ -96,12 +97,13 @@ L32EventPacket::L32EventPacket() {
   events = (unsigned*)calloc(packet_size, sizeof(unsigned));
   status = empty;
   num_events = 0;
-  if (events == 
-    NULL) throw("memory allocation error");
+  if (events == NULL) 
+    throw("memory allocation error");
 }
 
 L32EventPacket::~L32EventPacket() {
-  if (events != NULL) free(events);
+  if (events != NULL) 
+    free(events);
 }
 
 /*
@@ -117,7 +119,7 @@ L32EventPacket::~L32EventPacket() {
  *  4. Sets L64EventPacket::file_status to L64EventPacket::done when read is done or to
  *     L64EventPacket::error to notify consumer and returns
  */
-// static unsigned int ewtypes[16] = {3,3,1,0,3,3,2,2,3,3,3,3,3,3,3,3};
+
 
 void lm64_reader (const fs::path &infile) {
   L64EventPacket::in_fname = infile;
@@ -149,7 +151,7 @@ void lm64_reader (const fs::path &infile) {
  */
 void lm32_reader (const fs::path &infile) {
   L32EventPacket::in_fname = infile;
-  hrrt_util::open_istream(L64EventPacket::in_fp, L32EventPacket::in_fname, ios::in | ios::binary);
+  hrrt_util::open_istream(L32EventPacket::in_fp, L32EventPacket::in_fname, ios::in | ios::binary);
   L32EventPacket::in_fp.read((char *)g_l32_container->events, 2 * sizeof(unsigned) * L32EventPacket::packet_size);
   if (L32EventPacket::in_fp.good()) {
     g_l32_container = new L32EventPacket[2];

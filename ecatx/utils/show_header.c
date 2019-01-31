@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "matrix.h"
+#include "ecat_matrix.hpp"
 
 void show_main_header( Main_header *mh );
 static char* storage_order(int idx);

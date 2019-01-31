@@ -488,14 +488,14 @@ static int goto_event_64(int target)
     }
     ew1 = listptr[0];
     ew2 = listptr[1];
-    type = HISTOGRAM_MP::ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
+    type = GeometryInfo::EWTYPES[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
     while (type == 3) {
       // sync
       nsync++;
       listptr++;
       ew1 = listptr[0];
       ew2 = listptr[1];
-      type = HISTOGRAM_MP::ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
+      type = GeometryInfo::EWTYPES[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
       if ((nevents - (nsync + 1) / 2) == 0) {
         load_buffer_64(listbuf, nevents, nsync);
         if (!nevents) terminate = 2;
@@ -553,7 +553,7 @@ static int next_event_64(Event_32 &cew, int scan_flag)
   }
   ew1 = listptr[0];
   ew2 = listptr[1];
-  type = HISTOGRAM_MP::ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
+  type = GeometryInfo::EWTYPES[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
   unsigned doi_processing = (eg_rebinner_method & NODOI_PROCESSING) == 0 ? 1 : 0;
   while (type == 3) {
     // sync
@@ -561,7 +561,7 @@ static int next_event_64(Event_32 &cew, int scan_flag)
     listptr++;
     ew1 = listptr[0];
     ew2 = listptr[1];
-    type = HISTOGRAM_MP::ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
+    type = GeometryInfo::EWTYPES[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
     if ((nevents - (nsync + 1) / 2) == 0) {
       load_buffer_64(listbuf, nevents, nsync);
       if (!nevents) return 2;
@@ -769,7 +769,7 @@ int check_start_of_frame(L64EventPacket &src)
   while (pos < src.num_events * 2) {
     ew1 = in_buf[pos];
     ew2 = in_buf[pos + 1];
-    type = HISTOGRAM_MP::ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
+    type = GeometryInfo::EWTYPES[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
     if (type == 2) {
       // tag word
       tag = (ew1 & 0xffff) | ((ew2 & 0xffff) << 16);
@@ -837,7 +837,7 @@ static int find_start_countrate_lm(const bf::path &l64_file) {
     while (pos < num_events * 2) {
       ew1 = buf[pos];
       ew2 = buf[pos + 1];
-      type = HISTOGRAM_MP::ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
+      type = GeometryInfo::EWTYPES[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
       switch (type) {
       case 3:   // sync
         pos += 1;
@@ -910,7 +910,7 @@ bf::path &make_path(const bf::path &infile, FILE_TYPE file_type) {
  * 534107,541,889,2679
  */
 
-int find_start_countrate(bf::path l64_file) {
+int find_start_countrate(bf::path const &l64_file) {
   const bf::path hc_file = make_path(l64_file, FILE_TYPE::HC);
   if (! bf::is_regular_file(hc_file)) {
     g_logger->info("hc file {} not found; trying listmode file", hc_file.string());
@@ -1006,7 +1006,7 @@ int check_end_of_frame(L64EventPacket &src) {
   while (pos >= 0) {
     ew1 = in_buf[pos];
     ew2 = in_buf[pos + 1];
-    type = HISTOGRAM_MP::ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
+    type = GeometryInfo::EWTYPES[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
     if (type == 2) {
       // tag word
       tag = (ew1 & 0xffff) | ((ew2 & 0xffff) << 16);
@@ -1066,7 +1066,7 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
     //  cerr << "xxx src_pos " << src_pos << endl;
     ew1 = in_buf[src_pos];
     ew2 = in_buf[src_pos + 1];
-    type = HISTOGRAM_MP::ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
+    type = GeometryInfo::EWTYPES[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
     switch (type) {
     case 3: // not in sync
       src_pos++;
@@ -1276,7 +1276,7 @@ void process_tagword(const L64EventPacket &src, std::ofstream out_hc)
   while (i < 2 * nevents) {
     ew1 = buf[i];
     ew2 = buf[i + 1];
-    type = HISTOGRAM_MP::ewtypes[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
+    type = GeometryInfo::EWTYPES[(((ew2 & 0xc0000000) >> 30) | ((ew1 & 0xc0000000) >> 28))];
     switch (type) {
     case 3: // not in sync
       i++;
@@ -1308,7 +1308,7 @@ void process_tagword(const L64EventPacket &src, std::ofstream out_hc)
  * Duration is filled back with the real histogrammed time.�
  * Histogram returns: frame start time (>=0),  -1 when an error is encountered.
  */
-template <class T> int histogram(T *t_sino, char *delayed, int sino_size, int &t_duration, std::ofstream &t_out_hc) {
+template <typename T> int histogram(T *t_sino, char *delayed, int sino_size, int &t_duration, std::ofstream &t_out_hc) {
   int address = 0, tx_flag = 0;
   T *sub_sino = t_sino + sino_size;
 

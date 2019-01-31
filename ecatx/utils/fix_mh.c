@@ -33,7 +33,7 @@
 #include <time.h>
 #include <string.h>
 #include <stdlib.h>
-#include "matrix.h"
+#include "ecat_matrix.hpp"
 #include "isotope_info.h"
 
 static void usage() {

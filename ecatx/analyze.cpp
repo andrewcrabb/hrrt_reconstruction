@@ -276,71 +276,64 @@ int analyze_open(MatrixFile *mptr)
 	return 1;
 }
 
-int analyze_read(MatrixFile *mptr, int matnum, MatrixData *data, int dtype) 
-{
-  Image_subheader *imagesub=NULL;
-  int y, z, image_min=0, image_max=0;
-  size_t npixels, nvoxels;
-  int nblks, elem_size=2, data_offset=0;
-  void *plane, *line;
-  /* u_short u_max, *up=NULL; */
-  short *sp=NULL;
-  int z_flip=1, y_flip=1, x_flip=1;
-  int group = 0;
-  struct Matval matval;
-  struct image_dimension *hdim=NULL;
+int analyze_read(MatrixFile *mptr, int matnum, MatrixData *data, int dtype) {
+	struct Matval matval;
 
-  mat_numdoc(matnum, &matval);
-  data->matnum = matnum;
-  data->pixel_size=data->y_size=data->z_size=1.0;
-  data->scale_factor = 1.0;
+	mat_numdoc(matnum, &matval);
+	data->matnum = matnum;
+	data->pixel_size = data->y_size = data->z_size = 1.0;
+	data->scale_factor = 1.0;
 
-  hdim = &(((struct dsr *)mptr->analyze_hdr)->dime);
-  imagesub = (Image_subheader*)data->shptr;
-  memset(imagesub,0,sizeof(Image_subheader));
+	struct image_dimension *hdim = &(((struct dsr *)mptr->analyze_hdr)->dime);
+	Image_subheader *imagesub = (Image_subheader*)data->shptr;
+	memset(imagesub, 0, sizeof(Image_subheader));
 	imagesub->num_dimensions = 3;
-  imagesub->x_pixel_size = data->pixel_size = hdim->pixdim[1]*0.1f;
-  imagesub->y_pixel_size = data->y_size = hdim->pixdim[2]*0.1f;
-  imagesub->z_pixel_size = data->z_size = hdim->pixdim[3]*0.1f;
-  imagesub->scale_factor = data->scale_factor = 
-    (hdim->funused1 > 0.0) ? hdim->funused1: 1.0f;
-  imagesub->x_dimension = data->xdim = hdim->dim[1];
-  imagesub->y_dimension = data->ydim = hdim->dim[2];
-  imagesub->z_dimension = data->zdim = hdim->dim[3];
-  imagesub->data_type = data->data_type = SunShort;  
-  if (dtype == MAT_SUB_HEADER) return ECATX_OK;
+	imagesub->x_pixel_size = data->pixel_size = hdim->pixdim[1] * 0.1f;
+	imagesub->y_pixel_size = data->y_size = hdim->pixdim[2] * 0.1f;
+	imagesub->z_pixel_size = data->z_size = hdim->pixdim[3] * 0.1f;
+	imagesub->scale_factor = data->scale_factor = (hdim->funused1 > 0.0) ? hdim->funused1 : 1.0f;
+	imagesub->x_dimension = data->xdim = hdim->dim[1];
+	imagesub->y_dimension = data->ydim = hdim->dim[2];
+	imagesub->z_dimension = data->zdim = hdim->dim[3];
+	imagesub->data_type = data->data_type = SunShort;
+	if (dtype == MAT_SUB_HEADER)
+		return ECATX_OK;
 
-
-  npixels = data->xdim * data->ydim;
-  nvoxels = npixels * data->zdim;
-  data->data_size = nvoxels * elem_size;
-  nblks = (data->data_size+MatBLKSIZE-1)/MatBLKSIZE;
-  data->data_ptr = (void *) calloc(nblks,MatBLKSIZE);
-  if (matval.frame>1) data_offset = (matval.frame-1)*data->data_size;
-  if (data_offset>0) {
-    if (fseek(mptr->fptr, data_offset, SEEK_SET) != 0) 
-      crash("Error skeeping to offset %d\n", data_offset);
-  }
-  for (z = 0; z < data->zdim; z++) {
-    if (z_flip) 
-      plane = static_cast<uint8_t *>(data->data_ptr) + (data->zdim - z - 1) * elem_size * npixels;
-    else 
-    	plane = data->data_ptr + z * elem_size * npixels;
-    if (fread(plane, elem_size, npixels, mptr->fptr) < npixels) {
-      free(data->data_ptr);
-      data->data_ptr = NULL;
-      matrix_errno = MAT_READ_ERROR;
-      return ECATX_ERROR;
-    }
-    if (y_flip) 
-      flip_y(plane,data->data_type,data->xdim,data->ydim);
-    if (x_flip) {
-      for (y = 0; y < data->ydim; y++) {
-        line = plane + y*data->xdim*elem_size;
-        flip_x(line,data->data_type,data->xdim);
-      }
-    }
-  }
- // find_data_extrema(data);		/*don't trust in header extrema*/
-  return ECATX_OK;
+	int  data_offset = 0;
+	int elem_size = 2;
+	size_t npixels = data->xdim * data->ydim;
+	size_t nvoxels = npixels * data->zdim;
+	data->data_size = nvoxels * elem_size;
+	int nblks = (data->data_size + MatBLKSIZE - 1) / MatBLKSIZE;
+	data->data_ptr = (void *) calloc(nblks, MatBLKSIZE);
+	if (matval.frame > 1) data_offset = (matval.frame - 1) * data->data_size;
+	if (data_offset > 0) {
+		if (fseek(mptr->fptr, data_offset, SEEK_SET) != 0)
+			crash("Error skeeping to offset %d\n", data_offset);
+	}
+	int z_flip = 1, y_flip = 1, x_flip = 1;
+	void *plane, *line;
+	for (int z = 0; z < data->zdim; z++) {
+		if (z_flip)
+			plane = static_cast<uint8_t *>(data->data_ptr) + (data->zdim - z - 1) * elem_size * npixels;
+		else
+			plane = static_cast<uint8_t *>(data->data_ptr) + z * elem_size * npixels;
+		if (fread(plane, elem_size, npixels, mptr->fptr) < npixels) {
+			free(data->data_ptr);
+			data->data_ptr = NULL;
+			matrix_errno = MAT_READ_ERROR;
+			return ECATX_ERROR;
+		}
+		if (y_flip)
+			flip_y(plane, data->data_type, data->xdim, data->ydim);
+		if (x_flip) {
+			for (int y = 0; y < data->ydim; y++) {
+				// line = plane + y * data->xdim * elem_size;
+				line = static_cast<uint8_t *>(plane) + y * data->xdim * elem_size;
+				flip_x(line, data->data_type, data->xdim);
+			}
+		}
+	}
+// find_data_extrema(data);		/*don't trust in header extrema*/
+	return ECATX_OK;
 }

@@ -67,17 +67,6 @@ bool valid_lut_filename(bf::path const &t_path) {
   return false;
 }
 
-
-// ahc 1/14/19 this was in gen_delays.h, moved to geometry_info.h
-
-// static int nGeometryInfo::HRRT_MPAIRS=20;
-// static int mpairs[][2]={{-1,-1},{0,2},{0,3},{0,4},{0,5},{0,6},
-//                 {1,3},{1,4},{1,5},{1,6},{1,7},
-//                              {2,4},{2,5},{2,6},{2,7},
-//                              {3,5},{3,6},{3,7},
-//                              {4,6},{4,7},
-//                              {5,7}};
-
 //  This procedure converts the line between 2 detector physical
 //  coordinates (deta and detb are 3 value arrays, x, y, z in cm)
 //  and LOR projection coordinates (4 value array with values of

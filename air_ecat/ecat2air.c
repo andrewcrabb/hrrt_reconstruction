@@ -16,7 +16,7 @@
 
 #include "ecat2air.h"
 #include <unistd.h>
-#include <ecatx/matrix.h>
+#include <ecatx/ecat_matrix.hpp>
 #include <ecatx/load_volume.h>
 #include <math.h>
 

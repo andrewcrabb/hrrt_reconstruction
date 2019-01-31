@@ -13,7 +13,7 @@
 */
 
 #include "ecat2air.h"
-#include <ecatx/matrix.h>
+#include <ecatx/ecat_matrix.hpp>
 #include <unistd.h>
 
 static char line[FILENAME_MAX];

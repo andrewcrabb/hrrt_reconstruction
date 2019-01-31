@@ -13,7 +13,7 @@
 #include	<string.h>
 #include <time.h>
 
-#include	<ecatx/matrix.h>
+#include	<ecatx/ecat_matrix.hpp>
 #include	"interfile_reader.h"
 #include	"write_image_header.h"
 #define		DIR_SEPARATOR '/'

@@ -71,6 +71,8 @@ const std::vector<std::vector<int>> HRRT_MPAIRS{{-1,-1},{0,2},{0,3},{0,4},{0,5},
                                                 {3,5},{3,6},{3,7},
                                                 {4,6},{4,7},
                                                 {5,7}};
+ const std::array<int, 16> EWTYPES = {3, 3, 1, 0, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3};
+
 
 struct LR_Geom {
     int   nprojs;

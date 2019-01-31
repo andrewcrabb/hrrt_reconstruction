@@ -33,7 +33,7 @@
  * 21-sep-2010: Added data rates to image header (Merence sibomana)
  */
 
-#include	"matrix.h"
+#include	"ecat_matrix.hpp"
 #include	"machine_indep.h"
 #include    <string.h>
 #include    <malloc.h>

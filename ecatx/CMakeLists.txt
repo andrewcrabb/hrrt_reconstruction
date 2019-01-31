@@ -5,7 +5,7 @@
 add_definitions(${GCC_COMPILE_FLAGS})
 
 add_library (ecatx analyze.cpp machine_indep.cpp plandefs.cpp
-	crash.cpp interfile.cpp matrix.cpp matrix_slice.cpp scanner_model.cpp
+	crash.cpp interfile.cpp ecat_matrix.cpp matrix_slice.cpp scanner_model.cpp
 	DICOM.cpp isotope_info.cpp matrix_extra.cpp num_sort.cpp matpkg.cpp)
 
 

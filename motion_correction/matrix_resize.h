@@ -1,6 +1,6 @@
 # pragma once
 
-#include <ecatx/matrix.h>
+#include <ecatx/ecat_matrix.hpp>
 int matrix_resize(MatrixData *mat, float pixel_size, int interp_flag,
 	int align_flag=1);
 // align x to 4 bytes boundary when align_flag set

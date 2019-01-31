@@ -1,7 +1,7 @@
 #include <cstring>
 #include <stdlib.h>
 #include "polyfitw.hpp"
-#include "matrix.h"
+#include "math_matrix.h"
 
 void polyfitw(float *x, float *y, float *w, int n, int m, float *cof) {
 	float *b, *z,*rp;

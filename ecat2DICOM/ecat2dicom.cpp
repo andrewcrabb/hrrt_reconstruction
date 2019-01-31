@@ -37,7 +37,7 @@
 #include "DICOM.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <ecatx/matrix.h>
+#include <ecatx/ecat_matrix.hpp>
 #include <sys/stat.h>
 
 #include <dirent.h>

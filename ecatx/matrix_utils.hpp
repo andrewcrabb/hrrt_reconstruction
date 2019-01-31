@@ -29,7 +29,7 @@
    * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 # pragma once
-#include "matrix.h"
+#include "ecat_matrix.hpp"
 
 extern "C" {
 int matrix_interp2(MatrixData *mat, int sx1, int sx2); /* assumes byte data */

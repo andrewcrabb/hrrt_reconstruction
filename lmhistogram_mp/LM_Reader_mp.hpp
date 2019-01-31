@@ -28,6 +28,7 @@
 # pragma once
 
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>

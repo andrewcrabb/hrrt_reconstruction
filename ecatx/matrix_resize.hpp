@@ -30,7 +30,7 @@
  */
 #include <sys/types.h>
 #include <stdlib.h>
-#include "matrix.h"
+#include "ecat_matrix.hpp"
 #include "matrix_utils.h"
 
 #if defined(__cplusplus)

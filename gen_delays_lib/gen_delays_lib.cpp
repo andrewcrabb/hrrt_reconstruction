@@ -27,29 +27,21 @@
 #include <xmmintrin.h>
 #include <string>
 #include <boost/filesystem.hpp>
-#include <boost/xpressive/xpressive.hpp>
-#include <boost/program_options.hpp>
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include "spdlog/spdlog.h"
-#include "spdlog/sinks/stdout_color_sinks.h" //support for stdout logging
-#include "spdlog/sinks/basic_file_sink.h" // support for basic file logging
 
-#define _MAX_PATH 256
 #include <pthread.h>
 #include <sys/time.h>
 #include <unistd.h>
 
-#include "hrrt_util.hpp"
 #include "gen_delays_lib.hpp"
+#include "gen_delays.hpp"
+#include "hrrt_util.hpp"
 #include "segment_info.h"
 #include "geometry_info.h"
 #include "lor_sinogram_map.h"
-
-namespace bf = boost::filesystem;
-namespace bx = boost::xpressive;
-namespace po = boost::program_options;
 
 typedef struct {
   int mp;
@@ -57,23 +49,24 @@ typedef struct {
   float *csings;
 } COMPUTE_DELAYS;
 
-std::shared_ptr<spdlog::logger> g_logger;
-boost::filesystem::path g_logfile;
-// boost::filesystem::path g_rebinner_lut_file;
-boost::filesystem::path g_coincidence_histogram_file;
-boost::filesystem::path g_crystal_singles_file;
-boost::filesystem::path g_delayed_coincidence_file;
-boost::filesystem::path g_output_csings_file;
-int g_num_elems = GeometryInfo::NUM_ELEMS;
-int g_num_views = GeometryInfo::NUM_VIEWS;
-int g_span = 9;
-int g_max_ringdiff = GeometryInfo::MAX_RINGDIFF;
-float g_pitch = 0.0f;
-float g_diam  = 0.0f;
-float g_thick = 0.0f;
-float g_tau   = 6.0e-9f;
+// globals now in gen_delays.hpp
+// std::shared_ptr<spdlog::logger> g_logger;
+// boost::filesystem::path g_logfile;
+// // boost::filesystem::path g_rebinner_lut_file;
+// boost::filesystem::path g_coincidence_histogram_file;
+// boost::filesystem::path g_crystal_singles_file;
+// boost::filesystem::path g_delayed_coincidence_file;
+// boost::filesystem::path g_output_csings_file;
+// int g_num_elems = GeometryInfo::NUM_ELEMS;
+// int g_num_views = GeometryInfo::NUM_VIEWS;
+// int g_span = 9;
+// int g_max_ringdiff = GeometryInfo::MAX_RINGDIFF;
+// float g_pitch = 0.0f;
+// float g_diam  = 0.0f;
+// float g_thick = 0.0f;
+// float g_tau   = 6.0e-9f;
 // float tau = 6.0e-9f;
-float g_ftime = 1.0f;
+// float g_ftime = 1.0f;
 
 static std::string progid = "$Id: gen_delays.c,v 1.3 2007/01/08 06:04:55 cvsuser Exp $";
 
@@ -461,7 +454,7 @@ int gen_delays(int is_inline,
     free(coincidence_sinogram);
     if (!g_output_csings_file.empty())
       // write_output_csings_file(csings);
-      if (hrrt_util::write_binary_file<float>(csings, num_crystals, g_output_csings_file, "Singles from delayed coincidence histogram"))
+      if (hrrt_util::write_binary_file(csings, num_crystals, g_output_csings_file, "Singles from delayed coincidence histogram"))
         exit(1);
   }
 
@@ -533,7 +526,7 @@ int gen_delays(int is_inline,
       dtmp[n] = delays_data[n][i];
     }
     if (is_inline < 2) {
-      if (hrrt_util::write_binary_file<float>(dtmp, nsino, g_delayed_coincidence_file, "Delayed coincidence"))
+      if (hrrt_util::write_binary_file(dtmp, nsino, g_delayed_coincidence_file, "Delayed coincidence"))
         exit(1);
       // write_delays_file(dtmp, nsino);
     } else {
