@@ -23,4 +23,5 @@ target_link_libraries (compute_norm LINK_PUBLIC math_matrix)
 target_include_directories (compute_norm PUBLIC ${LIB_INCLUDE_DIRS})
 install(TARGETS compute_norm
     RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    # PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)

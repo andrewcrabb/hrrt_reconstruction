@@ -12,4 +12,5 @@ add_library (ecatx analyze.cpp machine_indep.cpp plandefs.cpp
 target_include_directories (ecatx PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 install(TARGETS ecatx
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    # PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)

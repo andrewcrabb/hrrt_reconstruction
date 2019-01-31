@@ -6,4 +6,5 @@ target_include_directories (gen_delays PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAK
 target_link_libraries(gen_delays LINK_PUBLIC hrrt_common )
 install(TARGETS gen_delays
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    # PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)

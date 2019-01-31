@@ -467,13 +467,16 @@ int _is_interfile(const std::string &fname) {
   return ret;
 }
 
+// What the flying f does this thing do.  It returns a char *.
+
 char* is_interfile(const char* fname) {
   char *hdr_fname=NULL, *ext=NULL;
   const char *img_fname=NULL;
   InterfileItem* item;
   FILE *fp;
   
-  if (_is_interfile(fname))  return strdup(fname);
+  if (_is_interfile(fname))  
+    return strdup(fname);
   /* assume data_fname and check header */
   if ( (img_fname=strrchr(fname,DIR_SEPARATOR)) == NULL) 
     img_fname = fname;
@@ -498,14 +501,13 @@ char* is_interfile(const char* fname) {
   }
   if (_is_interfile(hdr_fname) && (fp = fopen(hdr_fname, R_MODE))!=NULL) {
     while ((item=get_next_item(fp)) != NULL) {
-      if (item->value.length() == 0) continue; 
-      if (item->key==NAME_OF_DATA_FILE) {
+      if (item->value.length() == 0) 
+        continue; 
+      if (item->key == NAME_OF_DATA_FILE) {
                     /* check short and full name */
-        if (strcmp(item->value,img_fname)==0 ||   
-          strcmp(item->value,fname)==0) {
+        if (strcmp(item->value, img_fname) == 0 || strcmp(item->value,fname) == 0) {
           fclose(fp);
-          fprintf(stderr,"using %s header for %s data file\n",
-            hdr_fname, fname);
+          fprintf(stderr,"using %s header for %s data file\n", hdr_fname, fname);
           free(item->value);
           return hdr_fname;
         }
@@ -515,7 +517,7 @@ char* is_interfile(const char* fname) {
     fclose(fp);
     fprintf(stderr,"using %s header for %s data file\n", hdr_fname, fname);
     fprintf(stderr,"Warning: Adding Missing keyword 'name of data file'\n");
-    if ((fp=fopen(hdr_fname,"at")) != NULL) {
+    if ((fp = fopen(hdr_fname, "at")) != NULL) {
       fprintf(fp,"\nname of data file := %s\n", fname);
       fclose(fp);
     } else {

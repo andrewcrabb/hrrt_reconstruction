@@ -17,4 +17,5 @@ target_include_directories (gen_delays_main PUBLIC ${LIB_INCLUDE_DIRS})
 # link_directories(${PROJECT_SOURCE_DIR}/gen_delays_lib)
 install(TARGETS gen_delays_main
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    # PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
