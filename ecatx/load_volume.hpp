@@ -380,7 +380,7 @@ int interp)
 	volume = (MatrixData*)calloc(1,sizeof(MatrixData));
 	mh = matrix_file->mhptr;
 	volume->mat_type = (DataSetType)mh->file_type;
-	if (volume->mat_type != Short3dSinogram) 
+	if (volume->mat_type != ecat_matrix::DataSetType::Short3dSinogram) 
 		imh = (Image_subheader*)calloc(1,sizeof(Image_subheader));
 	memset(bed_pos,0,MAX_BED_POS*sizeof(float));
 
@@ -393,8 +393,7 @@ int interp)
 	nmats = matrix_file->dirlist->nmats;
 	entry = matrix_file->dirlist->first;
 	maxval = 0.0;
-	for (i=0; i<nmats; i++,entry=entry->next)
-	{
+	for (i=0; i<nmats; i++,entry=entry->next) {
 		matnum = entry->matnum;
 		mat_numdoc( matnum, &matval);
 		plane = matval.plane;
@@ -417,18 +416,24 @@ int interp)
 		return 0;
 	}
 	volume->data_max = maxval;
-	if (volume->data_max > 0)
-    {
-		if (volume->data_type == ByteData) volume->scale_factor = maxval/256;
-		else volume->scale_factor = maxval/32768;
-	} else volume->scale_factor = 1.0;
-	if (imh) imh->scale_factor = volume->scale_factor;
-	if (imh) volume->shptr = (void *)imh;
+	if (volume->data_max > 0) {
+		if (volume->data_type == ByteData) 
+			volume->scale_factor = maxval / 256;
+		else 
+			volume->scale_factor = maxval / 32768;
+	} else { 
+		volume->scale_factor = 1.0;
+	}
+	if (imh) {
+		imh->scale_factor = volume->scale_factor;
+		volume->shptr = (void *)imh;
+	}
 	if (nslices > 1) {
 		ret = load_slices(matrix_file,volume,slice,nslices, cubic, interp);
 	} else {
-		if (cubic) ret = load_v_slices(matrix_file,volume,slice, interp);
-		else {
+		if (cubic) { 
+			ret = load_v_slices(matrix_file,volume,slice, interp);
+		} else {
 			free_matrix_data(volume);
 			return matrix_read(matrix_file, slice[0].matnum,UnknownMatDataType);
 		}

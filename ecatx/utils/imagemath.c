@@ -64,11 +64,11 @@ main( argc, argv)
 	image1 = matrix_read(file1,matnuma,MAT_SUB_HEADER);
 	if (!image1) crash( "%s: image '%s' not found\n", argv[0], argv[1]);
 	switch(file1->mhptr->file_type) {
-	case InterfileImage :
-	case PetImage :
-	case PetVolume :
-	case ByteImage :
-	case ByteVolume :
+	case ecat_matrix::DataSetType::InterfileImage :
+	case ecat_matrix::DataSetType::PetImage :
+	case ecat_matrix::DataSetType::PetVolume :
+	case ecat_matrix::DataSetType::ByteImage :
+	case ecat_matrix::DataSetType::ByteVolume :
 		break;
 	default :
 		crash("input is not a Image nor Volume\n");
@@ -94,7 +94,7 @@ main( argc, argv)
 	if (!matspec( argv[3], fname, &matnumc)) matnumc = mat_numcod(1,1,1,0,0);
 	mh3 = (Main_header*)calloc(1, sizeof(Main_header));
 	memcpy(mh3, file1->mhptr, sizeof(Main_header));
-	mh3->file_type = PetVolume;
+	mh3->file_type = ecat_matrix::DataSetType::PetVolume;
 	file3 = matrix_create( fname, MAT_OPEN_EXISTING, mh3);
 	if (!file3) crash( "%s: can't open file '%s'\n", argv[0], fname);
 	image3 = (MatrixData*)calloc(1, sizeof(MatrixData));

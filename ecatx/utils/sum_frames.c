@@ -69,9 +69,9 @@ int main(int argc, char **argv)
   strcpy(fname, argv[1]);
   if ((ext=strrchr(fname,'.')) != NULL)*ext = '\0';
   ftype = mptr->mhptr->file_type;
-  if (ftype <0 || ftype >= NumDataSetTypes)
-    crash("%s : unkown file type\n",argv[1]);
-  printf( "%s file type  : %s\n", argv[1], datasettype[ftype]);
+  // if (ftype <0 || ftype >= NumDataSetTypes)
+  //   crash("%s : unkown file type\n",argv[1]);
+  printf( "%s file type  : %s\n", argv[1], datasettype_.at(ftype).name);
   if (!mptr) matrix_perror(fname);
   node = mptr->dirlist->first;
   while (node)

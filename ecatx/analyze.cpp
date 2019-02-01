@@ -169,14 +169,14 @@ int analyze_open(MatrixFile *mptr)
 	int elem_size, data_offset=0, data_size, nblks, frame;
 	char buf[40];
 
-	matrix_errno = static_cast<MatrixErrorCode>(0);
+	matrix_errno = static_cast<MatrixError>(0);
 	if (!analyze_read_hdr(mptr->fname)) return 0;
     strncpy(patient_id,hdr.hist.patient_id,10);
     patient_id[10] ='\0';
 	mh = mptr->mhptr;
 	sprintf(mh->magic_number,"%d", (int)(sizeof(struct dsr)));
 	mh->sw_version = 70;
-	mh->file_type = InterfileImage;
+	mh->file_type = ecat_matrix::DataSetType::InterfileImage;
   mptr->analyze_hdr = (char*)calloc(1, sizeof(struct dsr));
   memcpy(mptr->analyze_hdr, &hdr, sizeof(hdr));
 	mptr->interfile_header = (char**)calloc(END_OF_KEYS,sizeof(char*));
@@ -222,7 +222,7 @@ int analyze_open(MatrixFile *mptr)
 		default :
 			free(mptr->interfile_header);
 			mptr->interfile_header = NULL;
-			matrix_errno = MAT_UNKNOWN_FILE_TYPE;
+			matrix_errno = ecat_matrix::MatrixError::UNKNOWN_FILE_TYPE;
 			return 0;
 	}
   if (hdr.hk.sizeof_hdr == sizeof(struct dsr))
@@ -321,7 +321,7 @@ int analyze_read(MatrixFile *mptr, int matnum, MatrixData *data, int dtype) {
 		if (fread(plane, elem_size, npixels, mptr->fptr) < npixels) {
 			free(data->data_ptr);
 			data->data_ptr = NULL;
-			matrix_errno = MAT_READ_ERROR;
+			matrix_errno = ecat_matrix::MatrixError::READ_ERROR;
 			return ECATX_ERROR;
 		}
 		if (y_flip)

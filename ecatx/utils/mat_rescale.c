@@ -132,9 +132,9 @@ int main(int argc, char **argv)
     return 1;
   }
   ftype = mptr1->mhptr->file_type;
-  if (ftype <0 || ftype >= NumDataSetTypes)
-    crash("%s : unkown file type\n", in_file);
-  printf( "%s file type  : %s\n", in_file, datasettype[ftype]);
+  // if (ftype <0 || ftype >= NumDataSetTypes)
+  //   crash("%s : unkown file type\n", in_file);
+  printf( "%s file type  : %s\n", in_file, data_set_types_.at(ftype).name);
 
   mptr2 = matrix_open(mu_file, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
   if (mptr2 == NULL) {

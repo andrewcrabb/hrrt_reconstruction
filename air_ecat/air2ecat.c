@@ -218,7 +218,7 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
     return AIR_SAVE_ERROR;
   }
   // else  write ECAT format
-  mh.file_type = PetVolume;
+  mh.file_type = ecat_matrix::DataSetType::PetVolume;
   mh.num_planes = matrix->zdim;
   mh.plane_separation = matrix->z_size;
   if ((file=matrix_create(fname,MAT_OPEN_EXISTING, &mh)) == NULL) {

@@ -263,12 +263,13 @@ unsigned long int ECAT7_SCAN3D::NumberOfRecords() const
 void ECAT7_SCAN3D::PrintHeader(std::list <std::string> * const sl,
                                const unsigned short int num) const
  { int i, j;
-   std::string applied_proc[15]={ "Normalized",
-             "Measured-Attenuation-Correction",
-             "Calculated-Attenuation-Correction", "X-smoothing", "Y-smoothing",
-             "Z-smoothing", "2D-scatter-correction", "3D-scatter-correction",
-             "Arc-correction", "Decay-correction", "Online-compression",
-             "FORE", "SSRB", "SEG0", "Random-smoothing" }, s;
+   // std::string applied_proc[15]={ "Normalized",
+   //           "Measured-Attenuation-Correction",
+   //           "Calculated-Attenuation-Correction", "X-smoothing", "Y-smoothing",
+   //           "Z-smoothing", "2D-scatter-correction", "3D-scatter-correction",
+   //           "Arc-correction", "Decay-correction", "Online-compression",
+   //           "FORE", "SSRB", "SEG0", "Random-smoothing" }, s;
+  std::string s;
 
    sl->push_back("************* 3D-Scan-Matrix ("+toString(num)+
                  ") *************");
@@ -313,7 +314,7 @@ void ECAT7_SCAN3D::PrintHeader(std::list <std::string> * const sl,
    if ((j=sh.corrections_applied) > 0)
     { s="  ( ";
       for (i=0; i < 15; i++)
-       if ((j & (1 << i)) != 0) s+=applied_proc[i]+" ";
+       if ((j & (1 << i)) != 0) s+=ecat_matrix::applied_proc_.at(i) + " ";
       sl->push_back(s+")");
     }
    s=" num_z_elements:                 "+toString(sh.num_z_elements[0]);

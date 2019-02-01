@@ -224,12 +224,13 @@ void ECAT7_IMAGE::PrintHeader(std::list <std::string> * const sl,
 
    try
    { int i, j;
-     std::string applied_proc[15]={ "Normalized",
-             "Measured-Attenuation-Correction",
-             "Calculated-Attenuation-Correction", "X-smoothing", "Y-smoothing",
-             "Z-smoothing", "2D-scatter-correction", "3D-scatter-correction",
-             "Arc-correction", "Decay-correction", "Online-compression",
-             "FORE", "SSRB", "Seg0", "Randoms Smoothing" }, s;
+     // std::string applied_proc[15]={ "Normalized",
+     //         "Measured-Attenuation-Correction",
+     //         "Calculated-Attenuation-Correction", "X-smoothing", "Y-smoothing",
+     //         "Z-smoothing", "2D-scatter-correction", "3D-scatter-correction",
+     //         "Arc-correction", "Decay-correction", "Online-compression",
+     //         "FORE", "SSRB", "Seg0", "Randoms Smoothing" }, s;
+             std::string s;
 
      sl->push_back("************** Image-Matrix ("+toString(num, 2)+
                    ") **************");
@@ -329,7 +330,7 @@ void ECAT7_IMAGE::PrintHeader(std::list <std::string> * const sl,
      if ((j=ih.processing_code) > 0)
       { s="  ( ";
         for (i=0; i < 15; i++)
-         if ((j & (1 << i)) != 0) s+=applied_proc[i]+" ";
+         if ((j & (1 << i)) != 0) s+=ecat_matrix::applied_proc_.at(i) + " ";
         sl->push_back(s+")");
       }
      sl->push_back(" gate duration:                  "+

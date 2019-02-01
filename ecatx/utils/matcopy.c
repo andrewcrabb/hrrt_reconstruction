@@ -49,8 +49,8 @@ static int copy_scan(MatrixFile *mptr1, int matnum, MatrixFile *mptr2, int o_mat
 	matrix = matrix_read(mptr1,matnum,MAT_SUB_HEADER);
 	blk = (void *)malloc(MatBLKSIZE);
 	switch (mptr1->mhptr->file_type) {
-	case Float3dSinogram :
-	case Short3dSinogram :
+	case ecat_matrix::DataSetType::Float3dSinogram :
+	case ecat_matrix::DataSetType::Short3dSinogram :
 		sh = (Scan3D_subheader*)matrix->shptr;
 		o_sh = (Scan3D_subheader*)calloc(2,MatBLKSIZE);
 		memcpy(o_sh,sh,sizeof(Scan3D_subheader));
@@ -66,7 +66,7 @@ static int copy_scan(MatrixFile *mptr1, int matnum, MatrixFile *mptr2, int o_mat
 		nblks -= 2;
 		file_pos = (o_matdir.strtblk+1)*MatBLKSIZE;
 		break;
-	case AttenCor :
+	case ecat_matrix::DataSetType::AttenCor :
 		ah = (Attn_subheader*)matrix->shptr;
 		o_ah = (Attn_subheader*)calloc(1,MatBLKSIZE);
 		memcpy(o_ah,ah,sizeof(Attn_subheader));
@@ -225,16 +225,18 @@ int main( argc, argv)
 	memcpy(&proto,mptr1->mhptr,sizeof(Main_header));
 	proto.sw_version = version;
 	if (version < V7) {
-		if (proto.file_type != PetImage && proto.file_type != ByteVolume &&
-		proto.file_type != PetVolume && proto.file_type != ByteImage &&
+		if (proto.file_type != ecat_matrix::DataSetType::PetImage && proto.file_type != ecat_matrix::DataSetType::ByteVolume &&
+		proto.file_type != ecat_matrix::DataSetType::PetVolume && proto.file_type != ecat_matrix::DataSetType::ByteImage &&
 		proto.file_type != InterfileImage)
 			crash ("version 6 : only images are supported \n");
-		proto.file_type = PetImage;
+		proto.file_type = ecat_matrix::DataSetType::PetImage;
 	} else {
 		if (proto.file_type == InterfileImage) {
 			matrix = matrix_read( mptr1, matnums[0], MAT_SUB_HEADER);
-			if (matrix->data_type == ByteData) proto.file_type = ByteVolume;
-			else proto.file_type = PetVolume;
+			if (matrix->data_type == ecat_matrix::DataSetType::ByteData) 
+				proto.file_type = ecat_matrix::DataSetType::ByteVolume;
+			else 
+				proto.file_type = ecat_matrix::DataSetType::PetVolume;
 			free_matrix_data(matrix);
 		}
 	}

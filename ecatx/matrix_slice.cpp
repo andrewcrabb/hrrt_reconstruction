@@ -97,7 +97,7 @@ MatrixData *matrix_read_slice(MatrixFile *mptr, MatrixData *volume,
 	char  *line, *p;
 	MatrixData *data = NULL;
 
-	matrix_errno = MAT_OK;
+	matrix_errno = ecat_matrix::MatrixError::OK;
 	matrix_errtxt[0] = '\0';
 
 	if (mptr->interfile_header != NULL) 
@@ -105,7 +105,7 @@ MatrixData *matrix_read_slice(MatrixFile *mptr, MatrixData *volume,
 			volume, slice, u_flag);
 
 	if (matrix_find(mptr,volume->matnum,&matdir) == MY_ERROR) {
-		matrix_errno = MAT_MATRIX_NOT_FOUND;
+		matrix_errno = ecat_matrix::MatrixError::MATRIX_NOT_FOUND;
 		return NULL;
 	}
 
@@ -296,7 +296,7 @@ MatrixData *matrix_read_slice(MatrixFile *mptr, MatrixData *volume,
 		data->data_max = imagesub->image_max * data->scale_factor;
 		return data;
 	default:
-		matrix_errno = MAT_UNKNOWN_FILE_TYPE;
+		matrix_errno = ecat_matrix::MatrixError::UNKNOWN_FILE_TYPE;
 		free_matrix_data(data);
 		return NULL;
 	}
@@ -316,12 +316,12 @@ MatrixData *matrix_read_view(MatrixFile *mptr, MatrixData *volume,
 	char  *line, *p;
 	MatrixData *data = NULL;
 
-	matrix_errno = MAT_OK;
+	matrix_errno = ecat_matrix::MatrixError::OK;
 	matrix_errtxt[0] = '\0';
 
 
 	if (matrix_find(mptr,volume->matnum,&matdir) == MY_ERROR) {
-		matrix_errno = MAT_MATRIX_NOT_FOUND;
+		matrix_errno = ecat_matrix::MatrixError::MATRIX_NOT_FOUND;
 		return NULL;
 	}
 
@@ -346,7 +346,7 @@ MatrixData *matrix_read_view(MatrixFile *mptr, MatrixData *volume,
 		break;
 
 	default:
-		matrix_errno = MAT_BAD_FILE_ACCESS_MODE;
+		matrix_errno = ecat_matrix::MatrixError::BAD_FILE_ACCESS_MODE;
 		return NULL;
 	}
 

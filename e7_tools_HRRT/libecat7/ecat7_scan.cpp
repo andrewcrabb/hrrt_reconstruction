@@ -249,11 +249,12 @@ void ECAT7_SCAN::LoadHeader(std::ifstream * const file)
 void ECAT7_SCAN::PrintHeader(std::list <std::string> * const sl,
                              const unsigned short int num) const
  { int i, j;
-   std::string applied_proc[11]={ "Normalized",
-            "Measured-Attenuation-Correction",
-            "Calculated-Attenuation-Correction", "X-smoothing", "Y-smoothing",
-            "Z-smoothing", "2D-scatter-correction", "3D-scatter-correction",
-            "Arc-correction", "Decay-correction", "Online-compression" }, s;
+   // std::string applied_proc[11]={ "Normalized",
+   //          "Measured-Attenuation-Correction",
+   //          "Calculated-Attenuation-Correction", "X-smoothing", "Y-smoothing",
+   //          "Z-smoothing", "2D-scatter-correction", "3D-scatter-correction",
+   //          "Arc-correction", "Decay-correction", "Online-compression" }, s;
+            std::string s;
 
    sl->push_back("*************** Scan-Matrix ("+toString(num, 2)+
                  ") **************");
@@ -298,7 +299,7 @@ void ECAT7_SCAN::PrintHeader(std::list <std::string> * const sl,
    if ((j=sh.corrections_applied) > 0)
     { s="  ( ";
       for (i=0; i < 11; i++)
-       if ((j & (1 << i)) != 0) s+=applied_proc[i]+" ";
+       if ((j & (1 << i)) != 0) s+=ecat_matrix::applied_proc_.at(i) + " ";
       sl->push_back(s+")");
     }
    sl->push_back(" num_z_elements:                 "+

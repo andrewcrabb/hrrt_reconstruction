@@ -77,7 +77,7 @@ file_data_to_host(char *dptr, int nblks, int dtype)
 	char *tmp = new char[512];
 
 
-	matrix_errno = MAT_OK;
+	matrix_errno = ecat_matrix::MatrixError::OK;
 	matrix_errtxt.clear();
 	// if ((tmp = static_cast<char *>(malloc(512))) == NULL) 
 	// 	return ECATX_ERROR;
@@ -158,7 +158,7 @@ write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, int dtype)
 
     /* printf("\n\n\n\n HEY2"); fflush(stdout); */
         
-	matrix_errno = MAT_OK;
+	matrix_errno = ecat_matrix::MatrixError::OK;
 	matrix_errtxt.clear();
 	// if ( (bufr1 = malloc(512)) == NULL) return ECATX_ERROR;
 	// if ( (bufr2 = malloc(512)) == NULL) {
@@ -282,16 +282,19 @@ bufRead(char *s, char *buf, int *i, int len)
     *i += len;
 }
 
-void
-bufRead_s(short *val, char *buf, int *i)
-{
-	union { short s; unsigned char b[2]; } tmp, tmp1;
-	memcpy(tmp.b,&buf[*i],2);
+void bufRead_s(short *val, char *buf, int *i) {
+	union {
+		short s;
+		unsigned char b[2];
+	} tmp, tmp1;
+	memcpy(tmp.b, &buf[*i], 2);
 	if (ntohs(1) != 1) {
-		swab((char*)tmp.b,(char*)tmp1.b,2);
+		swab((char*)tmp.b, (char*)tmp1.b, 2);
 		*val = tmp1.s;
-	} else *val = tmp.s;
-    *i += sizeof(short);
+	} else {
+		*val = tmp.s;
+	}
+	*i += sizeof(short);
 }
 
 void 

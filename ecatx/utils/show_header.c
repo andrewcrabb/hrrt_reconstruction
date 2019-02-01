@@ -46,29 +46,28 @@ FILE *fp;
 	matrix = matrix_read( mptr, matnum, MAT_SUB_HEADER);
 	if (!matrix)
 	  crash( "%s    : matrix not found\n", argv[0]);
-	switch( mptr->mhptr->file_type)
-	{
-	  case Sinogram    :
+	switch( mptr->mhptr->file_type)	{
+	  case ecat_matrix::DataSetType::Sinogram    :
 		show_scan_subheader( matrix->shptr);
 		break;
-      case Short3dSinogram :
-      case Float3dSinogram :
+      case ecat_matrix::DataSetType::Short3dSinogram :
+      case ecat_matrix::DataSetType::Float3dSinogram :
 		show_Scan3D_subheader( matrix->shptr);
 		break;
-	  case PetImage  :
-	  case PetVolume :
-	  case ByteImage :
-	  case ByteVolume :
-	  case InterfileImage:
+	  case ecat_matrix::DataSetType::PetImage  :
+	  case ecat_matrix::DataSetType::PetVolume :
+	  case ecat_matrix::DataSetType::ByteImage :
+	  case ecat_matrix::DataSetType::ByteVolume :
+	  case ecat_matrix::DataSetType::InterfileImage:
 		show_image_subheader( matrix);
 		break;
-	  case AttenCor    :
+	  case ecat_matrix::DataSetType::AttenCor    :
 		show_attn_subheader( matrix->shptr);
 		break;
-	  case Normalization :
+	  case ecat_matrix::DataSetType::Normalization :
 		show_norm_subheader( matrix->shptr);
 		break;
-	  case Norm3d :
+	  case ecat_matrix::DataSetType::Norm3d :
 		show_norm3d_subheader( matrix->shptr);
 		break;
 	  default    :
@@ -78,19 +77,19 @@ FILE *fp;
 	return(0);
 }
 
-static char *ftypes[]= {
-	"Scan", "Image", "Atten", "Norm", "PolarMap",
-	"ByteVolume", "PetVolume", "ByteProjection", "PetProjection", "ByteImage",
-	"Short3dSinogram", "Byte3dSinogram", "Norm3d", "Float3dSinogram","Interfile" };
+// static char *ftypes[]= {
+// 	"Scan", "Image", "Atten", "Norm", "PolarMap",
+// 	"ByteVolume", "PetVolume", "ByteProjection", "PetProjection", "ByteImage",
+// 	"Short3dSinogram", "Byte3dSinogram", "Norm3d", "Float3dSinogram","Interfile" };
 
-static char *dtypes[] = {
-	"UnknownMatDataType", "ByteData", "VAX_Ix2", "VAX_Ix4",
-    "VAX_Rx4", "IeeeFloat", "SunShort", "SunLong" };
+// static char *dtypes[] = {
+// 	"UnknownMatDataType", "ByteData", "VAX_Ix2", "VAX_Ix4",
+//     "VAX_Rx4", "IeeeFloat", "SunShort", "SunLong" };
 
-static char *applied_proc[] = {
-	"Norm", "Atten_Meas", "Atten_Calc",
-    "Smooth_X", "Smooth_Y", "Smooth_Z", "Scat2d", "Scat3d",
-    "ArcPrc", "DecayPrc", "OnCompPrc", "Random","","","",""};
+// static char *ecat_matrix::applied_proc_.at(] = {
+// 	"Norm", "Atten_Meas", "Atten_Calc",
+//     "Smooth_X", "Smooth_Y", "Smooth_Z", "Scat2d", "Scat3d",
+//     "ArcPrc", "DecayPrc", "OnCompPrc", "Random","","","",""};
 
 static char* storage_order(int idx)
 {
@@ -102,23 +101,21 @@ static char* storage_order(int idx)
 	return "Unknown mode";
 }
 	
-void show_main_header( Main_header *mh )
-{
-	int ft, i;
+void show_main_header( Main_header *mh ) {
+	// int ft, i;
 	char *ftstr, tod[256];
 	time_t t = mh->scan_start_time;
 
 	printf("Matrix Main Header\n");
 	printf("Original File Name          : %-32s\n", mh->original_file_name);
 	printf("Software Version            : %d\n", mh->sw_version);
-/*		moved in individual matrices
-	printf("Data type                   : %d\n", mh->data_type);
-*/
 	printf("System type                 : %d\n", mh->system_type);
-	ft = mh->file_type;
-	ftstr = "UNKNOWN";
-	if (ft>0 && ft<=NumDataSetTypes) ftstr = ftypes[ft-1];
-	printf("File type                   : %d (%s)\n", ft, ftstr);
+	// ft = mh->file_type;
+	// ftstr = "UNKNOWN";
+	// if (ft>0 && ft<=NumDataSetTypes) 
+	// 	ftstr = ftypes[ft-1];
+	ecat_matrix::DataSetType file_type = mh->file_type;
+	printf("File type                   : %d (%s)\n", file_type, ecat_matrix::data_set_types_.at(file_type));
 	printf("Node Id                     : %-10s\n", mh->serial_number);
 	printf("Scan TOD                    : %s\n",ctime(&t));
 /*
@@ -150,7 +147,8 @@ void show_main_header( Main_header *mh )
 	printf("Calibration Factor          : %0.5e\n", mh->calibration_factor);
 	printf("Calibration Units           : %d", mh->calibration_units);
 	if (mh->calibration_units>0 && mh->calibration_units<3)
-		printf(" (%s)\n",calstatus[mh->calibration_units]);
+		// printf(" (%s)\n",calstatus[mh->calibration_units]);
+		printf(" (%s)\n", ecat_matrix::calibration_status_.at(mh->calibration_units).status.c_str());
 	else printf("\n");
 	printf("Calibration Units Label     : %d", mh->calibration_units_label);
 	if (mh->calibration_units_label > 0 && mh->calibration_units_label < 14)
@@ -211,15 +209,14 @@ void show_scan_subheader( Scan_subheader *sh )
 	int i,j;
 
 	printf("Scan Matrix Sub-header\n");
-	printf("Data type                   : %d(%s)\n", sh->data_type,
-		dtypes[sh->data_type] );
+	printf("Data type                   : %d(%s)\n", sh->data_type,	ecat_matrix::matrix_data_types_.at(sh->data_type) );
 	printf("Dimension_1 (ring elements) : %d\n", sh->num_r_elements);
 	printf("Dimension_2 (angles)        : %d\n", sh->num_angles);
 	printf("corrections_applied         : %d", sh->corrections_applied);
 	if ((j=sh->corrections_applied) > 0) {
 		printf(" ( ");
 		for (i=0;i<16; i++) 
-			if ((j & (1<<i)) != 0) printf("%s ", applied_proc[i]);
+			if ((j & (1<<i)) != 0) printf("%s ", ecat_matrix::applied_proc_.at(i).c_str());
 		printf(")");
 	}
 	printf("\n");
@@ -271,7 +268,7 @@ void show_Scan3D_subheader( Scan3D_subheader *sh )
 	if ((j=sh->corrections_applied) > 0) {
 		printf(" ( ");
 		for (i=0;i<16; i++) 
-			if ((j & (1<<i)) != 0) printf("%s ", applied_proc[i]);
+			if ((j & (1<<i)) != 0) printf("%s ", ecat_matrix::applied_proc_.at(i).c_str());
 		printf(")");
 	}
 	printf("\n");
@@ -346,7 +343,7 @@ void show_image_subheader( MatrixData *matrix )
 	if ((j=ih->processing_code) > 0) {
 		printf(" ( ");
 		for (i=0;i<16; i++) 
-			if ((j & (1<<i)) != 0) printf("%s ", applied_proc[i]);
+			if ((j & (1<<i)) != 0) printf("%s ", ecat_matrix::applied_proc_.at(i).c_str());
 		printf(")");
 	}
 	printf("\n");

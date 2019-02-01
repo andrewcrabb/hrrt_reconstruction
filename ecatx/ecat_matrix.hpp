@@ -37,113 +37,297 @@
  * 21-sep-2010: Added data rates to image header (Merence sibomana)
  */
 
-#include <stdio.h>
+// #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 
 #include <vector>
 #include <string>
 
-#define R_MODE "rb"
-#define RW_MODE "rb+"
-#define W_MODE "wb+"
+// #define R_MODE "rb"
+// #define RW_MODE "rb+"
+// #define W_MODE "wb+"
 
-#define   MatBLKSIZE 512
-#define   MatFirstDirBlk 2
-#define   MatMagic 0x67452301
-#define V7 70
-#define MagicNumLen 14
-#define NameLen 32
-#define IDLen 16
-#define NumDataMasks 12
+// The Great Rewrite of 2018-19
 
-#define MAX_FRAMES  512
-#define MAX_SLICES  1024
-#define MAX_GATES   32
-#define MAX_BED_POS 32
+namespace ecat_matrix {
 
-#define ECATX_ERROR -1
-#define ECATX_OK 0
+constexpr int MatBLKSIZE     = 512;
+constexpr int MatFirstDirBlk = 2;
+constexpr int MatMagic       = 0x67452301;
+constexpr int V7             = 70;
+constexpr int MagicNumLen    = 14;
+constexpr int NameLen        = 32;
+constexpr int IDLen          = 16;
+// constexpr int NumDataMasks   = 12;
+constexpr int MAX_FRAMES     = 512;
+constexpr int MAX_SLICES     = 1024;
+constexpr int MAX_GATES      = 32;
+constexpr int MAX_BED_POS    = 32;
+constexpr int ECATX_ERROR    = -1;
+constexpr int ECATX_OK       = 0;
+constexpr int MAT_SUB_HEADER = 255;  // operation to sub-header only
 
 
-typedef enum {
+enum class DataSetType {
   NoData, Sinogram, PetImage, AttenCor, Normalization,
   PolarMap, ByteVolume, PetVolume, ByteProjection,
   PetProjection, ByteImage, Short3dSinogram, Byte3dSinogram, Norm3d,
   Float3dSinogram, InterfileImage, NumDataSetTypes
-} DataSetType;
+};
 
-typedef enum {
+struct CodeName {
+  std::string code;  // "s"
+  std::string name;  // "Sinogram"
+};
+
+// Combines former enum DataSetType, char *datasettype, char *dstypecode
+
+static std::map<DataSetType, CodeName> data_set_types_ = {
+  {DataSetType::NoData         , {"u" , "Unknown"}},
+  {DataSetType::Sinogram       , {"s" , "Sinogram"}},
+  {DataSetType::PetImage       , {"i" , "Image-16"}},
+  {DataSetType::AttenCor       , {"a" , "Attenuation Correction"}},
+  {DataSetType::Normalization  , {"n" , "Normalization"}},
+  {DataSetType::PolarMap       , {"pm", "Polar Map"}},
+  {DataSetType::ByteVolume     , {"v8", "Volume-8 byte"}},
+  {DataSetType::PetVolume      , {"v" , "Volume-16 pet"}},
+  {DataSetType::ByteProjection , {"p8", "Projection-8 byte"}},
+  {DataSetType::PetProjection  , {"p" , "Projection-16 pet"}},
+  {DataSetType::ByteImage      , {"i8", "Image-8 byte"}},
+  {DataSetType::Short3dSinogram, {"S" , "3D Sinogram-16 short"}},
+  {DataSetType::Byte3dSinogram , {"S8", "3D Sinogram-8 byte"}},
+  {DataSetType::Norm3d         , {"N" , "3D Normalization"}},
+  {DataSetType::Float3dSinogram, {"FS", "Float3dSinogram"}},
+  {DataSetType::InterfileImage , {"I" , "Interfile"}}  // NB the code was missing in the original source code array.
+};
+
+enum class MatrixDataType {
   UnknownMatDataType, ByteData, VAX_Ix2, VAX_Ix4,
-  VAX_Rx4, IeeeFloat, SunShort, SunLong, NumMatrixDataTypes,
-  UShort_BE, UShort_LE, Color_24, Color_8, BitData
-} MatrixDataType;
+  VAX_Rx4, IeeeFloat, SunShort, SunLong,
+  UShort_BE, UShort_LE, Color_24, Color_8, BitData, NumMatrixDataTypes
+};
 
-enum CalibrationStatus {Uncalibrated, Calibrated, Processed,
-                        NumCalibrationStatus
-                       };
+// Combines former MatrixDataType, 
+
+static std::map<MatrixDataType, std::string> matrix_data_types_ = {
+  {MatrixDataType::UnknownMatDataType, "UnknownMatDataType"},
+  {MatrixDataType::ByteData          , "ByteData"},
+  {MatrixDataType::VAX_Ix2           , "VAX_Ix2"},
+  {MatrixDataType::VAX_Ix4           , "VAX_Ix4,"},
+  {MatrixDataType::VAX_Rx4           , "VAX_Rx4"},
+  {MatrixDataType::IeeeFloat         , "IeeeFloat"},
+  {MatrixDataType::SunShort          , "SunShort"},
+  {MatrixDataType::SunLong           , "SunLong"},
+  {MatrixDataType::NumMatrixDataTypes, "NumMatrixDataTypes,"},
+  {MatrixDataType::UShort_BE         , "UShort_BE"},
+  {MatrixDataType::UShort_LE         , "UShort_LE"},
+  {MatrixDataType::Color_24          , "Color_24"},
+  {MatrixDataType::Color_8           , "Color_8"},
+  {MatrixDataType::BitData           , "BitData"}
+};
+
+// Combines former enum CalibrationStatus, char *calstatus[], char *ecfunits[]
+
+enum class CalibrationStatus {
+  Uncalibrated, 
+  Calibrated,
+  Processed
+  // NumCalibrationStatus
+};
+
+struct CalibrationStruct {
+  std::string status;  // Former calstatus
+  std::string units;   // Former ecfunits
+};
+
+static std::map<CalibrationStatus, CalibrationStruct> calibration_status_ = {
+  {CalibrationStatus::Uncalibrated, {"Uncalibrated", "ECAT Counts/Sec"}},
+  {CalibrationStatus::Calibrated  , {"Calibrated"  , "Bq/ml"}},
+  {CalibrationStatus::Processed   , {"Processed"   , "Processed"}}
+};
+
+enum class ScanType {
+  UndefScan, BlankScan,
+  TransmissionScan, StaticEmission,
+  DynamicEmission, GatedEmission,
+  TransRectilinear, EmissionRectilinear,
+  NumScanTypes
+};
+
+static std::map<ScanType, std::string> scan_types_ = {
+  ScanType::UndefScan          , {"na", "Not Applicable"},
+  ScanType::BlankScan          , {"bl", "Blank Scan"},
+  ScanType::TransmissionScan   , {"tx", "Transmission Scan"},
+  ScanType::StaticEmission     , {"se", "Static Emission"},
+  ScanType::DynamicEmission    , {"de", "Dynamic Emission"},
+  ScanType::GatedEmission      , {"ge", "Gated Emission,"},
+  ScanType::TransRectilinear   , {"tr", "Transmission Rectilinear"},
+  ScanType::EmissionRectilinear, {"er", "Emission Rectilinear"}
+};
+
+static std::vector<std::string> typeFilterLabel = {
+  "Sinogram", "Attenuation Correction", "Normalization", "Polar Map", "Image", 
+  "Volume", "Projection", "3D Sinogram", "Report", "Graph", "ROI", "3D Normalization"
+    };
 
 
-enum ScanType {UndefScan, BlankScan,
-               TransmissionScan, StaticEmission,
-               DynamicEmission, GatedEmission,
-               TransRectilinear, EmissionRectilinear,
-               NumScanTypes
-              };
+enum class CurrentModels {
+  E921, E961, E953, E953B, E951, E951R,
+  E962, E925, NumEcatModels
+};
 
-enum CurrentModels {E921, E961, E953, E953B, E951, E951R,
-                    E962, E925, NumEcatModels
-                   };
+// Combines former float[] ecfconverter, enum OldDisplayUnits (max NumOldUnits)
+// Does not seem to be used anywhere.
 
+enum class OldDisplayUnits {
+  TotalCounts, UnknownEcfUnits, EcatCountsPerSec,
+  UCiPerCC, LMRGlu, LMRGluUmol, LMRGluMg, NCiPerCC, WellCounts,
+  BecquerelsPerCC, MlPerMinPer100g, MlPerMinPer1g, NumOldUnits
+};
 
-enum OldDisplayUnits {TotalCounts, UnknownEcfUnits, EcatCountsPerSec,
-                      UCiPerCC, LMRGlu, LMRGluUmol, LMRGluMg, NCiPerCC, WellCounts,
-                      BecquerelsPerCC, MlPerMinPer100g, MlPerMinPer1g, NumOldUnits
-                     };
+static std::map<OldDisplayUnits, float> display_units_ = {
+  {"none"              , 0.0},
+  {"ECAT Counts/Sec"   , 1.0},
+  {"Bq/ml"             , 1.0},
+  {"Processed"         , 1.0},
+  {"microCi/ml"        , 3.7e4},
+  {"micromole/100g/min", 1.0},
+  {"mg/100g/min"       , 1.0},
+  {"ml/100g/min"       , 1.0},
+  {"SUR"               , 37.0},
+  {"ml/g"              , 1.0},
+  {"1/min"             , 1.0},
+  {"pmole/ml"          , 1.0},
+  {"nM"                , 1.0}
+};
 
-enum PatientOrientation {FeetFirstProne, HeadFirstProne,
-                         FeetFirstSupine, HeadFirstSupine,
-                         FeetFirstRight, HeadFirstRight,
-                         FeetFirstLeft, HeadFirstLeft, UnknownOrientation, NumOrientations
-                        };
+std::vector<std::string> customDisplayUnits = {
+  "none",
+  "ECAT Counts/Sec",
+  "Bq/ml",
+  "Processed",
+  "microCi/ml",
+  "micromole/100g/min",
+  "mg/100g/min",
+  "ml/100g/min",
+  "SUR",
+  "ml/g",
+  "1/min",
+  "pmole/ml",
+  "nM"
+};
 
-enum SeptaPos {SeptaExtended, SeptaRetracted, NoSeptaInstalled};
+enum class PatientOrientation {
+  FeetFirstProne, HeadFirstProne,
+  FeetFirstSupine, HeadFirstSupine,
+  FeetFirstRight , HeadFirstRight,
+  FeetFirstLeft  , HeadFirstLeft,
+  UnknownOrientation, NumOrientations
+};
 
-enum Sino3dOrder {ElAxVwRd, ElVwAxRd, NumSino3dOrders};
+enum class SeptaPos {
+  SeptaExtended, SeptaRetracted, NoSeptaInstalled
+};
 
-typedef enum {
-  MAT_OK,
-  MAT_READ_ERROR,
-  MAT_WRITE_ERROR,
-  MAT_INVALID_DIRBLK,
-  MAT_ACS_FILE_NOT_FOUND,
-  MAT_INTERFILE_OPEN_ERR,
-  MAT_FILE_TYPE_NOT_MATCH,
-  MAT_READ_FROM_NILFPTR,
-  MAT_NOMHD_FILE_OBJECT,
-  MAT_NIL_SHPTR,
-  MAT_NIL_DATA_PTR,
-  MAT_MATRIX_NOT_FOUND,
-  MAT_UNKNOWN_FILE_TYPE,
-  MAT_ACS_CREATE_ERR,
-  MAT_BAD_ATTRIBUTE,
-  MAT_BAD_FILE_ACCESS_MODE,
-  MAT_INVALID_DIMENSION,
-  MAT_NO_SLICES_FOUND,
-  MAT_INVALID_DATA_TYPE,
-  MAT_INVALID_MBED_POSITION
+enum class Sino3dOrder {
+  ElAxVwRd, ElVwAxRd, NumSino3dOrders
+};
+
+enum class MatrixError {
+  OK,
+  READ_ERROR,
+  WRITE_ERROR,
+  INVALID_DIRBLK,
+  ACS_FILE_NOT_FOUND,
+  INTERFILE_OPEN_ERR,
+  FILE_TYPE_NOT_MATCH,
+  READ_FROM_NILFPTR,
+  NOMHD_FILE_OBJECT,
+  NIL_SHPTR,
+  NIL_DATA_PTR,
+  MATRIX_NOT_FOUND,
+  UNKNOWN_FILE_TYPE,
+  ACS_CREATE_ERR,
+  BAD_ATTRIBUTE,
+  BAD_FILE_ACCESS_MODE,
+  INVALID_DIMENSION,
+  NO_SLICES_FOUND,
+  INVALID_DATA_TYPE,
+  INVALID_MBED_POSITION
+};
+
+// Former matrix_errors in matrix_extra
+
+static std::map<MatrixError, std::string> matrix_errors_ = {
+  {ecat_matrix::MatrixError::OK                   , "No Error"},
+  {ecat_matrix::MatrixError::READ_ERROR           , "Read error"},
+  {ecat_matrix::MatrixError::WRITE_ERROR          , "Write error"},
+  {ecat_matrix::MatrixError::INVALID_DIRBLK       , "Invalid directory block"},
+  {ecat_matrix::MatrixError::ACS_FILE_NOT_FOUND   , "ACS file not found"},
+  {ecat_matrix::MatrixError::INTERFILE_OPEN_ERR   , "Interfile open error"},
+  {ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH  , "File type not match"},
+  {ecat_matrix::MatrixError::READ_FROM_NILFPTR    , "Read from nil filepointer"},
+  {ecat_matrix::MatrixError::NOMHD_FILE_OBJECT    , "No mainheader file object"},
+  {ecat_matrix::MatrixError::NIL_SHPTR            , "Nil subheader pointer"},
+  {ecat_matrix::MatrixError::NIL_DATA_PTR         , "Nil data pointer"},
+  {ecat_matrix::MatrixError::MATRIX_NOT_FOUND     , "Matrix not found"},
+  {ecat_matrix::MatrixError::UNKNOWN_FILE_TYPE    , "Unknown filetype"},
+  {ecat_matrix::MatrixError::ACS_CREATE_ERR       , "ACS create error"},
+  {ecat_matrix::MatrixError::BAD_ATTRIBUTE        , "Bad attribute"},
+  {ecat_matrix::MatrixError::BAD_FILE_ACCESS_MODE , "Bad file access mode"},
+  {ecat_matrix::MatrixError::INVALID_DIMENSION    , "Invalid dimension"},
+  {ecat_matrix::MatrixError::NO_SLICES_FOUND      , "No slices found"},
+  {ecat_matrix::MatrixError::INVALID_DATA_TYPE    , "Invalid data type"},
+  {ecat_matrix::MatrixError::INVALID_MBED_POSITION, "Invalid multibed position"}
+};
+
+// TODO get the correct enum values above OnComProc from ecat7_scan3d.cpp which specifies 15 values for sh.corrections_applied where sh is a global (terrible name)
+
+enum class ProcessingCode {
+  NotProc    = 0,
+  Norm       = 1,
+  Atten_Meas = 2,
+  Atten_Calc = 4,
+  Smooth_X   = 8,
+  Smooth_Y   = 16,
+  Smooth_Z   = 32,
+  Scat2d     = 64,
+  Scat3d     = 128,
+  ArcPrc     = 256,
+  DecayPrc   = 512,
+  OnComPrc   = 1024,
+  FILLMEIN1  = 2048,
+  FILLMEIN2  = 4096,
+  FILLMEIN3  = 8192,
+  FILLMEIN4  = 16384
+};
+
+std::map<ProcessingCode, std::string> applied_proc_ = {
+  {NotProc    , "None"},
+  {Norm       , "Normalized",},
+  {Atten_Meas , "Measured-Attenuation-Correction",},
+  {Atten_Calc , "Calculated-Attenuation-Correction"},
+  {Smooth_X   , "X-smoothing",},
+  {Smooth_Y   , "Y-smoothing",},
+  {Smooth_Z   , "Z-smoothing"},
+  {Scat2d     , "2D-scatter-correction",},
+  {Scat3d     , "3D-scatter-correction",},
+  {ArcPrc     , "Arc-correction"},
+  {DecayPrc   , "Decay-correction",},
+  {OnComPrc   , "Online-compression",},
+  {FILLMEIN1  , "FORE"},
+  {FILLMEIN2  , "SSRB",},
+  {FILLMEIN3  , "Seg0",},
+  {FILLMEIN4  , "Randoms Smoothing"}
+
 }
-MatrixErrorCode;
 
-enum ProcessingCode { NotProc = 0, Norm = 1, Atten_Meas = 2, Atten_Calc = 4,
-                      Smooth_X = 8, Smooth_Y = 16, Smooth_Z = 32, Scat2d = 64, Scat3d = 128,
-                      ArcPrc = 256, DecayPrc = 512, OnComPrc = 1024
-                    };
 
-/*
- ecat 6.4 compatibility definitions
-*/
-typedef enum {        /* matrix data types */
+// ecat 6.4 compatibility definitions
+// matrix data types
+
+enum class MatrixDataType_64 {
   GENERIC,
   BYTE_TYPE,
   VAX_I2,
@@ -152,23 +336,21 @@ typedef enum {        /* matrix data types */
   SUN_R4,
   SUN_I2,
   SUN_I4
-}
-MatrixDataType_64;
+};
 
-#define MAT_SUB_HEADER 255  /* operation to sub-header only */
+// matrix file types
 
-typedef enum {        /* matrix file types */
+typedef enum class MatrixFileType_64 {
   MAT_UNKNOWN_FTYPE,
   MAT_SCAN_DATA,
   MAT_IMAGE_DATA,
   MAT_ATTN_DATA,
   MAT_NORM_DATA
-}
-MatrixFileType_64;
+};
 
-/*
-  end of ecat 6.4 definitions
-*/
+
+// end of ecat 6.4 definitions
+
 
 struct  MatDir {
   int matnum;
@@ -179,8 +361,8 @@ struct  MatDir {
 
 
 struct matdir {
-  int nmats,
-      nmax;
+  int nmats;
+  int nmax;
   struct MatDir *entry;
 };
 
@@ -198,47 +380,41 @@ struct Matlimits {
 };
 
 
-typedef
-struct matdirnode
-{
-  int   matnum ;
-  int   strtblk ;
-  int   endblk ;
-  int   matstat ;
-  struct matdirnode *next ;
-}
-MatDirNode ;
 
-typedef
-struct matdirlist
-{
+struct MatDirNode {
+  int   matnum;
+  int   strtblk;
+  int   endblk;
+  int   matstat;
+  struct matdirnode *next;
+};
+
+
+struct MatDirList {
   int nmats ;
   MatDirNode *first ;
   MatDirNode *last ;
-}
-MatDirList ;
+};
 
-typedef
-struct matdirblk
-{
+
+struct MatDirBlk {
   int nfree, nextblk, prvblk, nused ;
   struct  MatDir matdir[31] ;
-}
-MatDirBlk ;
+};
 
-typedef enum {    /* matrix file access modes */
-  MAT_READ_WRITE,   /* allow read and/or write */
-  MAT_READ_ONLY,    /* only allow read */
-  MAT_CREATE,   /* create if non-existant */
-  MAT_OPEN_EXISTING,  /* open existing file read/write */
-  MAT_CREATE_NEW_FILE /* force new file creation */
-}
-MatrixFileAccessMode;
+// matrix file access modes
+
+enum class MatrixFileAccessMode {
+  MAT_READ_WRITE,
+  MAT_READ_ONLY,
+  MAT_CREATE,
+  MAT_OPEN_EXISTING,
+  MAT_CREATE_NEW_FILE
+};
 
 /* object creation attributes */
 
-typedef enum
-{
+enum class MatrixObjectAttribute {
   MAT_NULL,
   MAT_XDIM,
   MAT_YDIM,
@@ -251,15 +427,15 @@ typedef enum
   MAT_DATA_MAX,
   MAT_DATA_MIN,
   MAT_PROTO
-}
-MatrixObjectAttribute;
+};
 
-typedef struct XMAIN_HEAD {
+struct Main_header {
   char magic_number[14];
   char original_file_name[32];
   short sw_version;
   short system_type;
-  short file_type;
+  // short file_type;
+  DataSetType file_type;   // ahc this indexes into data_set_types_
   char serial_number[10];
   short align_0;            /* 4 byte alignment purpose */
   unsigned int scan_start_time;
@@ -318,9 +494,9 @@ typedef struct XMAIN_HEAD {
   char data_units[32];
   short septa_state;
   short align_3;
-} Main_header;
+};
 
-typedef struct XSCAN_SUB {
+struct Scan_subheader {
   short data_type;
   short num_dimensions;
   short num_r_elements;
@@ -352,9 +528,9 @@ typedef struct XSCAN_SUB {
   unsigned int frame_duration;
   float loss_correction_fctr;
   short phy_planes[8];
-} Scan_subheader;
+};
 
-typedef struct X3DSCAN_SUB {
+struct Scan3D_subheader {
   short data_type;
   short num_dimensions;
   short num_r_elements;
@@ -387,9 +563,9 @@ typedef struct X3DSCAN_SUB {
   float uncor_singles[128];
   int num_extended_uncor_singles;
   float *extended_uncor_singles;
-} Scan3D_subheader;
+};
 
-typedef struct XIMAGE_SUB {
+struct Image_subheader {
   short data_type;
   short num_dimensions;
   short x_dimension;
@@ -457,9 +633,9 @@ typedef struct XIMAGE_SUB {
   float random_rate; /* total_random = random_rate*frame_duration */
   float singles_rate; /* average bucket singles rate */
   float scatter_fraction;
-} Image_subheader;
+};
 
-typedef struct XNORM_SUB {
+struct Norm_subheader {
   short data_type;
   short num_dimensions;
   short num_r_elements;
@@ -476,9 +652,9 @@ typedef struct XNORM_SUB {
   short span;
   short z_elements[64];
   short align_0;
-} Norm_subheader;
+};
 
-typedef struct X3DNORM_SUB {
+struct Norm3D_subheader {
   short data_type;
   short num_r_elements;
   short num_transaxial_crystals;
@@ -495,9 +671,9 @@ typedef struct X3DNORM_SUB {
   float crystal_dtcor[8];
   short span;
   short max_ring_diff;
-} Norm3D_subheader;
+};
 
-typedef struct XATTEN_SUB {
+struct Attn_subheader {
   short data_type;
   short num_dimensions;
   short attenuation_type;
@@ -527,23 +703,23 @@ typedef struct XATTEN_SUB {
   short storage_order;
   short span;
   short z_elements[64];
-} Attn_subheader;
+};
 
-typedef enum { ECAT6, ECAT7, Interfile } FileFormat;
+enum class FileFormat {
+  ECAT6, ECAT7, Interfile
+};
 
-typedef struct matrix_file {
+struct MatrixFile {
   char    *fname ;  /* file path */
   Main_header *mhptr ;  /* pointer to main header */
   MatDirList  *dirlist ;  /* directory */
   FILE    *fptr ;   /* file ptr for I/O calls */
   FileFormat file_format;
   char **interfile_header;
-  // ahc replace all occurences of void * with void*
-  // void * analyze_hdr;
   void *analyze_hdr;
-} MatrixFile;
+};
 
-typedef struct matrixdata {
+struct MatrixData {
   int   matnum ;  /* matrix number */
   MatrixFile  *matfile ;  /* pointer to parent */
   DataSetType mat_type ;  /* type of matrix? */
@@ -568,100 +744,103 @@ typedef struct matrixdata {
   float       z_origin;       /* z origin of data */
   void *dicom_header;     /* DICOM header is stored after matrix data */
   int dicom_header_size;
-} MatrixData;
+};
 
-  /*
-   * high level user functions
-   */
+/*
+ * high level user functions
+ */
 
-  void SWAB(void *from, void *to, int len);
-  void SWAW(short *from, short *to, int len);
+void SWAB(void *from, void *to, int len);
+void SWAW(short *from, short *to, int len);
 // ahc replace all u_char with unsigned char
-  unsigned char find_bmin(const unsigned char*, int size);
-  unsigned char find_bmax(const unsigned char*, int size);
-  short find_smin(const short*, int size);
-  short find_smax(const short*, int size);
-  int find_imin(const int*, int size);
-  int find_imax(const int*, int size);
-  float find_fmin(const float*, int size);
-  float find_fmax(const float*, int size);
-  int matspec(const char* specs, char* fname , int* matnum);
-  char* is_analyze(const char* );
-  MatrixFile* matrix_create(const char*, int, Main_header*);
-  MatrixFile* matrix_open(const char*, int, int);
-  int analyze_open(MatrixFile *mptr);
-  int analyze_read(MatrixFile *mptr, int matnum, MatrixData  *data, int dtype);
-  MatrixData* matrix_read(MatrixFile*, int matnum, int type);
-  MatrixData* matrix_read_slice(MatrixFile*, MatrixData* volume, int slice_num,
-                                int segment);
-  MatrixData* matrix_read_view(MatrixFile*, MatrixData* volume, int view,
-                               int segment);
-  void set_matrix_no_error();
-  int matrix_write(MatrixFile*, int matnum, MatrixData*);
-  int mat_numcod(int frame, int plane, int gate, int data, int bed);
-  int mat_numdoc(int, struct Matval*);
-  void free_matrix_data(MatrixData*);
-  void matrix_perror(const char*);
-  int matrix_close(MatrixFile*);
-  int matrix_find(MatrixFile*, int matnum, struct MatDir*);
-  void crash(const char *fmt, ...);
-  MatrixData *load_volume7(MatrixFile *matrix_file, int frame, int gate, int data, int bedstart, int bedend);
-  int save_volume7( MatrixFile *mfile, Image_subheader *shptr, float *data_ptr, int frame, int gate, int data, int bed );
-  int read_host_data(MatrixFile *mptr, int matnum, MatrixData *data, int dtype);
-  int write_host_data(MatrixFile *mptr, int matnum, const MatrixData *data);
-  int mh_update(MatrixFile *file);
-  int convert_float_scan( MatrixData *scan, float *fdata);
-  int matrix_convert_data(MatrixData *matrix, MatrixDataType dtype);
-  MatrixData *matrix_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment);
+unsigned char find_bmin(const unsigned char*, int size);
+unsigned char find_bmax(const unsigned char*, int size);
+short find_smin(const short*, int size);
+short find_smax(const short*, int size);
+int find_imin(const int*, int size);
+int find_imax(const int*, int size);
+float find_fmin(const float*, int size);
+float find_fmax(const float*, int size);
+int matspec(const char* specs, char* fname , int* matnum);
+char* is_analyze(const char* );
+MatrixFile* matrix_create(const char*, int, Main_header*);
+MatrixFile* matrix_open(const char*, int, int);
+int analyze_open(MatrixFile *mptr);
+int analyze_read(MatrixFile *mptr, int matnum, MatrixData  *data, int dtype);
+MatrixData* matrix_read(MatrixFile*, int matnum, int type);
+MatrixData* matrix_read_slice(MatrixFile*, MatrixData* volume, int slice_num,
+                              int segment);
+MatrixData* matrix_read_view(MatrixFile*, MatrixData* volume, int view,
+                             int segment);
+void set_matrix_no_error();
+int matrix_write(MatrixFile*, int matnum, MatrixData*);
+int mat_numcod(int frame, int plane, int gate, int data, int bed);
+int mat_numdoc(int, struct Matval*);
+void free_matrix_data(MatrixData*);
+void matrix_perror(const char*);
+int matrix_close(MatrixFile*);
+int matrix_find(MatrixFile*, int matnum, struct MatDir*);
+void crash(const char *fmt, ...);
+MatrixData *load_volume7(MatrixFile *matrix_file, int frame, int gate, int data, int bedstart, int bedend);
+int save_volume7( MatrixFile *mfile, Image_subheader *shptr, float *data_ptr, int frame, int gate, int data, int bed );
+int read_host_data(MatrixFile *mptr, int matnum, MatrixData *data, int dtype);
+int write_host_data(MatrixFile *mptr, int matnum, const MatrixData *data);
+int mh_update(MatrixFile *file);
+int convert_float_scan( MatrixData *scan, float *fdata);
+int matrix_convert_data(MatrixData *matrix, MatrixDataType dtype);
+MatrixData *matrix_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment);
 
-  /*
-   * low level functions prototypes, don't use
-   */
-  int unmap_main_header(char *buf, Main_header *h);
-  int unmap_Scan3D_header(char *buf, Scan3D_subheader*);
-  int unmap_scan_header(char *buf, Scan_subheader*);
-  int unmap_image_header(char *buf, Image_subheader*);
-  int unmap_attn_header(char *buf, Attn_subheader*);
-  int unmap_norm3d_header(char *buf, Norm3D_subheader*);
-  int unmap_norm_header(char *buf, Norm_subheader*);
-  int mat_read_main_header(FILE *fptr, Main_header *h);
-  int mat_read_scan_subheader( FILE *, Main_header*, int blknum, Scan_subheader*);
-  int mat_read_Scan3D_subheader( FILE *, Main_header*, int blknum, Scan3D_subheader*);
-  int mat_read_image_subheader(FILE *, Main_header*, int blknum, Image_subheader*);
-  int mat_read_attn_subheader(FILE *, Main_header*, int blknum, Attn_subheader*);
-  int mat_read_norm_subheader(FILE *, Main_header*, int blknum, Norm_subheader*);
-  int mat_read_norm3d_subheader(FILE *, Main_header*, int blknum, Norm3D_subheader*);
-  int mat_write_main_header(FILE *fptr, Main_header *h);
-  int mat_write_scan_subheader( FILE *, Main_header*, int blknum, Scan_subheader*);
-  int mat_write_Scan3D_subheader( FILE *, Main_header*, int blknum, Scan3D_subheader*);
-  int mat_write_image_subheader(FILE *, Main_header*, int blknum, Image_subheader*);
-  int mat_write_attn_subheader(FILE *, Main_header*, int blknum, Attn_subheader*);
-  int mat_write_norm_subheader(FILE *, Main_header*, int blknum, Norm_subheader*);
-  struct matdir *mat_read_dir(FILE *, Main_header*, char *selector);
-  int mat_read_matrix_data(FILE *, Main_header*, int blk, int nblks, short* bufr);
-  int mat_enter(FILE *, Main_header *mhptr, int matnum, int nblks);
-  int mat_lookup(FILE *fptr, Main_header *mhptr, int matnum,  struct MatDir *entry);
-  int mat_rblk(FILE *fptr, int blkno, char *bufr,  int nblks);
-  int mat_wblk(FILE *fptr, int blkno, char *bufr,  int nblks);
-  void swaw(short *from, short *to, int length);
-  int insert_mdir(struct MatDir *matdir, MatDirList *dirlist);
+/*
+ * low level functions prototypes, don't use
+ */
+int unmap_main_header(char *buf, Main_header *h);
+int unmap_Scan3D_header(char *buf, Scan3D_subheader*);
+int unmap_scan_header(char *buf, Scan_subheader*);
+int unmap_image_header(char *buf, Image_subheader*);
+int unmap_attn_header(char *buf, Attn_subheader*);
+int unmap_norm3d_header(char *buf, Norm3D_subheader*);
+int unmap_norm_header(char *buf, Norm_subheader*);
+int mat_read_main_header(FILE *fptr, Main_header *h);
+int mat_read_scan_subheader( FILE *, Main_header*, int blknum, Scan_subheader*);
+int mat_read_Scan3D_subheader( FILE *, Main_header*, int blknum, Scan3D_subheader*);
+int mat_read_image_subheader(FILE *, Main_header*, int blknum, Image_subheader*);
+int mat_read_attn_subheader(FILE *, Main_header*, int blknum, Attn_subheader*);
+int mat_read_norm_subheader(FILE *, Main_header*, int blknum, Norm_subheader*);
+int mat_read_norm3d_subheader(FILE *, Main_header*, int blknum, Norm3D_subheader*);
+int mat_write_main_header(FILE *fptr, Main_header *h);
+int mat_write_scan_subheader( FILE *, Main_header*, int blknum, Scan_subheader*);
+int mat_write_Scan3D_subheader( FILE *, Main_header*, int blknum, Scan3D_subheader*);
+int mat_write_image_subheader(FILE *, Main_header*, int blknum, Image_subheader*);
+int mat_write_attn_subheader(FILE *, Main_header*, int blknum, Attn_subheader*);
+int mat_write_norm_subheader(FILE *, Main_header*, int blknum, Norm_subheader*);
+struct matdir *mat_read_dir(FILE *, Main_header*, char *selector);
+int mat_read_matrix_data(FILE *, Main_header*, int blk, int nblks, short* bufr);
+int mat_enter(FILE *, Main_header *mhptr, int matnum, int nblks);
+int mat_lookup(FILE *fptr, Main_header *mhptr, int matnum,  struct MatDir *entry);
+int mat_rblk(FILE *fptr, int blkno, char *bufr,  int nblks);
+int mat_wblk(FILE *fptr, int blkno, char *bufr,  int nblks);
+void swaw(short *from, short *to, int length);
+int insert_mdir(struct MatDir *matdir, MatDirList *dirlist);
 
-  int numDisplayUnits;
-  char* datasettype[NumDataSetTypes];
-  char* dstypecode[NumDataSetTypes];
-  char* scantype[NumScanTypes];
-  char* scantypecode[NumScanTypes];
-  std::vector <char *> customDisplayUnits;
-  // char* customDisplayUnits[];
-  float ecfconverter[NumOldUnits];
-  char* calstatus[NumCalibrationStatus];
-  char* sexcode;
-  char* dexteritycode;
-  char* typeFilterLabel[NumDataMasks];
-  int ecat_default_version;
-  MatrixErrorCode matrix_errno;
-  // char matrix_errtxt[];
-  std::string matrix_errtxt;
+// int numDisplayUnits;
+// replaced with matrix_data_types_
+// char* datasettype[NumDataSetTypes];
+// char* dstypecode[NumDataSetTypes];
+// std::vector<DataSetType> data_set_types_;
+// Replaced with scan_types_
+// char* scantype[NumScanTypes];
+// char* scantypecode[NumScanTypes];
+std::vector <std::string> customDisplayUnits;
+// char* customDisplayUnits[];
+float ecfconverter[NumOldUnits];
+// char* calstatus[NumCalibrationStatus];
+const std:;string sexcode;
+const std::string dexteritycode;
+// std::vector<std::string> typeFilterLabel;
+int ecat_default_version;
+MatrixError matrix_errno;
+// char matrix_errtxt[];
+std::string matrix_errtxt;
 
 // extern "C" int numDisplayUnits;
 // extern "C" char* datasettype[NumDataSetTypes];
@@ -675,6 +854,7 @@ typedef struct matrixdata {
 // extern "C" char* dexteritycode;
 // extern "C" char* typeFilterLabel[NumDataMasks];
 // extern "C" int ecat_default_version;
-// extern "C" MatrixErrorCode matrix_errno;
+// extern "C" MatrixError matrix_errno;
 // extern "C" char matrix_errtxt[];
- 
+
+}  // namespace ecat_matrix

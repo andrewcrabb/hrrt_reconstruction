@@ -72,7 +72,7 @@ MatrixData *matrix;
   my = my / total * matrix->y_size * 10;
   mz = mz / total * matrix->z_size * 10;
   printf("Dimensions := %dx%dx%d\n",matrix->xdim,matrix->ydim,matrix->zdim);
-  if (mh->calibration_units == Uncalibrated || ecf <= 1.0 || data_unit > numDisplayUnits)  
+  if (mh->calibration_units == Uncalibrated || ecf <= 1.0 || data_unit > customDisplayUnits.size())
     data_unit = 0;
   units = (data_unit) ? customDisplayUnits[data_unit] : "";
   total *= matrix->scale_factor;
@@ -90,7 +90,7 @@ MatrixData *matrix;
   }
   printf("%s\n%s\n%s\n%s\n",line1, line2, line3, line4);
   printf("center of mass (x,y,z) mm := %g,%g,%g\n",mx-1,my-1,mz-1);
-	if (mh->sw_version>72 && mh->file_type == PetVolume) 
+	if (mh->sw_version > 72 && mh->file_type == ecat_matrix::DataSetType::PetVolume) 
   { // print data rates
 		imh = (Image_subheader*)matrix->shptr;
 		if (imh->singles_rate>MIN_SINGLE_RATE && imh->singles_rate < MAX_SINGLE_RATE)
@@ -98,52 +98,51 @@ MatrixData *matrix;
 			int frame_duration_sec;
 			frame_duration_sec = imh->frame_duration/1000;
 			printf("Image duration        := %d\n", frame_duration_sec);
-			printf("Total prompts        := %I64d\n",(__int64)((double)imh->prompt_rate*frame_duration_sec));
-			printf("Total randoms        := %I64d\n",(__int64)((double)imh->random_rate*frame_duration_sec));
-			printf("Average singles rate := %g\n",imh->singles_rate);
+			printf("Total prompts        := %I64d\n",(__int64)((double)imh->prompt_rate * frame_duration_sec));
+			printf("Total randoms        := %I64d\n",(__int64)((double)imh->random_rate * frame_duration_sec));
+			printf("Average singles rate := %g\n", imh->singles_rate);
 			if (imh->scatter_fraction>0.0f)
-				printf("scatter fraction     := %g\n",imh->scatter_fraction);
+				printf("scatter fraction     := %g\n", imh->scatter_fraction);
 		}
 	}
 }
 
-main(argc, argv)
-     int argc;
-     char **argv;
-{
-  MatDirNode *node;
-  MatrixFile *mptr;
-  MatrixData *matrix;
-  struct Matval mat;
+main(int argc, char **argv) {
+  // MatDirNode *node;
+  // MatrixFile *mptr;
+  // MatrixData *matrix;
+  // struct Matval mat;
   char fname[FILENAME_MAX];
-  int ftype, frame = -1, matnum=0, cubic=0, interpolate=0;
+  // int ftype, 
+  int frame = -1, matnum=0, cubic=0, interpolate=0;
   
   if (argc < 2) {
     printf("%s: Build %s %s\n", argv[0], __DATE__, __TIME__);
     crash("usage : %s matspec\n",argv[0]);
   }
   matspec( argv[1], fname, &matnum);
-  mptr = matrix_open(fname, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
+    MatrixFile *mptr = matrix_open(fname, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
   if (mptr == NULL) {
     matrix_perror(fname);
     return 0;
   }
-  ftype = mptr->mhptr->file_type;
-  if (ftype <0 || ftype >= NumDataSetTypes)
-    crash("%s : unkown file type\n",fname);
-  printf( "%s file type  : %s\n", fname, datasettype[ftype]);
-  if (!mptr) matrix_perror(fname);
+  DataSetType ftype = mptr->mhptr->file_type;
+  // if (ftype <0 || ftype >= NumDataSetTypes)
+  //   crash("%s : unkown file type\n",fname);
+  printf( "%s file type  : %s\n", fname, data_set_types_.at(ftype).name);
+  if (!mptr) 
+    matrix_perror(fname);
+    struct Matval mat;
   if (matnum) {
 		mat_numdoc(matnum, &mat);
-    matrix = matrix_read(mptr,matnum, UnknownMatDataType);
+      MatrixData *matrix = matrix_read(mptr,matnum, UnknownMatDataType);
     if (!matrix) crash("%d,%d,%d,%d,%d not found\n",
 		       mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
     matrix_info(mptr->mhptr,matrix);
   } 
 	else {
-    node = mptr->dirlist->first;
-    while (node)
-		{
+      MatDirNode *node = mptr->dirlist->first;
+    while (node) {
 			mat_numdoc(node->matnum, &mat);
 			if (ftype == PetImage) {
 				if (frame != mat.frame) {
