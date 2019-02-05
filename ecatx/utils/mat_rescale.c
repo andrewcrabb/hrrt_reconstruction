@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 
   if (in_file==NULL || out_file==NULL || mu_file == NULL) usage(argv[0]);
 
-  mptr1 = matrix_open(in_file, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
+  mptr1 = matrix_open(in_file, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (mptr1 == NULL) {
     matrix_perror(in_file);
     return 1;
@@ -136,7 +136,7 @@ int main(int argc, char **argv)
   //   crash("%s : unkown file type\n", in_file);
   printf( "%s file type  : %s\n", in_file, data_set_types_.at(ftype).name);
 
-  mptr2 = matrix_open(mu_file, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
+  mptr2 = matrix_open(mu_file, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (mptr2 == NULL) {
     matrix_perror(mu_file);
     return 1;
@@ -163,7 +163,7 @@ int main(int argc, char **argv)
   free_matrix_data(matrix);
   matrix_close(mptr2);
 
-  mptr2 = matrix_create(out_file,MAT_OPEN_EXISTING, mptr1->mhptr);
+  mptr2 = matrix_create(out_file,ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, mptr1->mhptr);
   if (mptr2 == NULL) {
     matrix_perror(out_file);
     return 1;

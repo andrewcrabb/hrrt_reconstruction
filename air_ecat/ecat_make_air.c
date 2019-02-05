@@ -91,7 +91,7 @@ main(int argc, char **argv)
 	if (out_air_file[0]==0 || air1.s_file[0]==0 || air1.r_file[0]==0 ) usage(argv[0]);
   if (!tflag && !in_air_file) usage(argv[0]);
 	ret = matspec(air1.s_file,fname,&matnum);
-	mptr = matrix_open(fname, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
+	mptr = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
 	if (mptr==NULL) crash("%s : can't open %s\n",argv[0],air1.s_file);
 	if (ret == 0)	/* no matrix specified, use first */
 			matnum = mptr->dirlist->first->matnum;
@@ -115,7 +115,7 @@ main(int argc, char **argv)
 	matrix_close(mptr);
 	matnum = 0;
 	ret = matspec(air1.r_file,fname,&matnum);
-	mptr = matrix_open(fname, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
+	mptr = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
 	if (mptr==NULL) crash("%s : can't open %s\n",argv[0],air1.r_file);
 	if (ret == 0)	/* no matrix specified, use first */
 			matnum = mptr->dirlist->first->matnum;

@@ -51,12 +51,12 @@ void display_message(const char*) {}
 static char line[FILENAME_MAX];
 static char fname[FILENAME_MAX], hdr_fname[FILENAME_MAX];
 
-static int save_interfile(MatrixData *matrix, const char *fname, const char *orig_fname)
-{
+static int save_interfile(MatrixData *matrix, const char *fname, const char *orig_fname) {
   FILE *fp=NULL, *fpi=NULL;
   float *fdata=NULL;
   short *sdata=NULL;
   int npixels = matrix->xdim*matrix->ydim;
+
   sdata = (short*)matrix->data_ptr;
   if ((fp=fopen(fname,"wb"))==NULL) 
     printf("%s: %d: error opening file %s",__FILE__,__LINE__, fname);
@@ -78,7 +78,8 @@ static int save_interfile(MatrixData *matrix, const char *fname, const char *ori
         while (fgets(line,sizeof(line),fpi) != NULL) {
           if (strstr(line,"name of data file :=") != NULL)
             fprintf(fp,"name of data file := %s\n", fname);
-          else fprintf(fp,"%s", line);
+          else 
+            fprintf(fp,"%s", line);
         }
         fclose(fpi);
       } else {
@@ -241,7 +242,7 @@ int main(int argc, char **argv)
   if (in_file == NULL) usage();
 
   // Open input file
-  mptr = matrix_open( in_file, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
+  mptr = matrix_open( in_file, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (!mptr) crash( "can't open file '%s'\n", in_file);
   if ( mptr->dirlist->nmats == 0) crash("no matrix in %s\n",in_file);
   if (in_matnum==0) in_matnum = mptr->dirlist->first->matnum;
@@ -425,7 +426,7 @@ int main(int argc, char **argv)
     proto->file_type = PetVolume;
     proto->num_planes = num_planes;
     proto->plane_separation = dz/10;  // mm -> cm
-    mptr1 = matrix_create(out_file, MAT_OPEN_EXISTING, proto);
+    mptr1 = matrix_create(out_file, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, proto);
     if (mptr1 == NULL) { matrix_perror(out_file); exit(1); }
     matrix_write(mptr1,out_matnum,out_data);
   }

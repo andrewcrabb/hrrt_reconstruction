@@ -2422,7 +2422,7 @@ int main(int argc, char *argv[])
       sprintf(logMsg, "-> writing main header to %s\n", outFileTail);
       Logging(logMsg);
                                                  /* write main header to file */
-      ECAT7file=matrix_create(outFile, MAT_CREATE_NEW_FILE, &main_header);
+      ECAT7file=matrix_create(outFile, ecat_matrix::MatrixFileAccessMode::CREATE_NEW_FILE, &main_header);
       if(ECAT7file == NULL) {
         fprintf(stderr, "ERROR: cannot write main header %s.\n", outFile);
         return 1;

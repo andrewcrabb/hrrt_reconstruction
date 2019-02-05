@@ -116,7 +116,7 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
 #endif
 
   matspec(orig_specs,orig_fname,&i_matnum);
-  file = matrix_open(orig_fname, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
+  file = matrix_open(orig_fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (i_matnum == 0) {
     /* use first */
     if (file->dirlist->nmats) {
@@ -233,7 +233,7 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
   mh.file_type = ecat_matrix::DataSetType::PetVolume;
   mh.num_planes = matrix->zdim;
   mh.plane_separation = matrix->z_size;
-  if ((file=matrix_create(fname,MAT_OPEN_EXISTING, &mh)) == NULL) {
+  if ((file=matrix_create(fname,ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, &mh)) == NULL) {
     matrix_perror(fname);
     free_matrix_data(matrix);
     return 0;
@@ -257,7 +257,7 @@ float ecat_AIR_open_header(const char *mat_spec, struct AIR_Fptrs *fp, struct AI
 
   fp->errcode = 0;
   matspec(mat_spec,fname,&matnum);
-  file = matrix_open(fname, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
+  file = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (file==NULL) {
     fprintf(stderr, "%s : error opening file\n", fname); 
     fp->errcode = 1;
@@ -317,7 +317,7 @@ AIR_Error ecat_AIR_load_probr(const char *specs, const AIR_Boolean decompressabl
   int error=0;
 
   matspec(specs,fname,&matnum);
-  file = matrix_open(fname, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
+  file = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (file==NULL) return 0;
   if (matnum == 0) {		/* use first */
     if (file->dirlist->nmats) matnum = file->dirlist->first->matnum;

@@ -196,7 +196,7 @@ int main( argc, argv)
 			mk = strtok(NULL,",");
 		}
 	}
-	mptr1 = matrix_open( fname, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
+	mptr1 = matrix_open( fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
 	if (!mptr1) crash( "%s: can't open file '%s'\n", argv[0], fname);
 	if ( mptr1->dirlist->nmats == 0) crash("no matrix in %s\n",fname);
 	matnums = (int*)calloc(sizeof(int),mptr1->dirlist->nmats);
@@ -246,7 +246,7 @@ int main( argc, argv)
 	} else {
 		if (verbose) fprintf(stderr,"input/output version : %d\n",proto.sw_version);
 	}
-	mptr2 = matrix_create( fname, MAT_OPEN_EXISTING, &proto);
+	mptr2 = matrix_create( fname, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, &proto);
 	if (!mptr2) crash( "%s: can't open file '%s'\n", argv[0], fname);
 	
 	for (i=0; i<nmats; i++) {

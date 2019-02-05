@@ -267,9 +267,7 @@ int unmap_main_header( char *bufr, Main_header *header) {
   return 0;
 }
 
-int 
-mat_read_main_header(FILE *fptr, Main_header *header)
-{
+int mat_read_main_header(FILE *fptr, Main_header *header) {
   int             i = 0;
   char            bufr[MatBLKSIZE];
 
@@ -283,17 +281,12 @@ mat_read_main_header(FILE *fptr, Main_header *header)
     return unmap_main_header(bufr, header);
 }
 
-int 
-mat_read_matrix_data(FILE *fptr, Main_header *mhptr, int blk, int nblks, 
-                     short *bufr)
-{
+int mat_read_matrix_data(FILE *fptr, Main_header *mhptr, int blk, int nblks, short *bufr) {
     return read_matrix_data(fptr, blk, nblks, (char *) bufr, SunShort);
 }
 
-int
-unmap_scan_header(char *buf, Scan_subheader *header) 
-{
-  int i = 0 , j = 0;
+int unmap_scan_header(char *buf, Scan_subheader *header) {
+  int i = 0;
 
   bufRead_s(&header->data_type, buf, &i);
   bufRead_s(&header->num_dimensions, buf, &i);
@@ -317,9 +310,9 @@ unmap_scan_header(char *buf, Scan_subheader *header)
   bufRead_i(&header->delayed, buf, &i);
   bufRead_i(&header->multiples, buf, &i);
   bufRead_i(&header->net_trues, buf, &i);
-  for(j = 0; j < 16; j++)
+  for(int j = 0; j < 16; j++)
     bufRead_f(&header->cor_singles[j], buf, &i);
-  for(j = 0; j < 16; j++)
+  for(int j = 0; j < 16; j++)
     bufRead_f(&header->uncor_singles[j], buf, &i);
   bufRead_f(&header->tot_avg_cor, buf, &i);
   bufRead_f(&header->tot_avg_uncor, buf, &i);

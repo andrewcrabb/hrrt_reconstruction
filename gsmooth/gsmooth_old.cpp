@@ -118,12 +118,12 @@ int main(int argc, char **argv)
   clock_t c1=clock();
 	if (access(in_hdr_fname, F_OK) == 0)
 	{
-		if ((in = matrix_open(in_hdr_fname,MAT_READ_ONLY,MAT_UNKNOWN_FTYPE)) == NULL)
+		if ((in = matrix_open(in_hdr_fname,ecat_matrix::MatrixFileAccessMode::READ_ONLY,ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE)) == NULL)
 			crash("Error opening %s\n", in_hdr_fname);
 	}
 	else 
 	{
-		if ((in = matrix_open(in_fname,MAT_READ_ONLY,MAT_UNKNOWN_FTYPE)) == NULL)
+		if ((in = matrix_open(in_fname,ecat_matrix::MatrixFileAccessMode::READ_ONLY,ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE)) == NULL)
 			crash("Error opening %s\n", in_fname);
 		 int pos = strlen(in_fname)-6;
 		if (pos>0 && strcasecmp(in_fname+pos, ".i.hdr")== 0)
@@ -367,7 +367,7 @@ int main(int argc, char **argv)
       if (multi_frame_movie_mode)  proto.calibration_factor = 1.0f;
       if (frame==0) 
       {
-        out = matrix_create(out_fname, MAT_OPEN_EXISTING, &proto);
+        out = matrix_create(out_fname, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, &proto);
 		     if (out==NULL) crash("Error creating %s\n", out_fname);
       }
 		  if (matrix_write(out, volume->matnum, volume) != 0)

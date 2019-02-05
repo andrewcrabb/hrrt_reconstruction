@@ -317,13 +317,13 @@ int write_ecat_image(float ***image, char * filename, int frame,
   printf("Create or Open Main Header \n");
   if (frame==0) {
   	printf("Create Main Header %s\n", filename);
-    if ((f_out=matrix_create(filename, MAT_CREATE_NEW_FILE, &mh)) == NULL) {
+    if ((f_out=matrix_create(filename, ecat_matrix::MatrixFileAccessMode::CREATE_NEW_FILE, &mh)) == NULL) {
       fprintf(stderr,"ERROR: cannot create '%s'\n", filename);
       return 0;
     }
   } else {
 	printf("Open Main Header %s\n", filename);
-    if ((f_out=matrix_create(filename, MAT_OPEN_EXISTING, &mh)) == NULL) {
+    if ((f_out=matrix_create(filename, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, &mh)) == NULL) {
       fprintf(stderr,"ERROR: cannot open '%s'\n", filename);
       return 0;
     }

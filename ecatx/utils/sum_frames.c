@@ -61,7 +61,7 @@ int main(int argc, char **argv)
   
   if (argc < 2) crash("usage : %s file start_frame,end_frame\n",argv[0]);
   if (argc>2) sscanf(argv[2], "%d,%d",&start_frame,&end_frame);
-  mptr = matrix_open(argv[1], MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
+  mptr = matrix_open(argv[1], ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (mptr == NULL) {
     matrix_perror(argv[1]);
     return 0;
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
   if (frame_count<2) return 0;
   if (start_frame==0 && end_frame==0) strcat(fname,"_sum.v");
   else sprintf(&fname[strlen(fname)],"_sum_%dto%d.v", start_frame, last_frame);
-  if ((sum_mptr=matrix_create(fname,MAT_OPEN_EXISTING, mptr->mhptr)) != NULL)
+  if ((sum_mptr=matrix_create(fname,ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, mptr->mhptr)) != NULL)
   {
     nvoxels =  matrix->xdim*matrix->ydim*matrix->zdim;
     fdata = (float*)sum->data_ptr;

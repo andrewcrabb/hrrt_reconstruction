@@ -257,7 +257,7 @@ int matrix_exists(const char *specs)
 		} else fprintf(stderr,"using %s\n",fname);
 	}
 		
-    file = matrix_open(fname, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
+    file = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
     if (file == NULL) {
         matrix_perror(fname);
         return 0;
@@ -286,7 +286,7 @@ AIR_Pixels ***ecat2air(const char *specs, struct AIR_Key_info *stats,
   /* Fills in fname */
   if (!matrix_exists(specs))
     return NULL;
-  file = matrix_open(fname, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
+  file = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   mat_numdoc(matnum, &mat);
 
   // printf("air_ecat/ecat2air.c: fname:%s, matnum:%d \n", fname, matnum); fflush(stdout);

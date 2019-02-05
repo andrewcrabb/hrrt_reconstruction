@@ -624,7 +624,7 @@ void main(int argc, char **argv)
   }
   if (in_spec == NULL || (out_dir == NULL && update_dir == NULL)) usage(argv[0]);
   matspec( in_spec, in_fname, &matnum);
-  mptr = matrix_open(in_fname, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
+  mptr = matrix_open(in_fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (mptr == NULL)
   {
     matrix_perror(in_fname);

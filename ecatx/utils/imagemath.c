@@ -58,7 +58,7 @@ main( argc, argv)
 	if (argc<6) usage(argv[0]);
 /* get imagea */
 	if (!matspec( argv[1], fname, &matnuma)) matnuma = mat_numcod(1,1,1,0,0);
-	file1 = matrix_open( fname, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
+	file1 = matrix_open( fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
 	if (!file1)
 	  crash( "%s: can't open file '%s'\n", argv[0], fname);
 	image1 = matrix_read(file1,matnuma,MAT_SUB_HEADER);
@@ -75,7 +75,7 @@ main( argc, argv)
 		break;
 	}
 	if (!matspec( argv[2], fname, &matnumb)) matnumb = mat_numcod(1,1,1,0,0);
-	file2 = matrix_open( fname, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
+	file2 = matrix_open( fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
 	if (!file2) {		/* check constant value argument */
 	  if (sscanf(argv[2],"%g",&valb) != 1)
 			crash("%s: can't open file '%s'\n", argv[0], fname);
@@ -95,7 +95,7 @@ main( argc, argv)
 	mh3 = (Main_header*)calloc(1, sizeof(Main_header));
 	memcpy(mh3, file1->mhptr, sizeof(Main_header));
 	mh3->file_type = ecat_matrix::DataSetType::PetVolume;
-	file3 = matrix_create( fname, MAT_OPEN_EXISTING, mh3);
+	file3 = matrix_create( fname, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, mh3);
 	if (!file3) crash( "%s: can't open file '%s'\n", argv[0], fname);
 	image3 = (MatrixData*)calloc(1, sizeof(MatrixData));
 	memcpy(image3, image1, sizeof(MatrixData));

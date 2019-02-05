@@ -102,7 +102,7 @@ int main(int argc, char **argv)
   }
   if (vicra_get_info(MAF_file, log_fp) == 0) exit(1);
   
-  if ((in = matrix_open(in_fname,MAT_READ_ONLY,MAT_UNKNOWN_FTYPE)) == NULL) {
+  if ((in = matrix_open(in_fname,ecat_matrix::MatrixFileAccessMode::READ_ONLY,ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE)) == NULL) {
     fprintf(log_fp, "Error opening %s\n", in_fname);
     exit(1);
   }
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
     exit(1);
   }
   memcpy(&proto, in->mhptr, sizeof(Main_header));
-  if ((out = matrix_create(out_fname, MAT_OPEN_EXISTING, &proto)) ==NULL) {
+  if ((out = matrix_create(out_fname, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, &proto)) ==NULL) {
     fprintf(log_fp,"Error creating %s\n", out_fname);
     exit(1);
   }

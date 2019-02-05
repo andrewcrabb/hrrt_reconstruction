@@ -205,7 +205,7 @@ int main( argc, argv)
 
 	if (verbose) printf(" Input file : %s\n",input_file);
 
-	mptr = matrix_open(input_file, MAT_OPEN_EXISTING, MAT_UNKNOWN_FTYPE);
+	mptr = matrix_open(input_file, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
 	if (!mptr) crash( "%s: can't open file '%s'\n", argv[0], input_file);
 	mh = mptr->mhptr;
 	if( calibrate ) {
@@ -313,7 +313,7 @@ int main( argc, argv)
 	}
 
 	if( update_bed ) {
-		mptr1 = matrix_open(reference_file, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
+		mptr1 = matrix_open(reference_file, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
 		if (!mptr1) crash( "%s: can't open reference file '%s'\n", argv[0], reference_file);
 		count = mptr->mhptr->num_bed_pos;
 		bed_offsets = mptr->mhptr->bed_offset;

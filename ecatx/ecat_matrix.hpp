@@ -323,7 +323,6 @@ std::map<ProcessingCode, std::string> applied_proc_ = {
 
 }
 
-
 // ecat 6.4 compatibility definitions
 // matrix data types
 
@@ -341,16 +340,14 @@ enum class MatrixDataType_64 {
 // matrix file types
 
 typedef enum class MatrixFileType_64 {
-  MAT_UNKNOWN_FTYPE,
-  MAT_SCAN_DATA,
-  MAT_IMAGE_DATA,
-  MAT_ATTN_DATA,
-  MAT_NORM_DATA
+  UNKNOWN_FTYPE,
+  SCAN_DATA,
+  IMAGE_DATA,
+  ATTN_DATA,
+  NORM_DATA
 };
 
-
 // end of ecat 6.4 definitions
-
 
 struct  MatDir {
   int matnum;
@@ -359,13 +356,11 @@ struct  MatDir {
   int matstat;
 };
 
-
 struct matdir {
   int nmats;
   int nmax;
   struct MatDir *entry;
 };
-
 
 struct Matval {
   int frame, plane, gate, data, bed;
@@ -379,8 +374,6 @@ struct Matlimits {
   int bedstart  , bedend;
 };
 
-
-
 struct MatDirNode {
   int   matnum;
   int   strtblk;
@@ -389,13 +382,11 @@ struct MatDirNode {
   struct matdirnode *next;
 };
 
-
 struct MatDirList {
   int nmats ;
   MatDirNode *first ;
   MatDirNode *last ;
 };
-
 
 struct MatDirBlk {
   int nfree, nextblk, prvblk, nused ;
@@ -405,28 +396,29 @@ struct MatDirBlk {
 // matrix file access modes
 
 enum class MatrixFileAccessMode {
-  MAT_READ_WRITE,
-  MAT_READ_ONLY,
-  MAT_CREATE,
-  MAT_OPEN_EXISTING,
-  MAT_CREATE_NEW_FILE
+  READ_WRITE,
+  READ_ONLY,
+  CREATE,
+  OPEN_EXISTING,
+  CREATE_NEW_FILE
 };
 
-/* object creation attributes */
+// object creation attributes
+// None of these are used anywhere.  All had MAT prefix.
 
 enum class MatrixObjectAttribute {
-  MAT_NULL,
-  MAT_XDIM,
-  MAT_YDIM,
-  MAT_ZDIM,
-  MAT_DATA_TYPE,
-  MAT_SCALE_FACTOR,
-  MAT_PIXEL_SIZE,
-  MAT_Y_SIZE,
-  MAT_Z_SIZE,
-  MAT_DATA_MAX,
-  MAT_DATA_MIN,
-  MAT_PROTO
+  NULL,
+  XDIM,
+  YDIM,
+  ZDIM,
+  DATA_TYPE,
+  SCALE_FACTOR,
+  PIXEL_SIZE,
+  Y_SIZE,
+  Z_SIZE,
+  DATA_MAX,
+  DATA_MIN,
+  PROTO
 };
 
 struct Main_header {
@@ -763,15 +755,14 @@ float find_fmin(const float*, int size);
 float find_fmax(const float*, int size);
 int matspec(const char* specs, char* fname , int* matnum);
 char* is_analyze(const char* );
-MatrixFile* matrix_create(const char*, int, Main_header*);
+MatrixFile* matrix_create(const char*, MatrixFileAccessMode const mode , Main_header*);
 MatrixFile* matrix_open(const char*, int, int);
 int analyze_open(MatrixFile *mptr);
 int analyze_read(MatrixFile *mptr, int matnum, MatrixData  *data, int dtype);
-MatrixData* matrix_read(MatrixFile*, int matnum, int type);
-MatrixData* matrix_read_slice(MatrixFile*, MatrixData* volume, int slice_num,
-                              int segment);
-MatrixData* matrix_read_view(MatrixFile*, MatrixData* volume, int view,
-                             int segment);
+// MatrixData *matrix_read(MatrixFile*, int matnum, int type);
+MatrixData *matrix_read(MatrixFile*, int matnum, MatrixDataType type);
+MatrixData* matrix_read_slice(MatrixFile*, MatrixData* volume, int slice_num, int segment);
+MatrixData* matrix_read_view(MatrixFile*, MatrixData* volume, int view, int segment);
 void set_matrix_no_error();
 int matrix_write(MatrixFile*, int matnum, MatrixData*);
 int mat_numcod(int frame, int plane, int gate, int data, int bed);
@@ -783,7 +774,7 @@ int matrix_find(MatrixFile*, int matnum, struct MatDir*);
 void crash(const char *fmt, ...);
 MatrixData *load_volume7(MatrixFile *matrix_file, int frame, int gate, int data, int bedstart, int bedend);
 int save_volume7( MatrixFile *mfile, Image_subheader *shptr, float *data_ptr, int frame, int gate, int data, int bed );
-int read_host_data(MatrixFile *mptr, int matnum, MatrixData *data, int dtype);
+int read_host_data(MatrixFile *mptr, int matnum, MatrixData *data, MatrixDataType dtype);
 int write_host_data(MatrixFile *mptr, int matnum, const MatrixData *data);
 int mh_update(MatrixFile *file);
 int convert_float_scan( MatrixData *scan, float *fdata);

@@ -318,9 +318,7 @@ find_fmax( const float *fdata, int nvals)
   return fmax;
 }
 
-int
-read_host_data(MatrixFile *mptr, int matnum, MatrixData *data, int dtype) 
-{
+int read_host_data(MatrixFile *mptr, int matnum, MatrixData *data, ecat_matrix::MatrixDataType dtype) {
   struct MatDir matdir;
   int	 nblks, data_size ;
   Scan3D_subheader *scan3Dsub ;
@@ -1053,15 +1051,13 @@ mat_read_directory(MatrixFile *mptr)
   return (dirlist);
 }
 
-MatrixFile *
-matrix_open(const char* fname, int fmode, int mtype)
-{
+MatrixFile *matrix_open(const char* fname, int fmode, ecat_matrix::MatrixFileType_64 mtype) {
 
   int status;
   MatrixFile *mptr ;
   char *omode;
 
-  if (fmode == MAT_READ_ONLY) omode = R_MODE;
+  if (fmode == ecat_matrix::MatrixFileAccessMode::READ_ONLY) omode = R_MODE;
   else {
     if (access(fname,F_OK) == 0) omode = RW_MODE;
     else omode = W_MODE;
@@ -1078,7 +1074,7 @@ matrix_open(const char* fname, int fmode, int mtype)
     return(NULL) ;
   }
 
-  if (fmode == MAT_READ_ONLY) { /* check if interfile or analyze format */
+  if (fmode == ecat_matrix::MatrixFileAccessMode::READ_ONLY) { /* check if interfile or analyze format */
     if ((mptr->fname = is_interfile(fname)) != NULL) {
       if (interfile_open(mptr) == ECATX_ERROR) {
         /* matrix_errno set by interfile_open */
@@ -1128,9 +1124,9 @@ matrix_open(const char* fname, int fmode, int mtype)
   }
 
   if( !strncmp(mptr->mhptr->magic_number, "MATRIX", strlen("MATRIX")) ) {
-    mptr->file_format = ECAT7;
+    mptr->file_format = ecat_matrix::FileFormat::ECAT7;
   } else {
-    mptr->file_format = ECAT6;
+    mptr->file_format = ecat_matrix::FileFormat::ECAT6;
   }
 
   if( matrix_errno == ECATX_OK ) 
@@ -1139,26 +1135,24 @@ matrix_open(const char* fname, int fmode, int mtype)
   return(NULL) ;
 }
 
-MatrixFile *
-matrix_create(const char *fname, int fmode, Main_header * proto_mhptr)
-{
+MatrixFile *matrix_create(const char *fname, MatrixFileAccessMode const fmode, Main_header * proto_mhptr) {
   MatrixFile     *mptr = NULL;
   FILE           *fptr, *mat_create();
 
   set_matrix_no_error();
   switch (fmode) {
-  case ecat_matrix::DataSetType::MAT_READ_WRITE:
-  case ecat_matrix::DataSetType::MAT_OPEN_EXISTING:
-    mptr = matrix_open(fname, MAT_READ_WRITE, proto_mhptr->file_type);
+  case ecat_matrix::MatrixFileAccessMode::READ_WRITE:
+  case ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING:
+    mptr = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_WRITE, proto_mhptr->file_type);
     if (mptr) 
       break;
     /*
-     * if (matrix_errno != MAT_NFS_FILE_NOT_FOUND) break; if we
+     * if (matrix_errno != NFS_FILE_NOT_FOUND) break; if we
      * got an NFS_FILE_NOT_FOUND error, then try to create the
      * matrix file.
      */
-  case ecat_matrix::DataSetType::MAT_CREATE:
-  case ecat_matrix::DataSetType::MAT_CREATE_NEW_FILE:
+  case ecat_matrix::MatrixFileAccessMode::CREATE:
+  case ecat_matrix::MatrixFileAccessMode::CREATE_NEW_FILE:
     set_matrix_no_error();
     fptr = mat_create(fname, proto_mhptr);
     if (!fptr) 
@@ -1203,9 +1197,7 @@ matrix_create(const char *fname, int fmode, Main_header * proto_mhptr)
   return mptr;
 }
 
-int
-matrix_close(MatrixFile *mptr)
-{
+int matrix_close(MatrixFile *mptr) {
   int status = ECATX_OK;
   matrix_errno = ecat_matrix::MatrixError::OK;
   if (mptr->fname) 
@@ -1226,9 +1218,7 @@ matrix_close(MatrixFile *mptr)
   return status;
 }
 
-MatrixData *
-matrix_read(MatrixFile *mptr, int matnum, int dtype)
-{
+MatrixData *matrix_read(MatrixFile *mptr, int matnum, ecat_matrix::MatrixDataType dtype) {
   MatrixData     *data;
 
   matrix_errno = ECATX_OK;

@@ -32,7 +32,9 @@
 
 #include "ecat_matrix.hpp"
 
-typedef enum {
+namespace interfile {
+
+enum class Key {
 	VERSION_OF_KEYS,
 	IMAGE_MODALITY,
 	ORIGINAL_INSTITUTION,
@@ -71,9 +73,7 @@ typedef enum {
 	LABEL,
 	MAXIMUM_PIXEL_COUNT,
 	TOTAL_COUNTS,
-/*
- My Extensions
-*/
+	 // My Extensions
 	QUANTIFICATION_UNITS,	/* scale_factor units; eg 10e-3 counts/seconds */
 	COLORTAB,
 	DISPLAY_RANGE,
@@ -87,9 +87,7 @@ typedef enum {
 	ATLAS_ORIGIN_2,
 	ATLAS_ORIGIN_3,
 	TRANSFORMER,
-/*
- Sinograms Support
-*/
+ // Sinograms Support
 	NUM_Z_ELEMENTS,   /* 3D Elements number of planes (array)
 					      Number of grous = 2*(#num_z_elements)-1 */
 	STORAGE_ORDER,
@@ -98,9 +96,9 @@ typedef enum {
 	TOTAL_RANDOMS,
 
 	END_OF_INTERFILE
-} InterfileKeys;
+};
 
-typedef enum {
+enum class TypeOfData {
 	STATIC,
 	DYNAMIC,
 	GATED,
@@ -108,38 +106,36 @@ typedef enum {
 	CURVE,
 	ROI,
 	OTHER,
-/* My Externsion */
+    // My Externsion
 	MULTIBED,
 	CLICHE			/* with a fixed colormap */
-}	TypeOfData;
+};
 
-typedef enum {
+enum class NumberFormat {
 	UNSIGNED_INTEGER,
 	SIGNED_INTEGER,
 	SHORT_FLOAT,
 	LONG_FLOAT,
 /* My Extension */
 	COLOR_PIXEL
-} NumberFormat;
+};
 
-typedef struct _InterfileItem {
-	int key;
-	// char* value;
+struct InterfileItem {
+	InterfileKey key;
 	std::string value;
-} InterfileItem;
+};
 
-
-// extern "C" {
 int interfile_write_volume(MatrixFile* mptr, char *image_name,char *header_name, unsigned char* data_matrix, int size);
 char *is_interfile(const char*);
 int interfile_open(MatrixFile*);
 MatrixData *interfile_read_slice(FILE*, char** ifh, MatrixData*, int slice,	int u_flag);
-int interfile_read(MatrixFile *mptr,int matnum, MatrixData  *data, int dtype);
+int interfile_read(MatrixFile *mptr,int matnum, MatrixData  *data, ecat_matrix::MatrixDataType_64 dtype);
 MatrixData *interfile_read_scan(MatrixFile *mptr,int matnum, int dtype, int segment);
 int free_interfile_header(char** ifh);
 void flip_x(void *line, int data_type, int xdim);
 void flip_y(void *plane, int data_type, int xdim, int ydim);
-// }
 
 // extern "C" InterfileItem used_keys[];
 // std::vector <InterfileItem> used_keys;
+
+}  // namespace interfile

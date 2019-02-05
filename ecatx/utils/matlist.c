@@ -11,7 +11,7 @@ int main( argc, argv) {
 
   if (argc < 2)
     crash("usage : matlist matrix_file\n");
-  MatrixFile *mptr = matrix_open( argv[1], MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
+  MatrixFile *mptr = matrix_open( argv[1], ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (!mptr) {
     matrix_perror(argv[1]);
     exit(1);

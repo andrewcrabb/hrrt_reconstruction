@@ -626,7 +626,7 @@ int main(int argc, char **argv)
     strcpy(em_ecat_file, em_file);
 
     // matrix_open defined in matrix_extra.c    
-    if ((mf=matrix_open(em_file,MAT_READ_ONLY,MAT_UNKNOWN_FTYPE)) == NULL) {
+    if ((mf=matrix_open(em_file,ecat_matrix::MatrixFileAccessMode::READ_ONLY,ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE)) == NULL) {
       fprintf(log_fp, "Error opening %s\n", em_file);
       exit(1);
     }

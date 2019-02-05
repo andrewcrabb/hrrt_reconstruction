@@ -522,7 +522,7 @@ if (*ext == 'v') {
   MatrixData *matdata;
   Image_subheader *imh;
   MatDirNode *node;
-  if ((mf=matrix_open(em_file, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE))==NULL){
+  if ((mf=matrix_open(em_file, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE))==NULL){
     fprintf(log_fp,"Error opening file %s\n", em_file);
     return 1;
   }

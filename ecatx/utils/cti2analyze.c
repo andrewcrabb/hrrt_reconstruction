@@ -246,7 +246,7 @@ int main (argc, argv)
  *	First image, first time -- get scanner and dimensions
  *	------------------------------------------------------------------
  */
-	file = matrix_open (PET_fname, MAT_READ_ONLY,MAT_UNKNOWN_FTYPE);
+	file = matrix_open (PET_fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY,ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
 	if (file ==  NULL) 
 		crash ("Error: cannot open %s as an ECAT image file\n", PET_img);
 	mat_numdoc(matnum, &matval);

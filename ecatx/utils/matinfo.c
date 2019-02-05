@@ -121,7 +121,7 @@ main(int argc, char **argv) {
     crash("usage : %s matspec\n",argv[0]);
   }
   matspec( argv[1], fname, &matnum);
-    MatrixFile *mptr = matrix_open(fname, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
+    MatrixFile *mptr = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (mptr == NULL) {
     matrix_perror(fname);
     return 0;

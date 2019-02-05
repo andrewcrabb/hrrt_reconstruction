@@ -167,7 +167,7 @@ void  main(int argc, char **argv)
   {
     AIR_read_air16(air_file, &air_16);
     matspec(air_16.r_file, reslice_file, &matnum);
-    if ((mptr=matrix_open(reslice_file,MAT_READ_ONLY, MAT_UNKNOWN_FTYPE)) != NULL)
+    if ((mptr=matrix_open(reslice_file,ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE)) != NULL)
     {
       if ((matrix=matrix_read( mptr, matnum, MAT_SUB_HEADER)) != NULL)
       {
@@ -264,7 +264,7 @@ void  main(int argc, char **argv)
     if (verbose) printf("done\n");
     exit(0);
   }
-  if ((mptr=matrix_open(in_file,MAT_READ_ONLY, MAT_UNKNOWN_FTYPE)) == NULL) {
+  if ((mptr=matrix_open(in_file,ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE)) == NULL) {
     matrix_perror(in_file);
     exit(1);
   }

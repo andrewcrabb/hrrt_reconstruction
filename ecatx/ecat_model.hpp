@@ -1,15 +1,16 @@
 #pragma once
 
+namespace ecat_model {
+
 static int MaxBuckets = 56;   		/* maximum number of buckets */
-    					/* maximum number of crystals in the axial direction */
-static int MaxAxialCrystals = 32;
+static int MaxAxialCrystals = 32;  // max crystals in axial direction
 static int MaxCrossPlanes = 6;
 
-enum TransmissionSource {none, Ring, Rod};
-enum Septa {NoSepta, Fixed, Retractable};
-enum PPorder {PP_LtoR, PP_RtoL};
+enum class TransmissionSource {none, Ring, Rod};
+enum class Septa {NoSepta, Fixed, Retractable};
+enum class PPorder {PP_LtoR, PP_RtoL};
 
-typedef struct _EcatModel {
+struct EcatModel {
 	char *number;  			/* model number as an ascii string */
 	int rings;			/* number of rings of buckets */
 	int nbuckets;			/* total number of buckets */
@@ -23,15 +24,15 @@ typedef struct _EcatModel {
 	int dbSize;			/* size of bucket database in bytes */
 	int timeCorrectionBits;		/* no. bits used to store time correction */
 	int maxcodepage;		/* number of highest code page */
-	enum PPorder ppOrder;		/* display order for position profile */
+	PPorder ppOrder;		/* display order for position profile */
 
 	int dirPlanes;			/* number of direct planes */
 	int def2DSpan;			/* default span for 2D plane definitions */
 	int def3DSpan;			/* default span for 3D plane definitions */
 	int defMaxRingDiff;		/* default maximum ring difference for 3D */
-	enum TransmissionSource txsrc;  /* transmission source type */
+	TransmissionSource txsrc;  /* transmission source type */
 	float txsrcrad;			/* transmission source radius */
-	enum Septa septa;		/* septa type */
+	Septa septa;		/* septa type */
 	int defElements;		/* default number of elements */
 	int defAngles;			/* default number of angles */
 	int defMashVal;			/* default angular compression (mash) value */
@@ -73,8 +74,10 @@ typedef struct _EcatModel {
 	int eBump;
 */
 
-} EcatModel;
+};
 
-extern "C" {
-EcatModel *ecat_model(int);
-}
+}  // namespcae ecat_model
+
+// extern "C" {
+// EcatModel *ecat_model(int);
+// }
