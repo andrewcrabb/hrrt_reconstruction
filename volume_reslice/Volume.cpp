@@ -473,7 +473,7 @@ Volume::Volume(Main_header *mh, MatrixData* matrix, const char* name_str) {
   }
 }
 
-Volume::Volume(MatrixFile* matfile, int matnum, int segment) {
+Volume::Volume(ecat_matrix::MatrixFile* matfile, int matnum, int segment) {
   memcpy(&main_header, matfile->mhptr, sizeof(Main_header));
   memset(_name,0,IMAGENAME_MAX+1);
   const char* fname = strrchr(matfile->fname,'/');
@@ -491,11 +491,11 @@ Volume::Volume(MatrixFile* matfile, int matnum, int segment) {
   try { load(matfile,matnum, segment); }
   catch(...) { throw; }
 }
-//extern "C" MatrixData *matrix_read_scan(MatrixFile*, int, int, int);
+//extern "C" MatrixData *matrix_read_scan(ecat_matrix::MatrixFile*, int, int, int);
 
-int Volume::matnum(MatrixFile* matfile,int frame)
+int Volume::matnum(ecat_matrix::MatrixFile* matfile,int frame)
 {
-  struct Matval matval;
+  ecat_matrix::MatVal matval;
   int matnum=0;
   MatDirNode *node = matfile->dirlist->first;
   while (node && (matnum==0)) {
@@ -506,7 +506,7 @@ int Volume::matnum(MatrixFile* matfile,int frame)
   return matnum;
 }
 
-MatrixData *ColorConverter::load(MatrixFile *file, MatrixData *vheader)
+MatrixData *ColorConverter::load(ecat_matrix::MatrixFile *file, MatrixData *vheader)
 {
 // Creates display pixels volume
   unsigned char  r,g,b;
@@ -644,7 +644,7 @@ static void  matrix_align_color_4(MatrixData *data)
   data->ydim = ydim;
 }
 
-int Volume::load(MatrixFile* matfile,int matnum, int segment) {
+int Volume::load(ecat_matrix::MatrixFile* matfile,int matnum, int segment) {
   MatrixData *new_data=NULL;
   int _min, _max;
   char **ifh = matfile->interfile_header;
@@ -1276,12 +1276,12 @@ float ty, float tz) {
   return 1;
 }
 
-char*  Volume::save(MatrixFile* matfile, const unsigned char * rgb,
+char*  Volume::save(ecat_matrix::MatrixFile* matfile, const unsigned char * rgb,
 const char* _fname) const{
   FILE *fp=NULL;
   char *fname = NULL, *ext = NULL;
   const char* str = _fname;
-  struct MatDir matdir;
+  MatDir matdir;
   char data_offset[20];
   const unsigned char  *p = NULL;
   int i, j, error_flag=0;

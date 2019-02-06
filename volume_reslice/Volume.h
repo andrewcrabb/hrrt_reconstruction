@@ -57,7 +57,7 @@ protected:
 public:
 	ColorConverter(int depth=1) { _bytes_per_pixel = depth; }
 	int bytes_per_pixel() {return _bytes_per_pixel; }
-	virtual MatrixData *load(MatrixFile *file, MatrixData *vheader);
+	virtual MatrixData *load(ecat_matrix::MatrixFile *file, MatrixData *vheader);
 };
 
 class VoIValue {
@@ -87,7 +87,7 @@ protected:
     float *x, *y;				// histogram data
   } _histogram;
 	char _name[IMAGENAME_MAX+1];
-	virtual int load(MatrixFile*, int matnum, int segment=0);
+	virtual int load(ecat_matrix::MatrixFile*, int matnum, int segment=0);
 	Matrix _transformer;
 	void update_origin();	// update transformed update
 	MatrixData *rgb_create_data(MatrixData *r,
@@ -112,7 +112,7 @@ public :
 	static ColorConverter *color_converter;
 	static int max_byte_value;			// limit in byte_scale methods
     static float min_pixel_size;	   // in mm (default 1mm)
-	static int matnum(MatrixFile*, int frame);
+	static int matnum(ecat_matrix::MatrixFile*, int frame);
   static void apply_zoom(const VoxelCoord &zoom_center, float zoom_f,
     DimensionName orthogonal , float *x, float *y, int count=1);
   static void invert_zoom(const VoxelCoord &zoom_center, float zoom_f,
@@ -121,11 +121,11 @@ public :
 
 	Volume(int sx=128, int sy=128, int sz=128);
 	Volume(Main_header *mh, MatrixData*, const char* name_str=0);
-	Volume(MatrixFile*, int matnum, int segment=0);
+	Volume(ecat_matrix::MatrixFile*, int matnum, int segment=0);
 									// segment is used for 3D sinograms 
 	virtual Volume* clone() const;
 	int contains(const VoxelCoord&);
-	char* save(MatrixFile*, const unsigned char * cmap=NULL,
+	char* save(ecat_matrix::MatrixFile*, const unsigned char * cmap=NULL,
 		const char* fname=NULL) const;
 			// export current range  in InterFile format
 
@@ -295,7 +295,7 @@ inline float Volume::conversion_factor() const {
 	return user_factor;
 }
 
-inline int interpolability(const MatrixFile* file) {
+inline int interpolability(const ecat_matrix::MatrixFile* file) {
 	int ret = 1;
 	char **ifh = NULL;
 	if (file) ifh = file->interfile_header;

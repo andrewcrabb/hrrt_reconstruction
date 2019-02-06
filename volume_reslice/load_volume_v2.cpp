@@ -1,8 +1,8 @@
 //static char sccsid[] = "%W% UCL-TOPO %E%"
 /*
  * The function
- * MatrixData *load_volume(MatrixFile*, int frame, int cubic, int interp)
- * loads a frame from a MatrixFile. The frames slices may be stored as separate
+ * MatrixData *load_volume(ecat_matrix::MatrixFile*, int frame, int cubic, int interp)
+ * loads a frame from a ecat_matrix::MatrixFile. The frames slices may be stored as separate
  * matrices (ECAT V6x files) or as a single volume data.
  * if the cubic flag is non zero, the function returns a volume with cubic
  * voxel.
@@ -74,7 +74,7 @@ static int slice_sort(Tslice *slices, int count)
  * matrix_read_v2 uses matrix_read to load image and converts data 
  * from slope,intercept to short integer with scale_factor
  */
-static MatrixData *matrix_read_v2(MatrixFile *file, int matnum, int type, int plane)
+static MatrixData *matrix_read_v2(ecat_matrix::MatrixFile *file, int matnum, int type, int plane)
 {
 	char buf[80];
 	int i, npixels, b;
@@ -93,7 +93,7 @@ static MatrixData *matrix_read_v2(MatrixFile *file, int matnum, int type, int pl
           	matrix->dicom_header_size)) sscanf(buf, "%g", &intercept); 
    	if (dicom_scan_string(0x0028, 0x1053, buf, matrix->dicom_header,
 		matrix->dicom_header_size))	sscanf(buf, "%g", &slope);
-    Image_subheader *imh = (Image_subheader*)matrix->shptr;
+    ecat_matrix::Image_subheader *imh = (ecat_matrix::Image_subheader*)matrix->shptr;
 	matrix->scale_factor *= slope;
 	imh->scale_factor = matrix->scale_factor;
 	b = (int)(intercept/slope);
@@ -150,7 +150,7 @@ static MatrixData *matrix_read_v2(MatrixFile *file, int matnum, int type, int pl
 	return matrix;
 }
 	
-static MatrixData *load_slices(/*CProgressCtrl *progress_ctrl,*/ MatrixFile *matrix_file,
+static MatrixData *load_slices(/*CProgressCtrl *progress_ctrl,*/ ecat_matrix::MatrixFile *matrix_file,
 							   Tslice *slice, int nslices, float pixel_size, int interp)
 {
 	int i, j, k;
@@ -219,19 +219,19 @@ static MatrixData *load_slices(/*CProgressCtrl *progress_ctrl,*/ MatrixFile *mat
 	nvoxels = npixels*zdim;
 	switch (volume->data_type) {
 	case ByteData : 
-		nblks = (nvoxels+MatBLKSIZE-1)/MatBLKSIZE;
-		vdata = (void *)calloc(nblks,MatBLKSIZE);
+		nblks = (nvoxels+ecat_matrix::MatBLKSIZE-1)/ecat_matrix::MatBLKSIZE;
+		vdata = (void *)calloc(nblks,ecat_matrix::MatBLKSIZE);
 		b_vp = (unsigned char *)vdata;
 		break;
 	case VAX_Ix2:
 	case SunShort:
-		nblks = (nvoxels*sizeof(short)+MatBLKSIZE-1)/MatBLKSIZE;
-		vdata = (void *)calloc(nblks,MatBLKSIZE);
+		nblks = (nvoxels*sizeof(short)+ecat_matrix::MatBLKSIZE-1)/ecat_matrix::MatBLKSIZE;
+		vdata = (void *)calloc(nblks,ecat_matrix::MatBLKSIZE);
 		vp = (short*)vdata;
 		break;
 	case IeeeFloat:
-		nblks = (nvoxels*sizeof(float)+MatBLKSIZE-1)/MatBLKSIZE;
-		vdata = (void *)calloc(nblks,MatBLKSIZE);
+		nblks = (nvoxels*sizeof(float)+ecat_matrix::MatBLKSIZE-1)/ecat_matrix::MatBLKSIZE;
+		vdata = (void *)calloc(nblks,ecat_matrix::MatBLKSIZE);
 		f_vp = (float*)vdata;
 		break;
 	default:
@@ -474,7 +474,7 @@ static MatrixData *load_slices(/*CProgressCtrl *progress_ctrl,*/ MatrixFile *mat
 		}
 	}
 	volume->data_ptr = vdata;
-	volume->data_size = nblks*MatBLKSIZE;
+	volume->data_size = nblks*ecat_matrix::MatBLKSIZE;
 	if (xdim != volume->xdim) {
 		volume->xdim = xdim;
 		volume->ydim = ydim;
@@ -485,7 +485,7 @@ static MatrixData *load_slices(/*CProgressCtrl *progress_ctrl,*/ MatrixFile *mat
 	return volume;
 }
 
-MatrixData *load_volume_v2(/*CProgressCtrl *progress_ctrl,*/ MatrixFile *matrix_file,
+MatrixData *load_volume_v2(/*CProgressCtrl *progress_ctrl,*/ ecat_matrix::MatrixFile *matrix_file,
 						   int matnum, float pixel_size, int interp)
 {
 /*
@@ -495,10 +495,10 @@ MatrixData *load_volume_v2(/*CProgressCtrl *progress_ctrl,*/ MatrixFile *matrix_
 	MatrixData *mat;
 	float zsep, zmin, zmax, maxval;
 	Main_header *mh;
-	Image_subheader *imh = NULL;
+	ecat_matrix::Image_subheader *imh = NULL;
 	int nmats, plane, nslices=0;
 	MatDirNode *entry;
-	struct Matval matval;
+	ecat_matrix::MatVal matval;
 	Tslice *slice;
 	MatrixData *volume;
 	char buf[80];
@@ -543,7 +543,7 @@ MatrixData *load_volume_v2(/*CProgressCtrl *progress_ctrl,*/ MatrixFile *matrix_
 					continue;
 				}
 			}
-			imh = (Image_subheader*)mat->shptr;
+			imh = (ecat_matrix::Image_subheader*)mat->shptr;
 			memcpy(&slice[nslices].data,mat, sizeof(MatrixData));
 			slice[nslices].zloc = plane*mat->z_size;
 			if (mat->dicom_header != NULL)
@@ -629,8 +629,8 @@ MatrixData *load_volume_v2(/*CProgressCtrl *progress_ctrl,*/ MatrixFile *matrix_
 	volume->x_origin += 0.5F*(10.0f*volume->xdim*volume->pixel_size-1); // in mm
 	volume->y_origin += 0.5F*(10.0f*volume->ydim*volume->y_size-1); // in mm
 	volume->z_origin += 0.5F*(10.0f*volume->zdim*volume->z_size-1); // in mm
-	volume->matnum = mat_numcod(frame, 1, 1, 0, bed);
-	imh = (Image_subheader*)volume->shptr;
+	volume->matnum = ecat_matrix::mat_numcod(frame, 1, 1, 0, bed);
+	imh = (ecat_matrix::Image_subheader*)volume->shptr;
 	imh->num_dimensions = 3;
 	imh->scale_factor = volume->scale_factor;
 	imh->x_dimension = volume->xdim;

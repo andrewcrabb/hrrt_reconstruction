@@ -33,7 +33,7 @@ static const char *fname(const char *path)
   return pos;
 }
 
-static int write_image(MatrixFile *fp, int frame, Image_subheader *imh, 
+static int write_image(ecat_matrix::MatrixFile *fp, int frame, ecat_matrix::Image_subheader *imh, 
                        float ***image, unsigned char *mask, int recon_type)
 {
   int i, j, nvoxels;
@@ -54,11 +54,11 @@ static int write_image(MatrixFile *fp, int frame, Image_subheader *imh,
   matrix->data_max = imh->image_max*matrix->scale_factor;
   matrix->data_min = imh->image_min*matrix->scale_factor;
   matrix->data_size = matrix->xdim*matrix->ydim*matrix->zdim*sizeof(short);
-  nblks = (matrix->data_size + MatBLKSIZE-1)/MatBLKSIZE;
-  matrix->data_ptr = (void *)calloc(nblks, MatBLKSIZE);
+  nblks = (matrix->data_size + ecat_matrix::MatBLKSIZE-1)/ecat_matrix::MatBLKSIZE;
+  matrix->data_ptr = (void *)calloc(nblks, ecat_matrix::MatBLKSIZE);
   minval = maxval = fdata[0];
   nvoxels = matrix->xdim*matrix->xdim*matrix->zdim;
-  matnum=mat_numcod(frame+1, 1, 1, 0, 0);
+  matnum=ecat_matrix::mat_numcod(frame+1, 1, 1, 0, 0);
   if (mask != NULL)
     {  // Use mask to find image extrema and zero hot or cold pixels
 
@@ -129,8 +129,8 @@ static int write_image(MatrixFile *fp, int frame, Image_subheader *imh,
   matrix->data_max = imh->image_max*scalef;
   matrix->data_min = imh->image_min*scalef;
   printf("frame %d: image_min,image_max = %d,%d, scale factor=%g\n",frame+1,imh->image_min,imh->image_max,scalef);
-  matrix->shptr = (void *)calloc(sizeof(Image_subheader),1);
-  memcpy(matrix->shptr, imh, sizeof(Image_subheader));
+  matrix->shptr = (void *)calloc(sizeof(ecat_matrix::Image_subheader),1);
+  memcpy(matrix->shptr, imh, sizeof(ecat_matrix::Image_subheader));
   return matrix_write(fp,matnum,matrix);
 }
 
@@ -183,9 +183,9 @@ int write_ecat_image(float ***image, char * filename, int frame,
 {
   float	eps = 0.001f;
   FILE	*f_in=NULL;
-  MatrixFile *f_out=NULL;
+  ecat_matrix::MatrixFile *f_out=NULL;
   Main_header mh;
-  Image_subheader imh;
+  ecat_matrix::Image_subheader imh;
   char	sinoHeaderName[_MAX_PATH];
   int		sinoHeaderExists;
   char	*p=NULL;

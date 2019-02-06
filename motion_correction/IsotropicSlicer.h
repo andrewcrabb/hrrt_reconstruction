@@ -41,7 +41,7 @@
 
 #define V_ADD(x,y) for(j=0 ; j < 4 ; j++) (*(x+j)) += (*(y+j))
 #define V_ADD2(x,y,m) for(j=0 ; j < 4 ; j++) (*(x+j)) += ((*(y+j)) * (m))
-#define N_BLKS(n) (((n)+MatBLKSIZE-1)/MatBLKSIZE)
+#define N_BLKS(n) (((n)+ecat_matrix::MatBLKSIZE-1)/ecat_matrix::MatBLKSIZE)
 
 inline int round(float x) { return x > 0 ? int(x+0.5) : -int(-x+0.5); }
                                                          

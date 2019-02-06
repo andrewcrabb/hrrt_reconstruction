@@ -23,7 +23,7 @@ static MatrixData* air2matrix(AIR_Pixels ***pixels, struct AIR_Key_info *stats,
                               MatrixData *orig)
 {
   MatrixData *matrix=NULL;
-  Image_subheader *imh=NULL;
+  ecat_matrix::Image_subheader *imh=NULL;
   AIR_Pixels *image_data;
   int elem_size=2, data_type=SunShort;	/* default */
   int i, nvoxels, nblks;
@@ -41,10 +41,10 @@ static MatrixData* air2matrix(AIR_Pixels ***pixels, struct AIR_Key_info *stats,
 
   /* allocate MatrixData */
   matrix = (MatrixData*)calloc(1,sizeof(MatrixData));
-  imh = (Image_subheader*)calloc(1,sizeof(Image_subheader));
+  imh = (ecat_matrix::Image_subheader*)calloc(1,sizeof(ecat_matrix::Image_subheader));
   memcpy(matrix,orig,sizeof(MatrixData));
   if (orig->shptr) {
-    memcpy(imh,orig->shptr,sizeof(Image_subheader));
+    memcpy(imh,orig->shptr,sizeof(ecat_matrix::Image_subheader));
   } else {
     imh->image_min = (int)(matrix->data_min/matrix->scale_factor);
     imh->image_max = (int)(matrix->data_max/matrix->scale_factor);
@@ -101,11 +101,11 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
 {
   Main_header mh;
   char orig_fname[FILENAME_MAX], *base, *ext;
-  MatrixFile* file;
+  ecat_matrix::MatrixFile* file;
   FILE *fp=NULL, *fpi=NULL;
   MatrixData *orig=NULL, *matrix=NULL;
   MatrixData *slice=NULL;
-  Image_subheader *imh = NULL;
+  ecat_matrix::Image_subheader *imh = NULL;
   int sw_version,  i_matnum=0, o_matnum=0;
   int cubic=0, interpolate=0;
   int i=0, npixels=0, plane=0;
@@ -129,7 +129,7 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
   orig = matrix_read(file,i_matnum,MAT_SUB_HEADER);
   if (orig != NULL && orig->zdim == 1) {
     /* slice mode */
-    struct Matval val;
+    ecat_matrix::MatVal val;
     mat_numdoc(i_matnum, &val);
     free_matrix_data(orig);
     orig = matrix_read(file,val.frame, GENERIC);
@@ -238,7 +238,7 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
     free_matrix_data(matrix);
     return 0;
   }
-  imh = (Image_subheader*)matrix->shptr;
+  imh = (ecat_matrix::Image_subheader*)matrix->shptr;
   strncpy(imh->annotation,comment,sizeof(imh->annotation)-1);
   matrix_write(file,o_matnum,matrix);
   free_matrix_data(matrix);
@@ -251,7 +251,7 @@ float ecat_AIR_open_header(const char *mat_spec, struct AIR_Fptrs *fp, struct AI
 
 {
   char fname[FILENAME_MAX];
-  MatrixFile* file;
+  ecat_matrix::MatrixFile* file;
   MatrixData *hdr=NULL;
   int matnum=0;
 
@@ -311,7 +311,7 @@ AIR_Error ecat_AIR_load_probr(const char *specs, const AIR_Boolean decompressabl
 
 {
   char fname[FILENAME_MAX];
-  MatrixFile* file;
+  ecat_matrix::MatrixFile* file;
   MatrixData  *hdr=NULL;
   int matnum=0;
   int error=0;

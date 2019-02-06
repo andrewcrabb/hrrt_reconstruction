@@ -13,7 +13,7 @@ static char sccsid[]="(#)matcopy.c 1.4 7/10/92 Copyright 1990 CTI Pet Systems, I
 extern MatrixData *matrix_read_scan();
 
 static void usage();
-static int copy_scan(MatrixFile *mptr1, int matnum, MatrixFile *mptr2, int o_matnum, int storage_order);
+static int copy_scan(ecat_matrix::MatrixFile *mptr1, int matnum, ecat_matrix::MatrixFile *mptr2, int o_matnum, int storage_order);
 
 static void usage() {
 	fprintf(stderr,
@@ -26,9 +26,9 @@ static void usage() {
 
 static int verbose=0;
 
-static int copy_scan(MatrixFile *mptr1, int matnum, MatrixFile *mptr2, int o_matnum, int storage_order) {
+static int copy_scan(ecat_matrix::MatrixFile *mptr1, int matnum, ecat_matrix::MatrixFile *mptr2, int o_matnum, int storage_order) {
 	MatrixData *matrix;
-	struct MatDir matdir, o_matdir;
+	MatDir matdir, o_matdir;
 	Scan3D_subheader *sh=NULL, *o_sh=NULL;
 	Attn_subheader  *ah=NULL, *o_ah=NULL;
 	void *blk, *sino, *planar, *dest;
@@ -146,10 +146,10 @@ int main( argc, argv)
   int argc;
   char **argv;
 {
-	MatrixFile *mptr1, *mptr2;
+	ecat_matrix::MatrixFile *mptr1, *mptr2;
 	MatrixData *matrix, *slice;
 	Main_header proto;
-	Image_subheader* imagesub;
+	ecat_matrix::Image_subheader* imagesub;
 	MatDirNode *node=NULL;
 	char *mk, fname[256];
 	int i, j, specs[5];
@@ -161,7 +161,7 @@ int main( argc, argv)
 	short *sdata;
 	unsigned char  *bdata;
 	int *matnums=NULL, nmats=0;
-	struct Matval mat;
+	ecat_matrix::MatVal mat;
 	extern char *optarg;
 
 	while ((c = getopt (argc, argv, "i:o:V:s:v")) != EOF) {

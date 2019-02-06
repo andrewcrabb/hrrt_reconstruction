@@ -535,7 +535,7 @@ unsigned char *CreateHRRTMuMask(const char *filename)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-int ecat7WriteImageMatrix(MatrixFile *fp, int mat_id, Image_subheader *imh, 
+int ecat7WriteImageMatrix(ecat_matrix::MatrixFile *fp, int mat_id, ecat_matrix::Image_subheader *imh, 
                           float *fdata, unsigned char *mask)
 {
     int i, nvoxels;
@@ -600,8 +600,8 @@ int ecat7WriteImageMatrix(MatrixFile *fp, int mat_id, Image_subheader *imh,
     matrix->scale_factor = imh->scale_factor=scalef;
     matrix->data_max = imh->image_max*matrix->scale_factor;
     matrix->data_min = imh->image_min*matrix->scale_factor;
-    matrix->shptr = (void *)calloc(sizeof(Image_subheader), 1);
-    memcpy(matrix->shptr, imh, sizeof(Image_subheader));
+    matrix->shptr = (void *)calloc(sizeof(ecat_matrix::Image_subheader), 1);
+    memcpy(matrix->shptr, imh, sizeof(ecat_matrix::Image_subheader));
 
     
     
@@ -982,9 +982,9 @@ int main(int argc, char *argv[])
 
 
   FILE      *inputImage=NULL;
-  MatrixFile *ECAT7file=NULL;
+  ecat_matrix::MatrixFile *ECAT7file=NULL;
   Main_header    main_header;
-  Image_subheader   image_header;
+  ecat_matrix::Image_subheader   image_header;
   char *duplicateDir = NULL;
   unsigned char *muMask=NULL;
 
@@ -2440,7 +2440,7 @@ int main(int argc, char *argv[])
     Logging(logMsg);
                                                       /* Create new matrix id */
 
-    matrixId=mat_numcod(frame-startFrame+1, 1, 1, 0, 0);
+    matrixId=ecat_matrix::mat_numcod(frame-startFrame+1, 1, 1, 0, 0);
     //printf("\n\n\n matrixId: %d", matrixId); fflush(stdout);
     /* write subheader and matrix to file */
                      /* data are scaled to short int by ecat7WriteImageMatrix */

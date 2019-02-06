@@ -76,7 +76,7 @@ int main( argc, argv)
 	char *patient_sex=NULL;
 	char *sex_code=NULL;
 	char *scan_time=NULL;
-	MatrixFile *mptr, *mptr1;
+	ecat_matrix::MatrixFile *mptr, *mptr1;
 	Main_header* mh;
   char facility_name[20];
 	float ecf,weight,height,dose,branching_fraction,tilt;

@@ -243,7 +243,7 @@ static char fname[256];
 int matrix_exists(const char *specs)
 {
     int ret = 0;
-    MatrixFile *file;
+    ecat_matrix::MatrixFile *file;
     MatDirNode *node;
 
     matnum = 0;
@@ -275,9 +275,9 @@ int matrix_exists(const char *specs)
 AIR_Pixels ***ecat2air(const char *specs, struct AIR_Key_info *stats,
                        const AIR_Boolean binary_ok, AIR_Error *errcode)
 {
-  MatrixFile* file;
+  ecat_matrix::MatrixFile* file;
   MatrixData *volume;
-  struct Matval mat;
+  ecat_matrix::MatVal mat;
   AIR_Pixels ***pixels = NULL;
   int cubic=0,interpolate=0;
   MatrixExtrema *extrema;

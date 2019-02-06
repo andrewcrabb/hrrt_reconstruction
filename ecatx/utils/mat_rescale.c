@@ -24,7 +24,7 @@
 
 void matrix_sum(MatrixData *matrix, MatrixData **sum)
 {
-  struct Matval mat;
+  ecat_matrix::MatVal mat;
   int i, nvoxels, nblks;
   short *sdata;
   float *fdata;
@@ -43,7 +43,7 @@ void matrix_sum(MatrixData *matrix, MatrixData **sum)
     nblks = ((*sum)->data_size + MatBLKSIZE-1)/MatBLKSIZE;
     (*sum)->data_ptr = (void *)calloc(nblks,MatBLKSIZE);
     (*sum)->shptr =(void *)calloc(1,MatBLKSIZE);
-    memcpy((*sum)->shptr,matrix->shptr,sizeof(Image_subheader));
+    memcpy((*sum)->shptr,matrix->shptr,sizeof(ecat_matrix::Image_subheader));
     fdata = (float*)(*sum)->data_ptr;
     for (i=0; i<nvoxels; i++)
       fdata[i] = sdata[i]*matrix->scale_factor;
@@ -71,10 +71,10 @@ void usage (const char *pgm)
 int main(int argc, char **argv)
 {
   MatDirNode *node;
-  MatrixFile *mptr1=NULL, *mptr2=NULL;
+  ecat_matrix::MatrixFile *mptr1=NULL, *mptr2=NULL;
   MatrixData *matrix;
-  Image_subheader *imh;
-  struct Matval mat;
+  ecat_matrix::Image_subheader *imh;
+  ecat_matrix::MatVal mat;
   char *in_file=NULL, *mu_file=NULL, *out_file=NULL;
   int ftype, frame = -1, matnum=0, start_frame=0, end_frame=0;
   int i, nvoxels;
@@ -214,7 +214,7 @@ int main(int argc, char **argv)
         if (sdata[i]<em_thres) sdata[i]=0;
     } 
     matrix->scale_factor = 1.0f; //new_scale;
-    imh = (Image_subheader*)matrix->shptr;
+    imh = (ecat_matrix::Image_subheader*)matrix->shptr;
     imh->image_min = find_smin(sdata, nvoxels);
     imh->image_max = find_smax(sdata, nvoxels);
     imh->scale_factor =  1.0f; //new_scale;

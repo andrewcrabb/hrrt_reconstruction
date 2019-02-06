@@ -31,7 +31,7 @@ main(int argc, char **argv)
 	int c, convention=0;
 	char out_air_file[256], fname[256], *in_air_file=NULL;
 	int matnum=0, ret=0;
-	MatrixFile *mptr;
+	ecat_matrix::MatrixFile *mptr;
 	MatrixData *matrix;
 	float pixel_size;
 	float tx,ty,tz,rx,ry,rz, tflag=0;

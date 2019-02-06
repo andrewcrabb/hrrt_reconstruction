@@ -106,8 +106,8 @@ int main (argc, argv)
 	FILE		   *fd_if=0;			 /* output Interfile Format header */
 	FILE		   *fd_img=0;			 /* output ANALYZE image  */
 
-	struct Matval   matval;
-	MatrixFile	 *file=0;
+	ecat_matrix::MatVal   matval;
+	ecat_matrix::MatrixFile	 *file=0;
 	MatrixData	 *matrix=0;
 	char		   *PET_img=NULL;		 /* input PET image filename */
 	char		   PET_fname[256];
@@ -157,7 +157,7 @@ int main (argc, argv)
 	matval.gate = 1;
 	matval.data = 0;
 	matval.bed = 0;
-	matnum = mat_numcod(1,1,1,0,0);
+	matnum = ecat_matrix::mat_numcod(1,1,1,0,0);
 
 	strcpy (atlas_name, "Talairach 1988");
 

@@ -31,8 +31,8 @@
 #pragma once
 /*
  * The function
- * MatrixData *load_volume(MatrixFile*, int frame, int cubic, int interp)
- * loads a frame from a MatrixFile. The frames slices may be stored as separate
+ * MatrixData *load_volume(ecat_matrix::MatrixFile*, int frame, int cubic, int interp)
+ * loads a frame from a ecat_matrix::MatrixFile. The frames slices may be stored as separate
  * matrices (ECAT V6x files) or as a single volume data.
  * if the cubic flag is non zero, the function returns a volume with cubic
  * voxel.
@@ -75,12 +75,12 @@ static int slice_sort(Tslice *slices, int count)
 }
 
 
-static int load_slices(MatrixFile *matrix_file, MatrixData *volume,
+static int load_slices(ecat_matrix::MatrixFile *matrix_file, MatrixData *volume,
 Tslice *slice, int nslices, int cubic, int interp)
 {
 	int i, j, k, sz;
 	MatrixData *s1, *s2;
-	Image_subheader *imh=NULL;
+	ecat_matrix::Image_subheader *imh=NULL;
 	float fval;
 	int ival;
 	short *vp=NULL, *p1, *p2;
@@ -97,14 +97,14 @@ Tslice *slice, int nslices, int cubic, int interp)
 	volume->zdim = sz;
 	npixels = volume->xdim*volume->ydim;
 	nvoxels = npixels*volume->zdim;
-	imh = (Image_subheader*)volume->shptr;
+	imh = (ecat_matrix::Image_subheader*)volume->shptr;
 	switch (volume->data_type) {
-	case ByteData : 
+	case ecat_matrix::MatrixDataType::ByteData : 
 		volume->data_ptr = (void *)calloc(nvoxels,sizeof(unsigned char ));
 		b_vp = (unsigned char *)volume->data_ptr;
 		break;
-	case VAX_Ix2:
-	case SunShort:
+	case ecat_matrix::MatrixDataType::VAX_Ix2:
+	case ecat_matrix::MatrixDataType::SunShort:
 	default:
 		volume->data_ptr = (void *)calloc(nvoxels,sizeof(short));
 		vp = (short*)volume->data_ptr;
@@ -122,7 +122,7 @@ Tslice *slice, int nslices, int cubic, int interp)
     	{
 			s1 = matrix_read( matrix_file, slice[i].matnum, UnknownMatDataType);
 			switch (volume->data_type) {
-			case ByteData : 
+			case ecat_matrix::MatrixDataType::ByteData : 
 				b_p1 = (unsigned char *) s1->data_ptr;
 				w1 = s1->scale_factor/scalef;
 				for (k=0; k<npixels; k++, b_vp++ ) {
@@ -132,8 +132,8 @@ Tslice *slice, int nslices, int cubic, int interp)
 					else *b_vp = (unsigned char )(ival);
 				}
 				break;
-			case VAX_Ix2:
-			case SunShort:
+			case ecat_matrix::MatrixDataType::VAX_Ix2:
+			case ecat_matrix::MatrixDataType::SunShort:
 			default:
 				p1 = (short int*) s1->data_ptr;
 				w1 = s1->scale_factor/scalef;
@@ -209,7 +209,7 @@ Tslice *slice, int nslices, int cubic, int interp)
 	return 1;
 }
 
-static int load_v_slices(MatrixFile *matrix_file, MatrixData *volume,
+static int load_v_slices(ecat_matrix::MatrixFile *matrix_file, MatrixData *volume,
 Tslice *slice, int interp) 
 {
 	MatrixData *v_slices;
@@ -229,7 +229,7 @@ Tslice *slice, int interp)
 	volume->data_max = v_slices->data_max;
 	volume->data_max = v_slices->data_min;
 	if (volume->shptr != NULL) 
-		memcpy(volume->shptr,v_slices->shptr,sizeof(Image_subheader));
+		memcpy(volume->shptr,v_slices->shptr,sizeof(ecat_matrix::Image_subheader));
 
 	zsep = volume->z_size;
 	scalef = volume->scale_factor;
@@ -360,7 +360,7 @@ Tslice *slice, int interp)
 	return 1;
 }
 
-static MatrixData *load_volume(MatrixFile *matrix_file,int frame, int cubic,
+static MatrixData *load_volume(ecat_matrix::MatrixFile *matrix_file,int frame, int cubic,
 int interp)
 {
 	int i=0, ret=0;
@@ -368,11 +368,11 @@ int interp)
 	int matnum;
 	float zsep,maxval;
 	Main_header *mh;
-	Image_subheader *imh = NULL;
+	ecat_matrix::Image_subheader *imh = NULL;
 	int nmats, plane, bed, nslices=0;
 	float bed_pos[MAX_BED_POS];
 	MatDirNode *entry;
-	struct Matval matval;
+	ecat_matrix::MatVal matval;
 	Tslice slice[MAX_SLICES];
 	MatrixData *volume;
 	int nvoxels;
@@ -381,7 +381,7 @@ int interp)
 	mh = matrix_file->mhptr;
 	volume->mat_type = (DataSetType)mh->file_type;
 	if (volume->mat_type != ecat_matrix::DataSetType::Short3dSinogram) 
-		imh = (Image_subheader*)calloc(1,sizeof(Image_subheader));
+		imh = (ecat_matrix::Image_subheader*)calloc(1,sizeof(ecat_matrix::Image_subheader));
 	memset(bed_pos,0,MAX_BED_POS*sizeof(float));
 
 /* BED OFFSETS CODING ERROR IN ECAT FILES, position 1 not filled */
@@ -402,7 +402,7 @@ int interp)
 		mat = matrix_read( matrix_file, matnum, MAT_SUB_HEADER);
 		if (mat == NULL) matrix_perror(matrix_file->fname);
 		memcpy(volume, mat, sizeof(MatrixData));
-		if (imh) memcpy(imh,mat->shptr,sizeof(Image_subheader));
+		if (imh) memcpy(imh,mat->shptr,sizeof(ecat_matrix::Image_subheader));
 		slice[nslices].matnum = matnum;
 		slice[nslices].zloc = bed_pos[bed]+(plane-1)*zsep;
 		if (volume->data_max > maxval) maxval = volume->data_max;

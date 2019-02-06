@@ -120,10 +120,10 @@ MatrixData *volume_resize(Volume *volume, int xydim, int nplanes)
   cdata->data_size = cdata->xdim*cdata->ydim*cdata->zdim;
   if (cdata->data_type == IeeeFloat) cdata->data_size *= sizeof(float);
   else cdata->data_size *= sizeof(float);
-  int nblks = (cdata->data_size + MatBLKSIZE - 1)/MatBLKSIZE;
-  cdata->data_ptr = (void *) calloc(nblks, MatBLKSIZE);
-  Image_subheader *imh = (Image_subheader*)calloc(1, MatBLKSIZE);
-  memcpy(imh, data->shptr, sizeof(Image_subheader));
+  int nblks = (cdata->data_size + ecat_matrix::MatBLKSIZE - 1)/ecat_matrix::MatBLKSIZE;
+  cdata->data_ptr = (void *) calloc(nblks, ecat_matrix::MatBLKSIZE);
+  ecat_matrix::Image_subheader *imh = (ecat_matrix::Image_subheader*)calloc(1, ecat_matrix::MatBLKSIZE);
+  memcpy(imh, data->shptr, sizeof(ecat_matrix::Image_subheader));
   cdata->shptr = (void *)imh;
   imh->x_dimension = cdata->xdim;
   imh->y_dimension = cdata->ydim;
@@ -150,10 +150,10 @@ inline int mat_decode(const char *s, float *f)
 
 int main(int argc, char **argv)
 {
-  MatrixFile *mptr, *mptr1;
+  ecat_matrix::MatrixFile *mptr, *mptr1;
   Main_header *proto;
   MatrixData *slice;
-  Image_subheader *imh=NULL;
+  ecat_matrix::Image_subheader *imh=NULL;
   float xdim=0, ydim=0, zdim=0, dx=1, dy=1, dz=1, pixel_size=1;
   float tx=0, ty=0, tz=0, rx=0, ry=0, rz=0;
   Matrix tm=NULL; // affine transformer matrix
@@ -314,8 +314,8 @@ int main(int argc, char **argv)
         int size_factor = (cdata->xdim*cdata->ydim*cdata->zdim)/(data->xdim*data->ydim*data->zdim);
         cdata->data_size = data->data_size * size_factor;
         cdata->data_ptr = (void *) calloc(cdata->data_size, 1);
-        imh = (Image_subheader*)calloc(1, MatBLKSIZE);
-        memcpy(imh, data->shptr, sizeof(Image_subheader));
+        imh = (ecat_matrix::Image_subheader*)calloc(1, ecat_matrix::MatBLKSIZE);
+        memcpy(imh, data->shptr, sizeof(ecat_matrix::Image_subheader));
         cdata->shptr = (void *)imh;
         imh->x_dimension = cdata->xdim;
         imh->y_dimension = cdata->ydim;
@@ -382,21 +382,21 @@ int main(int argc, char **argv)
 
   slice = volume->get_slice(zoom_center, zoom_factor, orientation, 0,
 								area, pixel_size, interpolate);
-  slice_blks = (slice->data_size+MatBLKSIZE-1)/MatBLKSIZE;
+  slice_blks = (slice->data_size+ecat_matrix::MatBLKSIZE-1)/ecat_matrix::MatBLKSIZE;
 
-  volume_blks = (slice->data_size*num_planes+MatBLKSIZE-1)/MatBLKSIZE;
-  imh = (Image_subheader*)calloc(1, MatBLKSIZE);
+  volume_blks = (slice->data_size*num_planes+ecat_matrix::MatBLKSIZE-1)/ecat_matrix::MatBLKSIZE;
+  imh = (ecat_matrix::Image_subheader*)calloc(1, ecat_matrix::MatBLKSIZE);
   MatrixData *out_data = (MatrixData*) calloc(1, sizeof(MatrixData));
   memcpy(out_data,slice,sizeof(MatrixData));
   out_data->shptr = (void *)imh;
   out_data->dicom_header = NULL;
   out_data->dicom_header_size = 0;
-  out_data->data_ptr = (void *)calloc(volume_blks, MatBLKSIZE);
-  out_data->data_size = volume_blks*MatBLKSIZE;
+  out_data->data_ptr = (void *)calloc(volume_blks, ecat_matrix::MatBLKSIZE);
+  out_data->data_size = volume_blks*ecat_matrix::MatBLKSIZE;
   out_data->pixel_size /= 10.0f;
   out_data->y_size /= 10.0f;
   out_data->z_size /= 10.0f;
-  memcpy(imh, data->shptr, sizeof(Image_subheader));
+  memcpy(imh, data->shptr, sizeof(ecat_matrix::Image_subheader));
   imh->x_pixel_size = imh->y_pixel_size = pixel_size/10; // mm -> cm
   imh->z_pixel_size = dz/10; // mm ->cm
   imh->num_dimensions = 3;
@@ -420,7 +420,7 @@ int main(int argc, char **argv)
   if ((ext = strrchr(out_file,'.')) != NULL && strcmp(ext,".v") == 0)
   {
     //Format Code to create output in ECAT format
-    proto = (Main_header*)calloc(1, MatBLKSIZE);
+    proto = (Main_header*)calloc(1, ecat_matrix::MatBLKSIZE);
     memcpy(proto, mptr->mhptr, sizeof(Main_header));
     proto->sw_version = V7;
     proto->file_type = PetVolume;

@@ -94,9 +94,9 @@ void  main(int argc, char **argv)
   char *air_file = NULL, *minc_file=NULL;
   struct AIR_Air16 air_16;
   char reslice_file[FILENAME_MAX];
-  MatrixFile *mptr=NULL;
+  ecat_matrix::MatrixFile *mptr=NULL;
   MatrixData *matrix=NULL;
-  Image_subheader *imh=NULL;
+  ecat_matrix::Image_subheader *imh=NULL;
   int matnum=0, frame_start_time=0;
   int i,j,x,y,yrev,z,err_flag=0;
   FILE *fp=NULL;
@@ -171,7 +171,7 @@ void  main(int argc, char **argv)
     {
       if ((matrix=matrix_read( mptr, matnum, MAT_SUB_HEADER)) != NULL)
       {
-        imh = (Image_subheader*)matrix->shptr;
+        imh = (ecat_matrix::Image_subheader*)matrix->shptr;
         frame_start_time = imh->frame_start_time/1000;
         free_matrix_data(matrix);
       }

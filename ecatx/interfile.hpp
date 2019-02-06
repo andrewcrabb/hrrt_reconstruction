@@ -121,19 +121,19 @@ enum class NumberFormat {
 };
 
 struct InterfileItem {
-	InterfileKey key;
+	Key key;
 	std::string value;
 };
 
-int interfile_write_volume(MatrixFile* mptr, char *image_name,char *header_name, unsigned char* data_matrix, int size);
+int interfile_write_volume(ecat_matrix::ecat_matrix::MatrixFile* mptr, char *image_name ,char *header_name, unsigned char* data_matrix, int size);
 char *is_interfile(const char*);
-int interfile_open(MatrixFile*);
-MatrixData *interfile_read_slice(FILE*, char** ifh, MatrixData*, int slice,	int u_flag);
-int interfile_read(MatrixFile *mptr,int matnum, MatrixData  *data, ecat_matrix::MatrixDataType_64 dtype);
-MatrixData *interfile_read_scan(MatrixFile *mptr,int matnum, int dtype, int segment);
+int interfile_open(ecat_matrix::ecat_matrix::MatrixFile*);
+ecat_matrix::MatrixData *interfile_read_slice(FILE*, char** ifh, ecat_matrix::MatrixData*, int slice,	int u_flag);
+int interfile_read(ecat_matrix::ecat_matrix::MatrixFile *mptr,int matnum, ecat_matrix::MatrixData  *data, ecat_matrix::MatrixDataType_64 dtype);
+ecat_matrix::MatrixData *interfile_read_scan(ecat_matrix::ecat_matrix::MatrixFile *mptr,int matnum, int dtype, int segment);
 int free_interfile_header(char** ifh);
-void flip_x(void *line, int data_type, int xdim);
-void flip_y(void *plane, int data_type, int xdim, int ydim);
+void flip_x(void *line, ecat_matrix::MatrixDataType data_type, int xdim);
+void flip_y(void *plane, ecat_matrix::MatrixDataType data_type, int xdim, int ydim);
 
 // extern "C" InterfileItem used_keys[];
 // std::vector <InterfileItem> used_keys;

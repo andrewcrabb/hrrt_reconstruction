@@ -43,6 +43,7 @@
 
 #include <vector>
 #include <string>
+#include <map>
 
 // #define R_MODE "rb"
 // #define RW_MODE "rb+"
@@ -70,10 +71,23 @@ constexpr int MAT_SUB_HEADER = 255;  // operation to sub-header only
 
 
 enum class DataSetType {
-  NoData, Sinogram, PetImage, AttenCor, Normalization,
-  PolarMap, ByteVolume, PetVolume, ByteProjection,
-  PetProjection, ByteImage, Short3dSinogram, Byte3dSinogram, Norm3d,
-  Float3dSinogram, InterfileImage, NumDataSetTypes
+  NoData,
+  Sinogram,
+  PetImage,
+  AttenCor,
+  Normalization,
+  PolarMap,
+  ByteVolume,
+  PetVolume,
+  ByteProjection,
+  PetProjection,
+  ByteImage,
+  Short3dSinogram,
+  Byte3dSinogram,
+  Norm3d,
+  Float3dSinogram,
+  InterfileImage,
+  NumDataSetTypes
 };
 
 struct CodeName {
@@ -103,9 +117,20 @@ static std::map<DataSetType, CodeName> data_set_types_ = {
 };
 
 enum class MatrixDataType {
-  UnknownMatDataType, ByteData, VAX_Ix2, VAX_Ix4,
-  VAX_Rx4, IeeeFloat, SunShort, SunLong,
-  UShort_BE, UShort_LE, Color_24, Color_8, BitData, NumMatrixDataTypes
+  UnknownMatDataType,
+  ByteData,
+  VAX_Ix2,
+  VAX_Ix4,
+  VAX_Rx4,
+  IeeeFloat,
+  SunShort,
+  SunLong,
+  UShort_BE,
+  UShort_LE,
+  Color_24,
+  Color_8,
+  BitData,
+  NumMatrixDataTypes
 };
 
 // Combines former MatrixDataType, 
@@ -155,15 +180,15 @@ enum class ScanType {
   NumScanTypes
 };
 
-static std::map<ScanType, std::string> scan_types_ = {
-  ScanType::UndefScan          , {"na", "Not Applicable"},
-  ScanType::BlankScan          , {"bl", "Blank Scan"},
-  ScanType::TransmissionScan   , {"tx", "Transmission Scan"},
-  ScanType::StaticEmission     , {"se", "Static Emission"},
-  ScanType::DynamicEmission    , {"de", "Dynamic Emission"},
-  ScanType::GatedEmission      , {"ge", "Gated Emission,"},
-  ScanType::TransRectilinear   , {"tr", "Transmission Rectilinear"},
-  ScanType::EmissionRectilinear, {"er", "Emission Rectilinear"}
+static std::map<ScanType, std::array<std::string, 2>> scan_types_ = {
+  {ScanType::UndefScan          , {"na", "Not Applicable"}},
+  {ScanType::BlankScan          , {"bl", "Blank Scan"}},
+  {ScanType::TransmissionScan   , {"tx", "Transmission Scan"}},
+  {ScanType::StaticEmission     , {"se", "Static Emission"}},
+  {ScanType::DynamicEmission    , {"de", "Dynamic Emission"}},
+  {ScanType::GatedEmission      , {"ge", "Gated Emission,"}},
+  {ScanType::TransRectilinear   , {"tr", "Transmission Rectilinear"}},
+  {ScanType::EmissionRectilinear, {"er", "Emission Rectilinear"}}
 };
 
 static std::vector<std::string> typeFilterLabel = {
@@ -173,20 +198,38 @@ static std::vector<std::string> typeFilterLabel = {
 
 
 enum class CurrentModels {
-  E921, E961, E953, E953B, E951, E951R,
-  E962, E925, NumEcatModels
+  E921,
+  E961,
+  E953,
+  E953B,
+  E951,
+  E951R,
+  E962,
+  E925,
+  NumEcatModels
 };
 
 // Combines former float[] ecfconverter, enum OldDisplayUnits (max NumOldUnits)
-// Does not seem to be used anywhere.
 
 enum class OldDisplayUnits {
-  TotalCounts, UnknownEcfUnits, EcatCountsPerSec,
-  UCiPerCC, LMRGlu, LMRGluUmol, LMRGluMg, NCiPerCC, WellCounts,
-  BecquerelsPerCC, MlPerMinPer100g, MlPerMinPer1g, NumOldUnits
+  TotalCounts,
+  UnknownEcfUnits,
+  EcatCountsPerSec,
+  UCiPerCC,
+  LMRGlu,
+  LMRGluUmol,
+  LMRGluMg,
+  NCiPerCC,
+  WellCounts,
+  BecquerelsPerCC,
+  MlPerMinPer100g,
+  MlPerMinPer1g,
+  NumOldUnits
 };
 
-static std::map<OldDisplayUnits, float> display_units_ = {
+// Values from ecfconverter
+
+static std::map<std::string, float> display_units_ = {
   {"none"              , 0.0},
   {"ECAT Counts/Sec"   , 1.0},
   {"Bq/ml"             , 1.0},
@@ -202,7 +245,7 @@ static std::map<OldDisplayUnits, float> display_units_ = {
   {"nM"                , 1.0}
 };
 
-std::vector<std::string> customDisplayUnits = {
+static std::vector<std::string> customDisplayUnits = {
   "none",
   "ECAT Counts/Sec",
   "Bq/ml",
@@ -260,26 +303,26 @@ enum class MatrixError {
 // Former matrix_errors in matrix_extra
 
 static std::map<MatrixError, std::string> matrix_errors_ = {
-  {ecat_matrix::MatrixError::OK                   , "No Error"},
-  {ecat_matrix::MatrixError::READ_ERROR           , "Read error"},
-  {ecat_matrix::MatrixError::WRITE_ERROR          , "Write error"},
-  {ecat_matrix::MatrixError::INVALID_DIRBLK       , "Invalid directory block"},
-  {ecat_matrix::MatrixError::ACS_FILE_NOT_FOUND   , "ACS file not found"},
-  {ecat_matrix::MatrixError::INTERFILE_OPEN_ERR   , "Interfile open error"},
-  {ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH  , "File type not match"},
-  {ecat_matrix::MatrixError::READ_FROM_NILFPTR    , "Read from nil filepointer"},
-  {ecat_matrix::MatrixError::NOMHD_FILE_OBJECT    , "No mainheader file object"},
-  {ecat_matrix::MatrixError::NIL_SHPTR            , "Nil subheader pointer"},
-  {ecat_matrix::MatrixError::NIL_DATA_PTR         , "Nil data pointer"},
-  {ecat_matrix::MatrixError::MATRIX_NOT_FOUND     , "Matrix not found"},
-  {ecat_matrix::MatrixError::UNKNOWN_FILE_TYPE    , "Unknown filetype"},
-  {ecat_matrix::MatrixError::ACS_CREATE_ERR       , "ACS create error"},
-  {ecat_matrix::MatrixError::BAD_ATTRIBUTE        , "Bad attribute"},
-  {ecat_matrix::MatrixError::BAD_FILE_ACCESS_MODE , "Bad file access mode"},
-  {ecat_matrix::MatrixError::INVALID_DIMENSION    , "Invalid dimension"},
-  {ecat_matrix::MatrixError::NO_SLICES_FOUND      , "No slices found"},
-  {ecat_matrix::MatrixError::INVALID_DATA_TYPE    , "Invalid data type"},
-  {ecat_matrix::MatrixError::INVALID_MBED_POSITION, "Invalid multibed position"}
+  {MatrixError::OK                   , "No Error"},
+  {MatrixError::READ_ERROR           , "Read error"},
+  {MatrixError::WRITE_ERROR          , "Write error"},
+  {MatrixError::INVALID_DIRBLK       , "Invalid directory block"},
+  {MatrixError::ACS_FILE_NOT_FOUND   , "ACS file not found"},
+  {MatrixError::INTERFILE_OPEN_ERR   , "Interfile open error"},
+  {MatrixError::FILE_TYPE_NOT_MATCH  , "File type not match"},
+  {MatrixError::READ_FROM_NILFPTR    , "Read from nil filepointer"},
+  {MatrixError::NOMHD_FILE_OBJECT    , "No mainheader file object"},
+  {MatrixError::NIL_SHPTR            , "Nil subheader pointer"},
+  {MatrixError::NIL_DATA_PTR         , "Nil data pointer"},
+  {MatrixError::MATRIX_NOT_FOUND     , "Matrix not found"},
+  {MatrixError::UNKNOWN_FILE_TYPE    , "Unknown filetype"},
+  {MatrixError::ACS_CREATE_ERR       , "ACS create error"},
+  {MatrixError::BAD_ATTRIBUTE        , "Bad attribute"},
+  {MatrixError::BAD_FILE_ACCESS_MODE , "Bad file access mode"},
+  {MatrixError::INVALID_DIMENSION    , "Invalid dimension"},
+  {MatrixError::NO_SLICES_FOUND      , "No slices found"},
+  {MatrixError::INVALID_DATA_TYPE    , "Invalid data type"},
+  {MatrixError::INVALID_MBED_POSITION, "Invalid multibed position"}
 };
 
 // TODO get the correct enum values above OnComProc from ecat7_scan3d.cpp which specifies 15 values for sh.corrections_applied where sh is a global (terrible name)
@@ -304,24 +347,23 @@ enum class ProcessingCode {
 };
 
 std::map<ProcessingCode, std::string> applied_proc_ = {
-  {NotProc    , "None"},
-  {Norm       , "Normalized",},
-  {Atten_Meas , "Measured-Attenuation-Correction",},
-  {Atten_Calc , "Calculated-Attenuation-Correction"},
-  {Smooth_X   , "X-smoothing",},
-  {Smooth_Y   , "Y-smoothing",},
-  {Smooth_Z   , "Z-smoothing"},
-  {Scat2d     , "2D-scatter-correction",},
-  {Scat3d     , "3D-scatter-correction",},
-  {ArcPrc     , "Arc-correction"},
-  {DecayPrc   , "Decay-correction",},
-  {OnComPrc   , "Online-compression",},
-  {FILLMEIN1  , "FORE"},
-  {FILLMEIN2  , "SSRB",},
-  {FILLMEIN3  , "Seg0",},
-  {FILLMEIN4  , "Randoms Smoothing"}
-
-}
+  {ProcessingCode::NotProc    , "None"},
+  {ProcessingCode::Norm       , "Normalized",},
+  {ProcessingCode::Atten_Meas , "Measured-Attenuation-Correction",},
+  {ProcessingCode::Atten_Calc , "Calculated-Attenuation-Correction"},
+  {ProcessingCode::Smooth_X   , "X-smoothing",},
+  {ProcessingCode::Smooth_Y   , "Y-smoothing",},
+  {ProcessingCode::Smooth_Z   , "Z-smoothing"},
+  {ProcessingCode::Scat2d     , "2D-scatter-correction",},
+  {ProcessingCode::Scat3d     , "3D-scatter-correction",},
+  {ProcessingCode::ArcPrc     , "Arc-correction"},
+  {ProcessingCode::DecayPrc   , "Decay-correction",},
+  {ProcessingCode::OnComPrc   , "Online-compression",},
+  {ProcessingCode::FILLMEIN1  , "FORE"},
+  {ProcessingCode::FILLMEIN2  , "SSRB",},
+  {ProcessingCode::FILLMEIN3  , "Seg0",},
+  {ProcessingCode::FILLMEIN4  , "Randoms Smoothing"}
+};
 
 // ecat 6.4 compatibility definitions
 // matrix data types
@@ -339,7 +381,7 @@ enum class MatrixDataType_64 {
 
 // matrix file types
 
-typedef enum class MatrixFileType_64 {
+enum class MatrixFileType_64 {
   UNKNOWN_FTYPE,
   SCAN_DATA,
   IMAGE_DATA,
@@ -349,7 +391,7 @@ typedef enum class MatrixFileType_64 {
 
 // end of ecat 6.4 definitions
 
-struct  MatDir {
+struct MatDir {
   int matnum;
   int strtblk;
   int endblk;
@@ -359,10 +401,10 @@ struct  MatDir {
 struct matdir {
   int nmats;
   int nmax;
-  struct MatDir *entry;
+  MatDir *entry;
 };
 
-struct Matval {
+struct MatVal {
   int frame, plane, gate, data, bed;
 };
 
@@ -390,7 +432,7 @@ struct MatDirList {
 
 struct MatDirBlk {
   int nfree, nextblk, prvblk, nused ;
-  struct  MatDir matdir[31] ;
+  MatDir matdir[31] ;
 };
 
 // matrix file access modes
@@ -407,7 +449,7 @@ enum class MatrixFileAccessMode {
 // None of these are used anywhere.  All had MAT prefix.
 
 enum class MatrixObjectAttribute {
-  NULL,
+  ATTR_NULL,  // Formerly 'NULL'
   XDIM,
   YDIM,
   ZDIM,
@@ -701,19 +743,19 @@ enum class FileFormat {
   ECAT6, ECAT7, Interfile
 };
 
-struct MatrixFile {
+struct ecat_matrix::MatrixFile {
   char    *fname ;  /* file path */
   Main_header *mhptr ;  /* pointer to main header */
   MatDirList  *dirlist ;  /* directory */
   FILE    *fptr ;   /* file ptr for I/O calls */
   FileFormat file_format;
-  char **interfile_header;
+  char **interfile_header;   // TODO reimplement as vector<interfile::Key, string> - see analyze.cpp:200
   void *analyze_hdr;
 };
 
 struct MatrixData {
   int   matnum ;  /* matrix number */
-  MatrixFile  *matfile ;  /* pointer to parent */
+  ecat_matrix::MatrixFile  *matfile ;  /* pointer to parent */
   DataSetType mat_type ;  /* type of matrix? */
   MatrixDataType  data_type ; /* type of data */
   // void *   shptr ;    pointer to sub-header
@@ -738,9 +780,7 @@ struct MatrixData {
   int dicom_header_size;
 };
 
-/*
- * high level user functions
- */
+// high level user functions
 
 void SWAB(void *from, void *to, int len);
 void SWAW(short *from, short *to, int len);
@@ -755,35 +795,34 @@ float find_fmin(const float*, int size);
 float find_fmax(const float*, int size);
 int matspec(const char* specs, char* fname , int* matnum);
 char* is_analyze(const char* );
-MatrixFile* matrix_create(const char*, MatrixFileAccessMode const mode , Main_header*);
-MatrixFile* matrix_open(const char*, int, int);
-int analyze_open(MatrixFile *mptr);
-int analyze_read(MatrixFile *mptr, int matnum, MatrixData  *data, int dtype);
-// MatrixData *matrix_read(MatrixFile*, int matnum, int type);
-MatrixData *matrix_read(MatrixFile*, int matnum, MatrixDataType type);
-MatrixData* matrix_read_slice(MatrixFile*, MatrixData* volume, int slice_num, int segment);
-MatrixData* matrix_read_view(MatrixFile*, MatrixData* volume, int view, int segment);
+ecat_matrix::MatrixFile* matrix_create(const char*, MatrixFileAccessMode const mode , Main_header*);
+ecat_matrix::MatrixFile* matrix_open(const char*, int, int);
+int analyze_open(ecat_matrix::MatrixFile *mptr);
+int analyze_read(ecat_matrix::MatrixFile *mptr, int matnum, MatrixData  *data, MatrixDataType dtype);
+// MatrixData *matrix_read(ecat_matrix::MatrixFile*, int matnum, int type);
+MatrixData *matrix_read(ecat_matrix::MatrixFile*, int matnum, MatrixDataType type);
+MatrixData* matrix_read_slice(ecat_matrix::MatrixFile*, MatrixData* volume, int slice_num, int segment);
+MatrixData* matrix_read_view(ecat_matrix::MatrixFile*, MatrixData* volume, int view, int segment);
 void set_matrix_no_error();
-int matrix_write(MatrixFile*, int matnum, MatrixData*);
+int matrix_write(ecat_matrix::MatrixFile*, int matnum, MatrixData*);
 int mat_numcod(int frame, int plane, int gate, int data, int bed);
-int mat_numdoc(int, struct Matval*);
+int mat_numdoc(int, MatVal*);
 void free_matrix_data(MatrixData*);
 void matrix_perror(const char*);
-int matrix_close(MatrixFile*);
-int matrix_find(MatrixFile*, int matnum, struct MatDir*);
+int matrix_close(ecat_matrix::MatrixFile*);
+int matrix_find(ecat_matrix::MatrixFile*, int matnum, MatDir*);
 void crash(const char *fmt, ...);
-MatrixData *load_volume7(MatrixFile *matrix_file, int frame, int gate, int data, int bedstart, int bedend);
-int save_volume7( MatrixFile *mfile, Image_subheader *shptr, float *data_ptr, int frame, int gate, int data, int bed );
-int read_host_data(MatrixFile *mptr, int matnum, MatrixData *data, MatrixDataType dtype);
-int write_host_data(MatrixFile *mptr, int matnum, const MatrixData *data);
-int mh_update(MatrixFile *file);
+MatrixData *load_volume7(ecat_matrix::MatrixFile *matrix_file, int frame, int gate, int data, int bedstart, int bedend);
+int save_volume7( ecat_matrix::MatrixFile *mfile, Image_subheader *shptr, float *data_ptr, int frame, int gate, int data, int bed );
+int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, MatrixData *data, MatrixDataType dtype);
+int write_host_data(ecat_matrix::MatrixFile *mptr, int matnum, const MatrixData *data);
+int mh_update(ecat_matrix::MatrixFile *file);
 int convert_float_scan( MatrixData *scan, float *fdata);
 int matrix_convert_data(MatrixData *matrix, MatrixDataType dtype);
-MatrixData *matrix_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment);
+MatrixData *matrix_read_scan(ecat_matrix::MatrixFile *mptr, int matnum, MatrixDataType dtype, int segment);
 
-/*
- * low level functions prototypes, don't use
- */
+ // low level functions prototypes, don't use
+
 int unmap_main_header(char *buf, Main_header *h);
 int unmap_Scan3D_header(char *buf, Scan3D_subheader*);
 int unmap_scan_header(char *buf, Scan_subheader*);
@@ -807,11 +846,11 @@ int mat_write_norm_subheader(FILE *, Main_header*, int blknum, Norm_subheader*);
 struct matdir *mat_read_dir(FILE *, Main_header*, char *selector);
 int mat_read_matrix_data(FILE *, Main_header*, int blk, int nblks, short* bufr);
 int mat_enter(FILE *, Main_header *mhptr, int matnum, int nblks);
-int mat_lookup(FILE *fptr, Main_header *mhptr, int matnum,  struct MatDir *entry);
+int mat_lookup(FILE *fptr, Main_header *mhptr, int matnum,  MatDir *entry);
 int mat_rblk(FILE *fptr, int blkno, char *bufr,  int nblks);
 int mat_wblk(FILE *fptr, int blkno, char *bufr,  int nblks);
 void swaw(short *from, short *to, int length);
-int insert_mdir(struct MatDir *matdir, MatDirList *dirlist);
+int insert_mdir(MatDir *matdir, MatDirList *dirlist);
 
 // int numDisplayUnits;
 // replaced with matrix_data_types_
@@ -821,11 +860,11 @@ int insert_mdir(struct MatDir *matdir, MatDirList *dirlist);
 // Replaced with scan_types_
 // char* scantype[NumScanTypes];
 // char* scantypecode[NumScanTypes];
-std::vector <std::string> customDisplayUnits;
+// std::vector <std::string> customDisplayUnits;
 // char* customDisplayUnits[];
-float ecfconverter[NumOldUnits];
+// float ecfconverter[OldDisplayUnits::NumOldUnits];  // Now in display_units_
 // char* calstatus[NumCalibrationStatus];
-const std:;string sexcode;
+const std::string sexcode;
 const std::string dexteritycode;
 // std::vector<std::string> typeFilterLabel;
 int ecat_default_version;

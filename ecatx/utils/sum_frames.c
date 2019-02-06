@@ -9,7 +9,7 @@
 
 void matrix_sum(MatrixData *matrix, MatrixData **sum)
 {
-  struct Matval mat;
+  ecat_matrix::MatVal mat;
   int i, nvoxels, nblks;
   short *sdata;
   float *fdata;
@@ -25,7 +25,7 @@ void matrix_sum(MatrixData *matrix, MatrixData **sum)
     nblks = ((*sum)->data_size + MatBLKSIZE-1)/MatBLKSIZE;
     (*sum)->data_ptr = (void *)calloc(nblks,MatBLKSIZE);
     (*sum)->shptr =(void *)calloc(1,MatBLKSIZE);
-    memcpy((*sum)->shptr,matrix->shptr,sizeof(Image_subheader));
+    memcpy((*sum)->shptr,matrix->shptr,sizeof(ecat_matrix::Image_subheader));
     fdata = (float*)(*sum)->data_ptr;
     for (i=0; i<nvoxels; i++)
       fdata[i] = sdata[i]*matrix->scale_factor;
@@ -41,10 +41,10 @@ void matrix_sum(MatrixData *matrix, MatrixData **sum)
 int main(int argc, char **argv)
 {
   MatDirNode *node;
-  MatrixFile *mptr, *sum_mptr=NULL;
+  ecat_matrix::MatrixFile *mptr, *sum_mptr=NULL;
   MatrixData *matrix, *sum=NULL;
-  Image_subheader *imh;
-  struct Matval mat;
+  ecat_matrix::Image_subheader *imh;
+  ecat_matrix::MatVal mat;
   char fname[FILENAME_MAX], *ext=NULL;
   int i, ftype, frame = -1, matnum=0, cubic=0, interpolate=0;
   int start_frame=0, end_frame=0, last_frame=0;
@@ -85,14 +85,14 @@ int main(int argc, char **argv)
         mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
       printf("Adding %d,%d,%d,%d,%d\n",mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
       matrix_sum(matrix, &sum);
-      imh = (Image_subheader*)sum->shptr;
+      imh = (ecat_matrix::Image_subheader*)sum->shptr;
       duration += imh->frame_duration;
       frame_count++;
       free_matrix_data(matrix);
       last_frame = mat.frame;
 #ifdef _DEBUG
       nvoxels =  matrix->xdim*matrix->ydim*matrix->zdim;
-      imh = (Image_subheader*)matrix->shptr;
+      imh = (ecat_matrix::Image_subheader*)matrix->shptr;
       printf("%d,%d,%d\n",mat.frame,imh->frame_start_time/1000, imh->frame_duration/1000);
       sprintf(dfname,"%s_frame%d.i", fname, mat.frame);
       if ((fp=fopen(dfname,"wb")) != NULL)  {
@@ -127,12 +127,12 @@ int main(int argc, char **argv)
     f = 1.0f/sum->scale_factor;
     for (i=0; i<nvoxels; i++) sdata[i] = (short)(fdata[i]*f);
     sum->data_size = nvoxels*sizeof(short);
-    imh = (Image_subheader*)sum->shptr;
+    imh = (ecat_matrix::Image_subheader*)sum->shptr;
     imh->frame_duration = duration;
     imh->image_min = find_smin(sdata, nvoxels);
     imh->image_max = find_smax(sdata, nvoxels);
     imh->scale_factor = sum->scale_factor;
-    matrix_write(sum_mptr, mat_numcod(1,1,1,0,0), sum);
+    matrix_write(sum_mptr, ecat_matrix::mat_numcod(1,1,1,0,0), sum);
     matrix_close(sum_mptr);
   }
   matrix_close(mptr);

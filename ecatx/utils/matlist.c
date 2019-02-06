@@ -6,12 +6,12 @@
 #include "ecat_matrix.hpp"
 
 int main( argc, argv) {
-  struct Matval mat;
+  ecat_matrix::MatVal mat;
   char cbufr[256];
 
   if (argc < 2)
     crash("usage : matlist matrix_file\n");
-  MatrixFile *mptr = matrix_open( argv[1], ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
+  ecat_matrix::MatrixFile *mptr = matrix_open( argv[1], ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (!mptr) {
     matrix_perror(argv[1]);
     exit(1);

@@ -71,35 +71,35 @@ vaxftohf( unsigned short *bufr, int off)
 }
 
 int 
-file_data_to_host(char *dptr, int nblks, int dtype)
+file_data_to_host(char *dptr, int nblks, ecat_matrix::MatrixDataType dtype)
 {
 	int i, j;
 	char *tmp = new char[512];
 
 
-	matrix_errno = ecat_matrix::MatrixError::OK;
+	ecat_matrix::matrix_errno = ecat_matrix::MatrixError::OK;
 	matrix_errtxt.clear();
 	// if ((tmp = static_cast<char *>(malloc(512))) == NULL) 
 	// 	return ECATX_ERROR;
 	switch(dtype)
 	{
-	case ByteData:
+	case ecat_matrix::MatrixDataType::ByteData:
 		break;
-	case VAX_Ix2:
+	case ecat_matrix::MatrixDataType::VAX_Ix2:
 		if (ntohs(1) == 1) 
 			for (i=0, j=0; i<nblks; i++, j+=512) {
 				swab( dptr+j, tmp, 512);
 				memcpy(dptr+j, tmp, 512);
 			}
 		break;
-	case VAX_Ix4:
+	case ecat_matrix::MatrixDataType::VAX_Ix4:
 		if (ntohs(1) == 1)
 			for (i=0, j=0; i<nblks; i++, j+=512) {
 				swab(dptr+j, tmp, 512);
 				swaw((short*)tmp, (short*)(dptr+j), 256);
 			}
 		break;
-	case VAX_Rx4:
+	case ecat_matrix::MatrixDataType::VAX_Rx4:
 	 	if (ntohs(1) == 1) 
 			 for (i=0, j=0; i<nblks; i++, j+=512) {
 				swab( dptr+j, tmp, 512);
@@ -110,15 +110,15 @@ file_data_to_host(char *dptr, int nblks, int dtype)
 		for (i=0; i<nblks*128; i++)
 			((float *)dptr)[i] = vaxftohf( (unsigned short *)dptr, i*2) ;
 		break;
-	case SunShort:
+	case ecat_matrix::MatrixDataType::SunShort:
 		if (ntohs(1) != 1)
 			for (i=0, j=0; i<nblks; i++, j+=512) {
 				swab(dptr+j, tmp, 512);
 				memcpy(dptr+j, tmp, 512);
 			}
 		break;
-	case SunLong:
-	case IeeeFloat:
+	case ecat_matrix::MatrixDataType::SunLong:
+	case ecat_matrix::MatrixDataType::IeeeFloat:
 		if (ntohs(1) != 1) 
 			for (i=0, j=0; i<nblks; i++, j+=512) {
 				swab(dptr+j, tmp, 512);
@@ -149,7 +149,7 @@ read_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, int dtype)
 }
 
 int 
-write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, int dtype)
+write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, ecat_matrix::MatrixDataType dtype)
 {
 	int error_flag = 0;
 	int i, j;
@@ -158,7 +158,7 @@ write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, int dtype)
 
     /* printf("\n\n\n\n HEY2"); fflush(stdout); */
         
-	matrix_errno = ecat_matrix::MatrixError::OK;
+	ecat_matrix::matrix_errno = ecat_matrix::MatrixError::OK;
 	matrix_errtxt.clear();
 	// if ( (bufr1 = malloc(512)) == NULL) return ECATX_ERROR;
 	// if ( (bufr2 = malloc(512)) == NULL) {
@@ -167,10 +167,10 @@ write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, int dtype)
 	// }
 	switch( dtype)
 	{
-	case ByteData:
+	case ecat_matrix::MatrixDataType::ByteData:
 		if ( mat_wblk( fptr, strtblk, dptr, nblks) < 0) error_flag++;
 		break;
-	case VAX_Ix2: 
+	case ecat_matrix::MatrixDataType::VAX_Ix2: 
 	default:	/* something else...treat as Vax I*2 */
 		if (ntohs(1) == 1) {
 			for (i=0, j=0; i<nblks && !error_flag; i++, j += 512) {
@@ -180,12 +180,12 @@ write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, int dtype)
 			}
 		} else if ( mat_wblk( fptr, strtblk, dptr, nblks) < 0) error_flag++;
 		break;
-	case VAX_Ix4:
-	case VAX_Rx4:
+	case ecat_matrix::MatrixDataType::VAX_Ix4:
+	case ecat_matrix::MatrixDataType::VAX_Rx4:
         crash("unsupported format\n");
         break;
-    case IeeeFloat:
-	case SunLong:
+    case ecat_matrix::MatrixDataType::IeeeFloat:
+	case ecat_matrix::MatrixDataType::SunLong:
 		if (ntohs(1) != 1) {
 			for (i=0, j=0; i<nblks && !error_flag; i++, j += 512) {
 				swab( dptr+j, bufr1, 512);
@@ -194,7 +194,7 @@ write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, int dtype)
 			}
 		} else if ( mat_wblk( fptr, strtblk, dptr, nblks) < 0) error_flag++;
 		break;
-	case SunShort:
+	case ecat_matrix::MatrixDataType::SunShort:
 		if (ntohs(1) != 1) {
 			for (i=0, j=0; i<nblks && !error_flag; i++, j += 512) {
 				swab( dptr+j, bufr1, 512);

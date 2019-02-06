@@ -26,7 +26,7 @@ int main( int argc, char **argv )
 {
   int matnum=0;
   char fname[256];
-  MatrixFile *mptr;
+  ecat_matrix::MatrixFile *mptr;
   MatrixData *matrix;
 FILE *fp;
 
@@ -302,13 +302,13 @@ void show_Scan3D_subheader( Scan3D_subheader *sh )
 void show_image_subheader( MatrixData *matrix )
 {
   char tod[256], *fcode;
-    Image_subheader *ih;
+    ecat_matrix::Image_subheader *ih;
   static char *fcodes[]={
     "None", "Ramp", "Butterworth", "Hanning", "Hamming", "Parzen",
     "Shepp", "Exponential"};
   int i,j,f, x0, y0, z0;
 
-  ih = (Image_subheader*)matrix->shptr;
+  ih = (ecat_matrix::Image_subheader*)matrix->shptr;
   x0 = (int)(0.5+matrix->x_origin/matrix->pixel_size);
   y0 = (int)(0.5+matrix->y_origin/matrix->y_size);
   z0 = (int)(0.5+matrix->z_origin/matrix->z_size);

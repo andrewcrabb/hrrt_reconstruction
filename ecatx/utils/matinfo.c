@@ -13,7 +13,7 @@ MatrixData *matrix;
 {
   int x,y,z,i, nvoxels;
   char *units;
-  struct Matval mat;
+  ecat_matrix::MatVal mat;
   unsigned char  *b_data;
   short *s_data;
   float *f_data;
@@ -21,7 +21,7 @@ MatrixData *matrix;
   int data_unit = mh->calibration_units_label;
   float ecf = mh->calibration_factor;
   double mx=0, my=0,mz=0;
-	Image_subheader *imh=NULL;
+	ecat_matrix::Image_subheader *imh=NULL;
   
   mat_numdoc(matrix->matnum, &mat);
   printf("\n\n *** Matrix := %d,%d,%d,%d,%d\n",
@@ -92,7 +92,7 @@ MatrixData *matrix;
   printf("center of mass (x,y,z) mm := %g,%g,%g\n",mx-1,my-1,mz-1);
 	if (mh->sw_version > 72 && mh->file_type == ecat_matrix::DataSetType::PetVolume) 
   { // print data rates
-		imh = (Image_subheader*)matrix->shptr;
+		imh = (ecat_matrix::Image_subheader*)matrix->shptr;
 		if (imh->singles_rate>MIN_SINGLE_RATE && imh->singles_rate < MAX_SINGLE_RATE)
 		{ // valid Extended ECAT file
 			int frame_duration_sec;
@@ -109,9 +109,9 @@ MatrixData *matrix;
 
 main(int argc, char **argv) {
   // MatDirNode *node;
-  // MatrixFile *mptr;
+  // ecat_matrix::MatrixFile *mptr;
   // MatrixData *matrix;
-  // struct Matval mat;
+  // ecat_matrix::MatVal mat;
   char fname[FILENAME_MAX];
   // int ftype, 
   int frame = -1, matnum=0, cubic=0, interpolate=0;
@@ -121,7 +121,7 @@ main(int argc, char **argv) {
     crash("usage : %s matspec\n",argv[0]);
   }
   matspec( argv[1], fname, &matnum);
-    MatrixFile *mptr = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
+    ecat_matrix::MatrixFile *mptr = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (mptr == NULL) {
     matrix_perror(fname);
     return 0;
@@ -132,7 +132,7 @@ main(int argc, char **argv) {
   printf( "%s file type  : %s\n", fname, data_set_types_.at(ftype).name);
   if (!mptr) 
     matrix_perror(fname);
-    struct Matval mat;
+    ecat_matrix::MatVal mat;
   if (matnum) {
 		mat_numdoc(matnum, &mat);
       MatrixData *matrix = matrix_read(mptr,matnum, UnknownMatDataType);

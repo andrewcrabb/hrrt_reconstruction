@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 
 	char *in_fname=NULL, out_fname[FILENAME_MAX], ext[FILENAME_MAX];
 	char in_hdr_fname[FILENAME_MAX];
-	MatrixFile *in = NULL, *out=NULL;
+	ecat_matrix::MatrixFile *in = NULL, *out=NULL;
 	char *p=NULL;
   int multi_frame_movie_mode = 0, simd_mode=1;
   int ecat_flag=1, cubic_flag=0;
@@ -136,7 +136,7 @@ int main(int argc, char **argv)
   MatDirNode *node = in->dirlist->first;
   int frame=0;
   while (node) {
-    struct Matval mat;
+    ecat_matrix::MatVal mat;
     int matnum = node->matnum;
     mat_numdoc(matnum, &mat);
     if (in->dirlist->nmats > 1) printf("Smoothing frame %d\n", mat.frame);
@@ -251,12 +251,12 @@ int main(int argc, char **argv)
     }
 
     c1 =clock();
-	  char **interfile_header = in->interfile_header;
-    if (in->analyze_hdr==NULL && interfile_header!=NULL) {
+	  char **interfile_hdr = in->interfile_header;
+    if (in->analyze_hdr==NULL && interfile_hdr!=NULL) {
      // Interfile format: use float
       volume->data_type = IeeeFloat;
     } else {   // ECAT format: convert to Short
-      Image_subheader* imh = (Image_subheader*)volume->shptr;
+      ecat_matrix::Image_subheader* imh = (ecat_matrix::Image_subheader*)volume->shptr;
          // update z dimension in case it changed
       imh->z_dimension = volume->zdim;
       imh->z_pixel_size = volume->z_size;
@@ -294,7 +294,7 @@ int main(int argc, char **argv)
 		  free(image);
 	  }
   	
-	  if (in->analyze_hdr==NULL && interfile_header != NULL) {
+	  if (in->analyze_hdr==NULL && interfile_hdr != NULL) {
 		  if ((p = strrchr(out_fname,'.')) != NULL) {
 			  char data_file[FILENAME_MAX];
 			  strcpy(p+1,"i");

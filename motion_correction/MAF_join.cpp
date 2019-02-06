@@ -72,13 +72,13 @@ int main(int argc, char **argv)
   int c, frame, verbose=0;
   int frame_duration=0;
 	char *in_fname=NULL, *out_fname=NULL, *MAF_file=NULL;
-	MatrixFile *in = NULL, *out=NULL;
+	ecat_matrix::MatrixFile *in = NULL, *out=NULL;
   Main_header proto;
 	char *p = NULL;
   const char *log_file = "MAF_join.log";
   std::vector<int> sub_frames;
   MatrixData *mat=NULL;
-  Image_subheader *imh=NULL;
+  ecat_matrix::Image_subheader *imh=NULL;
   float *fdata=NULL, w=1.0f, fmin=0.0f, fmax=0.0f;
   short *sdata = NULL;
   unsigned i=0,j=1;
@@ -127,13 +127,13 @@ int main(int argc, char **argv)
       frame_duration += vicra_info.em[i+j].dt;
       j++;
     }
-    if ((mat=matrix_read(in, mat_numcod(i+1,1,1,0,0), GENERIC)) == NULL) {
+    if ((mat=matrix_read(in, ecat_matrix::mat_numcod(i+1,1,1,0,0), GENERIC)) == NULL) {
       fprintf(log_fp,"Error reading %s frame %u\n", in_fname, i+1);
       exit(1);
     }
     if (sub_frames.size() == 0) { // single frame
       fprintf(log_fp,"copy frame %d\n", frame);
-      if (matrix_write(out, mat_numcod(frame+1,1,1,0,0), mat) != 0) {
+      if (matrix_write(out, ecat_matrix::mat_numcod(frame+1,1,1,0,0), mat) != 0) {
 			  fprintf(log_fp,"Error writing %s frame %d\n", out_fname, frame);
         exit(1);
       }
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
       }
       for (j=1; j<=sub_frames.size(); j++) {
         if (keep_sub_frame(vicra_info.em[i+j].dt, frame_duration)) {
-          MatrixData *smat =matrix_read(in, mat_numcod(i+j+1,1,1,0,0), GENERIC);
+          MatrixData *smat =matrix_read(in, ecat_matrix::mat_numcod(i+j+1,1,1,0,0), GENERIC);
           if (smat == NULL) {
             fprintf(log_fp, "Error reading %s frame %u\n", in_fname, i+j+1);
             exit(1);
@@ -199,13 +199,13 @@ int main(int argc, char **argv)
       w = 1.0f/mat->scale_factor;
       sdata = (short*)mat->data_ptr;
       for (k=0; k<nvoxels; k++) sdata[k] = (int) (w*fdata[k]);
-      imh = (Image_subheader*)mat->shptr;
+      imh = (ecat_matrix::Image_subheader*)mat->shptr;
       imh->image_max = (int)(w*mat->data_max);
       imh->image_min = (int)(w*mat->data_min);
       imh->scale_factor = mat->scale_factor;
       imh->frame_duration = frame_duration;
 
-      if (matrix_write(out, mat_numcod(frame+1,1,1,0,0), mat) != 0) {
+      if (matrix_write(out, ecat_matrix::mat_numcod(frame+1,1,1,0,0), mat) != 0) {
 			  fprintf(log_fp, "Error writing %s frame %d\n", out_fname, frame+1);
         exit(1);
       }

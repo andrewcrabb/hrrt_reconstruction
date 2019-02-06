@@ -17,9 +17,9 @@
     This class contains code to read, write, create and modify Interfile
     headers and perform syntax and sematic checks. It uses two tables for every
     header:
-    one parser table of type std::vector <ttoken *> which stores all keys that
+    one parser table of type vector <ttoken *> which stores all keys that
     are allowed in the header, with their types, units and if they require a
-    value and one list of KV objects (type std::vector <KV *>) that stores all
+    value and one list of KV objects (type vector <KV *>) that stores all
     the information found in a given interfile header. The code to get and set
     values of keys is generated from tables at compile time by the
     preprocessor.
@@ -80,33 +80,34 @@
 #include <fstream>
 #include <algorithm>
 #include <limits>
-#ifndef _INTERFILE_CPP
-#define _INTERFILE_CPP
 #include "interfile.h"
-#endif
+
 #include "exception.h"
 #include <string.h>
+
+using std::string;
+using std::vector;
 
 /*- constants ---------------------------------------------------------------*/
 #ifndef _INTERFILE_TMPL_CPP
                                 /*! extension of interfile main header files */
-const std::string Interfile::INTERFILE_MAINHDR_EXTENSION=".mhdr";
+const string Interfile::INTERFILE_MAINHDR_EXTENSION=".mhdr";
                 /*! extension of interfile emission sinogram subheader files */
-const std::string Interfile::INTERFILE_SSUBHDR_EXTENSION=".s.hdr";
+const string Interfile::INTERFILE_SSUBHDR_EXTENSION=".s.hdr";
                           /*! extension of interfile emission sinogram files */
-const std::string Interfile::INTERFILE_SDATA_EXTENSION=".s";
+const string Interfile::INTERFILE_SDATA_EXTENSION=".s";
             /*! extension of interfile transmission sinogram subheader files */
-const std::string Interfile::INTERFILE_ASUBHDR_EXTENSION=".a.hdr";
+const string Interfile::INTERFILE_ASUBHDR_EXTENSION=".a.hdr";
                       /*! extension of interfile transmission sinogram files */
-const std::string Interfile::INTERFILE_ADATA_EXTENSION=".a";
+const string Interfile::INTERFILE_ADATA_EXTENSION=".a";
                        /*! extension of interfile normalization header files */
-const std::string Interfile::INTERFILE_NHDR_EXTENSION=".nhdr";
+const string Interfile::INTERFILE_NHDR_EXTENSION=".nhdr";
                          /*! extension of interfile normalization data files */
-const std::string Interfile::INTERFILE_NDATA_EXTENSION=".n";
+const string Interfile::INTERFILE_NDATA_EXTENSION=".n";
                             /*! extension of interfile image subheader files */
-const std::string Interfile::INTERFILE_IHDR_EXTENSION=".v.hdr";
+const string Interfile::INTERFILE_IHDR_EXTENSION=".v.hdr";
                                  /*! extension of interfile image data files */
-const std::string Interfile::INTERFILE_IDATA_EXTENSION=".v";
+const string Interfile::INTERFILE_IDATA_EXTENSION=".v";
 
 /*- methods -----------------------------------------------------------------*/
 
@@ -123,9 +124,9 @@ Interfile::Interfile()
    kv_ssh.clear();
    nh.clear();
    kv_nh.clear();
-   main_headerfile=std::string();
-   subheaderfile=std::string();
-   norm_headerfile=std::string();
+   main_headerfile=string();
+   subheaderfile=string();
+   norm_headerfile=string();
    last_pos[0]=std::numeric_limits <unsigned short int>::max();
    last_pos[1]=std::numeric_limits <unsigned short int>::max();
    initMain();                           // create parser table for main header
@@ -160,16 +161,16 @@ Interfile::~Interfile()
 /*---------------------------------------------------------------------------*/
 Interfile& Interfile::operator = (const Interfile &inf)
  { if (this != &inf)
-    { std::vector <KV *>::const_iterator it;
-      const std::vector <KV *> *ikv_smh=&(inf.kv_smh);
-      const std::vector <KV *> *ikv_ssh=&(inf.kv_ssh);
-      const std::vector <KV *> *ikv_nh=&(inf.kv_nh);
+    { vector <KV *>::const_iterator it;
+      const vector <KV *> *ikv_smh=&(inf.kv_smh);
+      const vector <KV *> *ikv_ssh=&(inf.kv_ssh);
+      const vector <KV *> *ikv_nh=&(inf.kv_nh);
                                                             // copy main header
       deleteKVList(&kv_smh);
       for (it=ikv_smh->begin(); it != ikv_smh->end(); ++it)
        { KV *kv;
 
-         kv=new KV(std::string());
+         kv=new KV(string());
          *kv=*(*it);
          kv_smh.push_back(kv);
        }
@@ -178,7 +179,7 @@ Interfile& Interfile::operator = (const Interfile &inf)
       for (it=ikv_ssh->begin(); it != ikv_ssh->end(); ++it)
        { KV *kv;
 
-         kv=new KV(std::string());
+         kv=new KV(string());
          *kv=*(*it);
          kv_ssh.push_back(kv);
        }
@@ -187,7 +188,7 @@ Interfile& Interfile::operator = (const Interfile &inf)
       for (it=ikv_nh->begin(); it != ikv_nh->end(); ++it)
        { KV *kv;
 
-         kv=new KV(std::string());
+         kv=new KV(string());
          *kv=*(*it);
          kv_nh.push_back(kv);
        }
@@ -359,7 +360,7 @@ void Interfile::acquisitionCode(unsigned long int ac,
     Add blank line to key/value list.
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::blankLine(const std::string comment, std::vector <KV *> *kv)
+void Interfile::blankLine(const string comment, vector <KV *> *kv)
  { kv->push_back(new KV(comment));
    last_pos[0]=last_pos[1];
    last_pos[1]=(unsigned short int)kv->size();
@@ -378,30 +379,30 @@ void Interfile::blankLine(const std::string comment, std::vector <KV *> *kv)
     Check if unit of key is valid.
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::checkUnit(std::vector <ttoken *> pt, const std::string key,
-                          std::string short_key, std::string unit,
-                          const std::string filename) const
- { std::vector <ttoken *>::const_iterator it;
+void Interfile::checkUnit(vector <ttoken *> pt, const string key,
+                          string short_key, string unit,
+                          const string filename) const
+ { vector <ttoken *>::const_iterator it;
 
    std::transform(short_key.begin(), short_key.end(), short_key.begin(),
                   tolower);
    std::transform(unit.begin(), unit.end(), unit.begin(), tolower);
    for (it=pt.begin(); it != pt.end(); ++it)      // search key in parser table
-    { std::string k;
+    { string k;
 
       k=(*it)->key;
       std::transform(k.begin(), k.end(), k.begin(), tolower);
       if (short_key == k)
        if (!unit.empty())
-        { std::vector <std::string>::const_iterator it2;
-          std::string unit_lc;
+        { vector <string>::const_iterator it2;
+          string unit_lc;
 
           unit_lc=unit;
           std::transform(unit_lc.begin(), unit_lc.end(), unit_lc.begin(),
                          tolower);
                                   // compare with all allowed units of this key
           for (it2=(*it)->units.begin(); it2 != (*it)->units.end(); ++it2)
-           { std::string u;
+           { string u;
 
              u=(*it2);
              std::transform(u.begin(), u.end(), u.begin(), tolower);
@@ -430,13 +431,13 @@ void Interfile::checkUnit(std::vector <ttoken *> pt, const std::string key,
  */
 /*---------------------------------------------------------------------------*/
 void Interfile::convertToImageMainHeader()
- { std::vector <KV *>::iterator it_kv;
+ { vector <KV *>::iterator it_kv;
    bool found;
 
    do
    { found=false;
      for (it_kv=kv_smh.begin(); it_kv != kv_smh.end(); ++it_kv)
-      { std::vector <ttoken *>::const_iterator it;
+      { vector <ttoken *>::const_iterator it;
 
         for (it=smh.begin(); it != smh.end(); ++it)
          if ((*it_kv)->Key() == (*it)->key)
@@ -463,13 +464,13 @@ void Interfile::convertToImageMainHeader()
  */
 /*---------------------------------------------------------------------------*/
 void Interfile::convertToImageSubheader()
- { std::vector <KV *>::iterator it_kv;
+ { vector <KV *>::iterator it_kv;
    bool found;
 
    do
    { found=false;
      for (it_kv=kv_ssh.begin(); it_kv != kv_ssh.end(); ++it_kv)
-      { std::vector <ttoken *>::const_iterator it;
+      { vector <ttoken *>::const_iterator it;
 
         for (it=ssh.begin(); it != ssh.end(); ++it)
          if ((*it_kv)->Key() == (*it)->key)
@@ -495,31 +496,32 @@ void Interfile::convertToImageSubheader()
     convert an image main header into a sinogram main header.
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::convertToSinoMainHeader()
- { std::vector <KV *>::iterator it_kv;
-   bool found;
+void Interfile::convertToSinoMainHeader() {
+  vector <KV *>::iterator it_kv;
+  bool found;
 
-   do
-   { found=false;
-     for (it_kv=kv_smh.begin(); it_kv != kv_smh.end(); ++it_kv)
-      { std::vector <ttoken *>::const_iterator it;
+  do {
+    found = false;
+    for (it_kv = kv_smh.begin(); it_kv != kv_smh.end(); ++it_kv) {
+      vector <ttoken *>::const_iterator it;
 
-        for (it=smh.begin(); it != smh.end(); ++it)
-         if ((*it_kv)->Key() == (*it)->key)
-          { tused_where w;
+      for (it = smh.begin(); it != smh.end(); ++it)
+        if ((*it_kv)->Key() == (*it)->key) {
+          tused_where w;
 
-            w=(*it)->where;
-            if ((w != SH) && (w != SIH) && (w != ALL))
-             { delete *it_kv;
-               kv_smh.erase(it_kv);
-               found=true;
-               break;
-             }
+          w = (*it)->where;
+          if ((w != SH) && (w != SIH) && (w != ALL)) {
+            delete *it_kv;
+            kv_smh.erase(it_kv);
+            found = true;
+            break;
           }
-        if (found) break;
-      }
-   } while (found);
- }
+        }
+      if (found)
+        break;
+    }
+  } while (found);
+}
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Remove all non sinogram subheader token.
@@ -529,13 +531,13 @@ void Interfile::convertToSinoMainHeader()
  */
 /*---------------------------------------------------------------------------*/
 void Interfile::convertToSinoSubheader()
- { std::vector <KV *>::iterator it_kv;
+ { vector <KV *>::iterator it_kv;
    bool found;
 
    do
    { found=false;
      for (it_kv=kv_ssh.begin(); it_kv != kv_ssh.end(); ++it_kv)
-      { std::vector <ttoken *>::const_iterator it;
+      { vector <ttoken *>::const_iterator it;
 
         for (it=ssh.begin(); it != ssh.end(); ++it)
          if ((*it_kv)->Key() == (*it)->key)
@@ -561,7 +563,7 @@ void Interfile::convertToSinoSubheader()
     Create an empty main header.
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::createMainHeader(const std::string filename)
+void Interfile::createMainHeader(const string filename)
  { deleteKVList(&kv_smh);
    main_headerfile=filename;
  }
@@ -573,7 +575,7 @@ void Interfile::createMainHeader(const std::string filename)
     Create an empty norm header.
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::createNormHeader(const std::string filename)
+void Interfile::createNormHeader(const string filename)
  { deleteKVList(&kv_nh);
    norm_headerfile=filename;
  }
@@ -585,7 +587,7 @@ void Interfile::createNormHeader(const std::string filename)
     Create an empty subheader.
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::createSubheader(const std::string filename)
+void Interfile::createSubheader(const string filename)
  { deleteKVList(&kv_ssh);
    subheaderfile=filename;
  }
@@ -600,9 +602,9 @@ void Interfile::createSubheader(const std::string filename)
     Delete key/value pair from list.
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::deleteKV(std::vector <KV *> *kv, KV *kv_it,
-                         const std::string filename)
- { for (std::vector <KV *>::iterator it=kv->begin(); it != kv->end(); ++it)
+void Interfile::deleteKV(vector <KV *> *kv, KV *kv_it,
+                         const string filename)
+ { for (vector <KV *>::iterator it=kv->begin(); it != kv->end(); ++it)
     if (*it == kv_it) { delete *it;
                         kv->erase(it);
                         return;
@@ -619,8 +621,8 @@ void Interfile::deleteKV(std::vector <KV *> *kv, KV *kv_it,
     Delete key/value list.
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::deleteKVList(std::vector <KV *> *kv)
- { std::vector <KV *>::iterator it_kv;
+void Interfile::deleteKVList(vector <KV *> *kv)
+ { vector <KV *>::iterator it_kv;
 
    while (kv->size() > 0)
     { it_kv=kv->begin();
@@ -636,8 +638,8 @@ void Interfile::deleteKVList(std::vector <KV *> *kv)
     Delete parser table.
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::deleteParserTable(std::vector <ttoken *> *pt)
- { std::vector <ttoken *>::iterator it;
+void Interfile::deleteParserTable(vector <ttoken *> *pt)
+ { vector <ttoken *>::iterator it;
 
    while (pt->size() > 0)
     { it=pt->begin();
@@ -687,16 +689,16 @@ bool Interfile::evaluationOrder(unsigned short int, unsigned short int) const
  */
 /*---------------------------------------------------------------------------*/
 template <typename T>
-T Interfile::getValue(const std::string key, std::vector <KV *> kv_hdr,
-                      const std::string headerfile,
-                      const std::string headerpath)
+T Interfile::getValue(const string key, vector <KV *> kv_hdr,
+                      const string headerfile,
+                      const string headerpath)
  { T value;
    KV *key_value;
 
    key_value=searchKey(key, kv_hdr, headerfile);
    value=key_value->getValue<T>();
    if (key_value->Type() == KV::RELFILENAME)
-    { std::string filename, fname;
+    { string filename, fname;
 
       fname=KV::convertToString(value);
       if ((fname.length() >= 2) && (fname.at(0) != '/') &&
@@ -721,9 +723,9 @@ T Interfile::getValue(const std::string key, std::vector <KV *> kv_hdr,
  */
 /*---------------------------------------------------------------------------*/
 template <typename T>
-T Interfile::getValue(const std::string key, const unsigned short int a_idx,
-                      std::vector <KV *> kv_hdr, const std::string headerfile,
-                      const std::string headerpath)
+T Interfile::getValue(const string key, const unsigned short int a_idx,
+                      vector <KV *> kv_hdr, const string headerfile,
+                      const string headerpath)
  { T value;
    KV *key_value;
 
@@ -762,7 +764,7 @@ T Interfile::getValue(const std::string key, const unsigned short int a_idx,
  */
 /*---------------------------------------------------------------------------*/
 Interfile::ttoken *Interfile::initKV(const tused_where where,
-                                     const std::string key, std::string units,
+                                     const string key, string units,
                                      const KV::ttoken_type type,
                                      const bool need_value) const
  { ttoken *t=NULL;
@@ -772,9 +774,9 @@ Interfile::ttoken *Interfile::initKV(const tused_where where,
      t->key=key;
      t->where=where;
      while (!units.empty())
-      { std::string::size_type p;
+      { string::size_type p;
                                     // parse allowed units and fill into vector
-        if ((p=units.find(',')) != std::string::npos)
+        if ((p=units.find(',')) != string::npos)
          { t->units.push_back(units.substr(0, p));
            units.erase(0, p+1);
          }
@@ -784,8 +786,8 @@ Interfile::ttoken *Interfile::initKV(const tused_where where,
       }
      t->type=type;
      t->need_value=need_value;
-     t->max_lindex_key=std::string();
-     t->max_index_key=std::string();
+     t->max_lindex_key=string();
+     t->max_index_key=string();
      return(t);
    }
    catch (...)
@@ -806,10 +808,10 @@ Interfile::ttoken *Interfile::initKV(const tused_where where,
  */
 /*---------------------------------------------------------------------------*/
 Interfile::ttoken *Interfile::initKV(const tused_where where,
-                                     const std::string key,
+                                     const string key,
                                      const KV::ttoken_type type,
                                      const bool need_value) const
- { return(initKV(where, key, std::string(), type, need_value));
+ { return(initKV(where, key, string(), type, need_value));
  }
 
 /*---------------------------------------------------------------------------*/
@@ -827,9 +829,9 @@ Interfile::ttoken *Interfile::initKV(const tused_where where,
  */
 /*---------------------------------------------------------------------------*/
 Interfile::ttoken *Interfile::initKV(const tused_where where,
-                                     const std::string key, std::string units,
+                                     const string key, string units,
                                      const KV::ttoken_type type,
-                                     const std::string max_index_key,
+                                     const string max_index_key,
                                      const bool need_value) const
  { ttoken *t=NULL;
 
@@ -862,10 +864,10 @@ Interfile::ttoken *Interfile::initKV(const tused_where where,
  */
 /*---------------------------------------------------------------------------*/
 Interfile::ttoken *Interfile::initKV(const tused_where where,
-                                     const std::string key, std::string units,
+                                     const string key, string units,
                                      const KV::ttoken_type type,
-                                     const std::string max_lindex_key,
-                                     const std::string max_index_key,
+                                     const string max_lindex_key,
+                                     const string max_index_key,
                                      const bool need_value) const
  { ttoken *t=NULL;
 
@@ -895,11 +897,11 @@ Interfile::ttoken *Interfile::initKV(const tused_where where,
  */
 /*---------------------------------------------------------------------------*/
 Interfile::ttoken *Interfile::initKV(const tused_where where,
-                                     const std::string key,
+                                     const string key,
                                      const KV::ttoken_type type,
-                                     const std::string max_index_key,
+                                     const string max_index_key,
                                      const bool need_value) const
- { return(initKV(where, key, std::string(), type, max_index_key, need_value));
+ { return(initKV(where, key, string(), type, max_index_key, need_value));
  }
 
 /*---------------------------------------------------------------------------*/
@@ -920,12 +922,12 @@ Interfile::ttoken *Interfile::initKV(const tused_where where,
  */
 /*---------------------------------------------------------------------------*/
 Interfile::ttoken *Interfile::initKV(const tused_where where,
-                                     const std::string key,
+                                     const string key,
                                      const KV::ttoken_type type,
-                                     const std::string max_lindex_key,
-                                     const std::string max_index_key,
+                                     const string max_lindex_key,
+                                     const string max_index_key,
                                      const bool need_value) const
- { return(initKV(where, key, std::string(), type, max_lindex_key,
+ { return(initKV(where, key, string(), type, max_lindex_key,
                  max_index_key, need_value));
  }
 
@@ -957,86 +959,60 @@ void Interfile::initMain()
    smh.push_back(initKV(SIH, "%study time", "hh:mm:ss", KV::TIME, true));
    smh.push_back(initKV(SIH, "%study UTC", "sec", KV::ULONG, true));
    smh.push_back(initKV(SIH, "isotope name", KV::ASCII, true));
-   smh.push_back(initKV(SIH, "isotope gamma halflife", "sec", KV::UFLOAT,
-                        true));
+   smh.push_back(initKV(SIH, "isotope gamma halflife", "sec", KV::UFLOAT, true));
    smh.push_back(initKV(SIH, "isotope branching factor", KV::UFLOAT, true));
    smh.push_back(initKV(SIH, "radiopharmaceutical", KV::ASCII, false));
-   smh.push_back(initKV(SIH, "%tracer injection date", "yyyy:mm:dd", KV::DATE,
-                        false));
-   smh.push_back(initKV(SIH, "%tracer injection time", "hh:mm:ss", KV::TIME,
-                        false));
-   smh.push_back(initKV(SIH, "%tracer injection UTC", "sec", KV::ULONG,
-                        false));
-   smh.push_back(initKV(SIH, "relative time of tracer injection", "sec",
-                        KV::LONG, true));
-   smh.push_back(initKV(SIH, "tracer activity at time of injection", "mCi,MBq",
-                        KV::UFLOAT, true));
+   smh.push_back(initKV(SIH, "%tracer injection date", "yyyy:mm:dd", KV::DATE, false));
+   smh.push_back(initKV(SIH, "%tracer injection time", "hh:mm:ss", KV::TIME, false));
+   smh.push_back(initKV(SIH, "%tracer injection UTC", "sec", KV::ULONG, false));
+   smh.push_back(initKV(SIH, "relative time of tracer injection", "sec", KV::LONG, true));
+   smh.push_back(initKV(SIH, "tracer activity at time of injection", "mCi,MBq", KV::UFLOAT, true));
    smh.push_back(initKV(SIH, "injected volume", "ml", KV::UFLOAT, false));
    smh.push_back(initKV(SIH, "%patient orientation", KV::ORIENTATION, true));
-   smh.push_back(initKV(SIH, "%patient scan orientation", KV::ORIENTATION,
-                        true));
+   smh.push_back(initKV(SIH, "%patient scan orientation", KV::ORIENTATION, true));
    smh.push_back(initKV(SIH, "%scan direction", KV::DIRECTION, true));
-   smh.push_back(initKV(SIH, "%coincidence window width", "nsec", KV::UFLOAT,
-                        false));
+   smh.push_back(initKV(SIH, "%coincidence window width", "nsec", KV::UFLOAT, false));
    smh.push_back(initKV(SIH, "septa state", KV::SEPTA, true));
    smh.push_back(initKV(SIH, "gantry tilt angle", "degrees", KV::FLOAT, true));
    smh.push_back(initKV(SIH, "%gantry slew", "degrees", KV::FLOAT, true));
    smh.push_back(initKV(SIH, "%type of detector motion", KV::DETMOTION, true));
    smh.push_back(initKV(SIH, "%DATA MATRIX DESCRIPTION", KV::NONE, false));
    smh.push_back(initKV(SIH, "number of time frames", KV::USHRT, true));
-   smh.push_back(initKV(SIH, "%number of horizontal bed offsets", KV::USHRT,
-                        true));
+   smh.push_back(initKV(SIH, "%number of horizontal bed offsets", KV::USHRT, true));
    smh.push_back(initKV(SIH, "number of time windows", KV::USHRT, true));
    smh.push_back(initKV(SIH, "number of energy windows", KV::USHRT, true));
-   smh.push_back(initKV(SIH, "%energy window lower level", "keV", KV::USHRT_A,
-                        "number of energy windows", true));
-   smh.push_back(initKV(SIH, "%energy window upper level", "keV", KV::USHRT_A,
-                        "number of energy windows", true));
-   smh.push_back(initKV(SH, "%number of emission data types", KV::USHRT,
-                        true));
-   smh.push_back(initKV(SH, "%emission data type description", KV::DTDES_A,
-                        "%number of emission data types", true));
-   smh.push_back(initKV(SH, "%number of transmission data types", KV::USHRT,
-                        true));
-   smh.push_back(initKV(SH, "%transmission data type description", KV::DTDES_A,
-                        "%number of transmission data types", true));
-   smh.push_back(initKV(SH, "%TOF bin width", "ns", KV::UFLOAT,
-                        false));
+   smh.push_back(initKV(SIH, "%energy window lower level", "keV", KV::USHRT_A, "number of energy windows", true));
+   smh.push_back(initKV(SIH, "%energy window upper level", "keV", KV::USHRT_A, "number of energy windows", true));
+   smh.push_back(initKV(SH, "%number of emission data types", KV::USHRT, true));
+   smh.push_back(initKV(SH, "%emission data type description", KV::DTDES_A, "%number of emission data types", true));
+   smh.push_back(initKV(SH, "%number of transmission data types", KV::USHRT, true));
+   smh.push_back(initKV(SH, "%transmission data type description", KV::DTDES_A, "%number of transmission data types", true));
+   smh.push_back(initKV(SH, "%TOF bin width", "ns", KV::UFLOAT, false));
    smh.push_back(initKV(SH, "%TOF gaussian fwhm", "ns", KV::UFLOAT, false));
    smh.push_back(initKV(SH, "%number of TOF time bins", KV::USHRT, true));
-   smh.push_back(initKV(SIH, "%GLOBAL SCANNER CALIBRATION FACTOR", KV::NONE,
-                        false));
-   smh.push_back(initKV(SIH, "%scanner quantification factor", "mCi/ml",
-                        KV::FLOAT, false));
-   smh.push_back(initKV(SIH, "%calibration date", "yyyy:mm:dd", KV::DATE,
-                       false));
-   smh.push_back(initKV(SIH, "%calibration time",  "hh:mm:ss", KV::TIME,
-                        false));
+   smh.push_back(initKV(SIH, "%GLOBAL SCANNER CALIBRATION FACTOR", KV::NONE, false));
+   smh.push_back(initKV(SIH, "%scanner quantification factor", "mCi/ml", KV::FLOAT, false));
+   smh.push_back(initKV(SIH, "%calibration date", "yyyy:mm:dd", KV::DATE, false));
+   smh.push_back(initKV(SIH, "%calibration time", "hh:mm:ss", KV::TIME, false));
    smh.push_back(initKV(SIH, "%calibration UTC", "sec", KV::ULONG, false));
-   smh.push_back(initKV(SIH, "%dead time quantification factor", KV::FLOAT_L,
-                        std::string(), false));
+   smh.push_back(initKV(SIH, "%dead time quantification factor", KV::FLOAT_L, string(), false));
    smh.push_back(initKV(SIH, "%DATA SET DESCRIPTION", KV::NONE, false));
    smh.push_back(initKV(SIH, "!total number of data sets", KV::USHRT, true));
-   smh.push_back(initKV(SIH, "%data set", KV::DATASET_A,
-                        "!total number of data sets", true));
+   smh.push_back(initKV(SIH, "%data set", KV::DATASET_A, "!total number of data sets", true));
    smh.push_back(initKV(SIH, "%SUPPLEMENTARY ATTRIBUTES", KV::NONE, false));
    smh.push_back(initKV(IH, "!PET scanner type", KV::SCANNER_TYPE, true));
-   smh.push_back(initKV(IH, "transaxial FOV diameter", "mm", KV::UFLOAT,
-                        false));
+   smh.push_back(initKV(IH, "transaxial FOV diameter", "mm", KV::UFLOAT, false));
    smh.push_back(initKV(SIH, "number of rings", KV::USHRT, true));
-   smh.push_back(initKV(IH, "%distance between rings", "mm", KV::UFLOAT,
-                        true));
+   smh.push_back(initKV(IH, "%distance between rings", "mm", KV::UFLOAT, true));
    smh.push_back(initKV(IH, "%bin size", "mm", KV::UFLOAT, true));
    smh.push_back(initKV(SIH, "%source model", KV::ASCII, false));
    smh.push_back(initKV(SIH, "%source serial", KV::ASCII, false));
    smh.push_back(initKV(SIH, "%source shape", KV::ASCII, false));
    smh.push_back(initKV(SIH, "%source radii", KV::USHRT, true));
-   smh.push_back(initKV(SIH, "%source radius", "cm,mm", KV::UFLOAT_A,
-                        "%source radii", false));
+   smh.push_back(initKV(SIH, "%source radius", "cm,mm", KV::UFLOAT_A, "%source radii", false));
    smh.push_back(initKV(SIH, "%source length", "cm,mm", KV::UFLOAT, false));
    smh.push_back(initKV(SIH, "%source densities", KV::USHRT, true));
-   smh.push_back(initKV(SIH, "%source mu", "1/cm", KV::UFLOAT_A,
-                        "%source densities", false));
+   smh.push_back(initKV(SIH, "%source mu", "1/cm", KV::UFLOAT_A, "%source densities", false));
    smh.push_back(initKV(SIH, "%source ratios", KV::USHRT, true));
    smh.push_back(initKV(SIH, "%source ratio", KV::UFLOAT_A, "%source ratios",
                         false));
@@ -1070,67 +1046,38 @@ void Interfile::initNorm()
    nh.push_back(initKV(NH, "data format", KV::ASCII, true));
    nh.push_back(initKV(NH, "number format", KV::NUMFORM, true));
    nh.push_back(initKV(NH, "!number of bytes per pixel", KV::USHRT, true));
-   nh.push_back(initKV(NH, "%RAW NORMALIZATION SCANS DESCRIPTION", KV::NONE,
-                       false));
+   nh.push_back(initKV(NH, "%RAW NORMALIZATION SCANS DESCRIPTION", KV::NONE, false));
    nh.push_back(initKV(NH, "%number of normalization scans", KV::USHRT, true));
-   nh.push_back(initKV(NH, "%normalization scan", KV::ASCII_A,
-                       "%number of normalization scans", true));
-   nh.push_back(initKV(NH, "isotope name", KV::ASCII_A,
-                       "%number of normalization scans", true));
-   nh.push_back(initKV(NH, "radiopharmaceutical", KV::ASCII_A,
-                       "%number of normalization scans", true));
-   nh.push_back(initKV(NH, "total prompts", KV::ULONGLONG_A,
-                       "%number of normalization scans", true));
-   nh.push_back(initKV(NH, "%total randoms", KV::ULONGLONG_A,
-                       "%number of normalization scans", true));
-   nh.push_back(initKV(NH, "%total net trues", KV::LONGLONG_A,
-                       "%number of normalization scans", true));
-   nh.push_back(initKV(NH, "image duration", "sec", KV::ULONG_A,
-                       "%number of normalization scans", true));
-   nh.push_back(initKV(NH, "%number of bucket-rings", KV::USHRT_A,
-                       "%number of normalization scans", true));
-   nh.push_back(initKV(NH, "%total uncorrected singles", KV::ULONGLONG_A,
-                       "%number of normalization scans", true));
-   nh.push_back(initKV(NH, "%NORMALIZATION COMPONENTS DESCRIPTION", KV::NONE,
-                       false));
-   nh.push_back(initKV(NH, "%number of normalization components", KV::USHRT,
-                       true));
-   nh.push_back(initKV(NH, "%normalization component", KV::ASCII_A,
-                       "%number of normalization components", true));
-   nh.push_back(initKV(NH, "number of dimensions", KV::USHRT_A,
-                       "%number of normalization components", true));
-   nh.push_back(initKV(NH, "%matrix size", KV::USHRT_AL,
-                       "number of dimensions",
-                       "%number of normalization components", true));
-   nh.push_back(initKV(NH, "%matrix axis label", KV::ASCII_AL,
-                       "number of dimensions",
-                       "%number of normalization components", true));
-   nh.push_back(initKV(NH, "%matrix axis unit", KV::ASCII_AL,
-                       "number of dimensions",
-                       "%number of normalization components", true));
-   nh.push_back(initKV(NH, "%scale factor", KV::UFLOAT_AL,
-                       "number of dimensions",
-                       "%number of normalization components", true));
-   nh.push_back(initKV(NH, "data offset in bytes", KV::ULONGLONG_A,
-                       "%number of normalization components", true));
+   nh.push_back(initKV(NH, "%normalization scan", KV::ASCII_A, "%number of normalization scans", true));
+   nh.push_back(initKV(NH, "isotope name", KV::ASCII_A, "%number of normalization scans", true));
+   nh.push_back(initKV(NH, "radiopharmaceutical", KV::ASCII_A, "%number of normalization scans", true));
+   nh.push_back(initKV(NH, "total prompts", KV::ULONGLONG_A, "%number of normalization scans", true));
+   nh.push_back(initKV(NH, "%total randoms", KV::ULONGLONG_A, "%number of normalization scans", true));
+   nh.push_back(initKV(NH, "%total net trues", KV::LONGLONG_A, "%number of normalization scans", true));
+   nh.push_back(initKV(NH, "image duration", "sec", KV::ULONG_A, "%number of normalization scans", true));
+   nh.push_back(initKV(NH, "%number of bucket-rings", KV::USHRT_A, "%number of normalization scans", true));
+   nh.push_back(initKV(NH, "%total uncorrected singles", KV::ULONGLONG_A, "%number of normalization scans", true));
+   nh.push_back(initKV(NH, "%NORMALIZATION COMPONENTS DESCRIPTION", KV::NONE, false));
+   nh.push_back(initKV(NH, "%number of normalization components", KV::USHRT, true));
+   nh.push_back(initKV(NH, "%normalization component", KV::ASCII_A, "%number of normalization components", true));
+   nh.push_back(initKV(NH, "number of dimensions", KV::USHRT_A, "%number of normalization components", true));
+   nh.push_back(initKV(NH, "%matrix size", KV::USHRT_AL, "number of dimensions", "%number of normalization components", true));   
+   nh.push_back(initKV(NH, "%matrix axis label", KV::ASCII_AL, "number of dimensions", "%number of normalization components", true));
+   nh.push_back(initKV(NH, "%matrix axis unit", KV::ASCII_AL, "number of dimensions", "%number of normalization components", true));
+   nh.push_back(initKV(NH, "%scale factor", KV::UFLOAT_AL, "number of dimensions", "%number of normalization components", true));
+   nh.push_back(initKV(NH, "data offset in bytes", KV::ULONGLONG_A, "%number of normalization components", true));
    nh.push_back(initKV(NH, "%axial compression", KV::USHRT, true));
    nh.push_back(initKV(NH, "%maximum ring difference", KV::USHRT, true));
    nh.push_back(initKV(NH, "number of rings", KV::USHRT, true));
    nh.push_back(initKV(NH, "number of energy windows", KV::USHRT, true));
-   nh.push_back(initKV(NH, "%energy window lower level", "keV", KV::USHRT_A,
-                        "number of energy windows", true));
-   nh.push_back(initKV(NH, "%energy window upper level", "keV", KV::USHRT_A,
-                        "number of energy windows", true));
-   nh.push_back(initKV(NH, "%GLOBAL SCANNER CALIBRATION FACTOR", KV::NONE,
-                       false));
-   nh.push_back(initKV(NH, "%scanner quantification factor", "mCi/ml",
-                       KV::FLOAT, true));
-   nh.push_back(initKV(NH, "%calibration date", "yyyy:mm:dd", KV::DATE,
-                       false));
-   nh.push_back(initKV(NH, "%calibration time",  "hh:mm:ss", KV::TIME, false));
+   nh.push_back(initKV(NH, "%energy window lower level", "keV", KV::USHRT_A, "number of energy windows", true));
+   nh.push_back(initKV(NH, "%energy window upper level", "keV", KV::USHRT_A, "number of energy windows", true));
+   nh.push_back(initKV(NH, "%GLOBAL SCANNER CALIBRATION FACTOR", KV::NONE, false));
+   nh.push_back(initKV(NH, "%scanner quantification factor", "mCi/ml", KV::FLOAT, true));
+   nh.push_back(initKV(NH, "%calibration date", "yyyy:mm:dd", KV::DATE, false));
+   nh.push_back(initKV(NH, "%calibration time", "hh:mm:ss", KV::TIME, false));
    nh.push_back(initKV(NH, "%calibration UTC", "sec", KV::ULONG, false));
-   nh.push_back(initKV(NH, "%dead time quantification factor", KV::FLOAT_L,
-                       std::string(), true));
+   nh.push_back(initKV(NH, "%dead time quantification factor", KV::FLOAT_L, string(), true));
    nh.push_back(initKV(NH, "%DATA SET DESCRIPTION", KV::NONE, false));
    nh.push_back(initKV(NH, "!total number of data sets", KV::USHRT, true));
    nh.push_back(initKV(NH, "%data set", KV::DATASET_A,
@@ -1165,18 +1112,12 @@ void Interfile::initSub()
    ssh.push_back(initKV(SIH, "!number of bytes per pixel", KV::USHRT, true));
    ssh.push_back(initKV(IH, "!image scale factor", KV::FLOAT, true));
    ssh.push_back(initKV(SIH, "number of dimensions", KV::USHRT, true));
-   ssh.push_back(initKV(SIH, "matrix axis label", KV::ASCII_A,
-                        "number of dimensions", true));
-   ssh.push_back(initKV(SIH, "matrix size", KV::USHRT_A,
-                        "number of dimensions", true));
-   ssh.push_back(initKV(SIH, "scale factor", "mm/pixel,degree/pixel",
-                        KV::UFLOAT_A, "number of dimensions", true));
-   ssh.push_back(initKV(SIH, "start horizontal bed position", "mm", KV::FLOAT,
-                        true));
-   ssh.push_back(initKV(SIH, "start vertical bed position", "mm", KV::FLOAT,
-                        true));
-   ssh.push_back(initKV(IH, "%reconstruction diameter", "mm", KV::UFLOAT,
-                        true));
+   ssh.push_back(initKV(SIH, "matrix axis label", KV::ASCII_A, "number of dimensions", true));
+   ssh.push_back(initKV(SIH, "matrix size", KV::USHRT_A, "number of dimensions", true));
+   ssh.push_back(initKV(SIH, "scale factor", "mm/pixel,degree/pixel", KV::UFLOAT_A, "number of dimensions", true));
+   ssh.push_back(initKV(SIH, "start horizontal bed position", "mm", KV::FLOAT, true));
+   ssh.push_back(initKV(SIH, "start vertical bed position", "mm", KV::FLOAT, true));
+   ssh.push_back(initKV(IH, "%reconstruction diameter", "mm", KV::UFLOAT, true));
    ssh.push_back(initKV(IH, "%reconstruction bins", KV::USHRT, true));
    ssh.push_back(initKV(IH, "%reconstruction views", KV::USHRT, true));
    ssh.push_back(initKV(IH, "process status", KV::PROCSTAT, true));
@@ -1184,8 +1125,7 @@ void Interfile::initSub()
    ssh.push_back(initKV(SIH, "%decay correction", KV::DECAYCORR, false));
    ssh.push_back(initKV(SIH, "decay correction factor", KV::UFLOAT, false));
    ssh.push_back(initKV(SIH, "%scatter fraction factor", KV::UFLOAT, false));
-   ssh.push_back(initKV(SIH, "%dead time factor", KV::FLOAT_L, std::string(),
-                        false));
+   ssh.push_back(initKV(SIH, "%dead time factor", KV::FLOAT_L, string(), false));
    ssh.push_back(initKV(IH, "slice orientation", KV::SL_ORIENTATION, true));
    ssh.push_back(initKV(IH, "method of reconstruction", KV::ASCII, false));
    ssh.push_back(initKV(IH, "number of iterations", KV::USHRT, false));
@@ -1198,40 +1138,29 @@ void Interfile::initSub()
    ssh.push_back(initKV(IH, "%x-offset", "mm", KV::UFLOAT, true));
    ssh.push_back(initKV(IH, "%y-offset", "mm", KV::UFLOAT, true));
    ssh.push_back(initKV(SH, "number of scan data types", KV::USHRT, true));
-   ssh.push_back(initKV(SH, "scan data type description", KV::DTDES_A,
-                        "number of scan data types", true));
-   ssh.push_back(initKV(SH, "data offset in bytes", KV::ULONG_A,
-                        "number of scan data types", true));
+   ssh.push_back(initKV(SH, "scan data type description", KV::DTDES_A, "number of scan data types", true));
+   ssh.push_back(initKV(SH, "data offset in bytes", KV::ULONG_A, "number of scan data types", true));
    ssh.push_back(initKV(SH, "angular compression", KV::USHRT, true));
    ssh.push_back(initKV(SIH, "%axial compression", KV::USHRT, true));
    ssh.push_back(initKV(SIH, "%maximum ring difference", KV::USHRT, true));
    ssh.push_back(initKV(SH, "%number of segments", KV::USHRT, true));
-   ssh.push_back(initKV(SH, "%segment table", KV::USHRT_L,
-                        "%number of segments", true));
-   ssh.push_back(initKV(SIH, "applied corrections", KV::ASCII_L, std::string(),
-                        false));
-   ssh.push_back(initKV(SIH, "method of attenuation correction", KV::ASCII,
-                        false));
+   ssh.push_back(initKV(SH, "%segment table", KV::USHRT_L, "%number of segments", true));
+   ssh.push_back(initKV(SIH, "applied corrections", KV::ASCII_L, string(), false));
+   ssh.push_back(initKV(SIH, "method of attenuation correction", KV::ASCII, false));
    ssh.push_back(initKV(IH, "method of scatter correction", KV::ASCII, false));
-   ssh.push_back(initKV(IH, "%method of random correction", KV::RANDCORR,
-                        false));
+   ssh.push_back(initKV(IH, "%method of random correction", KV::RANDCORR, false));
    ssh.push_back(initKV(SIH, "!IMAGE DATA DESCRIPTION", KV::NONE, false));
    ssh.push_back(initKV(SIH, "!total number of data sets", KV::USHRT, true));
-   ssh.push_back(initKV(SIH, "%acquisition start condition", KV::ACQCOND,
-                        true));
-   ssh.push_back(initKV(SIH, "%acquisition termination condition", KV::ACQCOND,
-                        true));
+   ssh.push_back(initKV(SIH, "%acquisition start condition", KV::ACQCOND, true));
+   ssh.push_back(initKV(SIH, "%acquisition termination condition", KV::ACQCOND, true));
    ssh.push_back(initKV(SIH, "!image duration", "sec", KV::ULONG, true));
-   ssh.push_back(initKV(SIH, "image relative start time", "sec", KV::ULONG,
-                        true));
+   ssh.push_back(initKV(SIH, "image relative start time", "sec", KV::ULONG, true));
    ssh.push_back(initKV(SIH, "total prompts", KV::ULONGLONG, true));
    ssh.push_back(initKV(SIH, "%total randoms", KV::ULONGLONG, true));
    ssh.push_back(initKV(SIH, "%total net trues", KV::LONGLONG, true));
-   ssh.push_back(initKV(SIH, "%total uncorrected singles", KV::ULONGLONG,
-                        true));
+   ssh.push_back(initKV(SIH, "%total uncorrected singles", KV::ULONGLONG, true));
    ssh.push_back(initKV(SH, "%number of bucket-rings", KV::USHRT, false));
-   ssh.push_back(initKV(SH, "%bucket-ring singles", KV::ULONGLONG_A,
-                        "%number of bucket-rings", false));
+   ssh.push_back(initKV(SH, "%bucket-ring singles", KV::ULONGLONG_A, "%number of bucket-rings", false));
    ssh.push_back(initKV(IH, "%SUPPLEMENTARY ATTRIBUTES", KV::NONE, false));
    ssh.push_back(initKV(IH, "%number of projections", KV::USHRT, false));
    ssh.push_back(initKV(IH, "%number of views", KV::USHRT, false));
@@ -1249,7 +1178,7 @@ void Interfile::initSub()
     list are stored in \em last_pos[].
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::keyResort(std::vector <KV *> *kv, bool after) const
+void Interfile::keyResort(vector <KV *> *kv, bool after) const
  { KV *tmp;
    unsigned long int idx[2];
                                                       // search indices of keys
@@ -1285,12 +1214,12 @@ void Interfile::keyResort(std::vector <KV *> *kv, bool after) const
     and semantical errors.
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::loadMainHeader(const std::string filename)
- { std::string::size_type p;
+void Interfile::loadMainHeader(const string filename)
+ { string::size_type p;
 
    main_headerfile=filename;
    p=filename.rfind('\\');
-   if (p == std::string::npos) p=filename.rfind('/');
+   if (p == string::npos) p=filename.rfind('/');
    main_headerpath=filename.substr(0, p+1);
    deleteKVList(&kv_smh);
    syntaxParser(main_headerfile, smh, &kv_smh);        // load and parse syntax
@@ -1305,12 +1234,12 @@ void Interfile::loadMainHeader(const std::string filename)
     and semantical errors.
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::loadNormHeader(const std::string filename)
- { std::string::size_type p;
+void Interfile::loadNormHeader(const string filename)
+ { string::size_type p;
 
    norm_headerfile=filename;
    p=filename.rfind('\\');
-   if (p == std::string::npos) p=filename.rfind('/');
+   if (p == string::npos) p=filename.rfind('/');
    norm_headerpath=filename.substr(0, p+1);
    deleteKVList(&kv_nh);
    syntaxParser(norm_headerfile, nh, &kv_nh);          // load and parse syntax
@@ -1325,12 +1254,12 @@ void Interfile::loadNormHeader(const std::string filename)
     semantical errors.
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::loadSubheader(const std::string filename)
- { std::string::size_type p;
+void Interfile::loadSubheader(const string filename)
+ { string::size_type p;
 
    subheaderfile=filename;
    p=filename.rfind('\\');
-   if (p == std::string::npos) p=filename.rfind('/');
+   if (p == string::npos) p=filename.rfind('/');
    subheaderpath=filename.substr(0, p+1);
    deleteKVList(&kv_ssh);
    syntaxParser(subheaderfile, ssh, &kv_ssh);          // load and parse syntax
@@ -1347,7 +1276,7 @@ void Interfile::loadSubheader(const std::string filename)
     MainKeyAfterKey().
  */
 /*---------------------------------------------------------------------------*/
-unsigned long int Interfile::Main_blank_line(const std::string comment)
+unsigned long int Interfile::Main_blank_line(const string comment)
  { blankLine(comment, &kv_smh);
    return(0);
  }
@@ -1390,7 +1319,7 @@ void Interfile::MainKeyBeforeKey(T, U)
     NormKeyAfterKey().
  */
 /*---------------------------------------------------------------------------*/
-unsigned long int Interfile::Norm_blank_line(const std::string comment)
+unsigned long int Interfile::Norm_blank_line(const string comment)
  { blankLine(comment, &kv_nh);
    return(0);
  }
@@ -1433,13 +1362,13 @@ void Interfile::NormKeyBeforeKey(T, U)
     Save header. The header is checked for semantical errors.
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::saveHeader(const std::string filename,
-                           std::vector <ttoken *> sh,
-                           std::vector <KV *> kv)
+void Interfile::saveHeader(const string filename,
+                           vector <ttoken *> sh,
+                           vector <KV *> kv)
  { std::ofstream *file=NULL;
 
    try
-   { std::vector <KV *>::const_iterator it_kv;
+   { vector <KV *>::const_iterator it_kv;
 
      semanticParser(filename, sh, kv);             // check for semantic errors
      file=new std::ofstream(filename.c_str());
@@ -1467,7 +1396,7 @@ void Interfile::saveHeader(const std::string filename,
     Save main header.
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::saveMainHeader(const std::string filename)
+void Interfile::saveMainHeader(const string filename)
  { main_headerfile=filename;
    saveMainHeader();
  }
@@ -1489,7 +1418,7 @@ void Interfile::saveMainHeader()
     Save norm header.
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::saveNormHeader(const std::string filename)
+void Interfile::saveNormHeader(const string filename)
  { norm_headerfile=filename;
    saveNormHeader();
  }
@@ -1511,7 +1440,7 @@ void Interfile::saveNormHeader()
     Save subheader.
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::saveSubheader(const std::string filename)
+void Interfile::saveSubheader(const string filename)
  { subheaderfile=filename;
    saveSubheader();
  }
@@ -1537,11 +1466,11 @@ void Interfile::saveSubheader()
     Search key/value list for given key name.
  */
 /*---------------------------------------------------------------------------*/
-KV *Interfile::searchKey(const std::string key, std::vector <KV *> kv,
-                         const std::string filename)
+KV *Interfile::searchKey(const string key, vector <KV *> kv,
+                         const string filename)
  { unsigned short int pos=1;
 
-   for (std::vector <KV *>::iterator it=kv.begin(); it != kv.end(); ++it,
+   for (vector <KV *>::iterator it=kv.begin(); it != kv.end(); ++it,
         pos++)
     if ((*it)->Key() == key) { last_pos[0]=last_pos[1];
                                last_pos[1]=pos;
@@ -1562,10 +1491,10 @@ KV *Interfile::searchKey(const std::string key, std::vector <KV *> kv,
     Parse key/value list for semantic errors.
  */
 /*--------------------------------------------------------------------------*/
-void Interfile::semanticParser(const std::string filename,
-                               std::vector <ttoken *> sh,
-                               std::vector <KV *> kv)
- { std::vector <KV *>::const_iterator it_kv;
+void Interfile::semanticParser(const string filename,
+                               vector <ttoken *> sh,
+                               vector <KV *> kv)
+ { vector <KV *>::const_iterator it_kv;
    bool image_header=false, norm_header;
 
    if (kv == kv_smh)
@@ -1575,7 +1504,7 @@ void Interfile::semanticParser(const std::string filename,
    norm_header=(kv == kv_nh);
    for (it_kv=kv.begin(); it_kv != kv.end(); ++it_kv)
     { unsigned short int max_num;
-      std::vector <ttoken *>::const_iterator it;
+      vector <ttoken *>::const_iterator it;
       tused_where w=ALL;
                                           // get maximum allowed index of array
       switch ((*it_kv)->Type())
@@ -1638,10 +1567,10 @@ void Interfile::semanticParser(const std::string filename,
     Add a separator key (key without unit and value) to key/value list.
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::separatorKey(const std::string key, const std::string comment,
-                             std::vector <KV *> *kv)
- { kv->push_back(new KV(key, std::string(), std::string(), KV::NONE, comment,
-                        std::string()));
+void Interfile::separatorKey(const string key, const string comment,
+                             vector <KV *> *kv)
+ { kv->push_back(new KV(key, string(), string(), KV::NONE, comment,
+                        string()));
    last_pos[0]=last_pos[1];
    last_pos[1]=(unsigned short int)kv->size();
  }
@@ -1664,21 +1593,21 @@ void Interfile::separatorKey(const std::string key, const std::string comment,
  */
 /*---------------------------------------------------------------------------*/
 template <typename T>
-void Interfile::setValue(const std::string key, const T value,
-                         std::string unit, const std::string comment,
-                         const std::string headerfile,
+void Interfile::setValue(const string key, const T value,
+                         string unit, const string comment,
+                         const string headerfile,
                          const unsigned long int err_id,
-                         const std::string headername,
-                         std::vector <KV *> *kv_hdr,
-                         std::vector <ttoken *> hdr)
+                         const string headername,
+                         vector <KV *> *kv_hdr,
+                         vector <ttoken *> hdr)
  { if (headerfile.empty())
     throw Exception(err_id, "Can't set key '#1' because "+headername+
                             "header doesn't exist.").arg(key);
-   std::string unit2;
+   string unit2;
    unsigned short int pos=1;
 
    if (typeid(T) == typeid(TIMEDATE::ttime))
-    { std::string s, mi;
+    { string s, mi;
       TIMEDATE::ttime v;
 
       v=*(TIMEDATE::ttime *)&value;
@@ -1690,7 +1619,7 @@ void Interfile::setValue(const std::string key, const T value,
       unit2=unit+s+KV::convertToString(abs(v.gmt_offset_h))+":"+mi;
     }
     else unit2=unit;
-   for (std::vector <KV *>::iterator it=kv_hdr->begin();
+   for (vector <KV *>::iterator it=kv_hdr->begin();
         it != kv_hdr->end();
         ++it,
         pos++)
@@ -1701,7 +1630,7 @@ void Interfile::setValue(const std::string key, const T value,
        (*it)->setValue(value, unit, comment, headerfile);
        return;
      }
-   tokenize(key, unit2, std::string(), KV::convertToString(value), comment,
+   tokenize(key, unit2, string(), KV::convertToString(value), comment,
             hdr, kv_hdr, headerfile);
    last_pos[0]=last_pos[1];
    last_pos[1]=(unsigned short int)kv_hdr->size();
@@ -1723,30 +1652,30 @@ void Interfile::setValue(const std::string key, const T value,
  */
 /*---------------------------------------------------------------------------*/
 template <typename T>
-void Interfile::setValue(const std::string key, const T value,
-                         const std::string comment,
-                         const std::string headerfile,
+void Interfile::setValue(const string key, const T value,
+                         const string comment,
+                         const string headerfile,
                          const unsigned long int err_id,
-                         const std::string headername,
-                         std::vector <KV *> *kv_hdr,
-                         std::vector <ttoken *> hdr)
+                         const string headername,
+                         vector <KV *> *kv_hdr,
+                         vector <ttoken *> hdr)
  { if (headerfile.empty())
     throw Exception(err_id, "Can't set key '#1' because "+headername+
                             "header doesn't exist.").arg(key);
    unsigned short int pos=1;
 
-   for (std::vector <KV *>::iterator it=kv_hdr->begin();
+   for (vector <KV *>::iterator it=kv_hdr->begin();
         it != kv_hdr->end();
         ++it,
         pos++)
     if ((*it)->Key() == key)
-     { checkUnit(hdr, key, key, std::string(), headerfile);
+     { checkUnit(hdr, key, key, string(), headerfile);
        last_pos[0]=last_pos[1];
        last_pos[1]=pos;
-       (*it)->setValue(value, std::string(), comment, headerfile);
+       (*it)->setValue(value, string(), comment, headerfile);
        return;
      }
-   tokenize(key, std::string(), std::string(), KV::convertToString(value),
+   tokenize(key, string(), string(), KV::convertToString(value),
             comment, hdr, kv_hdr, headerfile);
    last_pos[0]=last_pos[1];
    last_pos[1]=(unsigned short int)kv_hdr->size();
@@ -1770,26 +1699,26 @@ void Interfile::setValue(const std::string key, const T value,
  */
 /*---------------------------------------------------------------------------*/
 template <typename T>
-void Interfile::setValue(const std::string key, const T value,
+void Interfile::setValue(const string key, const T value,
                          const unsigned short int a_idx,
-                         const std::string unit, const std::string comment,
-                         const std::string headerfile,
+                         const string unit, const string comment,
+                         const string headerfile,
                          const unsigned long int err_id,
-                         const std::string headername,
-                         std::vector <KV *> *kv_hdr,
-                         std::vector <ttoken *> hdr)
+                         const string headername,
+                         vector <KV *> *kv_hdr,
+                         vector <ttoken *> hdr)
  { if (headerfile.empty())
     throw Exception(err_id,
                     "Can't set key '#1' because "+headername+"header doesn't "
-                    "exist.").arg(std::string(key)+"["+toString(a_idx+1)+"]");
+                    "exist.").arg(string(key)+"["+toString(a_idx+1)+"]");
    unsigned short int pos=1;
 
-   for (std::vector <KV *>::const_iterator it=kv_hdr->begin();
+   for (vector <KV *>::const_iterator it=kv_hdr->begin();
         it != kv_hdr->end();
         ++it,
         pos++)
     if ((*it)->Key() == key)
-     { checkUnit(hdr, std::string(key)+"["+toString(a_idx+1)+"]", key, unit,
+     { checkUnit(hdr, string(key)+"["+toString(a_idx+1)+"]", key, unit,
                  headerfile);
        last_pos[0]=last_pos[1];
        last_pos[1]=pos;
@@ -1819,37 +1748,37 @@ void Interfile::setValue(const std::string key, const T value,
  */
 /*---------------------------------------------------------------------------*/
 template <typename T>
-void Interfile::setValue(const std::string key, const T value,
+void Interfile::setValue(const string key, const T value,
                          const unsigned short int a_idx,
-                         const std::string comment,
-                         const std::string headerfile,
+                         const string comment,
+                         const string headerfile,
                          const unsigned long int err_id,
-                         const std::string headername,
-                         std::vector <KV *> *kv_hdr,
-                         std::vector <ttoken *> hdr, const bool list)
+                         const string headername,
+                         vector <KV *> *kv_hdr,
+                         vector <ttoken *> hdr, const bool list)
  { if (headerfile.empty())
     throw Exception(err_id,
                     "Can't set key '#1' because "+headername+"header doesn't "
-                    "exist.").arg(std::string(key)+"["+toString(a_idx+1)+"]");
+                    "exist.").arg(string(key)+"["+toString(a_idx+1)+"]");
    unsigned short int pos=1;
 
-   for (std::vector <KV *>::iterator it=kv_hdr->begin();
+   for (vector <KV *>::iterator it=kv_hdr->begin();
         it != kv_hdr->end();
         ++it,
         pos++)
     if ((*it)->Key() == key)
-     { checkUnit(hdr, std::string(key)+"["+toString(a_idx+1)+"]", key,
-                 std::string(), headerfile);
+     { checkUnit(hdr, string(key)+"["+toString(a_idx+1)+"]", key,
+                 string(), headerfile);
        last_pos[0]=last_pos[1];
        last_pos[1]=pos;
-       (*it)->setValue(value, std::string(), comment, a_idx, headerfile);
+       (*it)->setValue(value, string(), comment, a_idx, headerfile);
        return;
      }
-   std::string val;
+   string val;
 
    val=KV::convertToString(value);
    if (list || (typeid(T) == typeid(KV::tdataset))) val="{"+val+"}";
-   tokenize(key, std::string(), "["+toString(a_idx+1)+"]", val, comment, hdr,
+   tokenize(key, string(), "["+toString(a_idx+1)+"]", val, comment, hdr,
             kv_hdr, headerfile);
    last_pos[0]=last_pos[1];
    last_pos[1]=(unsigned short int)kv_hdr->size();
@@ -1873,35 +1802,35 @@ void Interfile::setValue(const std::string key, const T value,
  */
 /*---------------------------------------------------------------------------*/
 template <typename T>
-void Interfile::setValue(const std::string key, const T value,
+void Interfile::setValue(const string key, const T value,
                          const unsigned short int a_idx,
                          const unsigned short int l_idx,
-                         const std::string comment,
-                         const std::string headerfile,
+                         const string comment,
+                         const string headerfile,
                          const unsigned long int err_id,
-                         const std::string headername,
-                         std::vector <KV *> *kv_hdr,
-                         std::vector <ttoken *> hdr)
+                         const string headername,
+                         vector <KV *> *kv_hdr,
+                         vector <ttoken *> hdr)
  { if (headerfile.empty())
     throw Exception(err_id,
                     "Can't set key '#1' because "+headername+" header doesn't "
-                    "exist.").arg(std::string(key)+"["+toString(a_idx+1)+"]");
+                    "exist.").arg(string(key)+"["+toString(a_idx+1)+"]");
    unsigned short int pos=1;
 
-   for (std::vector <KV *>::iterator it=kv_hdr->begin();
+   for (vector <KV *>::iterator it=kv_hdr->begin();
         it != kv_hdr->end();
         ++it,
         pos++)
     if ((*it)->Key() == key)
-     { checkUnit(hdr, std::string(key)+"["+toString(a_idx+1)+"]", key,
-                 std::string(), headerfile);
+     { checkUnit(hdr, string(key)+"["+toString(a_idx+1)+"]", key,
+                 string(), headerfile);
        last_pos[0]=last_pos[1];
        last_pos[1]=pos;
-       (*it)->setValue(value, std::string(), comment, a_idx, l_idx,
+       (*it)->setValue(value, string(), comment, a_idx, l_idx,
                        headerfile);
        return;
      }
-   tokenize(key, std::string(), "["+toString(a_idx+1)+"]",
+   tokenize(key, string(), "["+toString(a_idx+1)+"]",
             "{"+KV::convertToString(value)+"}", comment, hdr, kv_hdr,
             headerfile);
    last_pos[0]=last_pos[1];
@@ -1919,7 +1848,7 @@ void Interfile::setValue(const std::string key, const T value,
     SubKeyAfterKey().
  */
 /*---------------------------------------------------------------------------*/
-unsigned long int Interfile::Sub_blank_line(const std::string comment)
+unsigned long int Interfile::Sub_blank_line(const string comment)
  { blankLine(comment, &kv_ssh);
    return(0);
  }
@@ -1964,9 +1893,9 @@ void Interfile::SubKeyBeforeKey(T, U)
     Parse Interfile header and perform syntax checks.
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::syntaxParser(const std::string filename,
-                             std::vector <ttoken *> token,
-                             std::vector <KV *> *kv)
+void Interfile::syntaxParser(const string filename,
+                             vector <ttoken *> token,
+                             vector <KV *> *kv)
  { std::ifstream *file=NULL;
 
    try
@@ -1974,24 +1903,24 @@ void Interfile::syntaxParser(const std::string filename,
      if (!*file) throw Exception(REC_FILE_DOESNT_EXIST,
                                  "The file '#1' doesn't exist.").arg(filename);
      for (;;)
-      { std::string line, key, value, comment, short_key, idx, unit;
-        std::string::size_type p;
+      { string line, key, value, comment, short_key, idx, unit;
+        string::size_type p;
                                    // read line from file and split into peaces
         std::getline(*file, line);
                 // eof is only false after trying to read after the end of file
         if (file->eof() && line.empty()) break;
                                          // convert DOS format into Unix format
-        while ((p=line.find('\r')) != std::string::npos) line.erase(p, 1);
+        while ((p=line.find('\r')) != string::npos) line.erase(p, 1);
                                                              // cut-off comment
-        if ((p=line.find(';')) != std::string::npos)
+        if ((p=line.find(';')) != string::npos)
          { comment=line.substr(p+1);
            if (comment.at(0) == ' ') comment.erase(0, 1);
            line.erase(p);
          }
                                                                  // remove TABs
-        while ((p=line.find('\t')) != std::string::npos) line.at(p)=' ';
+        while ((p=line.find('\t')) != string::npos) line.at(p)=' ';
                                                          // remove white spaces
-        while ((p=line.find("  ")) != std::string::npos) line.erase(p, 1);
+        while ((p=line.find("  ")) != string::npos) line.erase(p, 1);
         if (line.empty())                                       // line empty ?
          { kv->push_back(new KV(comment));
            continue;
@@ -2007,7 +1936,7 @@ void Interfile::syntaxParser(const std::string filename,
          { kv->push_back(new KV(comment));
            continue;
          }
-        if ((p=line.find(":=")) == std::string::npos)
+        if ((p=line.find(":=")) == string::npos)
          throw Exception(REC_ITF_HEADER_ERROR_SEPARATOR_MISSING,
                          "Parsing error in the file '#1'. ':=' is missing in "
                          "the line '#2'.").arg(filename).arg(line);
@@ -2017,24 +1946,24 @@ void Interfile::syntaxParser(const std::string filename,
                  { value=line.substr(p+2);
                    if (value.at(0) == ' ') value.erase(0, 1);
                  }
-                 else value=std::string();
+                 else value=string();
               }
                                                      // remove indices from key
         short_key=key;
-        if ((p=short_key.find('[')) != std::string::npos)
+        if ((p=short_key.find('[')) != string::npos)
          { short_key.erase(p);
                                                        // remove trailing space
            if (short_key.at(short_key.length()-1) == ' ')
             short_key.erase(short_key.length()-1);
            idx=key.substr(p, key.find(']')-p+1);
          }
-         else idx=std::string();
+         else idx=string();
                                                         // remove unit from key
-        if ((p=short_key.find('(')) != std::string::npos)
-         { std::string key_index;
+        if ((p=short_key.find('(')) != string::npos)
+         { string key_index;
 
            key_index=short_key;
-           if (idx != std::string()) key_index+="["+idx+"]";
+           if (idx != string()) key_index+="["+idx+"]";
            unit=short_key.substr(p+1);
            if (unit.at(unit.length()-1) != ')')
             throw Exception(REC_ITF_HEADER_ERROR_UNITFORMAT,
@@ -2047,7 +1976,7 @@ void Interfile::syntaxParser(const std::string filename,
            if (short_key.at(short_key.length()-1) == ' ')
             short_key.erase(short_key.length()-1);
          }
-         else unit=std::string();
+         else unit=string();
                                        // fill information into internal tables
         tokenize(short_key, unit, idx, value, comment, token, kv, filename);
       }
@@ -2133,13 +2062,13 @@ void Interfile::timeUTC2local(time_t utc, TIMEDATE::tdate * const d,
     Create entry in key/value list for line from file.
  */
 /*---------------------------------------------------------------------------*/
-void Interfile::tokenize(std::string short_key, std::string unit,
-                         std::string idx, const std::string value,
-                         const std::string comment,
-                         std::vector <ttoken *> token, std::vector <KV *> *kv,
-                         const std::string filename) const
- { std::string offset_str=std::string(), key_index;
-   std::vector <ttoken *>::const_iterator it;
+void Interfile::tokenize(string short_key, string unit,
+                         string idx, const string value,
+                         const string comment,
+                         vector <ttoken *> token, vector <KV *> *kv,
+                         const string filename) const
+ { string offset_str=string(), key_index;
+   vector <ttoken *>::const_iterator it;
                                                   // remove brackets from index
    if (!idx.empty()) { idx=idx.substr(1, idx.length()-2);
                        key_index=short_key+"["+idx+"]";
@@ -2150,15 +2079,15 @@ void Interfile::tokenize(std::string short_key, std::string unit,
                   tolower);
                                               // special handling for TIME keys
    for (it=token.begin(); it != token.end(); ++it)
-    { std::string k;
+    { string k;
 
       k=(*it)->key;
       std::transform(k.begin(), k.end(), k.begin(), tolower);
       if (short_key == k)                                        // found key ?
        if ((*it)->type == KV::TIME)
-        { std::string::size_type p;
+        { string::size_type p;
                                                // separate unit and time offset
-          if ((p=unit.find(' ')) != std::string::npos)
+          if ((p=unit.find(' ')) != string::npos)
            { offset_str=unit.substr(p+1);
              std::transform(offset_str.begin(), offset_str.end(),
                             offset_str.begin(), tolower);
@@ -2174,7 +2103,7 @@ void Interfile::tokenize(std::string short_key, std::string unit,
    checkUnit(token, key_index, short_key, unit, filename);
                                                   // search key in parser table
    for (it=token.begin(); it != token.end(); ++it)
-    { std::string k;
+    { string k;
 
       k=(*it)->key;
       std::transform(k.begin(), k.end(), k.begin(), tolower);
@@ -2192,7 +2121,7 @@ void Interfile::tokenize(std::string short_key, std::string unit,
             case KV::UFLOAT_A:            // key if of array of unsigned floats
             case KV::DATASET_A:                 // key is of array of data sets
             case KV::DTDES_A:      // key is of array of data type descriptions
-             { std::vector <KV *>::const_iterator s;
+             { vector <KV *>::const_iterator s;
                unsigned long int index;
                                                                    // get index
                KV::parseNumber(&index,
@@ -2221,7 +2150,7 @@ void Interfile::tokenize(std::string short_key, std::string unit,
             case KV::ASCII_AL:              // key is of array with ascii lists
             case KV::USHRT_AL: // key is of array with unsigned short int lists
             case KV::UFLOAT_AL:      // key is of array of unsigned float lists
-             { std::vector <KV *>::const_iterator s;
+             { vector <KV *>::const_iterator s;
                unsigned long int index;
                                                                    // get index
                KV::parseNumber(&index,
@@ -2277,7 +2206,7 @@ void Interfile::tokenize(std::string short_key, std::string unit,
 /*       change value in main header or add value to header                  */
 /*---------------------------------------------------------------------------*/
 #define Main(var, key, type)\
-type Interfile::Main_##var(std::string * const unit)\
+type Interfile::Main_##var(string * const unit)\
  { KV *kv;\
 \
    kv=searchKey(key, kv_smh, main_headerfile);\
@@ -2286,8 +2215,8 @@ type Interfile::Main_##var(std::string * const unit)\
  }\
 \
 unsigned long int Interfile::Main_##var(const type value,\
-                                        std::string unit,\
-                                        const std::string comment)\
+                                        string unit,\
+                                        const string comment)\
  { setValue(key, value, unit, comment, main_headerfile,\
             REC_ITF_HEADER_ERROR_MAINHEADER_SET, "main ", &kv_smh, smh);\
    return(0);\
@@ -2304,7 +2233,7 @@ type Interfile::Main_##var()\
  }\
 \
 unsigned long int Interfile::Main_##var(const type value,\
-                                        const std::string comment)\
+                                        const string comment)\
  { setValue(key, value, comment, main_headerfile,\
             REC_ITF_HEADER_ERROR_MAINHEADER_SET, "main ", &kv_smh, smh);\
    return(0);\
@@ -2315,7 +2244,7 @@ unsigned long int Interfile::Main_##var(const type value,\
 /*---------------------------------------------------------------------------*/
 #define MainArray(var, key, type)\
 type Interfile::Main_##var(const unsigned short int a_idx,\
-                           std::string * const unit)\
+                           string * const unit)\
  { KV *kv;\
 \
    kv=searchKey(key, kv_smh, main_headerfile);\
@@ -2325,8 +2254,8 @@ type Interfile::Main_##var(const unsigned short int a_idx,\
 \
 unsigned long int Interfile::Main_##var(const type value,\
                                         const unsigned short int a_idx,\
-                                        const std::string unit,\
-                                        const std::string comment)\
+                                        const string unit,\
+                                        const string comment)\
  { setValue(key, value, a_idx, unit, comment, main_headerfile,\
             REC_ITF_HEADER_ERROR_MAINHEADER_SET, "main ", &kv_smh, smh);\
    return(0);\
@@ -2344,7 +2273,7 @@ type Interfile::Main_##var(const unsigned short int a_idx)\
 \
 unsigned long int Interfile::Main_##var(const type value,\
                                         const unsigned short int a_idx,\
-                                        const std::string comment)\
+                                        const string comment)\
  { setValue(key, value, a_idx, comment, main_headerfile,\
             REC_ITF_HEADER_ERROR_MAINHEADER_SET, "main ", &kv_smh, smh,\
             false);\
@@ -2359,7 +2288,7 @@ unsigned long int Interfile::Main_##var(const unsigned short int a_idx)\
  { if (main_headerfile.empty())\
     throw Exception(REC_ITF_HEADER_ERROR_MAINHEADER_REMOVE,\
                     "Can't remove key '#1' because main header doesn't exist"\
-                    ".").arg(std::string(key)+"["+toString(a_idx+1)+"]");\
+                    ".").arg(string(key)+"["+toString(a_idx+1)+"]");\
    KV *kv_it=NULL;\
 \
    try { Logging::flog()->loggingOn(false);\
@@ -2409,7 +2338,7 @@ type Interfile::Main_##var(const unsigned short int a_idx)\
 \
 unsigned long int Interfile::Main_##var(const type value,\
                                         const unsigned short int l_idx,\
-                                        const std::string comment)\
+                                        const string comment)\
  { setValue(key, value, l_idx, comment, main_headerfile,\
             REC_ITF_HEADER_ERROR_MAINHEADER_SET, "main", &kv_smh, smh, true);\
    return(0);\
@@ -2419,7 +2348,7 @@ unsigned long int Interfile::Main_##var(const type value,\
 /* MainSep: add separator key to key/value list                              */
 /*---------------------------------------------------------------------------*/
 #define MainSep(var, key)\
-unsigned long int Interfile::Main_##var(const std::string comment)\
+unsigned long int Interfile::Main_##var(const string comment)\
  { if (main_headerfile.empty())\
     throw Exception(REC_ITF_HEADER_ERROR_MAINHEADER_SET,\
                     "Can't set key '#1' because main header doesn't exist"\
@@ -2429,29 +2358,29 @@ unsigned long int Interfile::Main_##var(const std::string comment)\
  }
                         // generate code for the following keys of main headers
 MainSep(INTERFILE, "!INTERFILE")
-MainNoUnit(comment, "%comment", std::string)
-MainNoUnit(originating_system, "!originating system", std::string)
-MainNoUnit(CPS_data_type, "%CPS data type", std::string)
-MainNoUnit(CPS_version_number, "%CPS version number", std::string)
-MainNoUnit(gantry_serial_number, "%gantry serial number", std::string)
+MainNoUnit(comment, "%comment", string)
+MainNoUnit(originating_system, "!originating system", string)
+MainNoUnit(CPS_data_type, "%CPS data type", string)
+MainNoUnit(CPS_version_number, "%CPS version number", string)
+MainNoUnit(gantry_serial_number, "%gantry serial number", string)
 MainSep(GENERAL_DATA, "!GENERAL DATA")
-MainNoUnit(original_institution, "original institution", std::string)
-MainNoUnit(data_description, "data description", std::string)
-MainNoUnit(patient_name, "patient name", std::string)
-MainNoUnit(patient_ID, "patient ID", std::string)
+MainNoUnit(original_institution, "original institution", string)
+MainNoUnit(data_description, "data description", string)
+MainNoUnit(patient_name, "patient name", string)
+MainNoUnit(patient_ID, "patient ID", string)
 Main(patient_DOB, "%patient DOB", TIMEDATE::tdate)
 MainNoUnit(patient_sex, "patient sex", Interfile::tsex)
 Main(patient_height, "patient height", float)
 Main(patient_weight, "patient weight", float)
-MainNoUnit(study_ID, "study ID", std::string)
+MainNoUnit(study_ID, "study ID", string)
 MainNoUnit(exam_type, "exam type", Interfile::texamtype)
 Main(study_date, "%study date", TIMEDATE::tdate)
 Main(study_time, "%study time", TIMEDATE::ttime)
 Main(study_UTC, "%study UTC", unsigned long int)
-MainNoUnit(isotope_name, "isotope name", std::string)
+MainNoUnit(isotope_name, "isotope name", string)
 Main(isotope_gamma_halflife, "isotope gamma halflife", float)
 MainNoUnit(isotope_branching_factor, "isotope branching factor", float)
-MainNoUnit(radiopharmaceutical, "radiopharmaceutical", std::string)
+MainNoUnit(radiopharmaceutical, "radiopharmaceutical", string)
 Main(tracer_injection_date, "%tracer injection date", TIMEDATE::tdate)
 Main(tracer_injection_time, "%tracer injection time", TIMEDATE::ttime)
 Main(tracer_injection_UTC, "%tracer injection UTC", unsigned long int)
@@ -2522,9 +2451,9 @@ Main(transaxial_FOV_diameter, "transaxial FOV diameter", float)
 MainNoUnit(number_of_rings, "number of rings", unsigned short int)
 Main(distance_between_rings, "%distance between rings", float)
 Main(bin_size, "%bin size", float)
-MainNoUnit(source_model, "%source model", std::string)
-MainNoUnit(source_serial, "%source serial", std::string)
-MainNoUnit(source_shape, "%source shape", std::string)
+MainNoUnit(source_model, "%source model", string)
+MainNoUnit(source_serial, "%source serial", string)
+MainNoUnit(source_shape, "%source shape", string)
 MainNoUnit(source_radii, "%source radii", unsigned short int)
 MainArray(source_radius, "%source radius", float)
 MainArrayRemove(source_radius_remove, "%source radius")
@@ -2541,7 +2470,7 @@ MainArrayRemove(source_ratio_remove, "%source ratio")
 /*       change value in norm header or add value to header                  */
 /*---------------------------------------------------------------------------*/
 #define Norm(var, key, type)\
-type Interfile::Norm_##var(std::string * const unit)\
+type Interfile::Norm_##var(string * const unit)\
  { KV *kv;\
 \
    kv=searchKey(key, kv_nh, norm_headerfile);\
@@ -2550,8 +2479,8 @@ type Interfile::Norm_##var(std::string * const unit)\
  }\
 \
 unsigned long int Interfile::Norm_##var(const type value,\
-                                        std::string unit,\
-                                        const std::string comment)\
+                                        string unit,\
+                                        const string comment)\
  { setValue(key, value, unit, comment, norm_headerfile,\
             REC_ITF_HEADER_ERROR_NORMHEADER_SET, "norm ", &kv_nh, nh);\
    return(0);\
@@ -2568,7 +2497,7 @@ type Interfile::Norm_##var()\
  }\
 \
 unsigned long int Interfile::Norm_##var(const type value,\
-                                        const std::string comment)\
+                                        const string comment)\
  { setValue(key, value, comment, norm_headerfile,\
             REC_ITF_HEADER_ERROR_NORMHEADER_SET, "norm ", &kv_nh, nh);\
    return(0);\
@@ -2579,7 +2508,7 @@ unsigned long int Interfile::Norm_##var(const type value,\
 /*---------------------------------------------------------------------------*/
 #define NormArray(var, key, type)\
 type Interfile::Norm_##var(const unsigned short int a_idx,\
-                           std::string * const unit)\
+                           string * const unit)\
  { KV *kv;\
 \
    kv=searchKey(key, kv_nh, norm_headerfile);\
@@ -2589,8 +2518,8 @@ type Interfile::Norm_##var(const unsigned short int a_idx,\
 \
 unsigned long int Interfile::Norm_##var(const type value,\
                                         const unsigned short int a_idx,\
-                                        const std::string unit,\
-                                        const std::string comment)\
+                                        const string unit,\
+                                        const string comment)\
  { setValue(key, value, a_idx, unit, comment, norm_headerfile,\
             REC_ITF_HEADER_ERROR_NORMHEADER_SET, "norm ", &kv_nh, nh);\
    return(0);\
@@ -2608,7 +2537,7 @@ type Interfile::Norm_##var(const unsigned short int a_idx)\
 \
 unsigned long int Interfile::Norm_##var(const type value,\
                                         const unsigned short int a_idx,\
-                                        const std::string comment)\
+                                        const string comment)\
  { setValue(key, value, a_idx, comment, norm_headerfile,\
             REC_ITF_HEADER_ERROR_NORMHEADER_SET, "norm ", &kv_nh, nh, false);\
    return(0);\
@@ -2628,7 +2557,7 @@ type Interfile::Norm_##var(const unsigned short int a_idx,\
 unsigned long int Interfile::Norm_##var(const type value,\
                                         const unsigned short int a_idx,\
                                         const unsigned short int l_idx,\
-                                        const std::string comment)\
+                                        const string comment)\
  { setValue(key, value, a_idx, l_idx, comment, norm_headerfile,\
             REC_ITF_HEADER_ERROR_NORMHEADER_SET, "norm ", &kv_nh, nh);\
    return(0);\
@@ -2642,7 +2571,7 @@ unsigned long int Interfile::Norm_##var(const unsigned short int a_idx)\
  { if (norm_headerfile.empty())\
     throw Exception(REC_ITF_HEADER_ERROR_NORMHEADER_REMOVE,\
                     "Can't remove key '#1' because norm header doesn't exist"\
-                    ".").arg(std::string(key)+"["+toString(a_idx+1)+"]");\
+                    ".").arg(string(key)+"["+toString(a_idx+1)+"]");\
    KV *kv_it=NULL;\
 \
    try { Logging::flog()->loggingOn(false);\
@@ -2719,7 +2648,7 @@ type Interfile::Norm_##var(const unsigned short int a_idx)\
 \
 unsigned long int Interfile::Norm_##var(const type value,\
                                         const unsigned short int l_idx,\
-                                        const std::string comment)\
+                                        const string comment)\
  { setValue(key, value, l_idx, comment, norm_headerfile,\
             REC_ITF_HEADER_ERROR_NORMHEADER_SET, "norm", &kv_nh, nh, true);\
    return(0);\
@@ -2729,7 +2658,7 @@ unsigned long int Interfile::Norm_##var(const type value,\
 /* NormSep: add separator key to key/value list                              */
 /*---------------------------------------------------------------------------*/
 #define NormSep(var, key)\
-unsigned long int Interfile::Norm_##var(const std::string comment)\
+unsigned long int Interfile::Norm_##var(const string comment)\
  { if (norm_headerfile.empty())\
     throw Exception(REC_ITF_HEADER_ERROR_NORMHEADER_SET,\
                     "Can't set key '#1' because norm header doesn't exist"\
@@ -2739,14 +2668,14 @@ unsigned long int Interfile::Norm_##var(const std::string comment)\
  }
                         // generate code for the following keys of norm headers
 NormSep(INTERFILE, "!INTERFILE")
-NormNoUnit(comment, "%comment", std::string)
-NormNoUnit(originating_system, "!originating system", std::string)
-NormNoUnit(CPS_data_type, "%CPS data type", std::string)
-NormNoUnit(CPS_version_number, "%CPS version number", std::string)
-NormNoUnit(gantry_serial_number, "%gantry serial number", std::string)
+NormNoUnit(comment, "%comment", string)
+NormNoUnit(originating_system, "!originating system", string)
+NormNoUnit(CPS_data_type, "%CPS data type", string)
+NormNoUnit(CPS_version_number, "%CPS version number", string)
+NormNoUnit(gantry_serial_number, "%gantry serial number", string)
 NormSep(GENERAL_DATA, "!GENERAL DATA")
-NormNoUnit(data_description, "data description", std::string)
-NormNoUnit(name_of_data_file, "!name of data file", std::string)
+NormNoUnit(data_description, "data description", string)
+NormNoUnit(name_of_data_file, "!name of data file", string)
 Norm(expiration_date, "%expiration date", TIMEDATE::tdate)
 Norm(expiration_time, "%expiration time", TIMEDATE::ttime)
 Norm(expiration_UTC, "%expiration UTC", unsigned long int)
@@ -2756,7 +2685,7 @@ Norm(study_time, "%study time", TIMEDATE::ttime)
 Norm(study_UTC, "%study UTC", unsigned long int)
 NormNoUnit(image_data_byte_order, "image data byte order", Interfile::tendian)
 NormNoUnit(PET_data_type, "!PET data type", Interfile::tpet_data_type)
-NormNoUnit(data_format, "data format", std::string)
+NormNoUnit(data_format, "data format", string)
 NormNoUnit(number_format, "number format", Interfile::tnumber_format)
 NormNoUnit(number_of_bytes_per_pixel, "!number of bytes per pixel",
            unsigned short int)
@@ -2764,9 +2693,9 @@ NormSep(RAW_NORMALIZATION_SCANS_DESCRIPTION,
         "%RAW NORMALIZATION SCANS DESCRIPTION")
 NormNoUnit(number_of_normalization_scans, "%number of normalization scans",
            unsigned short int)
-NormArrayNoUnit(normalization_scan, "%normalization scan", std::string)
-NormArrayNoUnit(isotope_name, "isotope name", std::string)
-NormArrayNoUnit(radiopharmaceutical, "radiopharmaceutical", std::string)
+NormArrayNoUnit(normalization_scan, "%normalization scan", string)
+NormArrayNoUnit(isotope_name, "isotope name", string)
+NormArrayNoUnit(radiopharmaceutical, "radiopharmaceutical", string)
 NormArrayNoUnit(total_prompts, "total prompts", uint64)
 NormArrayNoUnit(total_randoms, "%total randoms", uint64)
 NormArrayNoUnit(total_net_trues, "%total net trues", int64)
@@ -2780,12 +2709,12 @@ NormSep(NORMALIZATION_COMPONENTS_DESCRIPTION,
 NormNoUnit(number_of_normalization_components,
            "%number of normalization components", unsigned short int)
 NormArrayNoUnit(normalization_component, "%normalization component",
-                std::string)
+                string)
 NormArrayNoUnit(number_of_dimensions, "number of dimensions",
                 unsigned short int)
 NormArrayListsNoUnit(matrix_size, "%matrix size", unsigned short int)
-NormArrayListsNoUnit(matrix_axis_label, "%matrix axis label", std::string)
-NormArrayListsNoUnit(matrix_axis_unit, "%matrix axis unit", std::string)
+NormArrayListsNoUnit(matrix_axis_label, "%matrix axis label", string)
+NormArrayListsNoUnit(matrix_axis_unit, "%matrix axis unit", string)
 NormArrayListsNoUnit(scale_factor, "%scale factor", float)
 NormArrayNoUnit(data_offset_in_bytes, "data offset in bytes", uint64)
 NormNoUnit(axial_compression, "%axial compression", unsigned short int)
@@ -2835,7 +2764,7 @@ NormArrayRemove(data_set_remove, "%data set")
 /*      change value in subheader or add value to header                     */
 /*---------------------------------------------------------------------------*/
 #define Sub(var, key, type)\
-    type Interfile::Sub_##var(std::string * const unit)\
+    type Interfile::Sub_##var(string * const unit)\
  { KV *kv;\
 \
    kv=searchKey(key, kv_ssh, subheaderfile);\
@@ -2844,8 +2773,8 @@ NormArrayRemove(data_set_remove, "%data set")
  }\
 \
 unsigned long int Interfile::Sub_##var(const type value,\
-                                       const std::string unit,\
-                                       const std::string comment)\
+                                       const string unit,\
+                                       const string comment)\
  { setValue(key, value, unit, comment, subheaderfile,\
             REC_ITF_HEADER_ERROR_SUBHEADER_SET, "sub", &kv_ssh, ssh);\
    return(0);\
@@ -2862,7 +2791,7 @@ type Interfile::Sub_##var()\
  }\
 \
 unsigned long int Interfile::Sub_##var(const type value,\
-                                       const std::string comment)\
+                                       const string comment)\
  { setValue(key, value, comment, subheaderfile,\
             REC_ITF_HEADER_ERROR_SUBHEADER_SET, "sub", &kv_ssh, ssh);\
    return(0);\
@@ -2873,7 +2802,7 @@ unsigned long int Interfile::Sub_##var(const type value,\
 /*---------------------------------------------------------------------------*/
 #define SubArray(var, key, type)\
 type Interfile::Sub_##var(const unsigned short int a_idx,\
-                          std::string * const unit)\
+                          string * const unit)\
  { KV *kv;\
 \
    kv=searchKey(key, kv_ssh, subheaderfile);\
@@ -2883,8 +2812,8 @@ type Interfile::Sub_##var(const unsigned short int a_idx,\
 \
 unsigned long int Interfile::Sub_##var(const type value,\
                                        const unsigned short int a_idx,\
-                                       const std::string unit,\
-                                       const std::string comment)\
+                                       const string unit,\
+                                       const string comment)\
  { setValue(key, value, a_idx, unit, comment, subheaderfile,\
             REC_ITF_HEADER_ERROR_SUBHEADER_SET, "sub", &kv_ssh, ssh);\
    return(0);\
@@ -2901,7 +2830,7 @@ type Interfile::Sub_##var(const unsigned short int a_idx)\
 \
 unsigned long int Interfile::Sub_##var(const type value,\
                                        const unsigned short int a_idx,\
-                                       const std::string comment)\
+                                       const string comment)\
  { setValue(key, value, a_idx, comment, subheaderfile,\
             REC_ITF_HEADER_ERROR_SUBHEADER_SET, "sub", &kv_ssh, ssh, false);\
    return(0);\
@@ -2915,7 +2844,7 @@ unsigned long int Interfile::Sub_##var(const unsigned short int a_idx)\
  { if (subheaderfile.empty())\
     throw Exception(REC_ITF_HEADER_ERROR_SUBHEADER_REMOVE,\
                     "Can't remove key '#1' because subheader doesn't exist"\
-                    ".").arg(std::string(key)+"["+toString(a_idx+1)+"]");\
+                    ".").arg(string(key)+"["+toString(a_idx+1)+"]");\
    KV *kv_it=NULL;\
 \
    try { Logging::flog()->loggingOn(false);\
@@ -2965,7 +2894,7 @@ type Interfile::Sub_##var(const unsigned short int a_idx)\
 \
 unsigned long int Interfile::Sub_##var(const type value,\
                                        const unsigned short int l_idx,\
-                                       const std::string comment)\
+                                       const string comment)\
  { setValue(key, value, l_idx, comment, subheaderfile,\
             REC_ITF_HEADER_ERROR_SUBHEADER_SET, "sub", &kv_ssh, ssh, true);\
    return(0);\
@@ -2975,7 +2904,7 @@ unsigned long int Interfile::Sub_##var(const type value,\
 /* SubSep: add separator key to key/value list                               */
 /*---------------------------------------------------------------------------*/
 #define SubSep(var, key)\
-unsigned long int Interfile::Sub_##var(const std::string comment)\
+unsigned long int Interfile::Sub_##var(const string comment)\
  { if (subheaderfile.empty())\
     throw Exception(REC_ITF_HEADER_ERROR_SUBHEADER_SET,\
                     "Can't set key '#1' because subheader doesn't exist"\
@@ -2985,28 +2914,28 @@ unsigned long int Interfile::Sub_##var(const std::string comment)\
  }
                           // generate code for the following keys of subheaders
 SubSep(INTERFILE, "!INTERFILE")
-SubNoUnit(comment, "%comment", std::string)
-SubNoUnit(originating_system, "!originating system", std::string)
-SubNoUnit(CPS_data_type, "%CPS data type", std::string)
-SubNoUnit(CPS_version_number, "%CPS version number", std::string)
+SubNoUnit(comment, "%comment", string)
+SubNoUnit(originating_system, "!originating system", string)
+SubNoUnit(CPS_data_type, "%CPS data type", string)
+SubNoUnit(CPS_version_number, "%CPS version number", string)
 SubSep(GENERAL_DATA, "!GENERAL DATA")
-SubNoUnit(name_of_listmode_file, "%name of listmode file", std::string)
-SubNoUnit(name_of_sinogram_file, "%name of sinogram file", std::string)
-SubNoUnit(name_of_data_file, "!name of data file", std::string)
+SubNoUnit(name_of_listmode_file, "%name of listmode file", string)
+SubNoUnit(name_of_sinogram_file, "%name of sinogram file", string)
+SubNoUnit(name_of_data_file, "!name of data file", string)
 SubSep(GENERAL_IMAGE_DATA, "!GENERAL IMAGE DATA")
-SubNoUnit(type_of_data, "!type of data", std::string)
+SubNoUnit(type_of_data, "!type of data", string)
 Sub(study_date, "%study date", TIMEDATE::tdate)
 Sub(study_time, "%study time", TIMEDATE::ttime)
 Sub(study_UTC, "%study UTC", unsigned long int)
 SubNoUnit(image_data_byte_order, "image data byte order", Interfile::tendian)
 SubNoUnit(PET_data_type, "!PET data type", Interfile::tpet_data_type)
-SubNoUnit(data_format, "data format", std::string)
+SubNoUnit(data_format, "data format", string)
 SubNoUnit(number_format, "number format", Interfile::tnumber_format)
 SubNoUnit(number_of_bytes_per_pixel, "!number of bytes per pixel",
           unsigned short int)
 SubNoUnit(image_scale_factor, "!image scale factor", float)
 SubNoUnit(number_of_dimensions, "number of dimensions", unsigned short int)
-SubArrayNoUnit(matrix_axis_label, "matrix axis label", std::string)
+SubArrayNoUnit(matrix_axis_label, "matrix axis label", string)
 SubArrayNoUnit(matrix_size, "matrix size", unsigned short int)
 SubArray(scale_factor, "scale factor", float)
 Sub(start_horizontal_bed_position, "start horizontal bed position", float)
@@ -3015,18 +2944,18 @@ Sub(reconstruction_diameter, "%reconstruction diameter", float)
 SubNoUnit(reconstruction_bins, "%reconstruction bins", unsigned short int)
 SubNoUnit(reconstruction_views, "%reconstruction views", unsigned short int)
 SubNoUnit(process_status, "process status", Interfile::tprocess_status)
-SubNoUnit(quantification_units, "quantification units", std::string)
+SubNoUnit(quantification_units, "quantification units", string)
 SubNoUnit(decay_correction, "%decay correction", Interfile::tdecay_correction)
 SubNoUnit(decay_correction_factor, "decay correction factor", float)
 SubNoUnit(scatter_fraction_factor, "%scatter fraction factor", float)
 SubListNoUnit(dead_time_factor, "%dead time factor", float)
 SubNoUnit(slice_orientation, "slice orientation",
           Interfile::tslice_orientation)
-SubNoUnit(method_of_reconstruction, "method of reconstruction", std::string)
+SubNoUnit(method_of_reconstruction, "method of reconstruction", string)
 SubNoUnit(number_of_iterations, "number of iterations", unsigned short int)
 SubNoUnit(number_of_subsets, "%number of subsets", unsigned short int)
-SubNoUnit(stopping_criteria, "stopping criteria", std::string)
-SubNoUnit(filter_name, "filter name", std::string)
+SubNoUnit(stopping_criteria, "stopping criteria", string)
+SubNoUnit(filter_name, "filter name", string)
 Sub(xy_filter, "%xy-filter", float)
 Sub(z_filter, "%z-filter", float)
 SubNoUnit(image_zoom, "%image zoom", float)
@@ -3043,11 +2972,11 @@ SubNoUnit(maximum_ring_difference, "%maximum ring difference",
           unsigned short int)
 SubNoUnit(number_of_segments, "%number of segments", unsigned short int)
 SubListNoUnit(segment_table, "%segment table", unsigned short int)
-SubListNoUnit(applied_corrections, "applied corrections", std::string)
+SubListNoUnit(applied_corrections, "applied corrections", string)
 SubNoUnit(method_of_attenuation_correction, "method of attenuation correction",
-          std::string)
+          string)
 SubNoUnit(method_of_scatter_correction, "method of scatter correction",
-          std::string)
+          string)
 SubNoUnit(method_of_random_correction, "%method of random correction",
           Interfile::trandom_correction)
 SubSep(IMAGE_DATA_DESCRIPTION, "!IMAGE DATA DESCRIPTION")

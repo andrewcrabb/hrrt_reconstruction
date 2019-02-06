@@ -50,7 +50,7 @@
 #define TRUE 1
 #define FALSE 0
 
-MatrixError matrix_errno;
+MatrixError g_matrix_error;
 // char    matrix_errtxt[132];
 std::string matrix_errtxt;
 
@@ -101,7 +101,7 @@ matrix_freelist(MatDirList *matdirlist)
 }
 
 static void 
-free_matrix_file(MatrixFile *mptr)
+free_matrix_file(ecat_matrix::MatrixFile *mptr)
 {
   if (mptr == NULL)
     return;
@@ -136,8 +136,8 @@ int matrix_convert_data(MatrixData *matrix, MatrixDataType dtype)
   
   fdata = (float*)matrix->data_ptr;
   nvoxels = matrix->xdim*matrix->ydim*matrix->zdim;
-  nblks = (nvoxels*sizeof(short) + MatBLKSIZE-1)/MatBLKSIZE;
-  if ((sdata=(short*)calloc(nblks, MatBLKSIZE)) == NULL) return 0;
+  nblks = (nvoxels*sizeof(short) + ecat_matrix::MatBLKSIZE-1)/ecat_matrix::MatBLKSIZE;
+  if ((sdata=(short*)calloc(nblks, ecat_matrix::MatBLKSIZE)) == NULL) return 0;
   matrix->data_size = nvoxels*sizeof(short);
   matrix->data_type = SunShort;
   scalef = matrix->scale_factor;
@@ -168,13 +168,13 @@ int matrix_convert_data(MatrixData *matrix, MatrixDataType dtype)
 
 
 static int matrix_write_slice(mptr,matnum,data,plane)
-     MatrixFile *mptr ;
+     ecat_matrix::MatrixFile *mptr ;
      MatrixData *data ;
      int   matnum, plane;
 {
   MatrixData *slice;
-  Image_subheader *imh;
-  struct Matval val;
+  ecat_matrix::Image_subheader *imh;
+  ecat_matrix::MatVal val;
   int i, npixels, nblks, s_matnum;
   short *sdata;
   unsigned char * bdata;
@@ -182,34 +182,34 @@ static int matrix_write_slice(mptr,matnum,data,plane)
 
   switch(mptr->mhptr->file_type) {
   case ecat_matrix::DataSetType::PetImage :
-    if (data->data_type ==  ByteData) {
+    if (data->data_type ==  ecat_matrix::MatrixDataType::ByteData) {
       /*				fprintf(stderr,"Only short data type supported in V6\n");*/
-      matrix_errno = ecat_matrix::MatrixError::INVALID_DATA_TYPE ;
+      g_matrix_error = ecat_matrix::MatrixError::INVALID_DATA_TYPE ;
       return ECATX_ERROR;
     }
     mat_numdoc(matnum,&val);
     slice = (MatrixData*)malloc(sizeof(MatrixData));
     if( !slice ) return(ECATX_ERROR) ;
 
-    imh = (Image_subheader*)calloc(1,MatBLKSIZE);
+    imh = (ecat_matrix::Image_subheader*)calloc(1,ecat_matrix::MatBLKSIZE);
     if( !imh ) {
       free( slice );
       return(ECATX_ERROR) ;
     }
     memcpy(slice,data,sizeof(MatrixData));
-    memcpy(imh,data->shptr,sizeof(Image_subheader));
+    memcpy(imh,data->shptr,sizeof(ecat_matrix::Image_subheader));
     slice->shptr = (void *)imh;
     slice->zdim = imh->z_dimension = 1;
     npixels = slice->xdim*slice->ydim;
-    nblks = (npixels*2 + MatBLKSIZE-1)/MatBLKSIZE;
-    slice->data_ptr = (void *)calloc(nblks,MatBLKSIZE);
+    nblks = (npixels*2 + ecat_matrix::MatBLKSIZE-1)/ecat_matrix::MatBLKSIZE;
+    slice->data_ptr = (void *)calloc(nblks,ecat_matrix::MatBLKSIZE);
     if( !slice->data_ptr ) {
       free( slice );
       free( imh );
       return(ECATX_ERROR) ;
     }
-    slice->data_size = nblks*MatBLKSIZE;
-    if (data->data_type ==  ByteData) {
+    slice->data_size = nblks*ecat_matrix::MatBLKSIZE;
+    if (data->data_type ==  ecat_matrix::MatrixDataType::ByteData) {
       bdata = (unsigned char *)(data->data_ptr+(plane-1)*npixels);
       imh->image_min = find_bmin(bdata,npixels);
       imh->image_max = find_bmax(bdata,npixels);
@@ -221,7 +221,7 @@ static int matrix_write_slice(mptr,matnum,data,plane)
       imh->image_max = find_smax(sdata,npixels);
       memcpy(slice->data_ptr,sdata,npixels*2);
     }
-    s_matnum = mat_numcod(val.frame,plane,val.gate,val.data,val.bed);
+    s_matnum = ecat_matrix::mat_numcod(val.frame,plane,val.gate,val.data,val.bed);
     ret = matrix_write(mptr,s_matnum,slice);
     free_matrix_data(slice);
     return( ret );
@@ -231,11 +231,11 @@ static int matrix_write_slice(mptr,matnum,data,plane)
     /*			fprintf(stderr,
                 "matrix_slice_write : Main_header file_type should be PetImage\n");
     */
-    matrix_errno = ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH;
+    g_matrix_error = ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH;
     return ECATX_ERROR;
   default:
     /*			fprintf(stderr,"V7 to V6 conversion only supported for images\n");*/
-    matrix_errno = ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH;
+    g_matrix_error = ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH;
     return ECATX_ERROR;
   }
 }
@@ -318,8 +318,8 @@ find_fmax( const float *fdata, int nvals)
   return fmax;
 }
 
-int read_host_data(MatrixFile *mptr, int matnum, MatrixData *data, ecat_matrix::MatrixDataType dtype) {
-  struct MatDir matdir;
+int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, MatrixData *data, ecat_matrix::MatrixDataType dtype) {
+  MatDir matdir;
   int	 nblks, data_size ;
   Scan3D_subheader *scan3Dsub ;
   int sx,sy,sz;
@@ -337,7 +337,7 @@ int read_host_data(MatrixFile *mptr, int matnum, MatrixData *data, ecat_matrix::
     return interfile_read(mptr, matnum, data, dtype);
 
   if (matrix_find(mptr,matnum,&matdir) == ECATX_ERROR) {
-      matrix_errno = ecat_matrix::MatrixError::MATRIX_NOT_FOUND ;
+      g_matrix_error = ecat_matrix::MatrixError::MATRIX_NOT_FOUND ;
       return(ECATX_ERROR) ;
 	}
   nblks = matdir.endblk - matdir.strtblk ;
@@ -397,26 +397,26 @@ int read_host_data(MatrixFile *mptr, int matnum, MatrixData *data, ecat_matrix::
     case ecat_matrix::DataSetType::PetImage :
     case ecat_matrix::DataSetType::PetVolume :
     case ecat_matrix::DataSetType::InterfileImage:
-        Image_subheader *imagesub = (Image_subheader *) data->shptr ;
+        ecat_matrix::Image_subheader *imagesub = (ecat_matrix::Image_subheader *) data->shptr ;
       mat_read_image_subheader(mptr->fptr,mptr->mhptr,matdir.strtblk,
                                imagesub);
       data->data_type = imagesub->data_type ;
       sx = data->xdim = imagesub->x_dimension ;
       sy = data->ydim = imagesub->y_dimension ;
       data->scale_factor = imagesub->scale_factor ;
-      if (data->data_type==ByteData || data->data_type==Color_8)
+      if (data->data_type==ecat_matrix::MatrixDataType::ByteData || data->data_type==Color_8)
         elem_size =1 ;
       else elem_size = 2;
       sz = data->zdim = imagesub->z_dimension ;
       if( sx*sy*elem_size == 0 ) {
-        matrix_errno = ecat_matrix::MatrixError::INVALID_DIMENSION;
+        g_matrix_error = ecat_matrix::MatrixError::INVALID_DIMENSION;
         return( ECATX_ERROR );
       }
       if (sz > data_size/(sx*sy*elem_size))
         sz = data->zdim = imagesub->z_dimension = data_size/(sx*sy*elem_size);
       /* fix inconsistent file types */
       if (data->zdim > 1) {
-        if (data->data_type == ByteData) {
+        if (data->data_type == ecat_matrix::MatrixDataType::ByteData) {
           data->mat_type = ByteVolume;
         } else {
           data->mat_type = PetVolume;
@@ -443,7 +443,7 @@ int read_host_data(MatrixFile *mptr, int matnum, MatrixData *data, ecat_matrix::
         break;
       read_matrix_data(mptr->fptr, matdir.strtblk+1, nblks,
                        data->data_ptr, imagesub->data_type) ;
-      if (imagesub->data_type == ByteData) {
+      if (imagesub->data_type == ecat_matrix::MatrixDataType::ByteData) {
         imagesub->image_max = find_bmax((unsigned char *)data->data_ptr,sx*sy*sz);
         imagesub->image_min = find_bmin((unsigned char *)data->data_ptr,sx*sy*sz);
       } else {
@@ -500,7 +500,7 @@ int read_host_data(MatrixFile *mptr, int matnum, MatrixData *data, ecat_matrix::
                        data->data_ptr, norm3d->data_type) ;
       break ;
     default :
-      matrix_errno = ecat_matrix::MatrixError::UNKNOWN_FILE_TYPE ;
+      g_matrix_error = ecat_matrix::MatrixError::UNKNOWN_FILE_TYPE ;
       return(ECATX_ERROR) ;
       break ;
 	}
@@ -508,16 +508,16 @@ int read_host_data(MatrixFile *mptr, int matnum, MatrixData *data, ecat_matrix::
 }
 
 void set_matrix_no_error() {
-  matrix_errno = ecat_matrix::MatrixError::OK;
+  g_matrix_error = ecat_matrix::MatrixError::OK;
   matrix_errtxt.clear();
 }
 
-int matrix_write(MatrixFile *mptr, int matnum, MatrixData *data)
+int matrix_write(ecat_matrix::MatrixFile *mptr, int matnum, MatrixData *data)
 {
-  struct MatDir matdir, dir_entry ;
+  MatDir matdir, dir_entry ;
   Scan3D_subheader *scan3Dsub = NULL;
   Scan_subheader *scansub ;
-  Image_subheader *imagesub ;
+  ecat_matrix::Image_subheader *imagesub ;
   Attn_subheader *attnsub ;
   Norm_subheader *normsub ;
   int	status, blkno, nblks ;
@@ -564,9 +564,9 @@ int matrix_write(MatrixFile *mptr, int matnum, MatrixData *data)
     case ecat_matrix::DataSetType::PetImage :
     case ecat_matrix::DataSetType::PetVolume :
     case ecat_matrix::DataSetType::InterfileImage:
-      imagesub = (Image_subheader *) data->shptr ;
+      imagesub = (ecat_matrix::Image_subheader *) data->shptr ;
       if (imagesub == NULL) {
-        imagesub = (Image_subheader *) calloc(1, MatBLKSIZE);
+        imagesub = (ecat_matrix::Image_subheader *) calloc(1, ecat_matrix::MatBLKSIZE);
         data->shptr = (void *)imagesub;
       }							/* use MatrixData info */
       imagesub->x_pixel_size = data->pixel_size;
@@ -617,7 +617,7 @@ int matrix_write(MatrixFile *mptr, int matnum, MatrixData *data)
 }
 
 int
-matrix_find(MatrixFile *matfile, int matnum, struct MatDir *matdir)
+matrix_find(ecat_matrix::MatrixFile *matfile, int matnum, MatDir *matdir)
 {
   MatDirNode	*node ;
 
@@ -644,7 +644,7 @@ matrix_find(MatrixFile *matfile, int matnum, struct MatDir *matdir)
 
 
 int 
-insert_mdir(struct MatDir	*matdir, MatDirList	*dirlist) { 
+insert_mdir(MatDir	*matdir, MatDirList	*dirlist) { 
   set_matrix_no_error();
   if (dirlist == NULL)	{
       dirlist = (MatDirList *) malloc(sizeof(MatDirList)) ;
@@ -683,8 +683,8 @@ void free_matrix_data(MatrixData	*data) {
 }
 
 void matrix_perror( const char* s) {
-  if (matrix_errno)
-    fprintf( stderr, "%s: %s\n", s, ecat_matrix::matrix_errors_[matrix_errno]);
+  if (g_matrix_error)
+    fprintf( stderr, "%s: %s\n", s, ecat_matrix::matrix_errors_[g_matrix_error]);
   else 
     perror(s);
 }
@@ -751,13 +751,11 @@ convert_float_scan( MatrixData *scan, float *fdata)
   return ECATX_OK;
 }
 
-MatrixData *
-matrix_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment)
-{
+MatrixData * matrix_read_scan(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixDataType dtype, int segment) {
   int i, nblks, plane_size;
   int sx, sy, sz;
   MatrixData *data;
-  struct MatDir matdir;
+  MatDir matdir;
   Scan3D_subheader *scan3Dsub;
   Attn_subheader *attnsub;
   int status, group;
@@ -775,7 +773,7 @@ matrix_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment)
     return NULL;
 
   if ((data = (MatrixData *) calloc( 1, sizeof(MatrixData))) != NULL) {
-    if ( (data->shptr = (void *) calloc(2, MatBLKSIZE)) == NULL) {
+    if ( (data->shptr = (void *) calloc(2, ecat_matrix::MatBLKSIZE)) == NULL) {
       free(data);
       return NULL;
     }
@@ -796,7 +794,7 @@ matrix_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment)
       free_matrix_data(data);	
       return NULL;
     }
-    file_pos = (matdir.strtblk+1)*MatBLKSIZE;
+    file_pos = (matdir.strtblk+1)*ecat_matrix::MatBLKSIZE;
     data->data_type = scan3Dsub->data_type;
     data->scale_factor = scan3Dsub->scale_factor;
     data->pixel_size = scan3Dsub->x_resolution;
@@ -854,7 +852,7 @@ matrix_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment)
       free_matrix_data(data);
       return NULL;
     }
-    file_pos = matdir.strtblk*MatBLKSIZE;
+    file_pos = matdir.strtblk*ecat_matrix::MatBLKSIZE;
     data->data_type = attnsub->data_type;
     data->scale_factor = attnsub->scale_factor;
     data->pixel_size = attnsub->x_resolution;
@@ -897,16 +895,16 @@ matrix_read_scan(MatrixFile *mptr, int matnum, int dtype, int segment)
     data->data_max = find_fmax((float*)data->data_ptr,sx*sy*sz);
     break;
   default:
-    matrix_errno = ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH;
+    g_matrix_error = ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH;
     return NULL;
   }
   return data;
 }
 int 
-mh_update(MatrixFile *file)
+mh_update(ecat_matrix::MatrixFile *file)
 {
   MatDirNode     *node;
-  struct Matval   val;
+  ecat_matrix::MatVal   val;
   int            *frames, *planes, *gates, *beds;
   int             num_frames = 0, num_planes = 0, num_gates = 0,
     num_beds = 0;
@@ -974,15 +972,15 @@ mh_update(MatrixFile *file)
 }
 
 MatDirBlk *
-mat_rdirblk(MatrixFile *file, int blknum)
+mat_rdirblk(ecat_matrix::MatrixFile *file, int blknum)
 {
   MatDirBlk      *matdirblk;
   int             i, j, err, ndirs;
-  int             dirbufr[MatBLKSIZE / 4];
+  int             dirbufr[ecat_matrix::MatBLKSIZE / 4];
   FILE           *fptr = file->fptr;
 
   set_matrix_no_error();
-  matdirblk = (MatDirBlk *) malloc(MatBLKSIZE);
+  matdirblk = (MatDirBlk *) malloc(ecat_matrix::MatBLKSIZE);
   if (matdirblk == NULL)
     return (NULL);
   err = read_matrix_data(fptr, blknum, 1, (char *) dirbufr, SunLong);
@@ -996,11 +994,11 @@ mat_rdirblk(MatrixFile *file, int blknum)
   matdirblk->nused = dirbufr[3];
 
   if (matdirblk->nused > 31) {
-    matrix_errno = ecat_matrix::MatrixError::INVALID_DIRBLK;
+    g_matrix_error = ecat_matrix::MatrixError::INVALID_DIRBLK;
     free(matdirblk);
     return (NULL);
   }
-  ndirs = (MatBLKSIZE / 4 - 4) / 4;
+  ndirs = (ecat_matrix::MatBLKSIZE / 4 - 4) / 4;
   for (i = 0; i < ndirs; i++) {
     matdirblk->matdir[i].matnum  = 0;
     matdirblk->matdir[i].strtblk = 0;
@@ -1019,9 +1017,9 @@ mat_rdirblk(MatrixFile *file, int blknum)
 }
 
 MatDirList *
-mat_read_directory(MatrixFile *mptr)
+mat_read_directory(ecat_matrix::MatrixFile *mptr)
 {
-  struct MatDir   matdir;
+  MatDir   matdir;
   MatDirList     *dirlist;
   MatDirBlk      *matdirblk;
   int             i, blknum;
@@ -1051,10 +1049,10 @@ mat_read_directory(MatrixFile *mptr)
   return (dirlist);
 }
 
-MatrixFile *matrix_open(const char* fname, int fmode, ecat_matrix::MatrixFileType_64 mtype) {
+ecat_matrix::MatrixFile *matrix_open(const char* fname, int fmode, ecat_matrix::MatrixFileType_64 mtype) {
 
   int status;
-  MatrixFile *mptr ;
+  ecat_matrix::MatrixFile *mptr ;
   char *omode;
 
   if (fmode == ecat_matrix::MatrixFileAccessMode::READ_ONLY) omode = R_MODE;
@@ -1064,8 +1062,8 @@ MatrixFile *matrix_open(const char* fname, int fmode, ecat_matrix::MatrixFileTyp
   }
 
   set_matrix_no_error();
-  /* allocate space for MatrixFile and main header data structures */
-  if ( (mptr = (MatrixFile *)calloc(1,sizeof(MatrixFile))) == NULL) {
+  /* allocate space for ecat_matrix::MatrixFile and main header data structures */
+  if ( (mptr = (ecat_matrix::MatrixFile *)calloc(1,sizeof(ecat_matrix::MatrixFile))) == NULL) {
     return(NULL) ;
   }
 
@@ -1077,7 +1075,7 @@ MatrixFile *matrix_open(const char* fname, int fmode, ecat_matrix::MatrixFileTyp
   if (fmode == ecat_matrix::MatrixFileAccessMode::READ_ONLY) { /* check if interfile or analyze format */
     if ((mptr->fname = is_interfile(fname)) != NULL) {
       if (interfile_open(mptr) == ECATX_ERROR) {
-        /* matrix_errno set by interfile_open */
+        /* g_matrix_error set by interfile_open */
         free_matrix_file(mptr);
         return (NULL);
       }
@@ -1085,7 +1083,7 @@ MatrixFile *matrix_open(const char* fname, int fmode, ecat_matrix::MatrixFileTyp
     }
     if ((mptr->fname=is_analyze(fname)) != NULL) {
       if (analyze_open(mptr) == ECATX_ERROR) {
-        /* matrix_errno is set by analyze_open */
+        /* g_matrix_error is set by analyze_open */
         free_matrix_file(mptr);
         return (NULL);
       }
@@ -1100,7 +1098,7 @@ MatrixFile *matrix_open(const char* fname, int fmode, ecat_matrix::MatrixFileTyp
   }
   mptr->fname = strdup(fname);
   if (mat_read_main_header(mptr->fptr, mptr->mhptr) == ECATX_ERROR) {
-    matrix_errno = ecat_matrix::MatrixError::NOMHD_FILE_OBJECT ;
+    g_matrix_error = ecat_matrix::MatrixError::NOMHD_FILE_OBJECT ;
     free_matrix_file(mptr);
     return(NULL);
   }
@@ -1111,7 +1109,7 @@ MatrixFile *matrix_open(const char* fname, int fmode, ecat_matrix::MatrixFileTyp
   */
   if (mtype != ecat_matrix::DataSetType::NoData && mptr->mhptr->file_type!= ecat_matrix::DataSetType::NoData)
     if (mtype != mptr->mhptr->file_type) {
-      matrix_errno = ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH ;
+      g_matrix_error = ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH ;
       free_matrix_file(mptr);
       return (NULL);
 	}
@@ -1129,14 +1127,14 @@ MatrixFile *matrix_open(const char* fname, int fmode, ecat_matrix::MatrixFileTyp
     mptr->file_format = ecat_matrix::FileFormat::ECAT6;
   }
 
-  if( matrix_errno == ECATX_OK ) 
+  if( g_matrix_error == ECATX_OK ) 
     return( mptr ) ;
   free_matrix_file( mptr);
   return(NULL) ;
 }
 
-MatrixFile *matrix_create(const char *fname, MatrixFileAccessMode const fmode, Main_header * proto_mhptr) {
-  MatrixFile     *mptr = NULL;
+ecat_matrix::MatrixFile *matrix_create(const char *fname, MatrixFileAccessMode const fmode, Main_header * proto_mhptr) {
+  ecat_matrix::MatrixFile     *mptr = NULL;
   FILE           *fptr, *mat_create();
 
   set_matrix_no_error();
@@ -1147,7 +1145,7 @@ MatrixFile *matrix_create(const char *fname, MatrixFileAccessMode const fmode, M
     if (mptr) 
       break;
     /*
-     * if (matrix_errno != NFS_FILE_NOT_FOUND) break; if we
+     * if (g_matrix_error != NFS_FILE_NOT_FOUND) break; if we
      * got an NFS_FILE_NOT_FOUND error, then try to create the
      * matrix file.
      */
@@ -1158,7 +1156,7 @@ MatrixFile *matrix_create(const char *fname, MatrixFileAccessMode const fmode, M
     if (!fptr) 
       return( NULL );
 
-    mptr = (MatrixFile *) calloc(1, sizeof(MatrixFile));
+    mptr = (ecat_matrix::MatrixFile *) calloc(1, sizeof(ecat_matrix::MatrixFile));
     if (!mptr) {
       fclose( fptr );
       return( NULL );
@@ -1190,16 +1188,16 @@ MatrixFile *matrix_create(const char *fname, MatrixFileAccessMode const fmode, M
     }
     break;
   default:
-    matrix_errno = ecat_matrix::MatrixError::BAD_FILE_ACCESS_MODE;
+    g_matrix_error = ecat_matrix::MatrixError::BAD_FILE_ACCESS_MODE;
     return( NULL );
     break;
   }
   return mptr;
 }
 
-int matrix_close(MatrixFile *mptr) {
+int matrix_close(ecat_matrix::MatrixFile *mptr) {
   int status = ECATX_OK;
-  matrix_errno = ecat_matrix::MatrixError::OK;
+  g_matrix_error = ecat_matrix::MatrixError::OK;
   if (mptr->fname) 
     strcpy(matrix_errtxt,mptr->fname);
   else 
@@ -1218,16 +1216,16 @@ int matrix_close(MatrixFile *mptr) {
   return status;
 }
 
-MatrixData *matrix_read(MatrixFile *mptr, int matnum, ecat_matrix::MatrixDataType dtype) {
+MatrixData *matrix_read(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixDataType dtype) {
   MatrixData     *data;
 
-  matrix_errno = ECATX_OK;
+  g_matrix_error = ECATX_OK;
   matrix_errtxt.clear();
   if (mptr == NULL)
-    matrix_errno = ecat_matrix::MatrixError::READ_FROM_NILFPTR;
+    g_matrix_error = ecat_matrix::MatrixError::READ_FROM_NILFPTR;
   else if (mptr->mhptr == NULL)
-    matrix_errno = ecat_matrix::MatrixError::NOMHD_FILE_OBJECT;
-  if (matrix_errno != ECATX_OK)
+    g_matrix_error = ecat_matrix::MatrixError::NOMHD_FILE_OBJECT;
+  if (g_matrix_error != ECATX_OK)
     return (NULL);
   /* allocate space for MatrixData structure and initialize */
   data = (MatrixData *) calloc(1, sizeof(MatrixData));
@@ -1235,7 +1233,7 @@ MatrixData *matrix_read(MatrixFile *mptr, int matnum, ecat_matrix::MatrixDataTyp
     return (NULL);
 
   /* allocate space for subheader and initialize */
-  data->shptr = (void *) calloc(2, MatBLKSIZE);
+  data->shptr = (void *) calloc(2, ecat_matrix::MatBLKSIZE);
   if (!data->shptr) {
     free(data);
     return (NULL);

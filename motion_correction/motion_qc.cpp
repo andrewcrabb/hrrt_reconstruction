@@ -610,9 +610,9 @@ int main(int argc, char **argv)
 
   if (strcasecmp(ext,"v") == 0) {
     // ecat reconstructed .v image file
-    MatrixFile *mf=NULL;
+    ecat_matrix::MatrixFile *mf=NULL;
     MatrixData *matdata;
-    Image_subheader *imh;
+    ecat_matrix::Image_subheader *imh;
     MatDirNode *node;
     int suggested_ref_frame=-1; // first 5min frame
 
@@ -639,7 +639,7 @@ int main(int argc, char **argv)
         fprintf(log_fp,"Error reading frame %d header\n", frame);
         exit(1);
       }
-      imh = (Image_subheader*)matdata->shptr;
+      imh = (ecat_matrix::Image_subheader*)matdata->shptr;
       frame_info[frame].start_time = imh->frame_start_time / 1000;
       frame_info[frame].duration   = imh->frame_duration / 1000;
       frame_info[frame].randoms    = imh->random_rate * frame_info[frame].duration;

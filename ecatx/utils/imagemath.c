@@ -39,11 +39,11 @@ main( argc, argv)
   int argc;
   char **argv;
 {
-	MatrixFile *file1=NULL, *file2=NULL, *file3=NULL;
+	ecat_matrix::MatrixFile *file1=NULL, *file2=NULL, *file3=NULL;
 	MatrixData *image1=NULL, *image2=NULL, *image3=NULL;
 	MatrixData *slice1=NULL, *slice2=NULL;
 	Main_header *mh3=NULL;
-	Image_subheader *imh;
+	ecat_matrix::Image_subheader *imh;
 	float *imagea, *imageb, *imagec;
 	float valb;
 	short int *sdata;
@@ -57,7 +57,7 @@ main( argc, argv)
 
 	if (argc<6) usage(argv[0]);
 /* get imagea */
-	if (!matspec( argv[1], fname, &matnuma)) matnuma = mat_numcod(1,1,1,0,0);
+	if (!matspec( argv[1], fname, &matnuma)) matnuma = ecat_matrix::mat_numcod(1,1,1,0,0);
 	file1 = matrix_open( fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
 	if (!file1)
 	  crash( "%s: can't open file '%s'\n", argv[0], fname);
@@ -74,7 +74,7 @@ main( argc, argv)
 		crash("input is not a Image nor Volume\n");
 		break;
 	}
-	if (!matspec( argv[2], fname, &matnumb)) matnumb = mat_numcod(1,1,1,0,0);
+	if (!matspec( argv[2], fname, &matnumb)) matnumb = ecat_matrix::mat_numcod(1,1,1,0,0);
 	file2 = matrix_open( fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
 	if (!file2) {		/* check constant value argument */
 	  if (sscanf(argv[2],"%g",&valb) != 1)
@@ -91,7 +91,7 @@ main( argc, argv)
 	nvoxels = npixels*image1->zdim;
 
 /* get imagec specification and write header */
-	if (!matspec( argv[3], fname, &matnumc)) matnumc = mat_numcod(1,1,1,0,0);
+	if (!matspec( argv[3], fname, &matnumc)) matnumc = ecat_matrix::mat_numcod(1,1,1,0,0);
 	mh3 = (Main_header*)calloc(1, sizeof(Main_header));
 	memcpy(mh3, file1->mhptr, sizeof(Main_header));
 	mh3->file_type = ecat_matrix::DataSetType::PetVolume;
@@ -99,8 +99,8 @@ main( argc, argv)
 	if (!file3) crash( "%s: can't open file '%s'\n", argv[0], fname);
 	image3 = (MatrixData*)calloc(1, sizeof(MatrixData));
 	memcpy(image3, image1, sizeof(MatrixData));
-	imh = (Image_subheader*)calloc(1,sizeof(Image_subheader));
-	memcpy(imh,image1->shptr,sizeof(Image_subheader));
+	imh = (ecat_matrix::Image_subheader*)calloc(1,sizeof(ecat_matrix::Image_subheader));
+	memcpy(imh,image1->shptr,sizeof(ecat_matrix::Image_subheader));
 	imagec = (float*)malloc(nvoxels*sizeof(float));
 	imagea = (float*)malloc(npixels*sizeof(float));
 	imageb = (float*)malloc(npixels*sizeof(float));
