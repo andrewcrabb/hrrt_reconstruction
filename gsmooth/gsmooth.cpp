@@ -43,7 +43,7 @@ static float gauss_fwhm_z = 2.0;
 static int num_log_cpus=1;
 
 #include "ecatx/matrix.h"
-#ifndef unix
+
 #include <io.h>
 #include <direct.h>
 #define access _access
@@ -52,14 +52,10 @@ static int num_log_cpus=1;
 #define W_OK 0x2
 #define R_OK 0x4
 #define RW_OK 0x6
-#define SEPARATOR '\\'
-#define strcasecmp _stricmp
-#else
-#define SEPARATOR '/'
+
 #include <unistd.h>
-#endif
-int main(int argc, char **argv)
-{
+
+int main(int argc, char **argv) {
 
 	char *in_fname=NULL, out_fname[FILENAME_MAX], ext[FILENAME_MAX];
 	char in_hdr_fname[FILENAME_MAX];
@@ -68,8 +64,7 @@ int main(int argc, char **argv)
   int multi_frame_movie_mode = 0, simd_mode=1;
   int ecat_flag=1, cubic_flag=0;
 
-	if (argc<2)
-	{
+	if (argc<2)	{
     fprintf(stderr, "\n%s Build %s %s\n\n",argv[0],__DATE__,__TIME__);
 		fprintf(stderr, "Usage: gsmooth input [FWHM [output [k|m|s]]]\n");
 		fprintf(stderr, "        Applies a 3D gaussian smoothing with specified FWHM in mm\n");
@@ -119,10 +114,10 @@ int main(int argc, char **argv)
   clock_t c1=clock();
 	if (access(in_hdr_fname, F_OK) == 0) {
 		if ((in = matrix_open(in_hdr_fname,ecat_matrix::MatrixFileAccessMode::READ_ONLY,ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE)) == NULL)
-			crash("Error opening %s\n", in_hdr_fname);
+			ecat_matrix::crash("Error opening %s\n", in_hdr_fname);
 	} else {
 		if ((in = matrix_open(in_fname,ecat_matrix::MatrixFileAccessMode::READ_ONLY,ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE)) == NULL)
-			crash("Error opening %s\n", in_fname);
+			ecat_matrix::crash("Error opening %s\n", in_fname);
 		 int pos = strlen(in_fname) - 6;
 		if (pos>0 && strcasecmp(in_fname+pos, ".i.hdr")== 0) {
 			strncpy(out_fname,in_fname, pos);
@@ -130,10 +125,10 @@ int main(int argc, char **argv)
 		}
 	}
 	if (in->dirlist->nmats == 0)
-    crash("Error: %s is empty\n", in_fname);
+    ecat_matrix::crash("Error: %s is empty\n", in_fname);
   clock_t c2=clock();  
   // printf("matrix_open: \t%f sec\n",(c2-c1+0.0)/CLOCKS_PER_SEC);   
-  MatDirNode *node = in->dirlist->first;
+  ecat_matrix::MatDirNode *node = in->dirlist->first;
   int frame=0;
   while (node) {
     ecat_matrix::MatVal mat;
@@ -141,17 +136,17 @@ int main(int argc, char **argv)
     mat_numdoc(matnum, &mat);
     if (in->dirlist->nmats > 1) printf("Smoothing frame %d\n", mat.frame);
     c1=clock();
-    MatrixData *volume = matrix_read(in, matnum,GENERIC);
+    ecat_matrix::MatrixData *volume = matrix_read(in, matnum,GENERIC);
     c2=clock();  
     // printf("matrix_read: \t%f sec\n",(c2-c1+0.0)/CLOCKS_PER_SEC);  
-    if (volume == NULL) crash("error loading %s frame %d\n", in_fname, mat.frame);
+    if (volume == NULL) ecat_matrix::crash("error loading %s frame %d\n", in_fname, mat.frame);
     if (volume->xdim != volume->ydim) 
-      crash("%s : unsupported different X and Y dimensions (%d,%d)\n",
+      ecat_matrix::crash("%s : unsupported different X and Y dimensions (%d,%d)\n",
 		in_fname,
 		volume->xdim, volume->ydim);
     float xfov = volume->xdim*volume->pixel_size, yfov=volume->ydim*volume->y_size;
     if (fabs(xfov - yfov) > 0.1)
-      crash("%s : unsupported non-squared image FOV (%g,%g)\n",
+      ecat_matrix::crash("%s : unsupported non-squared image FOV (%g,%g)\n",
       in_fname, xfov, yfov);
     
     int sx=volume->xdim, sy=volume->xdim, sz=volume->zdim;
@@ -163,32 +158,33 @@ int main(int argc, char **argv)
     unsigned char *bdata = (unsigned char*)volume->data_ptr;
     float *image = NULL;
     float scalef = volume->scale_factor;
-    switch(volume->data_type)
-    {
-    case SunShort:
-    case VAX_Ix2:
+    switch(volume->data_type) {
+    case ecat_matrix::MatrixDataType::SunShort:
+    case ecat_matrix::MatrixDataType::VAX_Ix2:
       image = (float*)calloc(nvoxels, sizeof(float));
-      for (i=0; i<nvoxels; i++) image[i] = sdata[i]*scalef;
+      for (i=0; i<nvoxels; i++)
+        image[i] = sdata[i]*scalef;
       break;
-    case ByteData:
+    case ecat_matrix::MatrixDataType::ByteData:
       image = (float*)calloc(nvoxels, sizeof(float));
-      for (i=0; i<nvoxels; i++) image[i] = bdata[i]*scalef;
+      for (i=0; i<nvoxels; i++)
+        image[i] = bdata[i]*scalef;
       break;
-    case UShort_BE:
-    case UShort_LE:
+    case ecat_matrix::MatrixDataType::UShort_BE:
+    case ecat_matrix::MatrixDataType::UShort_LE:
       image = (float*)calloc(nvoxels, sizeof(float));
-      for (i=0; i<nvoxels; i++) image[i] = udata[i]*scalef;
+      for (i=0; i<nvoxels; i++)
+        image[i] = udata[i]*scalef;
       break;
-    case IeeeFloat:
+    case ecat_matrix::MatrixDataType::IeeeFloat:
       image = (float*)volume->data_ptr;
       break;
     default:
-      crash("%s : unsupported image data type (%d)\n",
+      ecat_matrix::crash("%s : unsupported image data type (%d)\n",
         in_fname, volume->data_type);
     }
     
-    if (volume->data_type != IeeeFloat)
-    {
+    if (volume->data_type != ecat_matrix::MatrixDataType::IeeeFloat) {
       free(volume->data_ptr);
       volume->data_ptr = NULL;
     }
@@ -254,7 +250,7 @@ int main(int argc, char **argv)
 	  char **interfile_hdr = in->interfile_header;
     if (in->analyze_hdr==NULL && interfile_hdr!=NULL) {
      // Interfile format: use float
-      volume->data_type = IeeeFloat;
+      volume->data_type = ecat_matrix::MatrixDataType::IeeeFloat;
     } else {   // ECAT format: convert to Short
       ecat_matrix::Image_subheader* imh = (ecat_matrix::Image_subheader*)volume->shptr;
          // update z dimension in case it changed
@@ -262,7 +258,7 @@ int main(int argc, char **argv)
       imh->z_pixel_size = volume->z_size;
       in->mhptr->num_planes = volume->zdim;
 
-      volume->data_type = SunShort;
+      volume->data_type = ecat_matrix::MatrixDataType::SunShort;
       imh->data_type = volume->data_type;
       float fmin = find_fmin(image, nvoxels);
       float fmax = find_fmax(image, nvoxels);
@@ -300,18 +296,18 @@ int main(int argc, char **argv)
 			  strcpy(p+1,"i");
 			  strcpy(data_file, out_fname);
 			  FILE *fp = fopen(out_fname,"wb");
-			  if (fp==NULL) crash("Error creating %s\n", out_fname);
-			  int data_size = volume->data_type == IeeeFloat? 
+			  if (fp==NULL) ecat_matrix::crash("Error creating %s\n", out_fname);
+			  int data_size = volume->data_type == ecat_matrix::MatrixDataType::IeeeFloat? 
 				  nvoxels*sizeof(float) : nvoxels*sizeof(short);
 			  if (fwrite(image,data_size,1,fp) != 1)
-				  crash("Error writing %s\n", out_fname);
+				  ecat_matrix::crash("Error writing %s\n", out_fname);
 			  fclose(fp);
 			  strcpy(p+1,"i.hdr");
 			  FILE *in_hdr = fopen(in->fname,"rb");
 			  if (fp==NULL)
-          crash("Error opening input header %s\n", in->fname);
+          ecat_matrix::crash("Error opening input header %s\n", in->fname);
 			  if ((fp = fopen(out_fname,"wb")) == NULL)
-				  crash("Error creating %s\n", out_fname);
+				  ecat_matrix::crash("Error creating %s\n", out_fname);
 			  const char *endianess = "BIGENDIAN";
   #ifdef unix
 			  if (ntohs(1)!=1) endianess = "LITTLEENDIAN";
@@ -341,7 +337,7 @@ int main(int argc, char **argv)
 			  }
 			  fprintf(fp,";gaussian 3D post-smoothing := %g mm\n",
 				  gauss_fwhm_xy);
-			  if (volume->data_type != IeeeFloat)
+			  if (volume->data_type != ecat_matrix::MatrixDataType::IeeeFloat)
 				  fprintf(fp,";%%quantification units := %g mm\n", 
 				  volume->scale_factor);
 			  fclose(in_hdr);
@@ -351,20 +347,20 @@ int main(int argc, char **argv)
 	  else
 	  {
 		  // ECAT 7 format
-		  Main_header proto;
-		  memcpy(&proto, in->mhptr, sizeof(Main_header));
+		  ecat_matrix::Main_header proto;
+		  memcpy(&proto, in->mhptr, sizeof(ecat_matrix::Main_header));
       if (in->analyze_hdr)
       {
-        proto.file_type = PetVolume;
+        proto.file_type = ecat_matrix::DataSetType::PetVolume;
       }
       if (multi_frame_movie_mode)  proto.calibration_factor = 1.0f;
       if (frame==0) 
       {
         out = matrix_create(out_fname, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, &proto);
-		     if (out==NULL) crash("Error creating %s\n", out_fname);
+		     if (out==NULL) ecat_matrix::crash("Error creating %s\n", out_fname);
       }
 		  if (matrix_write(out, volume->matnum, volume) != 0)
-			  crash("Error writing %s\n", out_fname);
+			  ecat_matrix::crash("Error writing %s\n", out_fname);
     }
 	  free_matrix_data(volume);
     node = node->next;

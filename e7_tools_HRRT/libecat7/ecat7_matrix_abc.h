@@ -26,7 +26,7 @@ class ECAT7_MATRIX
     ECAT7_MATRIX();                                        // initialize object
     virtual ~ECAT7_MATRIX();                                  // destroy object
     virtual ECAT7_MATRIX& operator = (const ECAT7_MATRIX &);    // '='-operator
-    virtual void Byte2Float();    // convert dataset from ByteData to IeeeFloat
+    virtual void Byte2Float();    // convert dataset from ecat_matrix::MatrixDataType::ByteData to ecat_matrix::MatrixDataType::IeeeFloat
     void DataDeleted();                                     // remove data part
     unsigned long int DataSize() const;            // request size of data part
     unsigned short int DataType() const;      // request data type of data part
@@ -35,8 +35,8 @@ class ECAT7_MATRIX
     virtual void *LoadData(std::ifstream * const, const unsigned long int);
     virtual void LoadHeader(std::ifstream * const);    // load header of matrix
                                                    // put data part into object
-    virtual void MatrixData(void * const, const unsigned short int);
-    void *MatrixData() const;                   // request pointer to data part
+    virtual void getecat_matrix::MatrixData(void * const, const unsigned short int);
+    void *getecat_matrix::MatrixData() const;                   // request pointer to data part
                             // calculate number of records needed for data part
     virtual unsigned long int NumberOfRecords() const;
                                    // print header information into string list
@@ -46,6 +46,6 @@ class ECAT7_MATRIX
     virtual void SaveData(std::ofstream * const) const;
                                                  // store header part of matrix
     virtual void SaveHeader(std::ofstream * const) const;
-    virtual void Short2Float();   // convert dataset from SunShort to IeeeFloat
+    virtual void Short2Float();   // convert dataset from ecat_matrix::MatrixDataType::SunShort to ecat_matrix::MatrixDataType::IeeeFloat
  };
 

@@ -441,9 +441,9 @@ int main(int argc, char **argv)
   if (*ext == 'v') {
     // ahc no
     ecat_matrix::MatrixFile *mf;
-    MatrixData *matdata;
+    ecat_matrix::MatrixData *matdata;
     ecat_matrix::Image_subheader *imh;
-    MatDirNode *node;
+    ecat_matrix::MatDirNode *node;
     if ((mf=matrix_open(em_file, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE))==NULL){
       fprintf(log_fp,"Error opening file %s\n", em_file);
       return 1;
@@ -458,7 +458,7 @@ int main(int argc, char **argv)
     frame_info.resize(num_frames);
     node = mf->dirlist->first;
     for (frame=0; frame<num_frames && node!=NULL; frame++) {
-      if ((matdata = matrix_read(mf, node->matnum, MAT_SUB_HEADER)) == NULL) {
+      if ((matdata = matrix_read(mf, node->matnum, ecat_matrix::MatrixDataType::MAT_SUB_HEADER)) == NULL) {
         fprintf(log_fp,"Error reading frame %d header\n", frame);
         return 1;
       }

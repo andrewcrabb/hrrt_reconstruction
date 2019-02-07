@@ -27,7 +27,7 @@ e7_tools_HRRT/e7_fwd_prj/e7_fwd_u
 e7_tools_HRRT/e7_sino_prj/e7_sino_u
 e7_tools_HRRT/E7_Bin/gm_check
 ecatx/utils/matlist
-gen_delays_main/gen_delays
+gen_delays/gen_delays
 gsmooth/gsmooth_ps
 hrrt_osem3d/hrrt_osem3d
 if2e7/if2e7

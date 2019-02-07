@@ -33,27 +33,21 @@
 #include "ecat_matrix.hpp"
 #include "matrix_utils.h"
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-int  matrix_resize(MatrixData *mat, float pixel_size, int interp_flag);
-int matrix_resize_1( MatrixData* slice, float pixel_size, int interpolate);
-int matrix_resize_2( MatrixData* slice, float pixel_size, int interpolate);
-int matrix_resize_4( MatrixData* slice, float pixel_size, int interpolate);
-#if defined(__cplusplus)
-}
-#endif
+int  matrix_resize(ecat_matrix::MatrixData *mat, float pixel_size, int interp_flag);
+int matrix_resize_1( ecat_matrix::MatrixData* slice, float pixel_size, int interpolate);
+int matrix_resize_2( ecat_matrix::MatrixData* slice, float pixel_size, int interpolate);
+int matrix_resize_4( ecat_matrix::MatrixData* slice, float pixel_size, int interpolate);
 #if defined(MATRIX_RESIZE_1)
 #define ELEM_TYPE unsigned char
-int matrix_resize_1( MatrixData* slice, float pixel_size, int interpolate)
+int matrix_resize_1( ecat_matrix::MatrixData* slice, float pixel_size, int interpolate)
 #endif
 #if defined(MATRIX_RESIZE_2)
 #define ELEM_TYPE short
-int matrix_resize_2( MatrixData* slice, float pixel_size, int interpolate)
+int matrix_resize_2( ecat_matrix::MatrixData* slice, float pixel_size, int interpolate)
 #endif
 #if defined(MATRIX_RESIZE_4)
 #define ELEM_TYPE float
-int matrix_resize_4( MatrixData* slice, float pixel_size, int interpolate)
+int matrix_resize_4( ecat_matrix::MatrixData* slice, float pixel_size, int interpolate)
 #endif
 #if defined(MATRIX_RESIZE_1) || defined(MATRIX_RESIZE_2) || defined(MATRIX_RESIZE_4)
 {

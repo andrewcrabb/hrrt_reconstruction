@@ -20,3 +20,9 @@ install(TARGETS hrrt_common
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     # PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
+
+# Make test executable
+set(TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_main.cpp)
+add_executable(tests ${TEST_SOURCES})
+target_include_directories (tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(tests LINK_PUBLIC Catch hrrt_common cheader fmt boost_system boost_filesystem boost_date_time)

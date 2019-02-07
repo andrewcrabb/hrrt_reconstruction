@@ -77,7 +77,7 @@ int main( argc, argv)
 	char *sex_code=NULL;
 	char *scan_time=NULL;
 	ecat_matrix::MatrixFile *mptr, *mptr1;
-	Main_header* mh;
+	ecat_matrix::Main_header* mh;
   char facility_name[20];
 	float ecf,weight,height,dose,branching_fraction,tilt;
 	int i,nframes, nplanes;
@@ -107,37 +107,37 @@ int main( argc, argv)
 			break;
 		case 'c' :
 			if (sscanf(optarg,"%g",&ecf) != 1)
-				crash("error decoding -c %s\n",optarg);
+				ecat_matrix::crash("error decoding -c %s\n",optarg);
 			calibrate = 1;
 			break;
 		case 'w' :
 			if (sscanf(optarg,"%g",&weight) != 1)
-				crash("error decoding -w %s\n",optarg);
+				ecat_matrix::crash("error decoding -w %s\n",optarg);
 			update_weight = 1;
 			break;
 		case 'h' :
 			if (sscanf(optarg,"%g",&height) != 1)
-				crash("error decoding -h %s\n",optarg);
+				ecat_matrix::crash("error decoding -h %s\n",optarg);
 			update_height = 1;
 			break;
 		case 'd' :
 			if (sscanf(optarg,"%g",&dose) != 1)
-				crash("error decoding -d %s\n",optarg);
+				ecat_matrix::crash("error decoding -d %s\n",optarg);
 			update_dose = 1;
 			break;
 		case 'D' :
 			if (sscanf(optarg,"%d:%d:%d",&hh,&mm,&ss) != 3)
-				crash("error decoding -D %s\n",optarg);
+				ecat_matrix::crash("error decoding -D %s\n",optarg);
 			update_delay = 1;
 			break;
 		case 't' :
 			if (sscanf(optarg,"%g",&tilt) != 1)
-				crash("error decoding -t %s\n",optarg);
+				ecat_matrix::crash("error decoding -t %s\n",optarg);
 			update_tilt = 1;
 			break;
 		case 'T' :
 			if (sscanf(optarg,"%d",&stype) != 1)
-				crash("error decoding -T %s\n",optarg);
+				ecat_matrix::crash("error decoding -T %s\n",optarg);
 			update_stype = 1;
 			break;
 
@@ -166,7 +166,7 @@ int main( argc, argv)
 			break;
 		case 'f' :
 			if (sscanf(optarg,"%d",&nframes) != 1)
-				crash("error decoding -f %s\n",optarg);
+				ecat_matrix::crash("error decoding -f %s\n",optarg);
 			update_nframes = 1;
 			break;
         case 'F': 
@@ -174,7 +174,7 @@ int main( argc, argv)
             break;
 		case 'p' :
 			if (sscanf(optarg,"%d",&nplanes) != 1)
-				crash("error decoding -p %s\n",optarg);
+				ecat_matrix::crash("error decoding -p %s\n",optarg);
 			update_nplanes = 1;
 			break;
 		case 'b' :
@@ -183,7 +183,7 @@ int main( argc, argv)
 			break;
 		case 'B' :
 			if (sscanf(optarg,"%g",&bed_pos) != 1)
-				crash("error decoding -d %s\n",optarg);
+				ecat_matrix::crash("error decoding -d %s\n",optarg);
 			update_bed_pos = 1;
 			break;
 		case 'S' :
@@ -206,7 +206,7 @@ int main( argc, argv)
 	if (verbose) printf(" Input file : %s\n",input_file);
 
 	mptr = matrix_open(input_file, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
-	if (!mptr) crash( "%s: can't open file '%s'\n", argv[0], input_file);
+	if (!mptr) ecat_matrix::crash( "%s: can't open file '%s'\n", argv[0], input_file);
 	mh = mptr->mhptr;
 	if( calibrate ) {
     if (verbose) {
@@ -314,7 +314,7 @@ int main( argc, argv)
 
 	if( update_bed ) {
 		mptr1 = matrix_open(reference_file, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
-		if (!mptr1) crash( "%s: can't open reference file '%s'\n", argv[0], reference_file);
+		if (!mptr1) ecat_matrix::crash( "%s: can't open reference file '%s'\n", argv[0], reference_file);
 		count = mptr->mhptr->num_bed_pos;
 		bed_offsets = mptr->mhptr->bed_offset;
 		count1 = mptr1->mhptr->num_bed_pos;

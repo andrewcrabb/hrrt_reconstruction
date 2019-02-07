@@ -31,10 +31,8 @@
 # pragma once
 #include "ecat_matrix.hpp"
 
-extern "C" {
-int matrix_interp2(MatrixData *mat, int sx1, int sx2); /* assumes byte data */
-int matrix_resize_1(MatrixData *mat, float pixel_size, int interp_flag);
-int matrix_resize_2(MatrixData *mat, float pixel_size, int interp_flag);
-int matrix_resize(MatrixData *mat, float pixel_size, int interp_flag);
-int matrix_flip(MatrixData *data, int x_flip, int y_flip, int z_flip);
-}
+int matrix_interp2(ecat_matrix::MatrixData *mat, int sx1, int sx2); /* assumes byte data */
+int matrix_resize_1(ecat_matrix::MatrixData *mat, float pixel_size, int interp_flag);
+int matrix_resize_2(ecat_matrix::MatrixData *mat, float pixel_size, int interp_flag);
+int matrix_resize(ecat_matrix::MatrixData *mat, float pixel_size, int interp_flag);
+int matrix_flip(ecat_matrix::MatrixData *data, int x_flip, int y_flip, int z_flip);

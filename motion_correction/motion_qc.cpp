@@ -611,9 +611,9 @@ int main(int argc, char **argv)
   if (strcasecmp(ext,"v") == 0) {
     // ecat reconstructed .v image file
     ecat_matrix::MatrixFile *mf=NULL;
-    MatrixData *matdata;
+    ecat_matrix::MatrixData *matdata;
     ecat_matrix::Image_subheader *imh;
-    MatDirNode *node;
+    ecat_matrix::MatDirNode *node;
     int suggested_ref_frame=-1; // first 5min frame
 
     // Create log file in patient dir
@@ -635,7 +635,7 @@ int main(int argc, char **argv)
     frame_info.resize(num_frames);
 
     for (frame=0; frame<num_frames && node!=NULL; frame++) {
-      if ((matdata = matrix_read(mf, node->matnum, MAT_SUB_HEADER)) == NULL) {
+      if ((matdata = matrix_read(mf, node->matnum, ecat_matrix::MatrixDataType::MAT_SUB_HEADER)) == NULL) {
         fprintf(log_fp,"Error reading frame %d header\n", frame);
         exit(1);
       }

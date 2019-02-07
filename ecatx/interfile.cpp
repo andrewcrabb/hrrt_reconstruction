@@ -435,7 +435,7 @@ static InterfileItem  *get_next_item(FILE *fp) {
 //     }
 //     while ( (c = fgetc(fp)) != EOF) {
 //       if (*p++ != tolower(c)) break;
-//       if (*p == '\0') {       /* ECATX_OK */
+//       if (*p == '\0') {       /* ecat_matrix::ECATX_OK */
 //         fclose(fp);
 //         return strdup(fname);
 //       }
@@ -535,7 +535,7 @@ unmap_interfile_header(char **ifh, ecat_matrix::MatrixData *mdata)
     sscanf(ifh[NUMBER_OF_DIMENSIONS], "%d", &dim);
     if (dim != 2 && dim != 3) {
       ecat_matrix::matrix_errno = ecat_matrix::MatrixError::INVALID_DIMENSION;
-      return ECATX_ERROR;
+      return ecat_matrix::ECATX_ERROR;
     }
   }
   if ( (p = ifh[IMAGEDATA_BYTE_ORDER]) != NULL && (*p == 'b' || *p == 'B'))
@@ -544,27 +544,27 @@ unmap_interfile_header(char **ifh, ecat_matrix::MatrixData *mdata)
   if (ifh[NUMBER_FORMAT] && strstr(ifh[NUMBER_FORMAT], "float")) {
     if (elem_size != 4) {
       ecat_matrix::matrix_errno = ecat_matrix::MatrixError::INVALID_DATA_TYPE;
-      return ECATX_ERROR;
+      return ecat_matrix::ECATX_ERROR;
     }
-    mdata->data_type = IeeeFloat;
+    mdata->data_type = ecat_matrix::MatrixDataType::IeeeFloat;
   } else if (ifh[NUMBER_FORMAT] && strstr(ifh[NUMBER_FORMAT], "rgb")) {
     if (elem_size != 3) {
       ecat_matrix::matrix_errno = ecat_matrix::MatrixError::INVALID_DATA_TYPE;
-      return ECATX_ERROR;
+      return ecat_matrix::ECATX_ERROR;
     }
     mdata->data_type = Color_24;
   }
   else {  /* integer data type */
     if (elem_size != 1 && elem_size != 2 && elem_size != 4) {
       ecat_matrix::matrix_errno = ecat_matrix::MatrixError::INVALID_DATA_TYPE;
-      return ECATX_ERROR;
+      return ecat_matrix::ECATX_ERROR;
     }
-    if (elem_size == 1) mdata->data_type = ByteData;
+    if (elem_size == 1) mdata->data_type = ecat_matrix::MatrixDataType::ByteData;
     if (big_endian) {
-      if (elem_size == 2) mdata->data_type = SunShort;
+      if (elem_size == 2) mdata->data_type = ecat_matrix::MatrixDataType::SunShort;
       if (elem_size == 4) mdata->data_type = SunLong;
     } else {
-      if (elem_size == 2) mdata->data_type = VAX_Ix2;
+      if (elem_size == 2) mdata->data_type = ecat_matrix::MatrixDataType::VAX_Ix2;
       if (elem_size == 4) mdata->data_type = VAX_Ix4;
     }
   }
@@ -583,7 +583,7 @@ unmap_interfile_header(char **ifh, ecat_matrix::MatrixData *mdata)
     if (sscanf(ifh[NUMBER_OF_IMAGES], "%d", &sz) != 1)
       ecat_matrix::matrix_errno = ecat_matrix::MatrixError::INVALID_DIMENSION;
   }
-  if (ecat_matrix::matrix_errno) return ECATX_ERROR;
+  if (ecat_matrix::matrix_errno) return ecat_matrix::ECATX_ERROR;
   mdata->xdim = sx;
   mdata->ydim = sy;
   mdata->zdim = sz;
@@ -608,7 +608,7 @@ int free_interfile_header(char **ifh) {
   return 1;
 }
 
-int get_block_singles(ecat_matrix::ecat_matrix::MatrixFile *mptr, float **pextended_uncor_singles,
+int get_block_singles(ecat_matrix::MatrixFile *mptr, float **pextended_uncor_singles,
                       int *pnum_extended_uncor_singles) {
   int tmp_size = 128, max_size = 1024;
   FILE *fp;
@@ -616,7 +616,7 @@ int get_block_singles(ecat_matrix::ecat_matrix::MatrixFile *mptr, float **pexten
   int block_num, count = 0;
   long block_singles;
   char *key_str, *val_str;
-  if ((fp = fopen(mptr->fname, R_MODE)) == NULL) return ECATX_ERROR;
+  if ((fp = fopen(mptr->fname, R_MODE)) == NULL) return ecat_matrix::ECATX_ERROR;
   tmp = (float*)calloc(tmp_size, sizeof(float));
   while (fgets(line, LINESIZE - 1, fp) != NULL) {
     clean_eol(line);
@@ -647,15 +647,15 @@ int get_block_singles(ecat_matrix::ecat_matrix::MatrixFile *mptr, float **pexten
     *pnum_extended_uncor_singles = count;
   }
   free(tmp);
-  return count > 0 ? ECATX_OK : ECATX_ERROR;
+  return count > 0 ? ecat_matrix::ECATX_OK : ecat_matrix::ECATX_ERROR;
 }
 
-int interfile_open(ecat_matrix::ecat_matrix::MatrixFile *mptr) {
+int interfile_open(ecat_matrix::MatrixFile *mptr) {
   InterfileItem* item;
   FILE *fp;
-  Main_header *mh;
+  ecat_matrix::Main_header *mh;
   ecat_matrix::MatrixData mdata;
-  MatDir matdir;
+  ecat_matrix::MatDir matdir;
   time_t now, t;
   struct tm tm;
   char *p, dup[80], data_dir[FILENAME_MAX], data_file[FILENAME_MAX];
@@ -671,7 +671,7 @@ int interfile_open(ecat_matrix::ecat_matrix::MatrixFile *mptr) {
   memset(&mdata, 0, sizeof(ecat_matrix::MatrixData));
   now = time(0);
   this_year = 1900 + (localtime(&now))->tm_year;
-  if ((fp = fopen(mptr->fname, R_MODE)) == NULL) return ECATX_ERROR;
+  if ((fp = fopen(mptr->fname, R_MODE)) == NULL) return ecat_matrix::ECATX_ERROR;
   mh = mptr->mhptr;
   strcpy(mh->data_units, "none");
   mh->calibration_units = 2; /* Processed */
@@ -680,7 +680,7 @@ int interfile_open(ecat_matrix::ecat_matrix::MatrixFile *mptr) {
   strcpy(mh->magic_number, magicNumber);
   mh->sw_version = 70;
   mptr->interfile_header = (char**)calloc(END_OF_KEYS, sizeof(char*));
-  if (mptr->interfile_header == NULL) return ECATX_ERROR;
+  if (mptr->interfile_header == NULL) return ecat_matrix::ECATX_ERROR;
   mh->num_frames = mh->num_gates = mh->num_bed_pos = 1;
   mh->plane_separation = 1;
   while (!end_of_interfile && (item = get_next_item(fp)) != NULL) {
@@ -780,7 +780,7 @@ int interfile_open(ecat_matrix::ecat_matrix::MatrixFile *mptr) {
   if (elem_size != 1 && elem_size != 2 && elem_size != 3 && elem_size != 4) {
     ecat_matrix::matrix_errno = ecat_matrix::MatrixError::INVALID_DATA_TYPE;
     free_interfile_header(mptr->interfile_header);
-    return ECATX_ERROR;
+    return ecat_matrix::ECATX_ERROR;
   }
   if (mptr->interfile_header[NUM_Z_ELEMENTS] != NULL) {
     switch (elem_size) {
@@ -809,28 +809,28 @@ int interfile_open(ecat_matrix::ecat_matrix::MatrixFile *mptr) {
     } else {
       perror(data_file);
       free_interfile_header(mptr->interfile_header);
-      return ECATX_ERROR;
+      return ecat_matrix::ECATX_ERROR;
     }
-  } else return ECATX_ERROR;
+  } else return ecat_matrix::ECATX_ERROR;
 
   if (!unmap_interfile_header(mptr->interfile_header, &mdata)) {
     free_interfile_header(mptr->interfile_header);
-    return ECATX_ERROR;
+    return ecat_matrix::ECATX_ERROR;
   }
   nmats = if_multiplicity(mptr->interfile_header, &blk_offsets);
   data_size = mdata.xdim * mdata.ydim * mdata.zdim * elem_size;
   nblks = (data_size + ecat_matrix::MatBLKSIZE - 1) / ecat_matrix::MatBLKSIZE;
-  mptr->dirlist = (MatDirList *) calloc(1, sizeof(MatDirList)) ;
+  mptr->dirlist = (ecat_matrix::MatDirList *) calloc(1, sizeof(ecat_matrix::MatDirList)) ;
   for (i = 0; i < nmats; i++) {
     matdir.matnum = ecat_matrix::mat_numcod(i + 1, 1, 1, 0, 0);
     matdir.strtblk = blk_offsets[i];
     matdir.endblk = matdir.strtblk + nblks;
     insert_mdir(&matdir, mptr->dirlist) ;
   }
-  return ECATX_OK;
+  return ecat_matrix::ECATX_OK;
 }
 
-int interfile_read(ecat_matrix::ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixData *data, ecat_matrix::MatrixDataType_64 dtype) {
+int interfile_read(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixData *data, ecat_matrix::MatrixDataType_64 dtype) {
   int y, z;
   size_t i, npixels, nvoxels;
   int tmp, nblks, elem_size = 2, data_offset = 0;
@@ -867,8 +867,8 @@ int interfile_read(ecat_matrix::ecat_matrix::MatrixFile *mptr, int matnum, ecat_
   case ecat_matrix::DataSetType::Byte3dSinogram:
   case ecat_matrix::DataSetType::Short3dSinogram:
   case ecat_matrix::DataSetType::Float3dSinogram:
-    Scan3D_subheader *scan3Dsub = (Scan3D_subheader*)data->shptr;
-    memset(scan3Dsub, 0, sizeof(Scan3D_subheader));
+    ecat_matrix::Scan3D_subheader *scan3Dsub = (ecat_matrix::Scan3D_subheader*)data->shptr;
+    memset(scan3Dsub, 0, sizeof(ecat_matrix::Scan3D_subheader));
     scan3Dsub->num_dimensions = 3;
     scan3Dsub->num_r_elements = data->xdim;
     scan3Dsub->num_angles = data->ydim;
@@ -884,7 +884,7 @@ int interfile_read(ecat_matrix::ecat_matrix::MatrixFile *mptr, int matnum, ecat_
       p = strtok(NULL, " ");
     }
     free(dup);
-    if (get_block_singles(mptr, &scan3Dsub->extended_uncor_singles, &scan3Dsub->num_extended_uncor_singles) == ECATX_OK) {
+    if (get_block_singles(mptr, &scan3Dsub->extended_uncor_singles, &scan3Dsub->num_extended_uncor_singles) == ecat_matrix::ECATX_OK) {
       int max_count = scan3Dsub->num_extended_uncor_singles < 128 ? scan3Dsub->num_extended_uncor_singles : 128;
       memcpy(scan3Dsub->uncor_singles, scan3Dsub->extended_uncor_singles, max_count * sizeof(float));
     }
@@ -936,8 +936,8 @@ int interfile_read(ecat_matrix::ecat_matrix::MatrixFile *mptr, int matnum, ecat_
     data->z_origin = f  * data->z_size;
   }
 
-  if (dtype == MAT_SUB_HEADER)
-    return ECATX_OK;
+  if (dtype == ecat_matrix::MatrixDataType::MAT_SUB_HEADER)
+    return ecat_matrix::ECATX_OK;
 
   /* compute extrema */
   if (ifh[MATRIX_INITIAL_ELEMENT_3] && *ifh[MATRIX_INITIAL_ELEMENT_3] == 'i') {
@@ -976,7 +976,7 @@ int interfile_read(ecat_matrix::ecat_matrix::MatrixFile *mptr, int matnum, ecat_
   }
   if (data_offset > 0) {
     if (fseek(mptr->fptr, data_offset, SEEK_SET) != 0)
-      crash("Error skeeping to offset %d\n", data_offset);
+      ecat_matrix::crash("Error skeeping to offset %d\n", data_offset);
   }
   for (z = 0; z < data->zdim; z++) {
     if (z_flip)
@@ -991,7 +991,7 @@ int interfile_read(ecat_matrix::ecat_matrix::MatrixFile *mptr, int matnum, ecat_
       free(data->data_ptr);
       data->data_ptr = NULL;
       ecat_matrix::matrix_errno = ecat_matrix::MatrixError::READ_ERROR;
-      return ECATX_ERROR;
+      return ecat_matrix::ECATX_ERROR;
     }
     if (y_flip)
       flip_y(plane, data->data_type, data->xdim, data->ydim);
@@ -1023,7 +1023,7 @@ int interfile_read(ecat_matrix::ecat_matrix::MatrixFile *mptr, int matnum, ecat_
     }
   }
   find_data_extrema(data);    /*don't trust in header extrema*/
-  return ECATX_OK;
+  return ecat_matrix::ECATX_OK;
 }
 
 ecat_matrix::MatrixData*
@@ -1093,7 +1093,7 @@ interfile_read_slice(FILE *fptr, char **ifh, ecat_matrix::MatrixData *volume,
   return data;
 }
 
-int interfile_write_volume(ecat_matrix::ecat_matrix::MatrixFile const &mptr, string const image_name, char *header_name, unsigned char  *data_matrix, int size) {
+int interfile_write_volume(ecat_matrix::MatrixFile const &mptr, string const image_name, char *header_name, unsigned char  *data_matrix, int size) {
   int count;
   FILE *fp_h, *fp_i;
   char** ifh;
@@ -1120,11 +1120,11 @@ fclose(fp_h);
 return 1;
 }
 
-ecat_matrix::MatrixData *interfile_read_scan(ecat_matrix::ecat_matrix::MatrixFile *mptr, int matnum, int dtype, int segment) {
+ecat_matrix::MatrixData *interfile_read_scan(ecat_matrix::MatrixFile *mptr, int matnum, int dtype, int segment) {
   int i, nprojs, view, nviews, nvoxels;
   ecat_matrix::MatrixData *data;
-  MatDir matdir;
-  Scan3D_subheader *scan3Dsub;
+  ecat_matrix::MatDir matdir;
+  ecat_matrix::Scan3D_subheader *scan3Dsub;
   int group, z_elements;
   int elem_size = 2, view_size, plane_size, nblks;
   unsigned file_pos = 0, z_fill = 0;
@@ -1138,10 +1138,10 @@ ecat_matrix::MatrixData *interfile_read_scan(ecat_matrix::ecat_matrix::MatrixFil
   */
 
   ecat_matrix::matrix_errno = ecat_matrix::MatrixError::OK;
-  matrix_errtxt.clear();
+  ecat_matrix::matrix_errtxt.clear();
 
   ifh = mptr->interfile_header;
-  if (matrix_find(mptr, matnum, &matdir) == ECATX_ERROR)
+  if (matrix_find(mptr, matnum, &matdir) == ecat_matrix::ECATX_ERROR)
     return NULL;
   if ((data = (ecat_matrix::MatrixData *) calloc( 1, sizeof(ecat_matrix::MatrixData))) != NULL) {
     if ( (data->shptr = (void *) calloc(2, ecat_matrix::MatBLKSIZE)) == NULL) {
@@ -1150,15 +1150,15 @@ ecat_matrix::MatrixData *interfile_read_scan(ecat_matrix::ecat_matrix::MatrixFil
     }
   } else return NULL;
 
-  if (interfile_read(mptr, matnum, data, MAT_SUB_HEADER) != ECATX_OK) {
+  if (interfile_read(mptr, matnum, data, ecat_matrix::MatrixDataType::MAT_SUB_HEADER) != ecat_matrix::ECATX_OK) {
     free_matrix_data(data);
     return NULL;
   }
-  if (dtype == MAT_SUB_HEADER) 
+  if (dtype == ecat_matrix::MatrixDataType::MAT_SUB_HEADER) 
     return data;
   group = abs(segment);
   file_pos = matdir.strtblk * ecat_matrix::MatBLKSIZE;
-  scan3Dsub = (Scan3D_subheader *)data->shptr;
+  scan3Dsub = (ecat_matrix::Scan3D_subheader *)data->shptr;
   z_elements = scan3Dsub->num_z_elements[group];
   if (group > 0) 
     z_elements /= 2;

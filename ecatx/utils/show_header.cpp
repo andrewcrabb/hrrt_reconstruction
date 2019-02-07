@@ -3,7 +3,6 @@
  * Jun-1995 :Updated by Sibomana@topo.ucl.ac.be for ECAT 7.0 support
  * March-1999: add dosage and dose_start_time
  * July 7 1999: sex printout modified
- *
  */
 
 #include <math.h>
@@ -12,84 +11,69 @@
 #include <time.h>
 #include "ecat_matrix.hpp"
 
-void show_main_header( Main_header *mh );
+void show_main_header( ecat_matrix::Main_header *mh );
 static char* storage_order(int idx);
-void show_scan_subheader( Scan_subheader *sh );
-void show_Scan3D_subheader( Scan3D_subheader *sh );
+void show_scan_subheader( ecat_matrix::Scan_subheader *sh );
+void show_Scan3D_subheader( ecat_matrix::Scan3D_subheader *sh );
 void day_time( char *str, int day, int month, int year, int hour, int minute, int sec);
-void show_attn_subheader( Attn_subheader *ah );
-void show_norm_subheader( Norm_subheader *nh );
-void show_norm3d_subheader( Norm3D_subheader *nh );
-void show_image_subheader( MatrixData *matrix );
+void show_attn_subheader( ecat_matrix::Attn_subheader *ah );
+void show_norm_subheader( ecat_matrix::Norm_subheader *nh );
+void show_norm3d_subheader( ecat_matrix::Norm3D_subheader *nh );
+void show_image_subheader( ecat_matrix::MatrixData *matrix );
 
-int main( int argc, char **argv )
-{
-  int matnum=0;
+int main( int argc, char **argv ) {
+  int matnum = 0;
   char fname[256];
-  ecat_matrix::MatrixFile *mptr;
-  MatrixData *matrix;
-FILE *fp;
 
-  if (argc<2)
-    crash( "usage    : %s matspec\n", argv[0]);
+  if (argc < 2)
+    ecat_matrix::crash( "usage    : %s matspec\n", argv[0]);
   matspec( argv[1], fname, &matnum);
-  mptr = matrix_open( fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
+  ecat_matrix::MatrixFile *mptr = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (!mptr) {
     matrix_perror(fname);
     exit(1);
   }
-  if (matnum==0)
-  {
+  if (matnum == 0) {
     show_main_header( mptr->mhptr);
     exit(0);
   }
-  matrix = matrix_read( mptr, matnum, MAT_SUB_HEADER);
+  ecat_matrix::MatrixData *matrix = matrix_read( mptr, matnum, ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
   if (!matrix)
-    crash( "%s    : matrix not found\n", argv[0]);
-  switch( mptr->mhptr->file_type) {
-    case ecat_matrix::DataSetType::Sinogram    :
+    ecat_matrix::crash( "%s    : matrix not found\n", argv[0]);
+  switch ( mptr->mhptr->file_type) {
+  case ecat_matrix::DataSetType::Sinogram    :
     show_scan_subheader( matrix->shptr);
     break;
-      case ecat_matrix::DataSetType::Short3dSinogram :
-      case ecat_matrix::DataSetType::Float3dSinogram :
+  case ecat_matrix::DataSetType::Short3dSinogram :
+  case ecat_matrix::DataSetType::Float3dSinogram :
     show_Scan3D_subheader( matrix->shptr);
     break;
-    case ecat_matrix::DataSetType::PetImage  :
-    case ecat_matrix::DataSetType::PetVolume :
-    case ecat_matrix::DataSetType::ByteImage :
-    case ecat_matrix::DataSetType::ByteVolume :
-    case ecat_matrix::DataSetType::InterfileImage:
+  case ecat_matrix::DataSetType::PetImage  :
+  case ecat_matrix::DataSetType::PetVolume :
+  case ecat_matrix::DataSetType::ByteImage :
+  case ecat_matrix::DataSetType::ByteVolume :
+  case ecat_matrix::DataSetType::InterfileImage:
     show_image_subheader( matrix);
     break;
-    case ecat_matrix::DataSetType::AttenCor    :
+  case ecat_matrix::DataSetType::AttenCor    :
     show_attn_subheader( matrix->shptr);
     break;
-    case ecat_matrix::DataSetType::Normalization :
+  case ecat_matrix::DataSetType::Normalization :
     show_norm_subheader( matrix->shptr);
     break;
-    case ecat_matrix::DataSetType::Norm3d :
+  case ecat_matrix::DataSetType::Norm3d :
     show_norm3d_subheader( matrix->shptr);
     break;
-    default    :
-    crash("%s    : unknown matrix file type (%d)\n", argv[0], mptr->mhptr->file_type);
+  default    :
+    ecat_matrix::crash("%s    : unknown matrix file type (%d)\n", argv[0], mptr->mhptr->file_type);
   }
   // exit(0);
-  return(0);
+  return (0);
 }
-
-// static char *ftypes[]= {
-//  "Scan", "Image", "Atten", "Norm", "PolarMap",
-//  "ByteVolume", "PetVolume", "ByteProjection", "PetProjection", "ByteImage",
-//  "Short3dSinogram", "Byte3dSinogram", "Norm3d", "Float3dSinogram","Interfile" };
 
 // static char *dtypes[] = {
 //  "UnknownMatDataType", "ByteData", "VAX_Ix2", "VAX_Ix4",
 //     "VAX_Rx4", "IeeeFloat", "SunShort", "SunLong" };
-
-// static char *ecat_matrix::applied_proc_.at(] = {
-//  "Norm", "Atten_Meas", "Atten_Calc",
-//     "Smooth_X", "Smooth_Y", "Smooth_Z", "Scat2d", "Scat3d",
-//     "ArcPrc", "DecayPrc", "OnCompPrc", "Random","","","",""};
 
 static char* storage_order(int idx)
 {
@@ -100,8 +84,8 @@ static char* storage_order(int idx)
   }
   return "Unknown mode";
 }
-  
-void show_main_header( Main_header *mh ) {
+
+void show_main_header( ecat_matrix::Main_header *mh ) {
   // int ft, i;
   char *ftstr, tod[256];
   time_t t = mh->scan_start_time;
@@ -110,58 +94,55 @@ void show_main_header( Main_header *mh ) {
   printf("Original File Name          : %-32s\n", mh->original_file_name);
   printf("Software Version            : %d\n", mh->sw_version);
   printf("System type                 : %d\n", mh->system_type);
-  // ft = mh->file_type;
-  // ftstr = "UNKNOWN";
-  // if (ft>0 && ft<=NumDataSetTypes) 
-  //  ftstr = ftypes[ft-1];
+
   ecat_matrix::DataSetType file_type = mh->file_type;
   printf("File type                   : %d (%s)\n", file_type, ecat_matrix::data_set_types_.at(file_type));
   printf("Node Id                     : %-10s\n", mh->serial_number);
-  printf("Scan TOD                    : %s\n",ctime(&t));
-/*
-  day_time( tod, mh->scan_start_day, mh->scan_start_month, 
-    mh->scan_start_year, mh->scan_start_hour, mh->scan_start_minute,
-    mh->scan_start_second);
-*/
+  printf("Scan TOD                    : %s\n", ctime(&t));
+  /*
+    day_time( tod, mh->scan_start_day, mh->scan_start_month,
+      mh->scan_start_year, mh->scan_start_hour, mh->scan_start_minute,
+      mh->scan_start_second);
+  */
   strncpy( tod, mh->isotope_code, 8);
-  tod[8]='\0';
+  tod[8] = '\0';
   printf("Isotope                     : %-8s\n", tod);
   printf("Isotope Half-life           : %0.5g sec.\n", mh->isotope_halflife);
   printf("Radiopharmaceutical         : %-32s\n", mh->radiopharmaceutical);
   printf("Gantry Tilt Angle           : %0.1f deg.\n", mh->gantry_tilt);
   printf("Gantry Rotation Angle       : %0.1f deg.\n", mh->gantry_rotation);
   printf("Bed Elevation               : %0.1f cm\n", mh->bed_elevation);
-/*  ELIMINATED
-  printf("Rotating Source Speed       : %d rpm\n", mh->rot_source_speed);
-*/
+  /*  ELIMINATED
+    printf("Rotating Source Speed       : %d rpm\n", mh->rot_source_speed);
+  */
   printf("Intrinsic tilt              : %4.2f degrees\n", mh->intrinsic_tilt);
   printf("Wobble Speed                : %d rpm\n", mh->wobble_speed);
   printf("Transmission Source Type    : %d\n", mh->transm_source_type);
   printf("Axial FOV Width             : %0.2f cm\n", mh->distance_scanned);
   printf("Transaxial FOV Width        : %0.2f cm\n", mh->transaxial_fov);
-/*  ELIMINATED
-  printf("Transaxial Sampling Mode    : %d\n", mh->transaxial_samp_mode);
-*/
+  /*  ELIMINATED
+    printf("Transaxial Sampling Mode    : %d\n", mh->transaxial_samp_mode);
+  */
   printf("Coincidence Mode            : %d\n", mh->coin_samp_mode);
   printf("Axial Sampling Mode         : %d\n", mh->axial_samp_mode);
   printf("Calibration Factor          : %0.5e\n", mh->calibration_factor);
   printf("Calibration Units           : %d", mh->calibration_units);
-  if (mh->calibration_units>0 && mh->calibration_units<3)
+  if (mh->calibration_units > 0 && mh->calibration_units < 3)
     // printf(" (%s)\n",calstatus[mh->calibration_units]);
     printf(" (%s)\n", ecat_matrix::calibration_status_.at(mh->calibration_units).status.c_str());
   else printf("\n");
   printf("Calibration Units Label     : %d", mh->calibration_units_label);
   if (mh->calibration_units_label > 0 && mh->calibration_units_label < 14)
-    printf(" (%s)\n",customDisplayUnits[mh->calibration_units_label]);
-  else 
+    printf(" (%s)\n", customDisplayUnits[mh->calibration_units_label]);
+  else
     printf("\n");
   printf("Compression Code            : %d\n", mh->compression_code);
   printf("Study Name                  : %-12s\n", mh->study_name);
   printf("Patient ID                  : %-16s\n", mh->patient_id);
   printf("        Name                : %-32s\n", mh->patient_name);
-  if (mh->patient_sex[0]==0) 
+  if (mh->patient_sex[0] == 0)
     printf("        Sex                 : M\n");
-  else if (mh->patient_sex[0]==1) 
+  else if (mh->patient_sex[0] == 1)
     printf("        Sex                 : F\n");
   else  printf("        Sex                 : U\n");
   printf("        Age                 : %g\n", mh->patient_age);
@@ -172,20 +153,20 @@ void show_main_header( Main_header *mh ) {
   printf("Operator Name               : %-32s\n", mh->operator_name);
   printf("Study Description           : %-32s\n", mh->study_description);
   printf("Acquisition Type            : %d\n", mh->acquisition_type);
-/*  ELIMINATED
-  printf("Bed Type                    : %d\n", mh->bed_type);
-  printf("Septa Type                  : %d\n", mh->septa_type);
-*/
+  /*  ELIMINATED
+    printf("Bed Type                    : %d\n", mh->bed_type);
+    printf("Septa Type                  : %d\n", mh->septa_type);
+  */
   printf("Facility Name               : %-20s\n", mh->facility_name);
   printf("Number of Planes            : %d\n", mh->num_planes);
   printf("Number of Frames            : %d\n", mh->num_frames);
   printf("Number of Gates             : %d\n", mh->num_gates);
   printf("Number of Bed Positions     : %d\n", mh->num_bed_pos);
   printf("Initial Bed Position        : %.1f cm\n", mh->init_bed_position);
-  for (i=0; i<mh->num_bed_pos; i++)
-    printf("  Offset %2d       %.1f cm\n", i+1, mh->bed_offset[i]);
+  for (i = 0; i < mh->num_bed_pos; i++)
+    printf("  Offset %2d       %.1f cm\n", i + 1, mh->bed_offset[i]);
   printf("Plane Separation            : %0.4f cm\n", mh->plane_separation);
-  printf("Bin Size                    : %0.4f cm\n",mh->bin_size); 
+  printf("Bin Size                    : %0.4f cm\n", mh->bin_size);
   printf("Scatter Lower Threshold     : %d Kev\n", mh->lwr_sctr_thres);
   printf("True Lower Threshold        : %d Kev\n", mh->lwr_true_thres);
   printf("True Upper Threshold        : %d Kev\n", mh->upr_true_thres);
@@ -195,17 +176,17 @@ void show_main_header( Main_header *mh ) {
   printf("Injected dose               : %g mCi\n", mh->dosage);
   t = mh->dose_start_time;
   if (t > 0) {
-  printf("Dose start time             : %s",ctime(&t));
-  printf("Delay since injection       : %d\n",(int)(mh->scan_start_time - t));
+    printf("Dose start time             : %s", ctime(&t));
+    printf("Delay since injection       : %d\n", (int)(mh->scan_start_time - t));
   }
   else  {
-  printf("Dose start time             : 0\n");
-  printf("Delay since injection       : 0\n");
+    printf("Dose start time             : 0\n");
+    printf("Delay since injection       : 0\n");
   }
 }
 
-void show_scan_subheader( Scan_subheader *sh ) {
-  int i,j;
+void show_scan_subheader( ecat_matrix::Scan_subheader *sh ) {
+  int i, j;
 
   printf("Scan Matrix Sub-header\n");
   printf("Data type                   : %d(%s)\n", sh->data_type, ecat_matrix::matrix_data_types_.at(sh->data_type) );
@@ -214,8 +195,8 @@ void show_scan_subheader( Scan_subheader *sh ) {
   printf("corrections_applied         : %d", sh->corrections_applied);
   if (( j = sh->corrections_applied) > 0) {
     printf(" ( ");
-    for (i=0;i<16; i++) 
-      if ((j & (1<<i)) != 0) 
+    for (i = 0; i < 16; i++)
+      if ((j & (1 << i)) != 0)
         printf("%s ", ecat_matrix::applied_proc_.at(i).c_str());
     printf(")");
   }
@@ -237,7 +218,7 @@ void show_scan_subheader( Scan_subheader *sh ) {
   printf("Delayed Events              : %d\n", sh->delayed);
   printf("Multiple Events             : %d\n", sh->multiples);
   printf("Net True Events             : %d\n", sh->net_trues);
-  for (i=0; i<16; i++)
+  for (i = 0; i < 16; i++)
     printf("Avg Singles Bucket %2d       : %0.4E / %0.4E\n", i, sh->cor_singles[i], sh->uncor_singles[i]);
   printf("Average Singles (C/U)       : %0.4E / %0.4E\n", sh->tot_avg_cor, sh->tot_avg_uncor);
   printf("Total Coincidence Rate      : %d\n", sh->total_coin_rate);
@@ -246,31 +227,26 @@ void show_scan_subheader( Scan_subheader *sh ) {
   printf("Loss Correction Factor      : %0.5f\n", sh->loss_correction_fctr);
 }
 
-void show_Scan3D_subheader( Scan3D_subheader *sh )
-{
-  int i,j;
-
+void show_Scan3D_subheader( ecat_matrix::Scan3D_subheader *sh ) {
   printf("Scan Matrix Sub-header\n");
-  printf("Data type                   : %d(%s)\n",
-    sh->data_type, dtypes[sh->data_type]);
+  printf("Data type                   : %d(%s)\n", sh->data_type, ecat_matrix::matrix_data_types_.at(sh->data_type).c_str());
   printf("Num_dimensions              : %d\n", sh->num_dimensions);
   printf("Dimension_1(num_r_elements) : %d\n", sh->num_r_elements);
   printf("Dimension_2 (num_angles)    : %d\n", sh->num_angles);
   printf("corrections_applied         : %d\n", sh->corrections_applied);
-  if ((j=sh->corrections_applied) > 0) {
+  if ((int j = sh->corrections_applied) > 0) {
     printf(" ( ");
-    for (i=0;i<16; i++) 
-      if ((j & (1<<i)) != 0) printf("%s ", ecat_matrix::applied_proc_.at(i).c_str());
+    for (int i = 0; i < 16; i++)
+      if ((j & (1 << i)) != 0) printf("%s ", ecat_matrix::applied_proc_.at(i).c_str());
     printf(")");
   }
   printf("\n");
   printf("num_z_elements              : %d", sh->num_z_elements[0]);
-  for (i=1; sh->num_z_elements[i] != 0; i++)
+  for (int i = 1; sh->num_z_elements[i] != 0; i++)
     printf ("+%d", sh->num_z_elements[i]);
   printf("\n");
   printf("ring difference             : %d\n", sh->ring_difference);
-  printf("storage order               : %d ( %s ) \n", sh->storage_order,
-    storage_order(sh->storage_order));
+  printf("storage order               : %d ( %s ) \n", sh->storage_order,         storage_order(sh->storage_order));
   printf("axial compression           : %d\n", sh->axial_compression);
   printf("x resolution (sample distance)     : %g\n", sh->x_resolution);
   printf("v resolution                : %g\n", sh->v_resolution);
@@ -285,41 +261,39 @@ void show_Scan3D_subheader( Scan3D_subheader *sh )
   printf("Delayed Events              : %d\n", sh->delayed);
   printf("Multiple Events             : %d\n", sh->multiples);
   printf("Net True Events             : %d\n", sh->net_trues);
-  printf("Average Singles (C/U)       : %0.4E / %0.4E\n", sh->tot_avg_cor,
-            sh->tot_avg_uncor);
+  printf("Average Singles (C/U)       : %0.4E / %0.4E\n", sh->tot_avg_cor,         sh->tot_avg_uncor);
   printf("Total Coincidence Rate      : %d\n", sh->total_coin_rate);
   printf("Frame Start Time            : %d msec.\n", sh->frame_start_time);
   printf("Frame Duration              : %d msec.\n", sh->frame_duration);
   printf("Loss Correction Factor      : %0.5f\n", sh->loss_correction_fctr);
   printf("Uncorrected Singles        :\n");
-  for (i=0; i<16; i++)  {
-    for (j=0; j<8; j++)
-      printf("\t%g",sh->uncor_singles[i*8+j]);
+  for (int i = 0; i < 16; i++)  {
+    for (int j = 0; j < 8; j++)
+      printf("\t%g", sh->uncor_singles[i * 8 + j]);
     printf("\n");
   }
 }
 
-void show_image_subheader( MatrixData *matrix )
-{
+void show_image_subheader( ecat_matrix::MatrixData *matrix ) {
   char tod[256], *fcode;
-    ecat_matrix::Image_subheader *ih;
-  static char *fcodes[]={
+  ecat_matrix::Image_subheader *ih;
+  static char *fcodes[] = {
     "None", "Ramp", "Butterworth", "Hanning", "Hamming", "Parzen",
-    "Shepp", "Exponential"};
-  int i,j,f, x0, y0, z0;
+    "Shepp", "Exponential"
+  };
+  int i, j, f, x0, y0, z0;
 
   ih = (ecat_matrix::Image_subheader*)matrix->shptr;
-  x0 = (int)(0.5+matrix->x_origin/matrix->pixel_size);
-  y0 = (int)(0.5+matrix->y_origin/matrix->y_size);
-  z0 = (int)(0.5+matrix->z_origin/matrix->z_size);
+  x0 = (int)(0.5 + matrix->x_origin / matrix->pixel_size);
+  y0 = (int)(0.5 + matrix->y_origin / matrix->y_size);
+  z0 = (int)(0.5 + matrix->z_origin / matrix->z_size);
   printf("Image Matrix Sub-header\n");
-  printf("Data type                   : %d(%s)\n",
-    ih->data_type, dtypes[ih->data_type]);
+  printf("Data type                   : %d(%s)\n",         ih->data_type, ecat_matrix::matrix_data_types_.at(ih->data_type).c_str());
   printf("Num_dimensions              : %d\n", ih->num_dimensions);
   printf("Dimension_1                 : %d\n", ih->x_dimension);
   printf("Dimension_2                 : %d\n", ih->y_dimension);
   printf("Dimension_3                 : %d\n", ih->z_dimension);
-  if (x0 > 1 || y0>1 || z0>1) {
+  if (x0 > 1 || y0 > 1 || z0 > 1) {
     printf("X Origin                    : %d\n", x0);
     printf("Y Origin                    : %d\n", y0);
     printf("Z Origin                    : %d\n", z0);
@@ -328,92 +302,88 @@ void show_image_subheader( MatrixData *matrix )
   printf("Y Offset                    : %0.3f cm\n", ih->y_offset);
   printf("Zoom (recon_scale)          : %0.3f\n", ih->recon_zoom);
   printf("Quant_scale                 : %g\n", ih->scale_factor);
-/*  ELIMINATED
-  printf("Quant_units                 : %d\n", ih->quant_units);
-*/
+  /*  ELIMINATED
+    printf("Quant_units                 : %d\n", ih->quant_units);
+  */
   printf("Processing Code             : %d", ih->processing_code);
-  if ((j=ih->processing_code) > 0) {
+  if ((j = ih->processing_code) > 0) {
     printf(" ( ");
-    for (i=0;i<16; i++) 
-      if ((j & (1<<i)) != 0) printf("%s ", ecat_matrix::applied_proc_.at(i).c_str());
+    for (i = 0; i < 16; i++)
+      if ((j & (1 << i)) != 0) printf("%s ", ecat_matrix::applied_proc_.at(i).c_str());
     printf(")");
   }
   printf("\n");
   printf("Image_min                   : %d\n", ih->image_min);
   printf("Image_max                   : %d\n", ih->image_max);
-  printf("X Pixel Size                : %0.4f mm\n",10.0*ih->x_pixel_size);
-  printf("Y Pixel Size                : %0.4f mm\n",10.0*ih->y_pixel_size);
-  printf("Z Pixel Size                : %0.4f mm\n",10.0*ih->z_pixel_size);
-/*  moved to main header
-  printf("Slice width                 : %0.4f cm\n", ih->slice_width);
-*/
+  printf("X Pixel Size                : %0.4f mm\n", 10.0 * ih->x_pixel_size);
+  printf("Y Pixel Size                : %0.4f mm\n", 10.0 * ih->y_pixel_size);
+  printf("Z Pixel Size                : %0.4f mm\n", 10.0 * ih->z_pixel_size);
+  /*  moved to main header
+    printf("Slice width                 : %0.4f cm\n", ih->slice_width);
+  */
   printf("Frame Duration              : %d msec\n", ih->frame_duration);
   printf("Frame Start Time            : %d msec\n", ih->frame_start_time);
-/*  ELIMINATED
-  printf("Slice Location              : %d\n", ih->slice_location);
-  day_time( tod, ih->recon_start_day, ih->recon_start_month,
-    ih->recon_start_year, ih->recon_start_hour,
-    ih->recon_start_minute, ih->recon_start_sec);
-  printf("Reconstruction TOD          : %s\n", tod);
-*/
+  /*  ELIMINATED
+    printf("Slice Location              : %d\n", ih->slice_location);
+    day_time( tod, ih->recon_start_day, ih->recon_start_month,
+      ih->recon_start_year, ih->recon_start_hour,
+      ih->recon_start_minute, ih->recon_start_sec);
+    printf("Reconstruction TOD          : %s\n", tod);
+  */
   fcode = "UNKNOWN";
-  f=ih->filter_code;
-  if (f<0) f=-f;
-  if (f<8) fcode=fcodes[f];
+  f = ih->filter_code;
+  if (f < 0) f = -f;
+  if (f < 8) fcode = fcodes[f];
   printf("Filter Type                 : %d (%s)\n", ih->filter_code, fcode);
   printf("Filter Parameters           : %f,0.0,%f,%d,%f,%f\n",
-    ih->filter_cutoff_frequency, ih->filter_ramp_slope, ih->filter_order,
-    ih->filter_scatter_fraction, ih->filter_scatter_slope);
+         ih->filter_cutoff_frequency, ih->filter_ramp_slope, ih->filter_order,
+         ih->filter_scatter_fraction, ih->filter_scatter_slope);
   printf("Image Rotation Angle        : %0.2f degrees\n", ih->z_rotation_angle);
-/*  ELIMINATED
-  printf("Plane Efficiency Factor     : %0.5f\n", ih->plane_eff_corr_fctr);
-*/
+  /*  ELIMINATED
+    printf("Plane Efficiency Factor     : %0.5f\n", ih->plane_eff_corr_fctr);
+  */
   printf("Decay Correction Factor     : %0.5f\n", ih->decay_corr_fctr);
-/*  MOVED TO MAIN HEADER
-  printf("Loss Correction Factor      : %0.5f\n", ih->loss_corr_fctr);
-  printf("ECAT Calibration Factor     : %0.5e\n", ih->ecat_calibration_fctr);
-  printf("Well Counter Calib Fctr     : %0.5e\n", ih->well_counter_cal_fctr);
-*/
+  /*  MOVED TO MAIN HEADER
+    printf("Loss Correction Factor      : %0.5f\n", ih->loss_corr_fctr);
+    printf("ECAT Calibration Factor     : %0.5e\n", ih->ecat_calibration_fctr);
+    printf("Well Counter Calib Fctr     : %0.5e\n", ih->well_counter_cal_fctr);
+  */
   printf("Annotation                  : %-40s\n", ih->annotation);
 }
 
-void day_time( char *str, int day, int month, int year, int hour, int minute, int sec)
-{
-  static char *months="JanFebMarAprMayJunJulAugSepOctNovDec";
+void day_time( char *str, int day, int month, int year, int hour, int minute, int sec) {
+  static char *months = "JanFebMarAprMayJunJulAugSepOctNovDec";
   char mstr[4];
 
-  if (day<1) day=1;
-  if (day>31) day=31;
-  if (month<1) month=1;
-  if (month>12) month=12;
-  if (year<1900) year+=1900;
-  if (year<1970) year=1970;
-  if (year>9999) year=9999;
-  if (hour<0) hour=0;
-  if (hour>23) hour=23;
-  if (minute<0) minute=0;
-  if (minute>59) minute=59;
-  if (sec<0) sec=0;
-  if (sec>59) sec=59;
-  strncpy( mstr, months+(month-1)*3, 3);
-  sprintf( str, "%02d-%s-%4d %02d:%02d:%02d", day, mstr, year, 
-    hour, minute, sec);
+  if (day < 1) day = 1;
+  if (day > 31) day = 31;
+  if (month < 1) month = 1;
+  if (month > 12) month = 12;
+  if (year < 1900) year += 1900;
+  if (year < 1970) year = 1970;
+  if (year > 9999) year = 9999;
+  if (hour < 0) hour = 0;
+  if (hour > 23) hour = 23;
+  if (minute < 0) minute = 0;
+  if (minute > 59) minute = 59;
+  if (sec < 0) sec = 0;
+  if (sec > 59) sec = 59;
+  strncpy( mstr, months + (month - 1) * 3, 3);
+  sprintf( str, "%02d-%s-%4d %02d:%02d:%02d", day, mstr, year,
+           hour, minute, sec);
 }
-void show_attn_subheader( Attn_subheader *ah )
-{
-  int i=0;
+
+void show_attn_subheader( ecat_matrix::Attn_subheader *ah ) {
   printf("Attenuation Matrix Sub-header\n");
-  printf("Data type                   : %d(%s)\n",
-    ah->data_type, dtypes[ah->data_type]);
+  printf("Data type                   : %d(%s)\n",         ah->data_type, ecat_matrix::matrix_data_types_.at(ah->data_type).c_str());
   printf("Attenuation_type            : %d\n", ah->attenuation_type);
-  printf("storage order               : %d ( %s )\n", ah->storage_order,
-    storage_order(ah->storage_order));
+  printf("storage order               : %d ( %s )\n", ah->storage_order,         storage_order(ah->storage_order));
   printf("Dimension_1                 : %d\n", ah->num_r_elements);
   printf("Dimension_2                 : %d\n", ah->num_angles);
-  printf("ring_difference             : %d\n",ah->ring_difference);
-  printf("span                        : %d\n",ah->span);
+  printf("ring_difference             : %d\n", ah->ring_difference);
+  printf("span                        : %d\n", ah->span);
   printf("z_elements                  : %d", ah->z_elements[0]);
-  for (i=1; ah->z_elements[i] != 0; i++)
+  for (int i = 1; ah->z_elements[i] != 0; i++)
     printf ("+%d", ah->z_elements[i]);
   printf("\n");
   printf("Scale Factor                : %g\n", ah->scale_factor);
@@ -427,54 +397,46 @@ void show_attn_subheader( Attn_subheader *ah )
   printf("Y radius                    : %0.4f cm\n", ah->y_radius);
   printf("Tilt Angle                  : %0.2f deg\n", ah->tilt_angle);
   printf("Attenuation Coefficient     : %0.3f 1/cm\n", ah->attenuation_coeff);
-/*  ELIMINATED
-  printf("Sample Distance             : %0.5f cm\n", ah->sample_distance);
-*/
+  /*  ELIMINATED
+    printf("Sample Distance             : %0.5f cm\n", ah->sample_distance);
+  */
 }
 
-void show_norm_subheader( Norm_subheader *nh )
-{
-  char tod[256];
-
+void show_norm_subheader( ecat_matrix::Norm_subheader *nh ) {
   printf("Normalization Matrix Sub-header\n");
-  printf("Data type                   : %d(%s)\n",
-    nh->data_type, dtypes[nh->data_type]);
+  printf("Data type                   : %d(%s)\n", nh->data_type, ecat_matrix::matrix_data_types_.at(nh->data_type).c_str());
   printf("Num_dimensions              : %d\n", nh->num_dimensions);
   printf("Dimension_1(num_r_elements) : %d\n", nh->num_r_elements);
   printf("Dimension_2 (num_angles)    : %d\n", nh->num_angles);
   printf("num_z_elements              : %d\n", nh->num_z_elements);
   printf("ring difference             : %d\n", nh->ring_difference);
   printf("Scale Factor                : %g\n", nh->scale_factor);
-/*  MOVED TO MAIN HEADER
-  day_time( tod, nh->norm_day, nh->norm_month, nh->norm_year,
-    nh->norm_hour, nh->norm_minute, nh->norm_second);
-  printf("Normalization TOD           : %s\n", tod);
-*/
+  /*  MOVED TO MAIN HEADER
+    day_time( tod, nh->norm_day, nh->norm_month, nh->norm_year,
+      nh->norm_hour, nh->norm_minute, nh->norm_second);
+    printf("Normalization TOD           : %s\n", tod);
+  */
   printf("FOV Source Width            : %0.4f cm\n", nh->fov_source_width);
   printf("storage order               : %d ( %s )\n", nh->storage_order,
-    storage_order(nh->storage_order));
+         storage_order(nh->storage_order));
   printf("Norm_min                    : %f\n", nh->norm_min);
   printf("Norm_max                    : %f\n", nh->norm_max);
 }
 
-void show_norm3d_subheader( Norm3D_subheader *nh )
-{
-  int i;
+void show_norm3d_subheader( ecat_matrix::Norm3D_subheader *nh ) {
   printf("Normalization Matrix Sub-header\n");
-  printf("Data type                   : %d(%s)\n",
-    nh->data_type, dtypes[nh->data_type]);
+  printf("Data type                   : %d(%s)\n",         nh->data_type, ecat_matrix::matrix_data_types_.at(nh->data_type).c_str());
   printf("number of radial elements   : %d\n", nh->num_r_elements);
-  printf("number of transaxial crystals  : %d\n",nh->num_transaxial_crystals);
+  printf("number of transaxial crystals  : %d\n", nh->num_transaxial_crystals);
   printf("number of crystal rings        : %d\n", nh->num_crystal_rings);
   printf("number of crystals per ring    : %d\n", nh->crystals_per_ring);
-  printf("number of plane geometric corrections : %d\n",
-    nh->num_geo_corr_planes);
+  printf("number of plane geometric corrections : %d\n",         nh->num_geo_corr_planes);
   printf("Crystal deadtime correction factors\n");
-  for (i=0; i<8 && fabs(nh->crystal_dtcor[i]) > 0.0; i++)
-      printf("%g\n",nh->crystal_dtcor[i]);
+  for (int i = 0; i < 8 && fabs(nh->crystal_dtcor[i]) > 0.0; i++)
+    printf("%g\n", nh->crystal_dtcor[i]);
   printf("Ring deadtime correction factors\n");
-  for (i=0; i<32 && fabs(nh->ring_dtcor1[i]) > 0.0; i++)
-      printf("%g\t%g\n",nh->ring_dtcor1[i],nh->ring_dtcor2[i]);
-  
+  for (int i = 0; i < 32 && fabs(nh->ring_dtcor1[i]) > 0.0; i++)
+    printf("%g\t%g\n", nh->ring_dtcor1[i], nh->ring_dtcor2[i]);
+
 }
 

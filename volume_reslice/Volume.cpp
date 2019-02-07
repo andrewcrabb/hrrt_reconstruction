@@ -1,7 +1,7 @@
 //static char sccsid[] = "%W% UCL-TOPO %E%";
 /*
  * Modification History :
- * 5-jan-2000 : Replace ColorData by Color_8 and add Color_24 datatype
+ * 5-jan-2000 : Replace ColorData by ecat_matrix::MatrixDataType::Color_8 and add Color_24 datatype
  * 16-may-2001 : Histogram
  *              - Use template for different data type support,
  *              - Sort voxel values in a 100 channels histogram and use the
@@ -24,9 +24,9 @@
 
 using namespace std;
 
-inline MatrixData* blank(int xdim=64, int ydim=64, int zdim=64) {
-  MatrixData* ret = (MatrixData*)calloc(1,sizeof(MatrixData));
-    ret->data_type = ByteData;
+inline ecat_matrix::MatrixData* blank(int xdim=64, int ydim=64, int zdim=64) {
+  ecat_matrix::MatrixData* ret = (ecat_matrix::MatrixData*)calloc(1,sizeof(ecat_matrix::MatrixData));
+    ret->data_type = ecat_matrix::MatrixDataType::ByteData;
   ret->pixel_size = ret->y_size = ret->z_size = 2;
   ret->xdim = xdim; ret->ydim = ydim; ret->zdim = zdim;
   ret->x_origin = (float)xdim;
@@ -39,9 +39,9 @@ inline MatrixData* blank(int xdim=64, int ydim=64, int zdim=64) {
   return ret;
 }
 
-MatrixData *matrix_create(const MatrixData *orig)
+ecat_matrix::MatrixData *matrix_create(const ecat_matrix::MatrixData *orig)
 {
-  MatrixData *copy = (MatrixData*)calloc(1,sizeof(MatrixData));
+  ecat_matrix::MatrixData *copy = (ecat_matrix::MatrixData*)calloc(1,sizeof(ecat_matrix::MatrixData));
   copy->data_type = orig->data_type;
   copy->scale_factor = orig->scale_factor;
   copy->xdim = orig->xdim;
@@ -136,20 +136,20 @@ void Volume::invert_zoom(const VoxelCoord &center, float factor,
   }
 }
 
-MatrixData *Volume::rgb_split_data(MatrixData *src , int segment) const
+ecat_matrix::MatrixData *Volume::rgb_split_data(ecat_matrix::MatrixData *src , int segment) const
 {
     int nvoxels = src->xdim*src->ydim*src->zdim;
-  MatrixData *dest = (MatrixData*)calloc(1,sizeof(MatrixData));
-  memcpy(dest,src,sizeof(MatrixData));
+  ecat_matrix::MatrixData *dest = (ecat_matrix::MatrixData*)calloc(1,sizeof(ecat_matrix::MatrixData));
+  memcpy(dest,src,sizeof(ecat_matrix::MatrixData));
   dest->data_ptr = src->data_ptr + segment*nvoxels;
-  dest->data_type = ByteData;
+  dest->data_type = ecat_matrix::MatrixDataType::ByteData;
   return dest;
 }
   
-MatrixData *Volume::rgb_create_data(MatrixData *r, MatrixData *g ,
-                                    MatrixData *b) const
+ecat_matrix::MatrixData *Volume::rgb_create_data(ecat_matrix::MatrixData *r, ecat_matrix::MatrixData *g ,
+                                    ecat_matrix::MatrixData *b) const
 {
-  MatrixData *ret = (MatrixData*)calloc(1,sizeof(MatrixData));;
+  ecat_matrix::MatrixData *ret = (ecat_matrix::MatrixData*)calloc(1,sizeof(ecat_matrix::MatrixData));;
   ret->data_type = Color_24;
   ret->xdim = r->xdim;
   ret->ydim = r->ydim;
@@ -297,15 +297,13 @@ int Volume::set_unit(unsigned unit)
   return 1;
 }
   
-char* Volume::unit_name(unsigned unit)
-{
-    switch(unit)
-    {
-        case SUV_BW : return "SUV BW";
-        case SUV_BSA : return "SUV BSA";
-        case SUV_LEAN : return "SUV LEAN";
-    case CM_1 : return "1/cm";
-    case HOUNSFIELD : return "HU";
+char* Volume::unit_name(Units unit) {
+    switch(unit) {
+        case Units::SUV_BW : return "SUV BW";
+        case Units::SUV_BSA : return "SUV BSA";
+        case Units::SUV_LEAN : return "SUV LEAN";
+        case Units::CM_1 :     return "1/cm";
+        case Units::HOUNSFIELD : return "HU";
         default:
       if (strlen(main_header.data_units) > 0)
       return main_header.data_units; 
@@ -313,18 +311,17 @@ char* Volume::unit_name(unsigned unit)
     }
 }
 
-int Volume::convert(float data_value, float &user_value)
-{
+int Volume::convert(float data_value, float &user_value) {
     float low=data()->data_min + data()->intercept;
   float high=data()->data_max + data()->intercept;
   // allow up to 2*high
     if (data_value<low || data_value>2*high) return 0;
     switch(_user_unit)
     {
-        case SUV_BW:
-        case SUV_BSA:
-        case SUV_LEAN:
-        case HOUNSFIELD:
+        case Units::SUV_BW:
+        case Units::SUV_BSA:
+        case Units::SUV_LEAN:
+        case Units::HOUNSFIELD:
             user_value = data_value*conversion_factor();
             break;
         default:
@@ -335,7 +332,7 @@ int Volume::convert(float data_value, float &user_value)
 }
 
 
-int Volume::conversion_factor(unsigned unit, float &ret_factor) const
+int Volume::conversion_factor(Units unit, float &ret_factor) const
 // unit : CPS, BQ_ML, UCI_ML, SUV_BW, SUV_BSA, SUV_LEAN
 {
   // We suppose the ecf is in Bq/ml
@@ -390,18 +387,18 @@ int Volume::conversion_factor(unsigned unit, float &ret_factor) const
   // Convert Bq/ml to requested units
   switch(unit)
   {
-  case CPS:  factor /= cps_2_bq; break;
-  case BQ_ML: break;
-  case UCI_ML: factor *= bq_2_uci; break;
-  case SUV_BW :
+  case Units::CPS:  factor /= cps_2_bq; break;
+  case Units::BQ_ML: break;
+  case Units::UCI_ML: factor *= bq_2_uci; break;
+  case Units::SUV_BW :
     if (dosage>0.0f) factor *= bq_2_uci/dosage;
     else return 0;
     break;
-  case SUV_BSA:
+  case Units::SUV_BSA:
     if (bsa_dosage>0.0f) factor *= bq_2_uci/bsa_dosage;
     else return 0;
     break;
-  case SUV_LEAN:
+  case Units::SUV_LEAN:
     if (lean_dosage>0.0f) factor *= bq_2_uci/lean_dosage;
     else return 0;
     break;
@@ -424,10 +421,10 @@ Volume::Volume(int sz_x, int sz_y, int sz_z) {
   _histogram.code = 0;
   _modality = UnknownModality;
   _histogram.x = _histogram.y = NULL;
-  memset(&main_header, 0, sizeof(Main_header));
+  memset(&main_header, 0, sizeof(ecat_matrix::Main_header));
 }
 
-Volume::Volume(Main_header *mh, MatrixData* matrix, const char* name_str) {
+Volume::Volume(ecat_matrix::Main_header *mh, ecat_matrix::MatrixData* matrix, const char* name_str) {
   proj_min = dyn_min = 0;
   proj_max = dyn_max = 100;
   memset(_name,0,IMAGENAME_MAX+1);
@@ -444,15 +441,15 @@ Volume::Volume(Main_header *mh, MatrixData* matrix, const char* name_str) {
     float unit_factor=1.0;
     char *magic_number = mh->magic_number;
     int magic_size = sizeof(mh->magic_number);
-    memcpy(&main_header, mh, sizeof(Main_header));
+    memcpy(&main_header, mh, sizeof(ecat_matrix::Main_header));
     _modality = modality_code(magic_number+magic_size-4);
     switch(main_header.calibration_units) {
     default:
-    case Uncalibrated :
+    case ecat_matrix::CalibrationStatus::Uncalibrated :
       _data_unit = 0; /* none */
       break;
-    case Calibrated :
-    case Processed :
+    case ecat_matrix::CalibrationStatus::Calibrated :
+    case ecat_matrix::CalibrationStatus::Processed :
       _data_unit = max(0,(int)main_header.calibration_units_label);
       _data_unit = min(_data_unit,customDisplayUnits.size());
     break;
@@ -468,13 +465,13 @@ Volume::Volume(Main_header *mh, MatrixData* matrix, const char* name_str) {
     }
   }
   else {
-    memset(&main_header, 0, sizeof(Main_header));
+    memset(&main_header, 0, sizeof(ecat_matrix::Main_header));
     _modality = UnknownModality;
   }
 }
 
 Volume::Volume(ecat_matrix::MatrixFile* matfile, int matnum, int segment) {
-  memcpy(&main_header, matfile->mhptr, sizeof(Main_header));
+  memcpy(&main_header, matfile->mhptr, sizeof(ecat_matrix::Main_header));
   memset(_name,0,IMAGENAME_MAX+1);
   const char* fname = strrchr(matfile->fname,'/');
   if (fname != NULL) fname++;
@@ -491,13 +488,13 @@ Volume::Volume(ecat_matrix::MatrixFile* matfile, int matnum, int segment) {
   try { load(matfile,matnum, segment); }
   catch(...) { throw; }
 }
-//extern "C" MatrixData *matrix_read_scan(ecat_matrix::MatrixFile*, int, int, int);
+//extern "C" ecat_matrix::MatrixData *matrix_read_scan(ecat_matrix::MatrixFile*, int, int, int);
 
 int Volume::matnum(ecat_matrix::MatrixFile* matfile,int frame)
 {
   ecat_matrix::MatVal matval;
   int matnum=0;
-  MatDirNode *node = matfile->dirlist->first;
+  ecat_matrix::MatDirNode *node = matfile->dirlist->first;
   while (node && (matnum==0)) {
     mat_numdoc(node->matnum,&matval);
     if (matval.frame == frame) matnum = node->matnum;
@@ -506,13 +503,13 @@ int Volume::matnum(ecat_matrix::MatrixFile* matfile,int frame)
   return matnum;
 }
 
-MatrixData *ColorConverter::load(ecat_matrix::MatrixFile *file, MatrixData *vheader)
+ecat_matrix::MatrixData *ColorConverter::load(ecat_matrix::MatrixFile *file, ecat_matrix::MatrixData *vheader)
 {
 // Creates display pixels volume
   unsigned char  r,g,b;
   unsigned char  bt, bt_max=0;
-  MatrixData *volume = (MatrixData*)calloc(1,sizeof(MatrixData));
-  memcpy(volume,vheader,sizeof(MatrixData));
+  ecat_matrix::MatrixData *volume = (ecat_matrix::MatrixData*)calloc(1,sizeof(ecat_matrix::MatrixData));
+  memcpy(volume,vheader,sizeof(ecat_matrix::MatrixData));
   volume->shptr = 0;
   volume->dicom_header = 0;
   volume->dicom_header_size = 0;
@@ -520,7 +517,7 @@ MatrixData *ColorConverter::load(ecat_matrix::MatrixFile *file, MatrixData *vhea
   int nvoxels = npixels*volume->zdim;
     if (_bytes_per_pixel < 3)
     {
-        volume->data_type = ByteData; 
+        volume->data_type = ecat_matrix::MatrixDataType::ByteData; 
         volume->data_size = nvoxels;
         volume->data_ptr = (void *)calloc(1,nvoxels);
     }
@@ -536,7 +533,7 @@ MatrixData *ColorConverter::load(ecat_matrix::MatrixFile *file, MatrixData *vhea
   unsigned char  *p_blue = (unsigned char *)volume->data_ptr + 2*nvoxels;
   for (int plane=1; plane<=volume->zdim; plane++)
   {
-    MatrixData *slice = matrix_read_slice(file,vheader, plane,0);
+    ecat_matrix::MatrixData *slice = matrix_read_slice(file,vheader, plane,0);
     assert((slice != NULL));
     unsigned char  *p0 = (unsigned char *)slice->data_ptr;
     for (int i=0; i<npixels; i++)
@@ -561,12 +558,12 @@ MatrixData *ColorConverter::load(ecat_matrix::MatrixFile *file, MatrixData *vhea
   return volume;
 }
 
-MatrixData *matrix_brightness(const MatrixData *rgb)
+ecat_matrix::MatrixData *matrix_brightness(const ecat_matrix::MatrixData *rgb)
 {
   unsigned char  *B, *r, *g, *b;
   if (rgb->data_type != Color_24) return 0;
-  MatrixData *ret = matrix_create(rgb);
-  ret->data_type = ByteData;
+  ecat_matrix::MatrixData *ret = matrix_create(rgb);
+  ret->data_type = ecat_matrix::MatrixDataType::ByteData;
   int nvoxels = ret->xdim*ret->ydim*ret->zdim;
   ret->data_ptr = (void *)calloc(1, nvoxels);
   r = (unsigned char *)rgb->data_ptr; g = r+nvoxels; b = g+nvoxels;
@@ -577,7 +574,7 @@ MatrixData *matrix_brightness(const MatrixData *rgb)
 }
 
 template <typename T>
-void  matrix_align_4(T *src, MatrixData *data)
+void  matrix_align_4(T *src, ecat_matrix::MatrixData *data)
 {
   int x, y, z, xtrail, ytrail, xdim, ydim;
   int sx = data->xdim, sy = data->ydim, sz = data->zdim;
@@ -608,7 +605,7 @@ void  matrix_align_4(T *src, MatrixData *data)
   data->ydim = ydim;
 }
 
-static void  matrix_align_color_4(MatrixData *data)
+static void  matrix_align_color_4(ecat_matrix::MatrixData *data)
 {
   int x, y, z, xtrail, ytrail, xdim, ydim;
   int sx = data->xdim, sy = data->ydim, sz = data->zdim;
@@ -645,7 +642,7 @@ static void  matrix_align_color_4(MatrixData *data)
 }
 
 int Volume::load(ecat_matrix::MatrixFile* matfile,int matnum, int segment) {
-  MatrixData *new_data=NULL;
+  ecat_matrix::MatrixData *new_data=NULL;
   int _min, _max;
   char **ifh = matfile->interfile_header;
   float unit_factor=1.0;
@@ -653,12 +650,12 @@ int Volume::load(ecat_matrix::MatrixFile* matfile,int matnum, int segment) {
   int interp = 1;     // get nearest neighbour when pixel size is changed
                             // on loading
 
-  MatrixData *new_header = matrix_read(matfile,matnum,MAT_SUB_HEADER);
+  ecat_matrix::MatrixData *new_header = matrix_read(matfile,matnum,ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
   if (new_header == NULL) return 0;
 // attention new_header->pixel_size in cm
   if (new_header->pixel_size < min_pixel_size/10)
     pixel_size = min_pixel_size/10;
-  memcpy(&main_header,matfile->mhptr, sizeof(Main_header));
+  memcpy(&main_header,matfile->mhptr, sizeof(ecat_matrix::Main_header));
   if (main_header.file_type == Short3dSinogram || 
     main_header.file_type == Float3dSinogram ||
     main_header.file_type == AttenCor)
@@ -710,11 +707,11 @@ int Volume::load(ecat_matrix::MatrixFile* matfile,int matnum, int segment) {
 
   switch(main_header.calibration_units) {
     default:
-    case Uncalibrated :
+    case ecat_matrix::CalibrationStatus::Uncalibrated :
       _data_unit = 0; /* none */
       break;
-    case Calibrated :
-    case Processed :
+    case ecat_matrix::CalibrationStatus::Calibrated :
+    case ecat_matrix::CalibrationStatus::Processed :
       _data_unit = max(0,(int)main_header.calibration_units_label);
       _data_unit = min(_data_unit,customDisplayUnits.size());
     break;
@@ -723,13 +720,13 @@ int Volume::load(ecat_matrix::MatrixFile* matfile,int matnum, int segment) {
   if (_modality == CT) {
     _user_unit = HOUNSFIELD;
   } else {
-    if (conversion_factor(SUV_BW, unit_factor)) {
-      _user_unit = SUV_BW;
-    } else if (conversion_factor(BQ_ML, unit_factor)) {
-      _user_unit = BQ_ML;
+    if (conversion_factor(Units::SUV_BW, unit_factor)) {
+      _user_unit = Units::SUV_BW;
+    } else if (conversion_factor(Units::BQ_ML, unit_factor)) {
+      _user_unit = Units::BQ_ML;
     }
-    else if (conversion_factor(CPS, unit_factor)) {
-      _user_unit = CPS;
+    else if (conversion_factor(Units::CPS, unit_factor)) {
+      _user_unit = Units::CPS;
     }
   }
 
@@ -744,7 +741,7 @@ int Volume::load(ecat_matrix::MatrixFile* matfile,int matnum, int segment) {
   if (ifh && ifh[TRANSFORMER]) transform(ifh[TRANSFORMER]);
   _histogram.code = 0;    // invalid current histogram;
 
-  if (_data->data_type == Color_24) {
+  if (_data->data_type == ecat_matrix::MatrixDataType::Color_24) {
     if (red_data) free(red_data);
     if (green_data) free(green_data);
     if (blue_data) free(blue_data);
@@ -798,30 +795,28 @@ else fprintf(stderr, "set origin\n");
   }
 }
 
-MatrixData* Volume::average(float abs_z, float thickness,
-  float pixel_size, int interpolate) const
-{
+ecat_matrix::MatrixData* Volume::average(float abs_z, float thickness,  float pixel_size, int interpolate) const {
   float z = z_index(abs_z);
   switch(_data->data_type)
     {
-    case ByteData:
+    case ecat_matrix::MatrixDataType::ByteData:
       {
         IsotropicSlicer<unsigned char > slicer1(_data, _transformer, interpolate);
         return slicer1.average(z, thickness, pixel_size);
       }
-    case SunShort:
-    case VAX_Ix2:
+    case ecat_matrix::MatrixDataType::SunShort:
+    case ecat_matrix::MatrixDataType::VAX_Ix2:
       {
         IsotropicSlicer<short> slicer2(_data, _transformer, interpolate);
         return slicer2.average(z, thickness, pixel_size);
       }
-    case UShort_BE:
-    case UShort_LE:
+    case ecat_matrix::MatrixDataType::UShort_BE:
+    case ecat_matrix::MatrixDataType::UShort_LE:
       {
         IsotropicSlicer<unsigned short> slicer2(_data, _transformer, interpolate);
         return slicer2.average(z, thickness, pixel_size);
       }
-    case IeeeFloat:
+    case ecat_matrix::MatrixDataType::IeeeFloat:
       {
         IsotropicSlicer<float> slicer4(_data, _transformer, interpolate);
         return slicer4.average(z, thickness, pixel_size);
@@ -831,8 +826,7 @@ MatrixData* Volume::average(float abs_z, float thickness,
    }
 }
 
-Volume* Volume::clone() const 
-{
+Volume* Volume::clone() const {
   float voxel_size = _data->pixel_size;
   int sx = (int)(0.5 + _data->xdim*_data->pixel_size/voxel_size);
   int sy = (int)(0.5 + _data->ydim*_data->y_size/voxel_size);
@@ -840,10 +834,9 @@ Volume* Volume::clone() const
   return new Volume(sx,sy,sz);
 }
 
-const MatrixData &Volume::get_slice_header(DimensionName orthogonal) const
-{
-  static MatrixData *sheader=NULL;
-  if (sheader == 0) sheader = (MatrixData*)calloc(1,sizeof(MatrixData));
+const ecat_matrix::MatrixData &Volume::get_slice_header(DimensionName orthogonal) const {
+  static ecat_matrix::MatrixData *sheader=NULL;
+  if (sheader == 0) sheader = (ecat_matrix::MatrixData*)calloc(1,sizeof(ecat_matrix::MatrixData));
   float sx = _data->xdim*_data->pixel_size;
   float sy = _data->ydim*_data->y_size;
   float sz = _data->zdim*_data->z_size;
@@ -867,22 +860,18 @@ const MatrixData &Volume::get_slice_header(DimensionName orthogonal) const
   return *sheader;
 }
 
-MatrixData* Volume::get_slice(DimensionName dimension, float pos,
-                 int interpolate) const
-{
+ecat_matrix::MatrixData* Volume::get_slice(DimensionName dimension, float pos,                 int interpolate) const {
   VoxelCoord area(_data->xdim*_data->pixel_size, _data->ydim*_data->y_size,
                   _data->zdim*_data->z_size);
   float pix_size = min(min(_data->pixel_size,_data->y_size), _data->z_size);
   return get_slice(dimension, pos, area, pix_size, interpolate);
 }
 
-MatrixData* Volume::get_slice(
-                 DimensionName dimension, float pos,
-                 VoxelCoord &area, float pixel_size, int interpolate) const
-{
-  MatrixData *ret = NULL;
+ecat_matrix::MatrixData* Volume::get_slice( DimensionName dimension, float pos,                 VoxelCoord &area, float pixel_size, int interpolate) const {
+  ecat_matrix::MatrixData *ret = NULL;
   Matrix t = mat_alloc(4,4);
-  if (_transformer) mat_copy(t,_transformer);
+  if (_transformer) 
+    mat_copy(t,_transformer);
   if (!area.undefined)
   {
 /*
@@ -901,30 +890,30 @@ MatrixData* Volume::get_slice(
   }
   switch(_data->data_type)
     {
-    case ByteData:
-    case Color_8:
+    case ecat_matrix::MatrixDataType::ByteData:
+    case ecat_matrix::MatrixDataType::Color_8:
       {
         IsotropicSlicer<unsigned char > slicer1(_data, t, interpolate);
         ret =  slicer1.slice(dimension, pos, area.x, area.y, area.z, pixel_size);
       }
     break;
-    case SunShort:
-    case VAX_Ix2:
+    case ecat_matrix::MatrixDataType::SunShort:
+    case ecat_matrix::MatrixDataType::VAX_Ix2:
       {
         IsotropicSlicer<short> slicer2(_data, t, interpolate);
         ret = slicer2.slice(dimension, pos, area.x, area.y, area.z, pixel_size);
       }
       break;
-    case UShort_BE:
-    case UShort_LE:
+    case ecat_matrix::MatrixDataType::UShort_BE:
+    case ecat_matrix::MatrixDataType::UShort_LE:
       {
         IsotropicSlicer<unsigned short> slicer2(_data, t, interpolate);
         ret = slicer2.slice(dimension, pos, area.x, area.y, area.z, pixel_size);
       }
       break;
-    case Color_24:
+    case ecat_matrix::MatrixDataType::Color_24:
       {
-        MatrixData *red_slice, *green_slice, *blue_slice, *rgb;
+        ecat_matrix::MatrixData *red_slice, *green_slice, *blue_slice, *rgb;
         IsotropicSlicer<unsigned char > r_slicer(red_data, t, interpolate);
         IsotropicSlicer<unsigned char > g_slicer(green_data,t,interpolate);
         IsotropicSlicer<unsigned char > b_slicer(blue_data, t,interpolate);
@@ -938,7 +927,7 @@ MatrixData* Volume::get_slice(
         ret = rgb;
       }
       break;
-    case IeeeFloat:
+    case ecat_matrix::MatrixDataType::IeeeFloat:
       {
         IsotropicSlicer<float> slicer4(_data, t, interpolate);
         ret = slicer4.slice(dimension, pos, area.x, area.y, area.z, pixel_size);
@@ -952,12 +941,12 @@ MatrixData* Volume::get_slice(
    return ret;
 }
 
-MatrixData* Volume::get_slice(
+ecat_matrix::MatrixData* Volume::get_slice(
                  const VoxelCoord &zcenter, float zfactor,
                  DimensionName dimension, float pos,
                  VoxelCoord &area, float pixel_size, int interpolate) const
 {
-  MatrixData *ret = NULL;
+  ecat_matrix::MatrixData *ret = NULL;
   Matrix t = mat_alloc(4,4);
   if (_transformer) mat_copy(t,_transformer);
   if (!area.undefined)
@@ -998,30 +987,30 @@ printf("RRRRRRRRRRRRRRRr transverse area = (%g,%g)\n",area.x, area.y);
   }
   switch(_data->data_type)
     {
-    case ByteData:
-    case Color_8:
+    case ecat_matrix::MatrixDataType::ByteData:
+    case ecat_matrix::MatrixDataType::Color_8:
       {
         IsotropicSlicer<unsigned char > slicer1(_data, t, interpolate);
         ret =  slicer1.slice(dimension, pos, area.x, area.y, area.z, pixel_size);
       }
     break;
-    case SunShort:
-    case VAX_Ix2:
+    case ecat_matrix::MatrixDataType::SunShort:
+    case ecat_matrix::MatrixDataType::VAX_Ix2:
       {
         IsotropicSlicer<short> slicer2(_data, t, interpolate);
         ret = slicer2.slice(dimension, pos, area.x, area.y, area.z, pixel_size);
       }
       break;
-    case UShort_BE:
-    case UShort_LE:
+    case ecat_matrix::MatrixDataType::UShort_BE:
+    case ecat_matrix::MatrixDataType::UShort_LE:
     {
       IsotropicSlicer<unsigned short> slicer2(_data, t, interpolate);
       ret = slicer2.slice(dimension, pos, area.x, area.y, area.z, pixel_size);
     }
     break;
-    case Color_24:
+    case ecat_matrix::MatrixDataType::Color_24:
       {
-        MatrixData *red_slice, *green_slice, *blue_slice, *rgb;
+        ecat_matrix::MatrixData *red_slice, *green_slice, *blue_slice, *rgb;
         IsotropicSlicer<unsigned char > r_slicer(red_data, t, interpolate);
         IsotropicSlicer<unsigned char > g_slicer(green_data,t,interpolate);
         IsotropicSlicer<unsigned char > b_slicer(blue_data, t,interpolate);
@@ -1035,7 +1024,7 @@ printf("RRRRRRRRRRRRRRRr transverse area = (%g,%g)\n",area.x, area.y);
         ret = rgb;
       }
       break;
-    case IeeeFloat:
+    case ecat_matrix::MatrixDataType::IeeeFloat:
       {
         IsotropicSlicer<float> slicer4(_data, t, interpolate);
         ret = slicer4.slice(dimension, pos, area.x, area.y, area.z, pixel_size);
@@ -1049,7 +1038,7 @@ printf("RRRRRRRRRRRRRRRr transverse area = (%g,%g)\n",area.x, area.y);
    return ret;
 }
 
-MatrixData* Volume::projection(DimensionName dimension, float abs_l,
+ecat_matrix::MatrixData* Volume::projection(DimensionName dimension, float abs_l,
                                float abs_h, float pixel_size, int mode) const
 {
   int interpolate = 1;
@@ -1058,24 +1047,24 @@ MatrixData* Volume::projection(DimensionName dimension, float abs_l,
   else if (dimension == Dimension_Z) { l = z_index(abs_l); h = z_index(abs_h); }
   switch(_data->data_type)
     {
-    case ByteData:
+    case ecat_matrix::MatrixDataType::ByteData:
       {
         IsotropicSlicer<unsigned char > slicer1(_data, _transformer, interpolate);
         return slicer1.projection(dimension, l, h, pixel_size, mode);
       }
-    case SunShort:
-    case VAX_Ix2:
+    case ecat_matrix::MatrixDataType::SunShort:
+    case ecat_matrix::MatrixDataType::VAX_Ix2:
       {
         IsotropicSlicer<short> slicer2(_data, _transformer, interpolate);
         return slicer2.projection(dimension, l, h, pixel_size, mode);
       }
-    case UShort_BE:
-    case UShort_LE:
+    case ecat_matrix::MatrixDataType::UShort_BE:
+    case ecat_matrix::MatrixDataType::UShort_LE:
       {
         IsotropicSlicer<unsigned short> slicer2(_data, _transformer, interpolate);
         return slicer2.projection(dimension, l, h, pixel_size, mode);
       }
-    case IeeeFloat:
+    case ecat_matrix::MatrixDataType::IeeeFloat:
       {
         IsotropicSlicer<float> slicer4(_data, _transformer, interpolate);
         return slicer4.projection(dimension, l, h, pixel_size, mode);
@@ -1086,7 +1075,7 @@ MatrixData* Volume::projection(DimensionName dimension, float abs_l,
 }
 
 template <typename T>
-void matrix_reverse( T *src, MatrixData *vol, DimensionName dimension)
+void matrix_reverse( T *src, ecat_matrix::MatrixData *vol, DimensionName dimension)
 {
   int i1,i2;      // swap indexes i1, i2;
   int x,y,z, sx = vol->xdim, sy = vol->ydim, sz = vol->zdim;
@@ -1134,22 +1123,22 @@ void Volume::reverse(DimensionName dimension)
   if (!valid()) return;
   switch(_data->data_type)
     {
-    case ByteData:
-    case Color_8:
+    case ecat_matrix::MatrixDataType::ByteData:
+    case ecat_matrix::MatrixDataType::Color_8:
         matrix_reverse<unsigned char >((unsigned char *)_data->data_ptr,_data, dimension);
         break;
-    case SunShort:
-    case VAX_Ix2:
+    case ecat_matrix::MatrixDataType::SunShort:
+    case ecat_matrix::MatrixDataType::VAX_Ix2:
         matrix_reverse<short>((short*)_data->data_ptr,_data, dimension);
         break;
-    case UShort_BE:
-    case UShort_LE:
+    case ecat_matrix::MatrixDataType::UShort_BE:
+    case ecat_matrix::MatrixDataType::UShort_LE:
         matrix_reverse<unsigned short>((unsigned short*)_data->data_ptr,_data, dimension);
         break;
-    case Color_24:
+    case ecat_matrix::MatrixDataType::Color_24:
         matrix_reverse<unsigned>((unsigned*)_data->data_ptr,_data, dimension);
         break;
-    case IeeeFloat:
+    case ecat_matrix::MatrixDataType::IeeeFloat:
         matrix_reverse<float>((float*)_data->data_ptr,_data, dimension);
         break;
     }
@@ -1207,21 +1196,21 @@ float Volume::voxel_value(const VoxelCoord& pos, VoxelCoord& voxel_pos) const {
   voxel_pos.undefined = 0;
   switch(_data->data_type)
   {
-  case ByteData:
-  case Color_8:
+  case ecat_matrix::MatrixDataType::ByteData:
+  case ecat_matrix::MatrixDataType::Color_8:
     return (data_min + scale_factor*bp[yi*sx+xi]);
-  case SunShort:
-  case VAX_Ix2:
+  case ecat_matrix::MatrixDataType::SunShort:
+  case ecat_matrix::MatrixDataType::VAX_Ix2:
     return  (scale_factor*sp[yi*sx+xi]);
-  case UShort_BE:
-  case UShort_LE:
+  case ecat_matrix::MatrixDataType::UShort_BE:
+  case ecat_matrix::MatrixDataType::UShort_LE:
     return  (_data->intercept + scale_factor*usp[yi*sx+xi]);
-  case Color_24:
+  case ecat_matrix::MatrixDataType::Color_24:
     return ((bp[2*nvoxels+yi*sx+xi]<<16) +
         (bp[nvoxels+yi*sx+xi] << 8) +
         bp[yi*sx+xi]);
 //    return 1;
-  case IeeeFloat:
+  case ecat_matrix::MatrixDataType::IeeeFloat:
     return  (scale_factor*fp[yi*sx+xi]);
   default:
     throw("bad data type");
@@ -1281,14 +1270,14 @@ const char* _fname) const{
   FILE *fp=NULL;
   char *fname = NULL, *ext = NULL;
   const char* str = _fname;
-  MatDir matdir;
+  ecat_matrix::MatDir matdir;
   char data_offset[20];
   const unsigned char  *p = NULL;
   int i, j, error_flag=0;
 
   assert(_data->data_type != Color_24);
   char **ifh = matfile->interfile_header;
-  if (ifh == NULL) { // CTI PetVolume 
+  if (ifh == NULL) { // CTI ecat_matrix::DataSetType::PetVolume 
     // read matnum sub_header
     // check check if volume and header dimensions are same
     // reject if dimensions not comaptible
@@ -1297,8 +1286,8 @@ const char* _fname) const{
     ifh = (char**)calloc(END_OF_INTERFILE+1,sizeof(char*));
     ifh[VERSION_OF_KEYS] = "3.3";
     ifh[NAME_OF_DATA_FILE] = matfile->fname;
-    MatrixData *header = matrix_read(matfile,_data->matnum,
-      MAT_SUB_HEADER);
+    ecat_matrix::MatrixData *header = matrix_read(matfile,_data->matnum,
+      ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
     if (header == NULL || header->xdim != _data->xdim ||
       header->ydim != _data->ydim || header->zdim != _data->zdim)
       error_flag++;
@@ -1337,29 +1326,29 @@ const char* _fname) const{
     fprintf (fp, "conversion program := Volume::save\n");
   if (ifh[NUMBER_FORMAT] == 0) {
     switch(_data->data_type) {
-    case ByteData :
-    case Color_8 :
+    case ecat_matrix::MatrixDataType::ByteData :
+    case ecat_matrix::MatrixDataType::Color_8 :
       fprintf (fp, "number format  := unsigned integer\n");
       fprintf (fp, "number of bytes per pixel  := 1\n");
       break;
-    case SunShort:
+    case ecat_matrix::MatrixDataType::SunShort:
       fprintf (fp, "number format  := signed integer\n");
       fprintf (fp, "number of bytes per pixel  := 2\n");
       break;
-    case UShort_BE:
+    case ecat_matrix::MatrixDataType::UShort_BE:
       fprintf (fp, "number format  := unsigned integer\n");
       fprintf (fp, "number of bytes per pixel  := 2\n");
       break;
-    case IeeeFloat :
+    case ecat_matrix::MatrixDataType::IeeeFloat :
       fprintf (fp, "number format  := short float\n");
       fprintf (fp, "number of bytes per pixel  := 4\n");
       break;
-    case UShort_LE:
+    case ecat_matrix::MatrixDataType::UShort_LE:
       fprintf (fp, "imagedata byte order := little endian\n");
       fprintf (fp, "number format  := unsigned integer\n");
       fprintf (fp, "number of bytes per pixel  := 2\n");
     default:
-    case VAX_Ix2:
+    case ecat_matrix::MatrixDataType::VAX_Ix2:
       fprintf (fp, "imagedata byte order := little endian\n");
       fprintf (fp, "number format  := signed integer\n");
       fprintf (fp, "number of bytes per pixel  := 2\n");
@@ -1460,26 +1449,26 @@ int Volume::histogram(float *& xv, float *& yv, int &psize) {
   for (i=1; i<psize; i++) xv[i] = xv[i-1]+1;
   switch(_data->data_type)
   { 
-  case ByteData:
-  case Color_8:
+  case ecat_matrix::MatrixDataType::ByteData:
+  case ecat_matrix::MatrixDataType::Color_8:
     t_histogram<unsigned char >((unsigned char *)_data->data_ptr, nvoxels, d_min, d_max,
       d_step, yv, psize);
     break;
-  case SunShort:
-  case VAX_Ix2:
+  case ecat_matrix::MatrixDataType::SunShort:
+  case ecat_matrix::MatrixDataType::VAX_Ix2:
     t_histogram<short>((short*)_data->data_ptr,nvoxels, d_min, d_max,
       d_step, yv, psize);
     break;
-  case UShort_BE:
-  case UShort_LE:
+  case ecat_matrix::MatrixDataType::UShort_BE:
+  case ecat_matrix::MatrixDataType::UShort_LE:
     t_histogram<unsigned short>((unsigned short*)_data->data_ptr,nvoxels, d_min, d_max,
       d_step, yv, psize);
     break;
-  case IeeeFloat:
+  case ecat_matrix::MatrixDataType::IeeeFloat:
     t_histogram<float>((float*)_data->data_ptr, nvoxels, d_min, d_max,
       d_step, yv, psize);
     break;
-  case Color_24:
+  case ecat_matrix::MatrixDataType::Color_24:
     color_histogram((unsigned char *)_data->data_ptr, nvoxels, yv, psize);
     break;
   default:

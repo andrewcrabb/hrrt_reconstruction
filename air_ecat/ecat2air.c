@@ -36,9 +36,9 @@ static void flip_x(void * line, int data_type, int xdim)
 	static void * _line=NULL;
 	static int line_size = 0;
 	int x=0;
-	int elem_size = (data_type==ByteData)? 1 : 2;
+	int elem_size = (data_type==ecat_matrix::MatrixDataType::ByteData)? 1 : 2;
 
-  if (data_type == IeeeFloat) elem_size = 4;
+  if (data_type == ecat_matrix::MatrixDataType::IeeeFloat) elem_size = 4;
 	if (line_size == 0) {
 		line_size = xdim*elem_size;
 		_line = (void *)malloc(line_size);
@@ -47,7 +47,7 @@ static void flip_x(void * line, int data_type, int xdim)
 		_line = (void *)realloc(_line, line_size);
 	}
 	switch(data_type) {
-		case ByteData :
+		case ecat_matrix::MatrixDataType::ByteData :
 		{
 			unsigned char  *b_p0, *b_p1;
 			b_p0 = (unsigned char *)line;
@@ -73,10 +73,10 @@ static void flip_y(void * plane, int data_type, int xdim, int ydim)
 	static void * _plane=NULL;
 	static int plane_size = 0;
 	void *p0, *p1;
-	int elem_size = (data_type==ByteData)? 1 : 2;
+	int elem_size = (data_type==ecat_matrix::MatrixDataType::ByteData)? 1 : 2;
 	int y=0;
 
-  if (data_type == IeeeFloat) elem_size = 4;
+  if (data_type == ecat_matrix::MatrixDataType::IeeeFloat) elem_size = 4;
 	if (plane_size == 0) {
 		plane_size = xdim*ydim*elem_size;
 		_plane = (void *)malloc(plane_size);
@@ -94,14 +94,14 @@ static void flip_y(void * plane, int data_type, int xdim, int ydim)
 	memcpy(plane,_plane,xdim*ydim*elem_size);
 }
 
-void  matrix_flip(MatrixData *data, int x_flip, int y_flip, int z_flip)
+void  matrix_flip(ecat_matrix::MatrixData *data, int x_flip, int y_flip, int z_flip)
 {
   int y=0,z=0;
   void *plane_in=NULL, *plane_out=NULL, *tmp=NULL, *line=NULL; 
-  int elem_size = (data->data_type==ByteData)? 1 : 2;
+  int elem_size = (data->data_type==ecat_matrix::MatrixDataType::ByteData)? 1 : 2;
   int npixels;
 
-  if (data->data_type == IeeeFloat) elem_size = 4;
+  if (data->data_type == ecat_matrix::MatrixDataType::IeeeFloat) elem_size = 4;
 	npixels = data->xdim * data->ydim;
 	plane_in = data->data_ptr;
 	if(z_flip){
@@ -129,7 +129,7 @@ void  matrix_flip(MatrixData *data, int x_flip, int y_flip, int z_flip)
 	}
 }
 
-static AIR_Pixels ***matrix2air(MatrixData* matrix, struct AIR_Key_info *stats)
+static AIR_Pixels ***matrix2air(ecat_matrix::MatrixData* matrix, struct AIR_Key_info *stats)
 {
 	int i, nvoxels;
 	unsigned char  *bdata=NULL;
@@ -146,7 +146,7 @@ static AIR_Pixels ***matrix2air(MatrixData* matrix, struct AIR_Key_info *stats)
 	}
 	switch (matrix->data_type) {
 		case BitData : stats->bits = 1; break;
-		case ByteData : stats->bits = 8; break;
+		case ecat_matrix::MatrixDataType::ByteData : stats->bits = 8; break;
 		default :	stats->bits = 16; 	/* assume 16 */
 	}
 	stats->x_dim = matrix->xdim;
@@ -198,7 +198,7 @@ static AIR_Pixels ***matrix2air(MatrixData* matrix, struct AIR_Key_info *stats)
 	
 	switch (matrix->data_type) {
 		case BitData:
-		case ByteData:
+		case ecat_matrix::MatrixDataType::ByteData:
 			bdata = (unsigned char *)matrix->data_ptr;
 			for (i=0; i<nvoxels; i++) {
 				v = *bdata++;
@@ -206,7 +206,7 @@ static AIR_Pixels ***matrix2air(MatrixData* matrix, struct AIR_Key_info *stats)
 				*image_data++ = (int)(f+0.5);
 			}
 			break;
-    case IeeeFloat:
+    case ecat_matrix::MatrixDataType::IeeeFloat:
 			fdata = (float*)matrix->data_ptr;  
       // compute foat to short scale factor
       if (fabs(matrix->data_max) > fabs(matrix->data_min)) {
@@ -244,7 +244,7 @@ int matrix_exists(const char *specs)
 {
     int ret = 0;
     ecat_matrix::MatrixFile *file;
-    MatDirNode *node;
+    ecat_matrix::MatDirNode *node;
 
     matnum = 0;
     ret = matspec(specs,fname,&matnum);
@@ -276,7 +276,7 @@ AIR_Pixels ***ecat2air(const char *specs, struct AIR_Key_info *stats,
                        const AIR_Boolean binary_ok, AIR_Error *errcode)
 {
   ecat_matrix::MatrixFile* file;
-  MatrixData *volume;
+  ecat_matrix::MatrixData *volume;
   ecat_matrix::MatVal mat;
   AIR_Pixels ***pixels = NULL;
   int cubic=0,interpolate=0;
@@ -328,7 +328,7 @@ int ecat_AIR_map_value(const char *specs, int value, int *error)
 	while (extrema && strcmp(extrema->specs,specs)!=0)
 		extrema = extrema->next;
 	if (extrema) {
-		if (extrema->data_type != ByteData)
+		if (extrema->data_type != ecat_matrix::MatrixDataType::ByteData)
 			return (int)(value+32767);
 		v0 = extrema->data_min;
 		v1 = extrema->data_max;

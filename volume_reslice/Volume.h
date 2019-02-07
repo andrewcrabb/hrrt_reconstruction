@@ -57,7 +57,7 @@ protected:
 public:
 	ColorConverter(int depth=1) { _bytes_per_pixel = depth; }
 	int bytes_per_pixel() {return _bytes_per_pixel; }
-	virtual MatrixData *load(ecat_matrix::MatrixFile *file, MatrixData *vheader);
+	virtual ecat_matrix::MatrixData *load(ecat_matrix::MatrixFile *file, ecat_matrix::MatrixData *vheader);
 };
 
 class VoIValue {
@@ -73,9 +73,9 @@ public:
 
 class Volume {
 protected:
-	MatrixData *red_data, *green_data, *blue_data; //Color data decomposition
-	Main_header main_header;
-	MatrixData* _data;
+	ecat_matrix::MatrixData *red_data, *green_data, *blue_data; //Color data decomposition
+	ecat_matrix::Main_header main_header;
+	ecat_matrix::MatrixData* _data;
 	VoxelCoord _origin;		// transformed origin
 	int dyn_max, dyn_min;			   // slices dynamic range (percent)
 	float proj_max, proj_min;			   // projection dynamic range (percent)
@@ -90,25 +90,36 @@ protected:
 	virtual int load(ecat_matrix::MatrixFile*, int matnum, int segment=0);
 	Matrix _transformer;
 	void update_origin();	// update transformed update
-	MatrixData *rgb_create_data(MatrixData *r,
-                                    MatrixData *g ,
-                                    MatrixData *b) const;
-	 MatrixData *rgb_split_data(MatrixData *src ,
+	ecat_matrix::MatrixData *rgb_create_data(ecat_matrix::MatrixData *r,
+                                    ecat_matrix::MatrixData *g ,
+                                    ecat_matrix::MatrixData *b) const;
+	 ecat_matrix::MatrixData *rgb_split_data(ecat_matrix::MatrixData *src ,
                                     int segment) const;
 public :
-	enum { NONE=0,
-						/* Begin PET units */
-		CPS=1, BQ_ML=2, PROSESSED=3, UCI_ML=4,
-		UMOLE_100G_MIN=5, MG_100G_MIN=6, ML_100G_MIN=7,
-		/* micromole/100g/min, mg/100g/min,  ml/100g/min*/
-		SUV_BW=8, SUV_BSA=16, SUV_LEAN=32,
-		/* body, surface and lean weighted */
-							/* end PET units */
-		CM_1=33, HOUNSFIELD=34		/* TX(1/cm) and CT units */
-		} Units;
+	enum class Units { 
+		NONE           = 0,
+		CPS            = 1,   // Begin PET units
+		BQ_ML          = 2,
+		PROSESSED      = 3,
+		UCI_ML         = 4,
+		UMOLE_100G_MIN = 5,
+		MG_100G_MIN    = 6,
+		ML_100G_MIN    = 7,  // micromole/100g/min,		mg/100g/min,		 ml/100g/min
+		SUV_BW         = 8,
+		SUV_BSA        = 16,
+		SUV_LEAN       = 32,   // body, surface and lean weighted  /* end PET units */
+		CM_1           = 33,       // TX(1/cm) units
+		HOUNSFIELD     = 34  // CT units
+		};
 
-	enum { SAGITTAL=0, CORONAL, AXIAL, OBLIC , UNKNOWN} orientation;
-	
+	enum {
+		SAGITTAL = 0,
+		CORONAL,
+		AXIAL,
+		OBLIC ,
+		UNKNOWN
+	} orientation;
+
 	static ColorConverter *color_converter;
 	static int max_byte_value;			// limit in byte_scale methods
     static float min_pixel_size;	   // in mm (default 1mm)
@@ -120,7 +131,7 @@ public :
 	static float distance(const VoxelCoord& p0, const VoxelCoord& p1);
 
 	Volume(int sx=128, int sy=128, int sz=128);
-	Volume(Main_header *mh, MatrixData*, const char* name_str=0);
+	Volume(ecat_matrix::Main_header *mh, ecat_matrix::MatrixData*, const char* name_str=0);
 	Volume(ecat_matrix::MatrixFile*, int matnum, int segment=0);
 									// segment is used for 3D sinograms 
 	virtual Volume* clone() const;
@@ -129,29 +140,29 @@ public :
 		const char* fname=NULL) const;
 			// export current range  in InterFile format
 
-	char* unit_name(unsigned);
-	int conversion_factor(unsigned unit, float &ret_factor) const;
+	char* unit_name(Units unit);
+	int conversion_factor(Units unit, float &ret_factor) const;
 	char* unit_name() { return unit_name(_user_unit); }
 	int convert(float data_value, float &user_value);
 	float conversion_factor() const;		// user_unit conversion factor
 									//  see inline definition below
 
-	virtual MatrixData* average(float z0, float thickness, float pixel_size,
+	virtual ecat_matrix::MatrixData* average(float z0, float thickness, float pixel_size,
 		int interpolate=1) const;
 
-	const MatrixData& get_slice_header(DimensionName) const;
-	MatrixData* get_slice(DimensionName, float x, int interpolate=1) const;
-	MatrixData* get_slice(DimensionName, float x, VoxelCoord& area,
+	const ecat_matrix::MatrixData& get_slice_header(DimensionName) const;
+	ecat_matrix::MatrixData* get_slice(DimensionName, float x, int interpolate=1) const;
+	ecat_matrix::MatrixData* get_slice(DimensionName, float x, VoxelCoord& area,
 	    float pixel_size, int interpolate=1) const;
-	MatrixData* get_slice(const VoxelCoord &zoom_center, float zoom_f,
+	ecat_matrix::MatrixData* get_slice(const VoxelCoord &zoom_center, float zoom_f,
         DimensionName, float x, VoxelCoord& area,
 	    float pixel_size, int interpolate=1) const;
  // reslicing acronymes
-  MatrixData* transverse(float z, int interpolate=1) const;
-  MatrixData* coronal(float y, int interpolate=1) const;
-  MatrixData* sagittal(float x, int interpolate=1) const;
+  ecat_matrix::MatrixData* transverse(float z, int interpolate=1) const;
+  ecat_matrix::MatrixData* coronal(float y, int interpolate=1) const;
+  ecat_matrix::MatrixData* sagittal(float x, int interpolate=1) const;
 
-	virtual MatrixData* projection(DimensionName, float l, float r,
+	virtual ecat_matrix::MatrixData* projection(DimensionName, float l, float r,
 		float pixel_size, int mode=0) const;
 
 	virtual void reverse(DimensionName);
@@ -172,7 +183,7 @@ public :
 	int origin(DimensionName dimension, float& o1, float& o2) const;
 	const char* name() const { return _name; }
 	void name(const char* s) { strncpy(_name,s,IMAGENAME_MAX); }
-	const MatrixData* data() const { return _data; }
+	const ecat_matrix::MatrixData* data() const { return _data; }
 	virtual float voxel_value(const VoxelCoord& p, VoxelCoord& voxel_pos) const;
 	int voxel_pos(const VoxelCoord& p, VoxelIndex& voxel_pos) const;
 	int valid() const { return _data->data_ptr? 1: 0; }
@@ -190,7 +201,7 @@ public :
 	int data_unit() const { return _data_unit; }
 	int set_unit(unsigned user_unit);
 	int get_unit() const { return _user_unit; }
-	const Main_header &get_main_header() { return main_header; }
+	const ecat_matrix::Main_header &get_main_header() { return main_header; }
 
 	int transform(const char* ts);		// 4x4 matrix string
 	int transform(float rx, float ry, float rz,
@@ -223,15 +234,15 @@ inline int Volume::dynamic_imax() const {
 	return (int)(f/_data->scale_factor);
 }
 
-inline MatrixData* Volume::transverse(float z, int interpolate) const
+inline ecat_matrix::MatrixData* Volume::transverse(float z, int interpolate) const
 {
   return get_slice(Dimension_Z, z, interpolate);
 }
-inline MatrixData* Volume::coronal(float y, int interpolate) const
+inline ecat_matrix::MatrixData* Volume::coronal(float y, int interpolate) const
 {
   return get_slice(Dimension_Y, y, interpolate);
 }
-inline MatrixData* Volume::sagittal(float x, int interpolate) const
+inline ecat_matrix::MatrixData* Volume::sagittal(float x, int interpolate) const
 {
   return get_slice(Dimension_X, x, interpolate);
 }
@@ -319,6 +330,6 @@ inline float mm3_round(float v) {		/* round to mm3 */
 
 
 
-MatrixData *matrix_brightness(const MatrixData* rgb);
-extern MatrixData *matrix_create(const MatrixData* orig);
+ecat_matrix::MatrixData *matrix_brightness(const ecat_matrix::MatrixData* rgb);
+extern ecat_matrix::MatrixData *matrix_create(const ecat_matrix::MatrixData* orig);
 

@@ -1109,14 +1109,14 @@ void SinogramIO::loadECAT7(const std::string name,
        }
       switch (e7->DataType(s))
        { case E7_DATATYPE_BYTE:
-          copyData((signed char *)e7->MatrixData(s), s-mnr, name, loglevel);
+          copyData((signed char *)e7->getecat_matrix::MatrixData(s), s-mnr, name, loglevel);
           break;
          case E7_DATATYPE_SHORT:
-          copyData((signed short int *)e7->MatrixData(s), s-mnr, name,
+          copyData((signed short int *)e7->getecat_matrix::MatrixData(s), s-mnr, name,
                    loglevel);
           break;
          case E7_DATATYPE_FLOAT:
-          copyData((float *)e7->MatrixData(s), s-mnr, name, loglevel);
+          copyData((float *)e7->getecat_matrix::MatrixData(s), s-mnr, name, loglevel);
           break;
        }
       e7->DeleteData(s);
@@ -2413,7 +2413,7 @@ void SinogramIO::save(const std::string filename,
            MemCtrl::mc()->put(data[0][axis]);
            fp+=axis_size[axis];
          }
-        e7->MatrixData(fptr, E7_DATATYPE_FLOAT, mnr);
+        e7->getecat_matrix::MatrixData(fptr, E7_DATATYPE_FLOAT, mnr);
         fptr=NULL;
       }
                                                         // store in view mode ?

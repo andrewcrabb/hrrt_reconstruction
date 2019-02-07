@@ -7,7 +7,7 @@
 #endif
 #include "ecat_matrix.hpp"
 
-void matrix_sum(MatrixData *matrix, MatrixData **sum)
+void matrix_sum(ecat_matrix::MatrixData *matrix, ecat_matrix::MatrixData **sum)
 {
   ecat_matrix::MatVal mat;
   int i, nvoxels, nblks;
@@ -19,8 +19,8 @@ void matrix_sum(MatrixData *matrix, MatrixData **sum)
   sdata = (short*)matrix->data_ptr;
   if (*sum == NULL)
   {
-    *sum = (MatrixData*)calloc(1, sizeof(MatrixData));
-    memcpy(*sum, matrix,sizeof(MatrixData));
+    *sum = (ecat_matrix::MatrixData*)calloc(1, sizeof(ecat_matrix::MatrixData));
+    memcpy(*sum, matrix,sizeof(ecat_matrix::MatrixData));
     (*sum)->data_size = nvoxels*sizeof(float);
     nblks = ((*sum)->data_size + MatBLKSIZE-1)/MatBLKSIZE;
     (*sum)->data_ptr = (void *)calloc(nblks,MatBLKSIZE);
@@ -40,9 +40,9 @@ void matrix_sum(MatrixData *matrix, MatrixData **sum)
 
 int main(int argc, char **argv)
 {
-  MatDirNode *node;
+  ecat_matrix::MatDirNode *node;
   ecat_matrix::MatrixFile *mptr, *sum_mptr=NULL;
-  MatrixData *matrix, *sum=NULL;
+  ecat_matrix::MatrixData *matrix, *sum=NULL;
   ecat_matrix::Image_subheader *imh;
   ecat_matrix::MatVal mat;
   char fname[FILENAME_MAX], *ext=NULL;
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
   FILE *fp=NULL;
 #endif
   
-  if (argc < 2) crash("usage : %s file start_frame,end_frame\n",argv[0]);
+  if (argc < 2) ecat_matrix::crash("usage : %s file start_frame,end_frame\n",argv[0]);
   if (argc>2) sscanf(argv[2], "%d,%d",&start_frame,&end_frame);
   mptr = matrix_open(argv[1], ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (mptr == NULL) {
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
   if ((ext=strrchr(fname,'.')) != NULL)*ext = '\0';
   ftype = mptr->mhptr->file_type;
   // if (ftype <0 || ftype >= NumDataSetTypes)
-  //   crash("%s : unkown file type\n",argv[1]);
+  //   ecat_matrix::crash("%s : unkown file type\n",argv[1]);
   printf( "%s file type  : %s\n", argv[1], datasettype_.at(ftype).name);
   if (!mptr) matrix_perror(fname);
   node = mptr->dirlist->first;
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
       (end_frame==0 || mat.frame<=end_frame))
     {
       matrix = matrix_read(mptr,node->matnum,UnknownMatDataType);
-      if (!matrix) crash("%d,%d,%d,%d,%d not found\n",
+      if (!matrix) ecat_matrix::crash("%d,%d,%d,%d,%d not found\n",
         mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
       printf("Adding %d,%d,%d,%d,%d\n",mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
       matrix_sum(matrix, &sum);

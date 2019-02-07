@@ -38,19 +38,19 @@ static int write_image(ecat_matrix::MatrixFile *fp, int frame, ecat_matrix::Imag
 {
     int i, j, nvoxels;
     float minval, maxval, scalef;
-    MatrixData *matrix=NULL;
+    ecat_matrix::MatrixData *matrix=NULL;
     float *fdata=image[0][0];
     short *sdata=NULL, smax=32766;  // not 32767 to avoid rounding problems
     int matnum=0, nblks = 0;
 
-    matrix = (MatrixData*)calloc(1,sizeof(MatrixData));
+    matrix = (ecat_matrix::MatrixData*)calloc(1,sizeof(ecat_matrix::MatrixData));
     matrix->xdim = imh->x_dimension;	
     matrix->ydim = imh->y_dimension;
     matrix->zdim = imh->z_dimension;
     matrix->pixel_size = imh->x_pixel_size;
     matrix->y_size = imh->y_pixel_size;
     matrix->z_size = imh->z_pixel_size;
-    imh->data_type = matrix->data_type = SunShort;
+    imh->data_type = matrix->data_type = ecat_matrix::MatrixDataType::SunShort;
     matrix->data_max = imh->image_max*matrix->scale_factor;
     matrix->data_min = imh->image_min*matrix->scale_factor;
     matrix->data_size = matrix->xdim*matrix->ydim*matrix->zdim*sizeof(short);
@@ -170,7 +170,7 @@ int write_ecat_image(float ***image, char * filename, int frame,
 	float	eps = 0.001f;
 	FILE	*f_in=NULL;
   ecat_matrix::MatrixFile *f_out=NULL;
-  Main_header mh;
+  ecat_matrix::Main_header mh;
   ecat_matrix::Image_subheader imh;
 	char	sinoHeaderName[_MAX_PATH];
 	int		sinoHeaderExists;
@@ -206,7 +206,7 @@ int write_ecat_image(float ***image, char * filename, int frame,
   imh.num_r_elements = 256;    /* number of bins in cor. sinogramm */
   imh.num_angles = 288;  /* number of angles in corrected sinogram */
   imh.scatter_type = 2;  
-  imh.data_type = 6;                                  /* Sun short */
+  imh.data_type = ecat_matrix::MatrixDataType::SunShort;                                  /* Sun short */
   imh.num_dimensions = 3;
   imh.x_dimension = info->nx;
   imh.y_dimension = info->ny;

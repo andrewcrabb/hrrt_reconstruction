@@ -47,7 +47,7 @@ inline int round(float x) { return x > 0 ? int(x+0.5) : -int(-x+0.5); }
                                                          
 template <typename T> class IsotropicSlicer
 {
-  const MatrixData* volume;
+  const ecat_matrix::MatrixData* volume;
   int interpolate;
   T *data;
   Matrix  transformer;
@@ -57,31 +57,31 @@ template <typename T> class IsotropicSlicer
                      float pixel_size) const;
   int transf_z_slice(T *dest, float z_pos, int dest_xd, int dest_yd,
                      float pixel_size) const;
-  MatrixData *create_slice(T *dptr, int sx, int sy, float dx, float dy,
+  ecat_matrix::MatrixData *create_slice(T *dptr, int sx, int sy, float dx, float dy,
                      float dz) const;
-  MatrixData *create_comp_slice(float *dptr, int sx, int sy,
+  ecat_matrix::MatrixData *create_comp_slice(float *dptr, int sx, int sy,
 				float dx, float dy, float dz) const;
 public :
-  IsotropicSlicer<T>(const MatrixData* v, Matrix t=0, int interp=0);
- MatrixData *sagittal(float x_pos, float area_y, float area_z,
+  IsotropicSlicer<T>(const ecat_matrix::MatrixData* v, Matrix t=0, int interp=0);
+ ecat_matrix::MatrixData *sagittal(float x_pos, float area_y, float area_z,
                       float pixel_size) const;
-  MatrixData *coronal(float y_pos, float area_y, float area_z,
+  ecat_matrix::MatrixData *coronal(float y_pos, float area_y, float area_z,
                       float pixel_size) const;
-  MatrixData *transverse(float z_pos, float area_x, float area_y,
+  ecat_matrix::MatrixData *transverse(float z_pos, float area_x, float area_y,
                       float pixel_size) const;
-  MatrixData* x_projection(float x0, float x1, int mode) const;
-  MatrixData* y_projection(float y0, float y1, int mode) const;
-  MatrixData* slice(unsigned dim, float pos,
+  ecat_matrix::MatrixData* x_projection(float x0, float x1, int mode) const;
+  ecat_matrix::MatrixData* y_projection(float y0, float y1, int mode) const;
+  ecat_matrix::MatrixData* slice(unsigned dim, float pos,
                     float area_x, float area_y, float area_z,
                     float pixel_size) const;
 
-  MatrixData* projection(unsigned dim, float l, float r, float pixel_size,
+  ecat_matrix::MatrixData* projection(unsigned dim, float l, float r, float pixel_size,
 		int mode=0) const;
-  MatrixData* average(float z0, float thickness, float pixel_size) const;
+  ecat_matrix::MatrixData* average(float z0, float thickness, float pixel_size) const;
 };
 
 template <typename T>
-IsotropicSlicer<T>::IsotropicSlicer(const MatrixData* v, Matrix t, int interp)
+IsotropicSlicer<T>::IsotropicSlicer(const ecat_matrix::MatrixData* v, Matrix t, int interp)
 {
   volume = v;
   data = (T*)volume->data_ptr;
@@ -91,17 +91,17 @@ IsotropicSlicer<T>::IsotropicSlicer(const MatrixData* v, Matrix t, int interp)
 }
 
 template <typename T>
-MatrixData* IsotropicSlicer<T>::create_slice(T *dptr, int sx, int sy, 
+ecat_matrix::MatrixData* IsotropicSlicer<T>::create_slice(T *dptr, int sx, int sy, 
 				       float dx, float dy, float dz) const
 {
-  MatrixData* slice = (MatrixData*)calloc(1,sizeof(MatrixData));
+  ecat_matrix::MatrixData* slice = (ecat_matrix::MatrixData*)calloc(1,sizeof(ecat_matrix::MatrixData));
   slice->data_type = volume->data_type;
   slice->zdim = 1;
   if (dptr) slice->data_ptr = (void *)dptr;
   else
   {
     slice->data_ptr = (void *)calloc(sx*sy, sizeof(T));
-    slice->data_type = ByteData;
+    slice->data_type = ecat_matrix::MatrixDataType::ByteData;
   }
   slice->xdim = sx;
   slice->ydim = sy;
@@ -117,12 +117,12 @@ MatrixData* IsotropicSlicer<T>::create_slice(T *dptr, int sx, int sy,
 }
 
 template <typename T>
-MatrixData* IsotropicSlicer<T>::create_comp_slice(float *dptr, int sx, int sy, 
+ecat_matrix::MatrixData* IsotropicSlicer<T>::create_comp_slice(float *dptr, int sx, int sy, 
 				       float dx, float dy, float dz) const
 {
-  MatrixData* slice = (MatrixData*)calloc(1,sizeof(MatrixData));
+  ecat_matrix::MatrixData* slice = (ecat_matrix::MatrixData*)calloc(1,sizeof(ecat_matrix::MatrixData));
   slice->zdim = 1;
-  slice->data_type = IeeeFloat;
+  slice->data_type = ecat_matrix::MatrixDataType::IeeeFloat;
   slice->data_ptr = (void *)dptr;
   slice->xdim = sx;
   slice->ydim = sy;
@@ -399,7 +399,7 @@ int dest_xd, int dest_yd, float pixel_size) const
 
 
 template <typename T>
-MatrixData *IsotropicSlicer<T>::transverse(float z, float area_x,
+ecat_matrix::MatrixData *IsotropicSlicer<T>::transverse(float z, float area_x,
                                           float area_y, float pixel_size) const
 {
 //extern int debug_level;
@@ -426,7 +426,7 @@ MatrixData *IsotropicSlicer<T>::transverse(float z, float area_x,
 }
 
 template <typename T>
-MatrixData* IsotropicSlicer<T>::sagittal(float x, float area_y,
+ecat_matrix::MatrixData* IsotropicSlicer<T>::sagittal(float x, float area_y,
                                          float area_z, float pixel_size) const
 {
   T *dest=0;
@@ -452,7 +452,7 @@ MatrixData* IsotropicSlicer<T>::sagittal(float x, float area_y,
 }
 
 template <typename T>
-MatrixData* IsotropicSlicer<T>::x_projection(float x0 , float x1, int mode ) const
+ecat_matrix::MatrixData* IsotropicSlicer<T>::x_projection(float x0 , float x1, int mode ) const
 {
   float *dest=0, *dest_line=0, *curp=0;
   int  yi, zi, xi;
@@ -490,7 +490,7 @@ MatrixData* IsotropicSlicer<T>::x_projection(float x0 , float x1, int mode ) con
 }
 
 template <typename T>
-MatrixData* IsotropicSlicer<T>::coronal(float y, float area_x, float area_z,
+ecat_matrix::MatrixData* IsotropicSlicer<T>::coronal(float y, float area_x, float area_z,
                                         float pixel_size) const
 {
   T *dest=0;
@@ -516,7 +516,7 @@ MatrixData* IsotropicSlicer<T>::coronal(float y, float area_x, float area_z,
 }
 
 template <typename T>
-MatrixData* IsotropicSlicer<T>::y_projection(float y0, float y1, int mode) const
+ecat_matrix::MatrixData* IsotropicSlicer<T>::y_projection(float y0, float y1, int mode) const
 {
   float *dest=0, *dest_line=0;
   int xi, yi, zi;
@@ -524,7 +524,7 @@ MatrixData* IsotropicSlicer<T>::y_projection(float y0, float y1, int mode) const
   int sx = volume->xdim, sy = volume->ydim, sz = volume->zdim;
   float dx = volume->pixel_size, dz = volume->z_size;
   
-  if (!data || volume->data_type == Color_8 || volume->data_type==Color_24)
+  if (!data || volume->data_type == ecat_matrix::MatrixDataType::Color_8 || volume->data_type==Color_24)
     return create_comp_slice(dest,sx,sz,dx,dz,y1-y0);
   int npixels = sx*sz;
   dest = (float*)calloc(npixels,sizeof(float));
@@ -554,11 +554,11 @@ MatrixData* IsotropicSlicer<T>::y_projection(float y0, float y1, int mode) const
 }
 
 template <typename T>
-MatrixData* IsotropicSlicer<T>::projection(unsigned dimension,
+ecat_matrix::MatrixData* IsotropicSlicer<T>::projection(unsigned dimension,
 					float l, float h, float pixel_size,
 					int mode) const {
   T *dest=0;
-  MatrixData *ret=NULL;
+  ecat_matrix::MatrixData *ret=NULL;
   float dx = volume->pixel_size, dy = volume->y_size;
   switch(dimension) {
   case Dimension_X :
@@ -577,7 +577,7 @@ MatrixData* IsotropicSlicer<T>::projection(unsigned dimension,
 }
 
 template <typename T>
-MatrixData* IsotropicSlicer<T>::slice(unsigned dimension, float pos, float area_x,
+ecat_matrix::MatrixData* IsotropicSlicer<T>::slice(unsigned dimension, float pos, float area_x,
                                    float area_y, float area_z, float pixel_size) const
 {
   T *dest=0;
@@ -592,7 +592,7 @@ MatrixData* IsotropicSlicer<T>::slice(unsigned dimension, float pos, float area_
   return NULL;
 }
 template <typename T>
-MatrixData* IsotropicSlicer<T>::average(float z0, float thickness,
+ecat_matrix::MatrixData* IsotropicSlicer<T>::average(float z0, float thickness,
                                         float pixel_size) const
 {
   int i, z;
@@ -603,7 +603,7 @@ MatrixData* IsotropicSlicer<T>::average(float z0, float thickness,
 
   int xdim = (int)(0.5+volume->xdim*dx/pixel_size);
   int ydim = (int)(0.5+volume->ydim*dy/pixel_size);
-  if (!data || volume->data_type == Color_8 || volume->data_type==Color_24)
+  if (!data || volume->data_type == ecat_matrix::MatrixDataType::Color_8 || volume->data_type==Color_24)
     return create_comp_slice(dest,xdim,ydim,pixel_size,pixel_size,thickness);
   int b = round(max((float)0,z0-half_width));
   int t = round(min((float)volume->zdim-1,z0+half_width));

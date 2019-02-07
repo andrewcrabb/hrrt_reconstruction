@@ -91,7 +91,7 @@ FILE *mat_open( char *fname, char *fmode) {
   FILE  *fptr=NULL;
 
   matrix_errno = MatrixError::OK;
-  matrix_errtxt.clear();
+  ecat_matrix::matrix_errtxt.clear();
   fptr = fopen(fname, fmode);
   return (fptr);
 
@@ -99,26 +99,26 @@ FILE *mat_open( char *fname, char *fmode) {
 
 int mat_close(FILE *fptr) {
   matrix_errno = MatrixError::OK;
-  matrix_errtxt.clear();
+  ecat_matrix::matrix_errtxt.clear();
   return fclose( fptr);
 }
 
 int mat_rblk(FILE *fptr,  int blkno, char *bufr, int nblks) {
   matrix_errno = MatrixError::OK;
-  matrix_errtxt.clear();
+  ecat_matrix::matrix_errtxt.clear();
 
     if( fseek( fptr, (blkno-1)* MatBLKSIZE, 0) ) 
-      return( ECATX_ERROR );
+      return( ecat_matrix::ECATX_ERROR );
     
   int err = fread( bufr, 1, nblks* MatBLKSIZE, fptr);
-  if( err == ECATX_ERROR ) {
-    return( ECATX_ERROR );
+  if( err == ecat_matrix::ECATX_ERROR ) {
+    return( ecat_matrix::ECATX_ERROR );
   }
 /*  some applications write pixel instead of block count
  ==> check if byte count less than (nblks-1) (M. Sibomana 23-oct-1997) */
   else if( err==0 || err < (nblks-1)* MatBLKSIZE ) {
     matrix_errno = MatrixError::READ_ERROR;
-    return( ECATX_ERROR );
+    return( ecat_matrix::ECATX_ERROR );
   }
   return( 0 );
 }
@@ -154,10 +154,10 @@ int mat_lookup(FILE *fptr, Main_header *mhptr, int matnum, MatDir *entry) {
   int dirbufr[ MatBLKSIZE/4];
 
   matrix_errno = MatrixError::OK;
-  matrix_errtxt.clear();
+  ecat_matrix::matrix_errtxt.clear();
   blk = MatFirstDirBlk;
   while(1) {
-    if( read_matrix_data(fptr,blk,1,(char*)dirbufr,SunLong) == ECATX_ERROR ) return( ECATX_ERROR );
+    if( read_matrix_data(fptr,blk,1,(char*)dirbufr,SunLong) == ecat_matrix::ECATX_ERROR ) return( ecat_matrix::ECATX_ERROR );
     nfree  = dirbufr[0];
     nxtblk = dirbufr[1];
     prvblk = dirbufr[2];
@@ -272,17 +272,18 @@ int mat_read_main_header(FILE *fptr, Main_header *header) {
   char            bufr[ MatBLKSIZE];
 
   matrix_errno = MatrixError::OK;
-  matrix_errtxt.clear();
+  ecat_matrix::matrix_errtxt.clear();
 
   /* check magic number */
-  if (mat_rblk(fptr, 1, bufr, 1) == ECATX_ERROR) return (ECATX_ERROR);
+  if (mat_rblk(fptr, 1, bufr, 1) == ecat_matrix::ECATX_ERROR) 
+    return (ecat_matrix::ECATX_ERROR);
   bufRead(header->magic_number, bufr, &i, MagicNumLen);
   header->magic_number[MagicNumLen - 1] = '\0';
     return unmap_main_header(bufr, header);
 }
 
 int mat_read_matrix_data(FILE *fptr, Main_header *mhptr, int blk, int nblks, short *bufr) {
-    return read_matrix_data(fptr, blk, nblks, (char *) bufr, SunShort);
+    return read_matrix_data(fptr, blk, nblks, (char *) bufr, ecat_matrix::MatrixDataType::SunShort);
 }
 
 int unmap_scan_header(char *buf, Scan_subheader *header) {
@@ -409,27 +410,20 @@ int map_Scan3D_header(char *buf, Scan3D_subheader *header)
   return 0;
 }
 
-int mat_read_Scan3D_subheader( FILE *fptr, Main_header *mhptr, int blknum,
-                              Scan3D_subheader *header)
-{
+int mat_read_Scan3D_subheader( FILE *fptr, Main_header *mhptr, int blknum,   Scan3D_subheader *header) {
   char buf[2* MatBLKSIZE];
-  if( mat_rblk( fptr, blknum, buf, 2) == ECATX_ERROR ) return( ECATX_ERROR );
+  if( mat_rblk( fptr, blknum, buf, 2) == ecat_matrix::ECATX_ERROR ) return( ecat_matrix::ECATX_ERROR );
   return unmap_Scan3D_header(buf,header);
 }
 
-int 
-mat_read_scan_subheader(FILE *fptr, Main_header *mhptr, int blknum, 
-                        Scan_subheader *header)
-{
+int mat_read_scan_subheader(FILE *fptr, Main_header *mhptr, int blknum,   Scan_subheader *header) {
   char            buf[ MatBLKSIZE];
 
-  if (mat_rblk(fptr, blknum, buf, 1) == ECATX_ERROR) return (ECATX_ERROR);
+  if (mat_rblk(fptr, blknum, buf, 1) == ecat_matrix::ECATX_ERROR) return (ecat_matrix::ECATX_ERROR);
   return unmap_scan_header(buf, header);
 }
 
-int 
-unmap_image_header(char *buf, Image_subheader *header)
-{
+int unmap_image_header(char *buf, Image_subheader *header) {
   int i = 0;
 
   bufRead_s(&header->data_type, buf, &i);
@@ -498,28 +492,22 @@ unmap_image_header(char *buf, Image_subheader *header)
   return 0;
 }
 
-int 
-mat_read_image_subheader( FILE *fptr, Main_header *mhptr, int blknum,
-                             Image_subheader *header)
-{
+int mat_read_image_subheader( FILE *fptr, Main_header *mhptr, int blknum, Image_subheader *header) {
   char buf[ MatBLKSIZE];
 
-  if( mat_rblk( fptr, blknum, buf, 1) == ECATX_ERROR ) return( ECATX_ERROR );
+  if( mat_rblk( fptr, blknum, buf, 1) == ecat_matrix::ECATX_ERROR ) return( ecat_matrix::ECATX_ERROR );
   return unmap_image_header(buf,header);
 }
 
-struct matdir *
-mat_read_dir( FILE *fptr, Main_header *mhptr, char *selector)
-{ 
+struct matdir *mat_read_dir( FILE *fptr, Main_header *mhptr, char *selector) { 
   int i, n, blk, nxtblk, ndblks, bufr[128];
   struct matdir *dir;
 
   matrix_errno = MatrixError::OK;
-  matrix_errtxt.clear();
+  ecat_matrix::matrix_errtxt.clear();
   blk = MatFirstDirBlk;
   nxtblk = 0;
-  for (ndblks=0; nxtblk != MatFirstDirBlk; ndblks++)
-  {
+  for (ndblks=0; nxtblk != MatFirstDirBlk; ndblks++)  {
  read_matrix_data(fptr,blk,1,(char*)bufr,SunLong);
     nxtblk = bufr[1];
     blk = nxtblk;
@@ -527,61 +515,55 @@ mat_read_dir( FILE *fptr, Main_header *mhptr, char *selector)
   dir = (struct matdir*) malloc( sizeof(struct matdir));
   dir->nmats = 0;
   dir->nmax = 31 * ndblks;
-  dir->entry = (struct MatDir *) malloc( 31*ndblks*sizeof(MatDir));
-  for (n=0, nxtblk=0, blk=MatFirstDirBlk; nxtblk != MatFirstDirBlk; blk = nxtblk)
-  {
+  dir->entry = (MatDir *) malloc(31 * ndblks * sizeof(MatDir));
+  for (n=0, nxtblk=0, blk=MatFirstDirBlk; nxtblk != MatFirstDirBlk; blk = nxtblk) {
         read_matrix_data(fptr,blk,1,(char*)bufr,SunLong);
 
     nxtblk = bufr[1];
-    for (i=4; i< MatBLKSIZE/4; n++)
-    { dir->entry[n].matnum = bufr[i++];
+    for (i=4; i< MatBLKSIZE/4; n++)    { 
+      dir->entry[n].matnum = bufr[i++];
     dir->entry[n].strtblk = bufr[i++];
     dir->entry[n].endblk = bufr[i++];
     dir->entry[n].matstat = bufr[i++];
-    if (dir->entry[n].matnum != 0) dir->nmats++;
+    if (dir->entry[n].matnum != 0) 
+      dir->nmats++;
     }
   }
   return dir;
 }
 
 
-int 
-mat_wblk(FILE *fptr, int blkno, char *bufr, int nblks)
-{
+int mat_wblk(FILE *fptr, int blkno, char *bufr, int nblks) {
   int             err;
 
-    /* printf("\n\n\n\n HEY3"); fflush(stdout); */
-
         matrix_errno = MatrixError::OK;
-  matrix_errtxt.clear();
+  ecat_matrix::matrix_errtxt.clear();
 
   /* seek to position in file */
 
-    /* My change ahc */
     err = fseek(fptr, (blkno - 1) *  MatBLKSIZE, 0);
-   /* err = fseeko(fptr, (blkno - 1) *  MatBLKSIZE, 0); */
-    
-  if (err) return (ECATX_ERROR);
+  if (err) 
+    return (ecat_matrix::ECATX_ERROR);
 
   /* write matrix data */
   err = fwrite(bufr, 1, nblks *  MatBLKSIZE, fptr);
-  if (err == -1) return (ECATX_ERROR);
+  if (err == -1) 
+    return (ecat_matrix::ECATX_ERROR);
   if (err != nblks *  MatBLKSIZE) {
     matrix_errno = MatrixError::WRITE_ERROR;
-    return (ECATX_ERROR);
+    return (ecat_matrix::ECATX_ERROR);
   }
   return (0);
 }
 
-FILE *
-mat_create( char *fname, Main_header *mhead)
-{
+FILE *mat_create( char *fname, Main_header *mhead) {
   FILE *fptr;
   int bufr[ MatBLKSIZE/sizeof(int)];
   int ret;
 
   fptr = mat_open( fname, W_MODE);
-  if (!fptr) return( NULL );
+  if (!fptr) 
+    return( NULL );
   ret = mat_write_main_header( fptr, mhead );
   if( ret != 0 ) {
     mat_close( fptr);
@@ -598,21 +580,17 @@ mat_create( char *fname, Main_header *mhead)
   return (fptr);
 }
 
-int 
-mat_enter(FILE *fptr, Main_header *mhptr, int matnum, int nblks)
-{
-
+int mat_enter(FILE *fptr, Main_header *mhptr, int matnum, int nblks) {
   int             dirblk, dirbufr[128], i, nxtblk, busy, oldsize;
   short           sw_version = mhptr->sw_version;
 
   matrix_errno = MatrixError::OK;
-  matrix_errtxt.clear();
+  ecat_matrix::matrix_errtxt.clear();
   dirblk = MatFirstDirBlk;
-  if( fseek(fptr, 0, 0) ) return( ECATX_ERROR );
-  /*
-   * nfs locks are very time consuming lockf( fileno(fptr), F_LOCK, 0);
-   */
-    if (read_matrix_data(fptr, dirblk, 1, (char *) dirbufr, SunLong) == ECATX_ERROR) return (ECATX_ERROR);
+  if( fseek(fptr, 0, 0) ) 
+    return( ecat_matrix::ECATX_ERROR );
+    if (read_matrix_data(fptr, dirblk, 1, (char *) dirbufr, SunLong) == ecat_matrix::ECATX_ERROR) 
+      return (ecat_matrix::ECATX_ERROR);
   busy = 1;
   while (busy) {
     nxtblk = dirblk + 1;
@@ -640,10 +618,10 @@ mat_enter(FILE *fptr, Main_header *mhptr, int matnum, int nblks)
     if (!busy) break;
     if (dirbufr[1] != MatFirstDirBlk) {
       dirblk = dirbufr[1];
-            if (read_matrix_data(fptr, dirblk, 1, (char *) dirbufr, SunLong) == ECATX_ERROR) return (ECATX_ERROR);
+            if (read_matrix_data(fptr, dirblk, 1, (char *) dirbufr, SunLong) == ecat_matrix::ECATX_ERROR) return (ecat_matrix::ECATX_ERROR);
     } else {
       dirbufr[1] = nxtblk;
-            if (write_matrix_data(fptr, dirblk, 1, (char *) dirbufr, SunLong) == ECATX_ERROR) return (ECATX_ERROR);
+            if (write_matrix_data(fptr, dirblk, 1, (char *) dirbufr, SunLong) == ecat_matrix::ECATX_ERROR) return (ecat_matrix::ECATX_ERROR);
       dirbufr[0] = 31;
       dirbufr[1] = MatFirstDirBlk;
       dirbufr[2] = dirblk;
@@ -659,35 +637,30 @@ mat_enter(FILE *fptr, Main_header *mhptr, int matnum, int nblks)
   dirbufr[i + 3] = 1;
   dirbufr[0]--;
   dirbufr[3]++;
-  if (write_matrix_data(fptr, dirblk, 1, (char*)dirbufr, SunLong) == ECATX_ERROR)
-    return (ECATX_ERROR);
-  if( fseek(fptr, 0, 0) ) return( ECATX_ERROR );
+  if (write_matrix_data(fptr, dirblk, 1, (char*)dirbufr, SunLong) == ecat_matrix::ECATX_ERROR)
+    return (ecat_matrix::ECATX_ERROR);
+  if( fseek(fptr, 0, 0) ) return( ecat_matrix::ECATX_ERROR );
   /*
    * nfs locks are very time consuming lockf( fileno(fptr), F_UNLOCK, 0);
    */
   return (nxtblk);
 }
 
-int 
-mat_write_data( FILE *fptr, int blk, int nbytes, char *data, int dtype)
-{
+int mat_write_data( FILE *fptr, int blk, int nbytes, char *data, int dtype) {
   int nblks;
 
   nblks = (511+nbytes)/512;
   return write_matrix_data( fptr, blk, nblks, data, dtype);
 }
 
-int 
-mat_read_data( FILE *fptr, int blk, int nbytes, char *data, int dtype)
-{
+int mat_read_data( FILE *fptr, int blk, int nbytes, char *data, int dtype) {
   int nblks;
 
   nblks = (511+nbytes)/512;
   return read_matrix_data( fptr, blk, nblks, data, dtype);
 }
 
-int map_main_header(char *bufr, Main_header *header)
-{
+int map_main_header(char *bufr, Main_header *header) {
   int i = 0, j = 0;
   char mn[20];
   /* set magic number */
@@ -757,9 +730,7 @@ int map_main_header(char *bufr, Main_header *header)
   return 1;
 }
 
-int 
-mat_write_main_header(FILE *fptr, Main_header *header)
-{
+int mat_write_main_header(FILE *fptr, Main_header *header) {
   char            bufr[ MatBLKSIZE];
 
 
@@ -767,9 +738,7 @@ mat_write_main_header(FILE *fptr, Main_header *header)
   return mat_wblk(fptr, 1, bufr, 1);  /* write main header at block 1 */
 }
 
-int
-map_image_header(char *buf, Image_subheader *header)
-{
+int map_image_header(char *buf, Image_subheader *header) {
   int i = 0;
   bufWrite_s(header->data_type, buf, &i);
   bufWrite_s(header->num_dimensions, buf, &i);
@@ -837,18 +806,14 @@ map_image_header(char *buf, Image_subheader *header)
   return 1;
 }
 
-int 
-mat_write_image_subheader(FILE *fptr, Main_header *mhptr, int blknum,
-                          Image_subheader *header)
-{
+int mat_write_image_subheader(FILE *fptr, Main_header *mhptr, int blknum,    Image_subheader *header){
   char            buf[ MatBLKSIZE];
 
     map_image_header(buf, header);
   return mat_wblk(fptr, blknum, buf, 1);
 }
 
-int map_scan_header(char *buf, Scan_subheader *header)
-{
+int map_scan_header(char *buf, Scan_subheader *header){
   int i = 0, j= 0;
   bufWrite_s(header->data_type, buf, &i);
   bufWrite_s(header->num_dimensions, buf, &i);
@@ -885,22 +850,16 @@ int map_scan_header(char *buf, Scan_subheader *header)
   for(j = 0; j < 8; j++)
     bufWrite_s(header->phy_planes[j], buf, &i);
   return 1;
-
 }
 
-int 
-mat_write_scan_subheader(FILE *fptr, Main_header *mhptr, int blknum,
-                         Scan_subheader *header)
-{
+int mat_write_scan_subheader(FILE *fptr, Main_header *mhptr, int blknum,   Scan_subheader *header) {
   char            buf[ MatBLKSIZE];
   
     map_scan_header(buf, header);
   return mat_wblk(fptr, blknum, buf, 1);
 }
 
-int 
-map_attn_header(char *buf, Attn_subheader *header)
-{
+int map_attn_header(char *buf, Attn_subheader *header) {
   int i = 0, j = 0;
   bufWrite_s(header->data_type, buf, &i);
   bufWrite_s(header->num_dimensions, buf, &i);
@@ -935,19 +894,14 @@ map_attn_header(char *buf, Attn_subheader *header)
   return 1;
 }
 
-int 
-mat_write_attn_subheader(FILE *fptr, Main_header *mhptr, int blknum,
-                         Attn_subheader *header)
-{
+int mat_write_attn_subheader(FILE *fptr, Main_header *mhptr, int blknum,   Attn_subheader *header) {
   char            buf[ MatBLKSIZE];
   
     map_attn_header(buf, header);
   return mat_wblk(fptr, blknum, buf, 1);
 }
 
-int
-map_norm_header(char *buf, Norm_subheader *header)
-{
+int map_norm_header(char *buf, Norm_subheader *header) {
   int i = 0, j = 0;
   bufWrite_s(header->data_type, buf, &i);
   bufWrite_s(header->num_dimensions, buf, &i);
@@ -968,28 +922,20 @@ map_norm_header(char *buf, Norm_subheader *header)
   return 1;
 }
 
-int 
-mat_write_norm_subheader(FILE *fptr, Main_header *mhptr, int blknum, 
-                         Norm_subheader *header)
-{
+int mat_write_norm_subheader(FILE *fptr, Main_header *mhptr, int blknum,    Norm_subheader *header) {
   char            buf[ MatBLKSIZE];
   
     map_norm_header(buf, header);
   return mat_wblk(fptr, blknum, buf, 1);
 }
 
-int 
-mat_write_Scan3D_subheader(FILE *fptr, Main_header *mhptr, int blknum, 
-                               Scan3D_subheader *header)
-{
+int mat_write_Scan3D_subheader(FILE *fptr, Main_header *mhptr, int blknum,     Scan3D_subheader *header) {
   char buf[2* MatBLKSIZE];
   map_Scan3D_header(buf,header);
   return mat_wblk( fptr, blknum, buf, 2);
 }
 
-int 
-unmap_attn_header(char *buf, Attn_subheader *header) 
-{
+int unmap_attn_header(char *buf, Attn_subheader *header)  {
   int i = 0, j = 0;
   bufRead_s(&header->data_type, buf, &i);
   bufRead_s(&header->num_dimensions, buf, &i);
@@ -1024,20 +970,15 @@ unmap_attn_header(char *buf, Attn_subheader *header)
   return 0;
 }
 
-int 
-mat_read_attn_subheader(FILE *fptr, Main_header *mhptr, int blknum, 
-                        Attn_subheader *header)
-{
+int mat_read_attn_subheader(FILE *fptr, Main_header *mhptr, int blknum,   Attn_subheader *header) {
   char            buf[ MatBLKSIZE];
 
-  if (mat_rblk(fptr, blknum, buf, 1) == ECATX_ERROR)
-    return (ECATX_ERROR);
+  if (mat_rblk(fptr, blknum, buf, 1) == ecat_matrix::ECATX_ERROR)
+    return (ecat_matrix::ECATX_ERROR);
   return unmap_attn_header(buf, header);
 }
 
-int 
-unmap_norm_header(char *buf, Norm_subheader *header)
-{
+int unmap_norm_header(char *buf, Norm_subheader *header) {
   int i = 0, j = 0;
   bufRead_s(&header->data_type, buf, &i);
   bufRead_s(&header->num_dimensions, buf, &i);
@@ -1055,13 +996,10 @@ unmap_norm_header(char *buf, Norm_subheader *header)
   bufRead_s(&header->span, buf, &i);
   for(j = 0; j < 64; j++)
     bufRead_s(&header->z_elements[j], buf, &i);
-  
   return 0;
 }
 
-int
-unmap_norm3d_header(char *buf, Norm3D_subheader *header)
-{
+int unmap_norm3d_header(char *buf, Norm3D_subheader *header) {
   int i = 0, j = 0;
   memset(header,0,sizeof(Norm3D_subheader));
   bufRead_s(&header->data_type, buf, &i);
@@ -1087,28 +1025,21 @@ unmap_norm3d_header(char *buf, Norm3D_subheader *header)
 }
 
 int 
-mat_read_norm_subheader(FILE *fptr, Main_header *mhptr, int blknum,
-                        Norm_subheader *header)
-{
+mat_read_norm_subheader(FILE *fptr, Main_header *mhptr, int blknum,  Norm_subheader *header){
   char            buf[ MatBLKSIZE];
-  if (mat_rblk(fptr, blknum, buf, 1) == ECATX_ERROR)
-    return (ECATX_ERROR);
+  if (mat_rblk(fptr, blknum, buf, 1) == ecat_matrix::ECATX_ERROR)
+    return (ecat_matrix::ECATX_ERROR);
   return unmap_norm_header(buf, header);
 }
 
-int 
-mat_read_norm3d_subheader(FILE *fptr, Main_header *mhptr, int blknum, 
-                          Norm3D_subheader *header)
-{
+int mat_read_norm3d_subheader(FILE *fptr, Main_header *mhptr, int blknum,     Norm3D_subheader *header) {
   char buf[ MatBLKSIZE];
-  if( mat_rblk( fptr, blknum, buf, 1) == ECATX_ERROR ) return( ECATX_ERROR );
+  if( mat_rblk( fptr, blknum, buf, 1) == ecat_matrix::ECATX_ERROR ) return( ecat_matrix::ECATX_ERROR );
   return unmap_norm3d_header(buf,header);
   return 0;
 }
 
-int
-matspec(const char *str, char *fname, int *matnum)
-{
+int matspec(const char *str, char *fname, int *matnum) {
   char           *cp;
   int             mf = 0, mp = 1, mg = 1, ms = 0, mb = 0;
 

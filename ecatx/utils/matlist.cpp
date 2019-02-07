@@ -10,14 +10,14 @@ int main( argc, argv) {
   char cbufr[256];
 
   if (argc < 2)
-    crash("usage : matlist matrix_file\n");
+    ecat_matrix::crash("usage : matlist matrix_file\n");
   ecat_matrix::MatrixFile *mptr = matrix_open( argv[1], ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (!mptr) {
     matrix_perror(argv[1]);
     exit(1);
   }
   printf("file '%s' is of type %d with %d matrices\n", argv[1],  mptr->mhptr->file_type, mptr->dirlist->nmats);
-  MatDirNode *node = mptr->dirlist->first;
+  ecat_matrix::MatDirNode *node = mptr->dirlist->first;
   while (node) {
     mat_numdoc( node->matnum, &mat);
     sprintf( cbufr, "%d,%d,%d,%d,%d",  mat.frame, mat.plane, mat.gate, mat.data, mat.bed);

@@ -26,7 +26,7 @@ static unsigned interpolate_rgb(int v0, int v1, float t)
 typedef unsigned (*interpolate_func)(int v0, int v1, float t);
 
 template <typename T>
-int matrix_resize_(T *src, MatrixData* slice, float pixel_size,
+int matrix_resize_(T *src, ecat_matrix::MatrixData* slice, float pixel_size,
 int interpolate, int align, interpolate_func func=0)
 {
 	int i1, i2, j, k;
@@ -152,19 +152,19 @@ int interpolate, int align, interpolate_func func=0)
 	return 1;
 }
 
-static MatrixData *rgb_split_data(MatrixData *src , int segment)
+static ecat_matrix::MatrixData *rgb_split_data(ecat_matrix::MatrixData *src , int segment)
 {
     int nvoxels = src->xdim*src->ydim*src->zdim;
-    MatrixData *dest = (MatrixData*)calloc(1,sizeof(MatrixData));
-    memcpy(dest,src,sizeof(MatrixData));
+    ecat_matrix::MatrixData *dest = (ecat_matrix::MatrixData*)calloc(1,sizeof(ecat_matrix::MatrixData));
+    memcpy(dest,src,sizeof(ecat_matrix::MatrixData));
     dest->data_ptr = (void *)calloc(1, nvoxels);
 	memcpy(dest->data_ptr, src->data_ptr + segment*nvoxels, nvoxels);
-    dest->data_type = ByteData;
+    dest->data_type = ecat_matrix::MatrixDataType::ByteData;
 	return dest;
 }
 
-static int rgb_create_data(MatrixData *ret,
-MatrixData *r, MatrixData *g , MatrixData *b)
+static int rgb_create_data(ecat_matrix::MatrixData *ret,
+ecat_matrix::MatrixData *r, ecat_matrix::MatrixData *g , ecat_matrix::MatrixData *b)
 {
     ret->data_type = Color_24;
     ret->xdim = r->xdim;
@@ -183,26 +183,26 @@ MatrixData *r, MatrixData *g , MatrixData *b)
 	return 1;
 }
 
-int  matrix_resize(MatrixData *mat, float pixel_size, int interp_flag,
+int  matrix_resize(ecat_matrix::MatrixData *mat, float pixel_size, int interp_flag,
 					int align)
 {
 	int interpolate = interp_flag;
-	if (mat->data_type == Color_8) interpolate = 0;
+	if (mat->data_type == ecat_matrix::MatrixDataType::Color_8) interpolate = 0;
     switch(mat->data_type)
 	{
-	case ByteData:
-	case Color_8:
+	case ecat_matrix::MatrixDataType::ByteData:
+	case ecat_matrix::MatrixDataType::Color_8:
 		return matrix_resize_((unsigned char *)mat->data_ptr, mat, pixel_size,
 			interpolate, align);
-	case SunShort:
-	case VAX_Ix2:
+	case ecat_matrix::MatrixDataType::SunShort:
+	case ecat_matrix::MatrixDataType::VAX_Ix2:
 		return matrix_resize_((short*)mat->data_ptr, mat, pixel_size,
 			interpolate, align);
 	case Color_24:
 		{
-			MatrixData *red_slice = rgb_split_data(mat,0);
-			MatrixData *green_slice = rgb_split_data(mat,1);
-			MatrixData *blue_slice = rgb_split_data(mat,2);
+			ecat_matrix::MatrixData *red_slice = rgb_split_data(mat,0);
+			ecat_matrix::MatrixData *green_slice = rgb_split_data(mat,1);
+			ecat_matrix::MatrixData *blue_slice = rgb_split_data(mat,2);
 			matrix_resize_((unsigned char *)red_slice->data_ptr,
 				red_slice, pixel_size, interpolate, align);
 			matrix_resize_((unsigned char *)green_slice->data_ptr,
@@ -215,7 +215,7 @@ int  matrix_resize(MatrixData *mat, float pixel_size, int interp_flag,
 			free_matrix_data(blue_slice);
 			return 1;
 		}
-	case IeeeFloat:
+	case ecat_matrix::MatrixDataType::IeeeFloat:
 		return matrix_resize_((float*)mat->data_ptr, mat, pixel_size,
 			interpolate, align);
 	default:

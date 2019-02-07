@@ -207,10 +207,10 @@ void ECAT7::AppendMatrix(const unsigned short int num,
  }
 
 /*---------------------------------------------------------------------------*/
-/*! \brief Convert dataset from ByteData to IeeeFloat.
+/*! \brief Convert dataset from ecat_matrix::MatrixDataType::ByteData to ecat_matrix::MatrixDataType::IeeeFloat.
     \param[in] num   matrix number
 
-    Convert dataset from ByteData to IeeeFloat.
+    Convert dataset from ecat_matrix::MatrixDataType::ByteData to ecat_matrix::MatrixDataType::IeeeFloat.
  */
 /*---------------------------------------------------------------------------*/
 void ECAT7::Byte2Float(const unsigned short int num) const
@@ -774,9 +774,9 @@ ECAT7_MATRIX *ECAT7::Matrix(const unsigned short int num) const
     Request pointer to data part of matrix object.
  */
 /*---------------------------------------------------------------------------*/
-void *ECAT7::MatrixData(const unsigned short int num) const
+void *ECAT7::getecat_matrix::MatrixData(const unsigned short int num) const
  { if (e7_matrix.size() <= num) return(NULL);
-   return(e7_matrix[num]->MatrixData());
+   return(e7_matrix[num]->getecat_matrix::MatrixData());
  }
 
 /*---------------------------------------------------------------------------*/
@@ -789,12 +789,12 @@ void *ECAT7::MatrixData(const unsigned short int num) const
     Put matrix data into matrix object.
  */
 /*---------------------------------------------------------------------------*/
-void ECAT7::MatrixData(void * const data, const unsigned short int dt,
+void ECAT7::getecat_matrix::MatrixData(void * const data, const unsigned short int dt,
                        const unsigned short int num) const
  { if ((e7_main_header == NULL) || (e7_matrix.size() <= num))
     throw Exception(REC_ECAT7_MATRIXHEADER_MISSING,
                     "ECAT7 matrix header is missing.");
-   e7_matrix[num]->MatrixData(data, dt);
+   e7_matrix[num]->getecat_matrix::MatrixData(data, dt);
  }
 
 /*---------------------------------------------------------------------------*/
@@ -861,10 +861,10 @@ void ECAT7::SaveFile(const std::string fname)
  }
 
 /*---------------------------------------------------------------------------*/
-/*! \brief Convert dataset from SunShort to IeeeFloat.
+/*! \brief Convert dataset from ecat_matrix::MatrixDataType::SunShort to ecat_matrix::MatrixDataType::IeeeFloat.
     \param[in] num   matrix number
 
-    Convert dataset from SunShort to IeeeFloat.
+    Convert dataset from ecat_matrix::MatrixDataType::SunShort to ecat_matrix::MatrixDataType::IeeeFloat.
  */
 /*---------------------------------------------------------------------------*/
 void ECAT7::Short2Float(const unsigned short int num) const

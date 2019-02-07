@@ -1,19 +1,19 @@
 # cmake_minimum_required (VERSION 3.7)
 
 # set (GCC_COMPILE_FLAGS "-std=gnu99")
-set (GCC_COMPILE_FLAGS "-std=c99")
-add_definitions(${GCC_COMPILE_FLAGS})
+# set (GCC_COMPILE_FLAGS "-std=c99")
+# add_definitions(${GCC_COMPILE_FLAGS})
 
 # target_include_directories(${PROJECT_SOURCE_DIR}/ecatx)
 link_directories(${PROJECT_SOURCE_DIR}/ecatx)
 link_libraries(ecatx m)
 
-add_executable(sum_frames  sum_frames.c)
-add_executable(show_header show_header.c)
-add_executable(matlist     matlist.c)
-add_executable(fix_mh      fix_mh.c)
-add_executable(matcopy     matcopy.c)
-add_executable(cti2analyze cti2analyze.c)
+add_executable(sum_frames  sum_frames.cpp)
+add_executable(show_header show_header.cpp)
+add_executable(matlist     matlist.cpp)
+add_executable(fix_mh      fix_mh.cpp)
+add_executable(matcopy     matcopy.cpp)
+add_executable(cti2analyze cti2analyze.cpp)
 
 # target_link_libraries(matlist ecatx m)
 # target_link_libraries(show_header ecatx m)

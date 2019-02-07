@@ -35,11 +35,9 @@
 
 // extern "C" {
 void SWAB(void *from, void *to, int length);
-int file_data_to_host(char *dptr, int nblks, int dtype);
-int read_matrix_data( FILE *fptr, int strtblk, int nblks,
-					 char *dptr, int dtype);
-int write_matrix_data( FILE *fptr, int strtblk, int nblks,
-					 char *dptr, int dtype);
+int file_data_to_host(char *dptr, int nblks, ecat_matrix::MatrixDataType dtype);
+int read_matrix_data( FILE *fptr, int strtblk, int nblks,					 char *dptr, ecat_matrix::MatrixDataType dtype);
+int write_matrix_data( FILE *fptr, int strtblk, int nblks,					 char *dptr, ecat_matrix::MatrixDataType dtype);
 void bufWrite(char* s, char* buf, int* i, int len);
 void bufWrite_s(short val, char* buf, int* i);
 void bufWrite_i(int val, char* buf, int* i);

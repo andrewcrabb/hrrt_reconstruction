@@ -540,20 +540,20 @@ int ecat7WriteImageMatrix(ecat_matrix::MatrixFile *fp, int mat_id, ecat_matrix::
 {
     int i, nvoxels;
     float minval, maxval, scalef;
-    MatrixData *matrix=NULL;
+    ecat_matrix::MatrixData *matrix=NULL;
     short *sdata=NULL, smax=32766;  // not 32767 to avoid rounding problems
     int nblks = 0;
 
     
     
-    matrix = (MatrixData*)calloc(1, sizeof(MatrixData));
+    matrix = (ecat_matrix::MatrixData*)calloc(1, sizeof(ecat_matrix::MatrixData));
     matrix->xdim = imh->x_dimension;	
     matrix->ydim = imh->y_dimension;
     matrix->zdim = imh->z_dimension;
     matrix->pixel_size = imh->x_pixel_size;
     matrix->y_size = imh->y_pixel_size;
     matrix->z_size = imh->z_pixel_size;
-    imh->data_type = matrix->data_type = SunShort;
+    imh->data_type = matrix->data_type = ecat_matrix::MatrixDataType::SunShort;
     matrix->data_max = imh->image_max*matrix->scale_factor;
     matrix->data_min = imh->image_min*matrix->scale_factor;
     matrix->data_size = matrix->xdim*matrix->ydim*matrix->zdim*sizeof(short);
@@ -616,7 +616,7 @@ int getBoundaries(unsigned char *muMask, short *Plane, short *endPlane, short *d
 
 
 ///////////////////////////////////////////////////////////////////////////////
-static int menu_input(Main_header *mh) {
+static int menu_input(ecat_matrix::Main_header *mh) {
 /******************************************************************************/
 /*           Contribution from by Jorgen Kold, Aarhus PET Centre              */
 /*           takes input from stdin to be used as time and weight values      */
@@ -746,7 +746,7 @@ static char *date2str(time_t *t) {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-static int copyFile(char *in_fname, char *dest_dir, Main_header *mh) {
+static int copyFile(char *in_fname, char *dest_dir, ecat_matrix::Main_header *mh) {
   char drive[_MAX_DRIVE], dir[_MAX_DIR], fname[_MAX_FNAME], ext[_MAX_EXT]; 
   char patient_dir[_MAX_DIR];
   char *p=NULL, *study_date_str = NULL, *first_name=NULL;
@@ -983,7 +983,7 @@ int main(int argc, char *argv[])
 
   FILE      *inputImage=NULL;
   ecat_matrix::MatrixFile *ECAT7file=NULL;
-  Main_header    main_header;
+  ecat_matrix::Main_header    main_header;
   ecat_matrix::Image_subheader   image_header;
   char *duplicateDir = NULL;
   unsigned char *muMask=NULL;
@@ -1626,7 +1626,7 @@ int main(int argc, char *argv[])
                                               /* 0=uncalibrated, 1=calibrated */
     image_header.num_r_elements = 256;    /* number of bins in cor. sinogramm */
     image_header.num_angles = 288;  /* number of angles in corrected sinogram */
-    image_header.scatter_type = 2;  
+    image_header.scatter_type = 2;  // TODO this must be an enum somewhere
   }
 
 /******************************************************************************/
@@ -1995,7 +1995,7 @@ int main(int argc, char *argv[])
                                                        /*** HRRT interfile ***/
       char strframe[10];
           
-      image_header.processing_code += 256;                  /* arc corrected */
+      image_header.processing_code += E7_APPLIED_PROC_Arc_correction;                  /* arc corrected */
       if2e7_itoa(frame-1, strframe);       /* starting with frame0 not frame1 */
           
                                       /* now look for the relevant key words */
@@ -2083,7 +2083,7 @@ int main(int argc, char *argv[])
           if (!strcmp(value, "FORE/OSEM")) 
           {
             reconType = 6;                              /* "Fourier rebinning */
-            image_header.processing_code += 2048; 
+            image_header.processing_code += E7_APPLIED_PROC_FORE;   
           }
         }
         if (interfile_find(&ifh, "number of iterations", value, 
@@ -2104,13 +2104,13 @@ int main(int argc, char *argv[])
         strcpy(line, "");
                                                     /* check for corrections */
         if (interfile_find(&ifh, "norm file used", value, sizeof(value)))
-          image_header.processing_code += 1;                    /* normalised */
+          image_header.processing_code += E7_APPLIED_PROC_Normalized;                    /* normalised */
 
         if (interfile_find(&ifh, "atten file used", value, sizeof(value)))
-          image_header.processing_code += 2;        /* attenuation correction */
+          image_header.processing_code += E7_APPLIED_PROC_Measured_Attenuation_Correction;        /* attenuation correction */
 
         if (interfile_find(&ifh, "scatter file used", value, sizeof(value)))
-          image_header.processing_code += 128;          /* scatter correction */
+          image_header.processing_code += E7_APPLIED_PROC_3D_scatter_correction;          /* scatter correction */
     }   // end HRRT (systemType 328)
 
     fflush(stdout);
@@ -2255,7 +2255,7 @@ int main(int argc, char *argv[])
         matrix_float[j] = (float)(matrix_float[j] * decayInFrame * decayFrameStart);
                                 /* write decay correction factor to subheader */
       image_header.decay_corr_fctr = (float)(decayInFrame * decayFrameStart);
-      image_header.processing_code += 512;                     /* decay corrected */
+      image_header.processing_code += E7_APPLIED_PROC_Decay_correction;                     /* decay corrected */
 
       fflush(stdout);
 

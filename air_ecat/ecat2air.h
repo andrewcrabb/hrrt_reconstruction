@@ -42,7 +42,7 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats,
 float ecat_AIR_open_header(const char *, /*@out@*/ struct AIR_Fptrs *, /*@out@*/ struct AIR_Key_info *, int *);
 AIR_Pixels ecat_AIR_map_value(const char *filename, long int value, AIR_Error *errcode);
 void ecat_AIR_close_header(struct AIR_Fptrs *);
-void matrix_flip(MatrixData *matrix,int x_flip, int y_flip, int z_flip);
+void matrix_flip(ecat_matrix::MatrixData *matrix,int x_flip, int y_flip, int z_flip);
 struct AIR_Air16 *xmldecode_air16(const char *filename);
 int xmlencode_air16(const char *outfile, int permission, double **e, int zooming,
                  struct AIR_Air16 *air);

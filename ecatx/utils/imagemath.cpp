@@ -40,9 +40,9 @@ main( argc, argv)
   char **argv;
 {
 	ecat_matrix::MatrixFile *file1=NULL, *file2=NULL, *file3=NULL;
-	MatrixData *image1=NULL, *image2=NULL, *image3=NULL;
-	MatrixData *slice1=NULL, *slice2=NULL;
-	Main_header *mh3=NULL;
+	ecat_matrix::MatrixData *image1=NULL, *image2=NULL, *image3=NULL;
+	ecat_matrix::MatrixData *slice1=NULL, *slice2=NULL;
+	ecat_matrix::Main_header *mh3=NULL;
 	ecat_matrix::Image_subheader *imh;
 	float *imagea, *imageb, *imagec;
 	float valb;
@@ -60,9 +60,9 @@ main( argc, argv)
 	if (!matspec( argv[1], fname, &matnuma)) matnuma = ecat_matrix::mat_numcod(1,1,1,0,0);
 	file1 = matrix_open( fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
 	if (!file1)
-	  crash( "%s: can't open file '%s'\n", argv[0], fname);
-	image1 = matrix_read(file1,matnuma,MAT_SUB_HEADER);
-	if (!image1) crash( "%s: image '%s' not found\n", argv[0], argv[1]);
+	  ecat_matrix::crash( "%s: can't open file '%s'\n", argv[0], fname);
+	image1 = matrix_read(file1,matnuma,ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
+	if (!image1) ecat_matrix::crash( "%s: image '%s' not found\n", argv[0], argv[1]);
 	switch(file1->mhptr->file_type) {
 	case ecat_matrix::DataSetType::InterfileImage :
 	case ecat_matrix::DataSetType::PetImage :
@@ -71,34 +71,34 @@ main( argc, argv)
 	case ecat_matrix::DataSetType::ByteVolume :
 		break;
 	default :
-		crash("input is not a Image nor Volume\n");
+		ecat_matrix::crash("input is not a Image nor Volume\n");
 		break;
 	}
 	if (!matspec( argv[2], fname, &matnumb)) matnumb = ecat_matrix::mat_numcod(1,1,1,0,0);
 	file2 = matrix_open( fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
 	if (!file2) {		/* check constant value argument */
 	  if (sscanf(argv[2],"%g",&valb) != 1)
-			crash("%s: can't open file '%s'\n", argv[0], fname);
+			ecat_matrix::crash("%s: can't open file '%s'\n", argv[0], fname);
 	}
 	if (file2) {
-		image2 = matrix_read(file2,matnumb,MAT_SUB_HEADER);
-		if (!image2) crash( "%s: image '%s' not found\n", argv[0], argv[2]);
+		image2 = matrix_read(file2,matnumb,ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
+		if (!image2) ecat_matrix::crash( "%s: image '%s' not found\n", argv[0], argv[2]);
 		if (image1->xdim != image2->xdim || image1->ydim != image2->ydim ||
 			image1->zdim != image2->zdim)
-			crash("%s and %s are not compatible\n",argv[1], argv[2]);
+			ecat_matrix::crash("%s and %s are not compatible\n",argv[1], argv[2]);
 	}
 	npixels = image1->xdim*image1->ydim;
 	nvoxels = npixels*image1->zdim;
 
 /* get imagec specification and write header */
 	if (!matspec( argv[3], fname, &matnumc)) matnumc = ecat_matrix::mat_numcod(1,1,1,0,0);
-	mh3 = (Main_header*)calloc(1, sizeof(Main_header));
-	memcpy(mh3, file1->mhptr, sizeof(Main_header));
+	mh3 = (ecat_matrix::Main_header*)calloc(1, sizeof(ecat_matrix::Main_header));
+	memcpy(mh3, file1->mhptr, sizeof(ecat_matrix::Main_header));
 	mh3->file_type = ecat_matrix::DataSetType::PetVolume;
 	file3 = matrix_create( fname, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, mh3);
-	if (!file3) crash( "%s: can't open file '%s'\n", argv[0], fname);
-	image3 = (MatrixData*)calloc(1, sizeof(MatrixData));
-	memcpy(image3, image1, sizeof(MatrixData));
+	if (!file3) ecat_matrix::crash( "%s: can't open file '%s'\n", argv[0], fname);
+	image3 = (ecat_matrix::MatrixData*)calloc(1, sizeof(ecat_matrix::MatrixData));
+	memcpy(image3, image1, sizeof(ecat_matrix::MatrixData));
 	imh = (ecat_matrix::Image_subheader*)calloc(1,sizeof(ecat_matrix::Image_subheader));
 	memcpy(imh,image1->shptr,sizeof(ecat_matrix::Image_subheader));
 	imagec = (float*)malloc(nvoxels*sizeof(float));
@@ -122,7 +122,7 @@ main( argc, argv)
 	}
 	for (plane=0; plane< image1->zdim; plane++) {
 		slice1 = matrix_read_slice(file1,image1,plane,segment);
-		if (slice1->data_type==SunShort || slice1->data_type==VAX_Ix2) {
+		if (slice1->data_type==ecat_matrix::MatrixDataType::SunShort || slice1->data_type==ecat_matrix::MatrixDataType::VAX_Ix2) {
 			sdata = (short*)slice1->data_ptr;
 			for (i=0; i<npixels; i++)
 	  			imagea[i] = slice1->scale_factor*sdata[i];
@@ -135,7 +135,7 @@ main( argc, argv)
 
 		if (file2) {
 			slice2 = matrix_read_slice(file2,image2,plane,segment);
-			if (slice2->data_type==SunShort || slice2->data_type==VAX_Ix2) {
+			if (slice2->data_type==ecat_matrix::MatrixDataType::SunShort || slice2->data_type==ecat_matrix::MatrixDataType::VAX_Ix2) {
 				sdata = (short*)slice2->data_ptr;
 				for (i=0; i<npixels; i++)
 	  				imageb[i] = slice2->scale_factor*sdata[i];
@@ -184,7 +184,7 @@ main( argc, argv)
 			break;
 
 	  	default:
-			crash("%s: illegal operator \"%c\"...chose from {+,-,*,/,and,not,gt,lt}\n",
+			ecat_matrix::crash("%s: illegal operator \"%c\"...chose from {+,-,*,/,and,not,gt,lt}\n",
 			argv[0], op1);
 		}
 		switch (op2) {
@@ -217,12 +217,12 @@ main( argc, argv)
 	  if (imagec[i]<minval) minval = imagec[i];
 	}
 
-	if (image1->data_type!=ByteData || image2->data_type!=ByteData || minval<0)
+	if (image1->data_type!=ecat_matrix::MatrixDataType::ByteData || image2->data_type!=ecat_matrix::MatrixDataType::ByteData || minval<0)
 	{
 		image3->shptr = (void *)imh;
 		nblks = (nvoxels*sizeof(short)+511)/512;
 		image3->data_size = nblks*512;
-		image3->data_type = imh->data_type = SunShort;
+		image3->data_type = imh->data_type = ecat_matrix::MatrixDataType::SunShort;
 		if (fabs(minval) < fabsf(maxval)) scalef = fabsf(maxval)/32767.0f;
 		else scalef = fabsf(minval)/32767.0f;
 		sdata = (short*)imagec;				/* reuse huge float array */
@@ -230,7 +230,7 @@ main( argc, argv)
 	  		sdata[i] = (short)(0.5f+imagec[i]/scalef);
 	} else {
 		image3->shptr = (void *)imh;
-		image3->data_type = imh->data_type = ByteData;
+		image3->data_type = imh->data_type = ecat_matrix::MatrixDataType::ByteData;
 		nblks = (nvoxels*sizeof(unsigned char )+511)/512;
 		image3->data_size = nblks*512;
 		scalef = fabsf(maxval)/255;

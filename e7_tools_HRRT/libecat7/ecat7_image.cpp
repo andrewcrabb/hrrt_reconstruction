@@ -333,54 +333,36 @@ void ECAT7_IMAGE::PrintHeader(std::list <std::string> * const sl,
          if ((j & (1 << i)) != 0) s+=ecat_matrix::applied_proc_.at(i) + " ";
         sl->push_back(s+")");
       }
-     sl->push_back(" gate duration:                  "+
-                   toString(ih.gate_duration)+" msec.");
-     sl->push_back(" r_wave_offset:                  "+
-                   toString(ih.r_wave_offset)+" msec.");
-     sl->push_back(" num_accepted_beats:             "+
-                   toString(ih.num_accepted_beats));
-     sl->push_back(" filter_cutoff_frequency:        "+
-                   toString(ih.filter_cutoff_frequency));
-     sl->push_back(" filter_resolution:              "+
-                   toString(ih.filter_resolution));
-     sl->push_back(" filter_ramp_slope:              "+
-                   toString(ih.filter_ramp_slope));
-     sl->push_back(" filter_order:                   "+
-                   toString(ih.filter_order));
-     sl->push_back(" filter_scatter_fraction:        "+
-                   toString(ih.filter_scatter_fraction));
-     sl->push_back(" filter_scatter_slope:           "+
-                   toString(ih.filter_scatter_slope));
-     sl->push_back(" annotation:                     "+
-                   (std::string)(const char *)ih.annotation);
-     sl->push_back(" mt_1_1:                         "+toString(ih.mt_1_1));
-     sl->push_back(" mt_1_2:                         "+toString(ih.mt_1_2));
-     sl->push_back(" mt_1_3:                         "+toString(ih.mt_1_3));
-     sl->push_back(" mt_2_1:                         "+toString(ih.mt_2_1));
-     sl->push_back(" mt_2_2:                         "+toString(ih.mt_2_2));
-     sl->push_back(" mt_2_3:                         "+toString(ih.mt_2_3));
-     sl->push_back(" mt_3_1:                         "+toString(ih.mt_3_1));
-     sl->push_back(" mt_3_2:                         "+toString(ih.mt_3_2));
-     sl->push_back(" mt_3_3:                         "+toString(ih.mt_3_3));
-     sl->push_back(" rfilter_cutoff:                 "+
-                   toString(ih.rfilter_cutoff));
-     sl->push_back(" rfilter_resolution:             "+
-                   toString(ih.rfilter_resolution));
-     sl->push_back(" rfilter_code:                   "+
-                   toString(ih.rfilter_code));
-     sl->push_back(" rfilter_order:                  "+
-                   toString(ih.rfilter_order));
-     sl->push_back(" zfilter_cutoff:                 "+
-                   toString(ih.zfilter_cutoff));
-     sl->push_back(" zfilter_resolution:             "+
-                   toString(ih.zfilter_resolution));
-     sl->push_back(" zfilter_code:                   "+
-                   toString(ih.zfilter_code));
-     sl->push_back(" zfilter_order:                  "+
-                   toString(ih.zfilter_order));
-     sl->push_back(" mt_1_4:                         "+toString(ih.mt_1_4));
-     sl->push_back(" mt_2_4:                         "+toString(ih.mt_2_4));
-     sl->push_back(" mt_3_4:                         "+toString(ih.mt_3_4));
+     sl->push_back(" gate duration:                  " + toString(ih.gate_duration)+" msec.");
+     sl->push_back(" r_wave_offset:                  " + toString(ih.r_wave_offset)+" msec.");
+     sl->push_back(" num_accepted_beats:             " + toString(ih.num_accepted_beats));
+     sl->push_back(" filter_cutoff_frequency:        " + toString(ih.filter_cutoff_frequency));
+     sl->push_back(" filter_resolution:              " + toString(ih.filter_resolution));
+     sl->push_back(" filter_ramp_slope:              " + toString(ih.filter_ramp_slope));
+     sl->push_back(" filter_order:                   " + toString(ih.filter_order));
+     sl->push_back(" filter_scatter_fraction:        " + toString(ih.filter_scatter_fraction));
+     sl->push_back(" filter_scatter_slope:           " + toString(ih.filter_scatter_slope));
+     sl->push_back(" annotation:                     " + (std::string)(const char *)ih.annotation);
+     sl->push_back(" mt_1_1:                         " + toString(ih.mt_1_1));
+     sl->push_back(" mt_1_2:                         " + toString(ih.mt_1_2));
+     sl->push_back(" mt_1_3:                         " + toString(ih.mt_1_3));
+     sl->push_back(" mt_2_1:                         " + toString(ih.mt_2_1));
+     sl->push_back(" mt_2_2:                         " + toString(ih.mt_2_2));
+     sl->push_back(" mt_2_3:                         " + toString(ih.mt_2_3));
+     sl->push_back(" mt_3_1:                         " + toString(ih.mt_3_1));
+     sl->push_back(" mt_3_2:                         " + toString(ih.mt_3_2));
+     sl->push_back(" mt_3_3:                         " + toString(ih.mt_3_3));
+     sl->push_back(" rfilter_cutoff:                 " + toString(ih.rfilter_cutoff));
+     sl->push_back(" rfilter_resolution:             " + toString(ih.rfilter_resolution));
+     sl->push_back(" rfilter_code:                   " + toString(ih.rfilter_code));
+     sl->push_back(" rfilter_order:                  " + toString(ih.rfilter_order));
+     sl->push_back(" zfilter_cutoff:                 " + toString(ih.zfilter_cutoff));
+     sl->push_back(" zfilter_resolution:             " + toString(ih.zfilter_resolution));
+     sl->push_back(" zfilter_code:                   " + toString(ih.zfilter_code));
+     sl->push_back(" zfilter_order:                  " + toString(ih.zfilter_order));
+     sl->push_back(" mt_1_4:                         " + toString(ih.mt_1_4));
+     sl->push_back(" mt_2_4:                         " + toString(ih.mt_2_4));
+     sl->push_back(" mt_3_4:                         " + toString(ih.mt_3_4));
      s=" scatter_type:                   "+toString(ih.scatter_type)+" (";
      switch (ih.scatter_type)
        { case E7_SCATTER_TYPE_NoScatter:

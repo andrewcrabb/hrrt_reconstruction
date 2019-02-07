@@ -67,7 +67,6 @@ constexpr int MAX_GATES      = 32;
 constexpr int MAX_BED_POS    = 32;
 constexpr int ECATX_ERROR    = -1;
 constexpr int ECATX_OK       = 0;
-constexpr int MAT_SUB_HEADER = 255;  // operation to sub-header only
 
 
 enum class DataSetType {
@@ -130,8 +129,12 @@ enum class MatrixDataType {
   Color_24,
   Color_8,
   BitData,
-  NumMatrixDataTypes
+  NumMatrixDataTypes,
+ MAT_SUB_HEADER = 255  // operation to sub-header only
 };
+
+// constexpr int MAT_SUB_HEADER = 255;  // operation to sub-header only
+// constexpr MatrixDataType MAT_SUB_HEADER = 255;  // operation to sub-header only
 
 // Combines former MatrixDataType, 
 
@@ -481,7 +484,7 @@ struct Main_header {
   float bed_elevation;
   float intrinsic_tilt;
   short wobble_speed;
-  short transm_source_type;
+  short transm_source_type;  // Currently const int in ecat7_global, make it a namespaced scoped enum
   float distance_scanned;
   float transaxial_fov;
   short angular_compression;
@@ -489,7 +492,7 @@ struct Main_header {
   short axial_samp_mode;
   short align_1;
   float calibration_factor;
-  short calibration_units;
+  CalibrationStatus calibration_units;
   short calibration_units_label;
   short compression_code;
   char study_name[12];
@@ -504,8 +507,8 @@ struct Main_header {
   char physician_name[32];
   char operator_name[32];
   char study_description[32];
-  short acquisition_type;
-  short patient_orientation;
+  short acquisition_type;  // Currently const int in ecat7_global, make it a namespaced scoped enum
+  short patient_orientation;  // Currently const int in ecat7_global, make it a namespaced scoped enum
   char facility_name[20];
   short num_planes;
   short num_frames;
@@ -518,7 +521,7 @@ struct Main_header {
   short lwr_true_thres;
   short upr_true_thres;
   char user_process_code[10];
-  short acquisition_mode;
+  short acquisition_mode;  // Currently const int in ecat7_global, make it a namespaced scoped enum
   short align_2;
   float bin_size;
   float branching_fraction;
@@ -526,12 +529,12 @@ struct Main_header {
   float dosage;
   float well_counter_factor;
   char data_units[32];
-  short septa_state;
+  short septa_state;  // Currently const int in ecat7_global, make it a namespaced scoped enum
   short align_3;
 };
 
 struct Scan_subheader {
-  short data_type;
+  MatrixDataType data_type;
   short num_dimensions;
   short num_r_elements;
   short num_angles;
@@ -565,14 +568,14 @@ struct Scan_subheader {
 };
 
 struct Scan3D_subheader {
-  short data_type;
+  MatrixDataType data_type;
   short num_dimensions;
   short num_r_elements;
   short num_angles;
   short corrections_applied;
   short num_z_elements[64];
   short ring_difference;
-  short storage_order;
+  short storage_order;    // Currently const int in ecat7_global, make it a namespaced scoped enum
   short axial_compression;
   float x_resolution;
   float v_resolution;
@@ -600,7 +603,7 @@ struct Scan3D_subheader {
 };
 
 struct Image_subheader {
-  short data_type;
+  MatrixDataType data_type;
   short num_dimensions;
   short x_dimension;
   short y_dimension;
@@ -618,7 +621,7 @@ struct Image_subheader {
   float z_pixel_size;
   unsigned int frame_duration;
   unsigned int frame_start_time;
-  short filter_code;
+  short filter_code;  // Currently const int in ecat7_global, make it a namespaced scoped enum
   short align_1;
   float x_resolution;
   float y_resolution;
@@ -627,7 +630,7 @@ struct Image_subheader {
   float num_angles;
   float z_rotation_angle;
   float decay_corr_fctr;
-  int processing_code;
+  int processing_code;    // Currently const int in ecat7_global, make it a namespaced scoped enum
   unsigned int gate_duration;
   int r_wave_offset;
   int num_accepted_beats;
@@ -650,7 +653,7 @@ struct Image_subheader {
   float mt_3_3;
   float rfilter_cutoff;
   float rfilter_resolution;
-  short rfilter_code;
+  short rfilter_code;  
   short rfilter_order;
   float zfilter_cutoff;
   float zfilter_resolution;
@@ -659,8 +662,8 @@ struct Image_subheader {
   float mt_1_4;
   float mt_2_4;
   float mt_3_4;
-  short scatter_type;
-  short recon_type;
+  short scatter_type;    // Currently const int in ecat7_global, make it a namespaced scoped enum
+  short recon_type;  // Currently const int in ecat7_global, make it a namespaced scoped enum
   short recon_views;
   short align_3;
   float prompt_rate; /* total_prompt = prompt_rate*frame_duration */
@@ -670,7 +673,7 @@ struct Image_subheader {
 };
 
 struct Norm_subheader {
-  short data_type;
+  MatrixDataType data_type;
   short num_dimensions;
   short num_r_elements;
   short num_angles;
@@ -689,14 +692,14 @@ struct Norm_subheader {
 };
 
 struct Norm3D_subheader {
-  short data_type;
+  MatrixDataType data_type;
   short num_r_elements;
   short num_transaxial_crystals;
   short num_crystal_rings;
   short crystals_per_ring;
   short num_geo_corr_planes;
-  short uld;
-  short lld;
+  short uld;  // upper level energy discriminator
+  short lld;  // lower level energy discriminator
   short scatter_energy;
   short norm_quality_factor_code;
   float norm_quality_factor;
@@ -708,9 +711,9 @@ struct Norm3D_subheader {
 };
 
 struct Attn_subheader {
-  short data_type;
+  MatrixDataType data_type;
   short num_dimensions;
-  short attenuation_type;
+  short attenuation_type;    // Currently const int in ecat7_global, make it a namespaced scoped enum
   short num_r_elements;
   short num_angles;
   short num_z_elements;
@@ -734,7 +737,7 @@ struct Attn_subheader {
   short align_1;
   float additional_atten_coeff[8];
   float edge_finding_threshold;
-  short storage_order;
+  short storage_order;    // Currently const int in ecat7_global, make it a namespaced scoped enum
   short span;
   short z_elements[64];
 };
@@ -743,19 +746,19 @@ enum class FileFormat {
   ECAT6, ECAT7, Interfile
 };
 
-struct ecat_matrix::MatrixFile {
+struct MatrixFile {
   char    *fname ;  /* file path */
   Main_header *mhptr ;  /* pointer to main header */
   MatDirList  *dirlist ;  /* directory */
   FILE    *fptr ;   /* file ptr for I/O calls */
   FileFormat file_format;
-  char **interfile_header;   // TODO reimplement as vector<interfile::Key, string> - see analyze.cpp:200
+  char **interfile_header;   // TODO reimplement as vector<interfile::Key, std::filesystem::path> - see analyze.cpp:200
   void *analyze_hdr;
 };
 
 struct MatrixData {
   int   matnum ;  /* matrix number */
-  ecat_matrix::MatrixFile  *matfile ;  /* pointer to parent */
+  MatrixFile  *matfile ;  /* pointer to parent */
   DataSetType mat_type ;  /* type of matrix? */
   MatrixDataType  data_type ; /* type of data */
   // void *   shptr ;    pointer to sub-header
@@ -795,31 +798,32 @@ float find_fmin(const float*, int size);
 float find_fmax(const float*, int size);
 int matspec(const char* specs, char* fname , int* matnum);
 char* is_analyze(const char* );
-ecat_matrix::MatrixFile* matrix_create(const char*, MatrixFileAccessMode const mode , Main_header*);
-ecat_matrix::MatrixFile* matrix_open(const char*, int, int);
-int analyze_open(ecat_matrix::MatrixFile *mptr);
-int analyze_read(ecat_matrix::MatrixFile *mptr, int matnum, MatrixData  *data, MatrixDataType dtype);
-// MatrixData *matrix_read(ecat_matrix::MatrixFile*, int matnum, int type);
-MatrixData *matrix_read(ecat_matrix::MatrixFile*, int matnum, MatrixDataType type);
-MatrixData* matrix_read_slice(ecat_matrix::MatrixFile*, MatrixData* volume, int slice_num, int segment);
-MatrixData* matrix_read_view(ecat_matrix::MatrixFile*, MatrixData* volume, int view, int segment);
+MatrixFile* matrix_create(const char*, MatrixFileAccessMode const mode , Main_header*);
+MatrixFile* matrix_open(const char*, MatrixFileAccessMode mode, MatrixFileType_64);
+int analyze_open(MatrixFile *mptr);
+int analyze_read(MatrixFile *mptr, int matnum, MatrixData  *data, MatrixDataType dtype);
+// MatrixData *matrix_read(MatrixFile*, int matnum, int type);
+MatrixData *matrix_read(MatrixFile*, int matnum, MatrixDataType type);
+MatrixData* matrix_read_slice(MatrixFile*, MatrixData* volume, int slice_num, int segment);
+MatrixData* matrix_read_view(MatrixFile*, MatrixData* volume, int view, int segment);
 void set_matrix_no_error();
-int matrix_write(ecat_matrix::MatrixFile*, int matnum, MatrixData*);
+int matrix_write(MatrixFile*, int matnum, MatrixData*);
 int mat_numcod(int frame, int plane, int gate, int data, int bed);
 int mat_numdoc(int, MatVal*);
 void free_matrix_data(MatrixData*);
 void matrix_perror(const char*);
-int matrix_close(ecat_matrix::MatrixFile*);
-int matrix_find(ecat_matrix::MatrixFile*, int matnum, MatDir*);
-void crash(const char *fmt, ...);
-MatrixData *load_volume7(ecat_matrix::MatrixFile *matrix_file, int frame, int gate, int data, int bedstart, int bedend);
-int save_volume7( ecat_matrix::MatrixFile *mfile, Image_subheader *shptr, float *data_ptr, int frame, int gate, int data, int bed );
-int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, MatrixData *data, MatrixDataType dtype);
-int write_host_data(ecat_matrix::MatrixFile *mptr, int matnum, const MatrixData *data);
-int mh_update(ecat_matrix::MatrixFile *file);
+int matrix_close(MatrixFile*);
+int matrix_find(MatrixFile*, int matnum, MatDir*);
+// void crash(const char *fmt, ...);
+void crash( const char *fmt, char *a0, char *a1, char *a2, char *a3, char *a4, char *a5, char *a6, char *a7, char *a8, char *a9);
+MatrixData *load_volume7(MatrixFile *matrix_file, int frame, int gate, int data, int bedstart, int bedend);
+int save_volume7( MatrixFile *mfile, Image_subheader *shptr, float *data_ptr, int frame, int gate, int data, int bed );
+int read_host_data(MatrixFile *mptr, int matnum, MatrixData *data, MatrixDataType dtype);
+int write_host_data(MatrixFile *mptr, int matnum, const MatrixData *data);
+int mh_update(MatrixFile *file);
 int convert_float_scan( MatrixData *scan, float *fdata);
 int matrix_convert_data(MatrixData *matrix, MatrixDataType dtype);
-MatrixData *matrix_read_scan(ecat_matrix::MatrixFile *mptr, int matnum, MatrixDataType dtype, int segment);
+MatrixData *matrix_read_scan(MatrixFile *mptr, int matnum, MatrixDataType dtype, int segment);
 
  // low level functions prototypes, don't use
 
@@ -869,7 +873,7 @@ const std::string dexteritycode;
 // std::vector<std::string> typeFilterLabel;
 int ecat_default_version;
 MatrixError matrix_errno;
-// char matrix_errtxt[];
+// char ecat_matrix::matrix_errtxt[];
 std::string matrix_errtxt;
 
 // extern "C" int numDisplayUnits;
@@ -885,6 +889,6 @@ std::string matrix_errtxt;
 // extern "C" char* typeFilterLabel[NumDataMasks];
 // extern "C" int ecat_default_version;
 // extern "C" MatrixError matrix_errno;
-// extern "C" char matrix_errtxt[];
+// extern "C" char ecat_matrix::matrix_errtxt[];
 
 }  // namespace ecat_matrix

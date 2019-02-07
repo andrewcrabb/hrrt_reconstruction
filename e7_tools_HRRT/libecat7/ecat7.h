@@ -34,7 +34,7 @@ class ECAT7
                                                  // append matrix to ECAT7 file
     void AppendMatrix(const unsigned short int) const;
     void AppendMatrix(const unsigned short int, const std::string);
-                                  // convert dataset from ByteData to IeeeFloat
+                                  // convert dataset from ecat_matrix::MatrixDataType::ByteData to ecat_matrix::MatrixDataType::IeeeFloat
     void Byte2Float(const unsigned short int) const;
                                                  // create Attenuation matrices
     void CreateAttnMatrices(const unsigned short int);
@@ -66,16 +66,16 @@ class ECAT7
                                             // request pointer to matrix object
     ECAT7_MATRIX *Matrix(const unsigned short int) const;
                                // request pointer to data part of matrix object
-    void *MatrixData(const unsigned short int) const;
+    void *getecat_matrix::MatrixData(const unsigned short int) const;
                                           // put matrix data into matrix object
-    void MatrixData(void * const, const unsigned short int,
+    void getecat_matrix::MatrixData(void * const, const unsigned short int,
                     const unsigned short int) const;
     unsigned short int NumberOfMatrices() const;  // request number of matrices
                                    // print header information into string list
     void PrintHeader(std::list <std::string> * const) const;
                          // store main header and empty directory as ECAT7 file
     void SaveFile(const std::string);
-                                  // convert dataset from SunShort to IeeeFloat
+                                  // convert dataset from ecat_matrix::MatrixDataType::SunShort to ecat_matrix::MatrixDataType::IeeeFloat
     void Short2Float(const unsigned short int) const;
                                             // update main header in ECAT7 file
     void UpdateMainHeader(const std::string);
@@ -177,11 +177,11 @@ class ECAT7
                          const unsigned short int) const;
     void Image_num_dimensions(const signed short int,
                               const unsigned short int) const;
-    void Image_x_dimension(const signed short int,
+    void Image_x_dim(const signed short int,
                            const unsigned short int) const;
-    void Image_y_dimension(const signed short int,
+    void Image_y_dim(const signed short int,
                            const unsigned short int) const;
-    void Image_z_dimension(const signed short int,
+    void Image_z_dim(const signed short int,
                            const unsigned short int) const;
     void Image_x_offset(const float, const unsigned short int) const;
     void Image_y_offset(const float, const unsigned short int) const;
@@ -265,9 +265,9 @@ class ECAT7
                                             // request values from Image header
     signed short int Image_data_type(const unsigned short int) const;
     signed short int Image_num_dimensions(const unsigned short int) const;
-    signed short int Image_x_dimension(const unsigned short int) const;
-    signed short int Image_y_dimension(const unsigned short int) const;
-    signed short int Image_z_dimension(const unsigned short int) const;
+    signed short int Image_x_dim(const unsigned short int) const;
+    signed short int Image_y_dim(const unsigned short int) const;
+    signed short int Image_z_dim(const unsigned short int) const;
     float Image_x_offset(const unsigned short int) const;
     float Image_y_offset(const unsigned short int) const;
     float Image_z_offset(const unsigned short int) const;

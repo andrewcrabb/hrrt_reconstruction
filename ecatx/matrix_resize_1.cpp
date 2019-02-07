@@ -32,18 +32,18 @@
 #define MATRIX_RESIZE_1
 #include "matrix_resize.h"
 
-int  matrix_resize(MatrixData *mat, float pixel_size, int interp_flag) {
+int  matrix_resize(ecat_matrix::MatrixData *mat, float pixel_size, int interp_flag) {
 	int interpolate = interp_flag;
 //	if (mat->data_type == ColorData)  interpolate = 0;
   switch (mat->data_type)
   {
-  case ByteData:
+  case ecat_matrix::MatrixDataType::ByteData:
 //  case ColorData:
 		return matrix_resize_1(mat, pixel_size, interpolate);
-  case SunShort:
-	case VAX_Ix2:
+  case ecat_matrix::MatrixDataType::SunShort:
+	case ecat_matrix::MatrixDataType::VAX_Ix2:
     return matrix_resize_2(mat, pixel_size, interpolate);
-  case IeeeFloat:
+  case ecat_matrix::MatrixDataType::IeeeFloat:
     return matrix_resize_4(mat, pixel_size, interpolate);
   }
   return 0;

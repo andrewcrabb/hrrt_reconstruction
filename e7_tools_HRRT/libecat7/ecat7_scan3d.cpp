@@ -308,9 +308,8 @@ void ECAT7_SCAN3D::PrintHeader(std::list <std::string> * const sl,
                  toString(sh.num_dimensions));
    sl->push_back(" Dimension 1 (ring elements):    "+
                  toString(sh.num_r_elements));
-   sl->push_back(" Dimension 2 (angles):           "+toString(sh.num_angles));
-   sl->push_back(" corrections_applied:            "+
-                 toString(sh.corrections_applied));
+   sl->push_back(" Dimension 2 (angles):           " + toString(sh.num_angles));
+   sl->push_back(" corrections_applied:            " +                 toString(sh.corrections_applied));
    if ((j=sh.corrections_applied) > 0)
     { s="  ( ";
       for (i=0; i < 15; i++)

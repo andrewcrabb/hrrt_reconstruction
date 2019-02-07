@@ -8,8 +8,8 @@
 
 static char line1[256], line2[256], line3[256], line4[256];
 matrix_info(mh, matrix)
-Main_header *mh;
-MatrixData *matrix;
+ecat_matrix::Main_header *mh;
+ecat_matrix::MatrixData *matrix;
 {
   int x,y,z,i, nvoxels;
   char *units;
@@ -28,7 +28,7 @@ MatrixData *matrix;
 	 mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
   nvoxels = matrix->xdim*matrix->ydim*matrix->zdim ;
   switch(matrix->data_type) {
-  case ByteData:
+  case ecat_matrix::MatrixDataType::ByteData:
     b_data = (unsigned char *)matrix->data_ptr;
     for (i=0, z=1; z<=matrix->zdim; z++)  {
       for (y=1; y<=matrix->ydim; y++) {
@@ -41,7 +41,7 @@ MatrixData *matrix;
       }
     }
     break;
-  case IeeeFloat :
+  case ecat_matrix::MatrixDataType::IeeeFloat :
     f_data = (float*)matrix->data_ptr;
     for (i=0; i<nvoxels; i++) total += *f_data++;
     for (i=0, z=1; z<=matrix->zdim; z++)  {
@@ -108,9 +108,9 @@ MatrixData *matrix;
 }
 
 main(int argc, char **argv) {
-  // MatDirNode *node;
+  // ecat_matrix::MatDirNode *node;
   // ecat_matrix::MatrixFile *mptr;
-  // MatrixData *matrix;
+  // ecat_matrix::MatrixData *matrix;
   // ecat_matrix::MatVal mat;
   char fname[FILENAME_MAX];
   // int ftype, 
@@ -118,7 +118,7 @@ main(int argc, char **argv) {
   
   if (argc < 2) {
     printf("%s: Build %s %s\n", argv[0], __DATE__, __TIME__);
-    crash("usage : %s matspec\n",argv[0]);
+    ecat_matrix::crash("usage : %s matspec\n",argv[0]);
   }
   matspec( argv[1], fname, &matnum);
     ecat_matrix::MatrixFile *mptr = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
@@ -128,20 +128,20 @@ main(int argc, char **argv) {
   }
   DataSetType ftype = mptr->mhptr->file_type;
   // if (ftype <0 || ftype >= NumDataSetTypes)
-  //   crash("%s : unkown file type\n",fname);
+  //   ecat_matrix::crash("%s : unkown file type\n",fname);
   printf( "%s file type  : %s\n", fname, data_set_types_.at(ftype).name);
   if (!mptr) 
     matrix_perror(fname);
     ecat_matrix::MatVal mat;
   if (matnum) {
 		mat_numdoc(matnum, &mat);
-      MatrixData *matrix = matrix_read(mptr,matnum, UnknownMatDataType);
-    if (!matrix) crash("%d,%d,%d,%d,%d not found\n",
+      ecat_matrix::MatrixData *matrix = matrix_read(mptr,matnum, UnknownMatDataType);
+    if (!matrix) ecat_matrix::crash("%d,%d,%d,%d,%d not found\n",
 		       mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
     matrix_info(mptr->mhptr,matrix);
   } 
 	else {
-      MatDirNode *node = mptr->dirlist->first;
+      ecat_matrix::MatDirNode *node = mptr->dirlist->first;
     while (node) {
 			mat_numdoc(node->matnum, &mat);
 			if (ftype == PetImage) {
@@ -152,7 +152,7 @@ main(int argc, char **argv) {
 				}
 			} else {
 				matrix = matrix_read(mptr,node->matnum,UnknownMatDataType);
-				if (!matrix) crash("%d,%d,%d,%d,%d not found\n",
+				if (!matrix) ecat_matrix::crash("%d,%d,%d,%d,%d not found\n",
 					mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
 				matrix_info(mptr->mhptr,matrix);
 			}

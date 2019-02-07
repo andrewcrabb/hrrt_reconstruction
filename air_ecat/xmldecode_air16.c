@@ -84,16 +84,16 @@ static void AIR_start_element(void *userData, const char* name, const char **att
         sprintf(filename, "%s%c%s",current_dir,DIR_SEPARATOR,v);
         f_ok =  access((char*)filename, F_OK); 
       }
-      if (f_ok == -1)  crash("Reference : invalid filename"); 
+      if (f_ok == -1)  ecat_matrix::crash("Reference : invalid filename"); 
       strcpy(air.r_file, filename);
-    } else crash("Reference: missing filename");
+    } else ecat_matrix::crash("Reference: missing filename");
     if ((v = get_attr("dimension", atts))) {
       if (sscanf(v,"%d,%d,%d", &air.s.x_dim,&air.s.y_dim,&air.s.z_dim) != 3)
-        crash("Invalid Reference voxelsize: %s", v);
+        ecat_matrix::crash("Invalid Reference voxelsize: %s", v);
     }
     if ((v = get_attr("voxelsize", atts))) {
       if (sscanf(v,"%g,%g,%g", &air.s.x_size,&air.s.y_size,&air.s.z_size) != 3)
-        crash("Invalid Reference voxelsize: %s", v);
+        ecat_matrix::crash("Invalid Reference voxelsize: %s", v);
     }
     break;
   case CLASS_RESLICE:
@@ -104,26 +104,26 @@ static void AIR_start_element(void *userData, const char* name, const char **att
         sprintf(filename, "%s%c%s",current_dir,DIR_SEPARATOR,v);
         f_ok =  access((char*)filename, F_OK);
       }
-      if (f_ok == -1)  crash("Reslice: invalid filename"); 
+      if (f_ok == -1)  ecat_matrix::crash("Reslice: invalid filename"); 
         strcpy(air.r_file, filename);
-    } else crash("Reslice: missing filename");
+    } else ecat_matrix::crash("Reslice: missing filename");
 
     memset(air.comment, 0, sizeof(air.comment));
     if ((v = get_attr("param", atts))) {
       if (sscanf(v,"%g,%g,%g,%g,%g,%g",
         &a1,&a2,&a3,&a4,&a5,&a6) == 6) strcpy(air.comment,v);
-      else crash("Invalid Reslice param: %s");
+      else ecat_matrix::crash("Invalid Reslice param: %s");
     }
     if ((v = get_attr("matrix", atts))) {
       sv = v;
       for (j=0; j<4; i++) {
         for (i=0; i<4 && sv!=NULL; i++) {
           if (sscanf(sv,"%g",&air.e[i][j]) != 1) 
-            crash("Invalid Reslice matrix: %s (%s)", v, sv); 
+            ecat_matrix::crash("Invalid Reslice matrix: %s (%s)", v, sv); 
           if ((sv=strchr(sv,',')) != NULL) sv++;
         }
         if (i !=4 || j!= 4) 
-          crash("Invalid Reslice matrix: %s : too short", v); 
+          ecat_matrix::crash("Invalid Reslice matrix: %s : too short", v); 
       }
     }
     break;	
@@ -145,14 +145,14 @@ struct AIR_Air16 *xmldecode_air16(const char *filename)
   XML_Parser parser;
 
 	if (filename == NULL || strlen(filename) == 0)
-		crash("Null or blank filename");
-	if (stat(filename, &st) < 0)	crash(strerror(errno));
+		ecat_matrix::crash("Null or blank filename");
+	if (stat(filename, &st) < 0)	ecat_matrix::crash(strerror(errno));
 	if (buf_size<(st.st_size+1)) buf_size = st.st_size+1; 
-	if ((fp = fopen(filename,"rb")) == NULL) crash(strerror(errno));
+	if ((fp = fopen(filename,"rb")) == NULL) ecat_matrix::crash(strerror(errno));
 	buf = (char*)calloc(1,buf_size);
-	if (fread(buf,len, 1, fp) != 1) crash(strerror(errno));
+	if (fread(buf,len, 1, fp) != 1) ecat_matrix::crash(strerror(errno));
 	buf[len+1] = '\0';
-	if (strcmp(buf, magic_number) != 0)  crash("Invalid magic number");
+	if (strcmp(buf, magic_number) != 0)  ecat_matrix::crash("Invalid magic number");
 	strcpy(current_dir,filename);
   if ((p = strrchr(current_dir, DIR_SEPARATOR)) == NULL) strcpy(current_dir, ".");
   else  *p = '\0';
@@ -169,7 +169,7 @@ struct AIR_Air16 *xmldecode_air16(const char *filename)
 		if (!XML_Parse(parser, buf, len, done))
 		{
 			fclose(fp);
-			crash(XML_ErrorString(XML_GetErrorCode(parser)));
+			ecat_matrix::crash(XML_ErrorString(XML_GetErrorCode(parser)));
 		}
 	} while (!done);
 	fclose(fp);

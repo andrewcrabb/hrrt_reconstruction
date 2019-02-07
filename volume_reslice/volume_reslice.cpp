@@ -51,7 +51,7 @@ void display_message(const char*) {}
 static char line[FILENAME_MAX];
 static char fname[FILENAME_MAX], hdr_fname[FILENAME_MAX];
 
-static int save_interfile(MatrixData *matrix, const char *fname, const char *orig_fname) {
+static int save_interfile(ecat_matrix::MatrixData *matrix, const char *fname, const char *orig_fname) {
   FILE *fp=NULL, *fpi=NULL;
   float *fdata=NULL;
   short *sdata=NULL;
@@ -103,23 +103,24 @@ static int save_interfile(MatrixData *matrix, const char *fname, const char *ori
   return 0;
 }
 
-MatrixData *volume_resize(Volume *volume, int xydim, int nplanes)
-{
+ecat_matrix::MatrixData *volume_resize(Volume *volume, int xydim, int nplanes) {
   int interpolate=1;
-  MatrixData *slice = NULL;
-  const MatrixData *data = volume->data();
+  ecat_matrix::MatrixData *slice = NULL;
+  const ecat_matrix::MatrixData *data = volume->data();
   float xdim = data->xdim*data->pixel_size, zdim=data->zdim*data->z_size;
   float pixel_size = data->xdim*data->pixel_size/xydim;
   float z_size = data->zdim*data->z_size/nplanes;
   VoxelCoord area(xdim,xdim,zdim);
   VoxelCoord zoom_center(0.5f*xdim, 0.5f*xdim, 0.5f*zdim);
-  MatrixData *cdata = (MatrixData*)calloc(1,sizeof(MatrixData));
-  memcpy(cdata,data,sizeof(MatrixData));
+  ecat_matrix::MatrixData *cdata = (ecat_matrix::MatrixData*)calloc(1,sizeof(ecat_matrix::MatrixData));
+  memcpy(cdata,data,sizeof(ecat_matrix::MatrixData));
   cdata->xdim = cdata->ydim = xydim;
   cdata->zdim = nplanes;
   cdata->data_size = cdata->xdim*cdata->ydim*cdata->zdim;
-  if (cdata->data_type == IeeeFloat) cdata->data_size *= sizeof(float);
-  else cdata->data_size *= sizeof(float);
+  if (cdata->data_type == ecat_matrix::MatrixDataType::IeeeFloat) 
+    cdata->data_size *= sizeof(float);
+  else 
+    cdata->data_size *= sizeof(float);
   int nblks = (cdata->data_size + ecat_matrix::MatBLKSIZE - 1)/ecat_matrix::MatBLKSIZE;
   cdata->data_ptr = (void *) calloc(nblks, ecat_matrix::MatBLKSIZE);
   ecat_matrix::Image_subheader *imh = (ecat_matrix::Image_subheader*)calloc(1, ecat_matrix::MatBLKSIZE);
@@ -132,27 +133,23 @@ MatrixData *volume_resize(Volume *volume, int xydim, int nplanes)
   cdata->z_size = z_size;
   imh->x_pixel_size = imh->y_pixel_size = pixel_size;
   imh->z_pixel_size = z_size;
-  for (int plane=0; plane<cdata->zdim; plane++)
-  {
-    slice = volume->get_slice(zoom_center, 1.0, Dimension_Z, plane*z_size,
-      area, z_size, interpolate);
+  for (int plane=0; plane<cdata->zdim; plane++) {
+    slice = volume->get_slice(zoom_center, 1.0, Dimension_Z, plane*z_size, area, z_size, interpolate);
     memcpy( cdata->data_ptr + plane*slice->data_size, slice->data_ptr, slice->data_size);
     free_matrix_data(slice);
   }
   return cdata;
 }
 
-inline int mat_decode(const char *s, float *f)
-{
+inline int mat_decode(const char *s, float *f) {
   return  sscanf(s,"%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g",
     &f[0],&f[1],&f[2],&f[3],&f[4],&f[5],&f[6],&f[7],&f[8],&f[9],&f[10],&f[11]);
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   ecat_matrix::MatrixFile *mptr, *mptr1;
-  Main_header *proto;
-  MatrixData *slice;
+  ecat_matrix::Main_header *proto;
+  ecat_matrix::MatrixData *slice;
   ecat_matrix::Image_subheader *imh=NULL;
   float xdim=0, ydim=0, zdim=0, dx=1, dy=1, dz=1, pixel_size=1;
   float tx=0, ty=0, tz=0, rx=0, ry=0, rz=0;
@@ -243,18 +240,18 @@ int main(int argc, char **argv)
 
   // Open input file
   mptr = matrix_open( in_file, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
-  if (!mptr) crash( "can't open file '%s'\n", in_file);
-  if ( mptr->dirlist->nmats == 0) crash("no matrix in %s\n",in_file);
+  if (!mptr) ecat_matrix::crash( "can't open file '%s'\n", in_file);
+  if ( mptr->dirlist->nmats == 0) ecat_matrix::crash("no matrix in %s\n",in_file);
   if (in_matnum==0) in_matnum = mptr->dirlist->first->matnum;
   if (verbose) printf("loading volume ...");
 
   // Create Volume Object and load data
 #ifdef ORIG_CODE
    Volume *volume = new Volume(mptr, in_matnum);
-  const MatrixData* data = volume->data();
+  const ecat_matrix::MatrixData* data = volume->data();
 #else
-  MatrixData* data = matrix_read(mptr,in_matnum, GENERIC);
-  if (data == NULL) crash("Error reading %s\n", in_file);
+  ecat_matrix::MatrixData* data = matrix_read(mptr,in_matnum, GENERIC);
+  if (data == NULL) ecat_matrix::crash("Error reading %s\n", in_file);
   if (t_flip)  matrix_flip(data,0,1,1); 		/* AIR radiology convention */
   else  if (y_reverse) matrix_flip(data,0,1,0); /* Vicra */
 
@@ -306,8 +303,8 @@ int main(int argc, char **argv)
       // Convert translations to pixels
       if (c_size < data->pixel_size || c_size<data->z_size)
       { // create cubic volume
-        MatrixData *cdata = (MatrixData*)calloc(1,sizeof(MatrixData));
-        memcpy(cdata,data,sizeof(MatrixData));
+        ecat_matrix::MatrixData *cdata = (ecat_matrix::MatrixData*)calloc(1,sizeof(ecat_matrix::MatrixData));
+        memcpy(cdata,data,sizeof(ecat_matrix::MatrixData));
         cdata->xdim = (int)(xdim/c_size);
         cdata->ydim = (int)(ydim/c_size);
         cdata->zdim = (int)(zdim/c_size);
@@ -348,7 +345,7 @@ int main(int argc, char **argv)
         tm->data[i+j*tm->ncols] = (float)air_16.e[i][j];
     if ( air_16.r.x_dim != volume->data()->xdim)
     {
-      MatrixData *cdata = volume_resize(volume, air_16.r.x_dim, air_16.r.z_dim);
+      ecat_matrix::MatrixData *cdata = volume_resize(volume, air_16.r.x_dim, air_16.r.z_dim);
       data->shptr = NULL;
       delete volume; 
       data = cdata;
@@ -386,8 +383,8 @@ int main(int argc, char **argv)
 
   volume_blks = (slice->data_size*num_planes+ecat_matrix::MatBLKSIZE-1)/ecat_matrix::MatBLKSIZE;
   imh = (ecat_matrix::Image_subheader*)calloc(1, ecat_matrix::MatBLKSIZE);
-  MatrixData *out_data = (MatrixData*) calloc(1, sizeof(MatrixData));
-  memcpy(out_data,slice,sizeof(MatrixData));
+  ecat_matrix::MatrixData *out_data = (ecat_matrix::MatrixData*) calloc(1, sizeof(ecat_matrix::MatrixData));
+  memcpy(out_data,slice,sizeof(ecat_matrix::MatrixData));
   out_data->shptr = (void *)imh;
   out_data->dicom_header = NULL;
   out_data->dicom_header_size = 0;
@@ -420,10 +417,10 @@ int main(int argc, char **argv)
   if ((ext = strrchr(out_file,'.')) != NULL && strcmp(ext,".v") == 0)
   {
     //Format Code to create output in ECAT format
-    proto = (Main_header*)calloc(1, ecat_matrix::MatBLKSIZE);
-    memcpy(proto, mptr->mhptr, sizeof(Main_header));
+    proto = (ecat_matrix::Main_header*)calloc(1, ecat_matrix::MatBLKSIZE);
+    memcpy(proto, mptr->mhptr, sizeof(ecat_matrix::Main_header));
     proto->sw_version = V7;
-    proto->file_type = PetVolume;
+    proto->file_type = ecat_matrix::DataSetType::PetVolume;
     proto->num_planes = num_planes;
     proto->plane_separation = dz/10;  // mm -> cm
     mptr1 = matrix_create(out_file, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, proto);

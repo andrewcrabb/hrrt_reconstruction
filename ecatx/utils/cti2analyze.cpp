@@ -59,7 +59,7 @@ static void usage() {
 }
 
 static int threshold(volume, t1, t2) 
-MatrixData *volume;
+ecat_matrix::MatrixData *volume;
 float t1, t2;
 {
 	int i, v, nvoxels;
@@ -67,7 +67,7 @@ float t1, t2;
 
 	nvoxels = volume->xdim * volume->ydim * volume->zdim;
 	f0 = volume->scale_factor;
-	if (volume->data_type == ByteData) {
+	if (volume->data_type == ecat_matrix::MatrixDataType::ByteData) {
 		unsigned char  *bdata = (unsigned char *)volume->data_ptr;
 		f1 = t2/255.0;
 		for (i=0; i<nvoxels; i++) {
@@ -108,7 +108,7 @@ int main (argc, argv)
 
 	ecat_matrix::MatVal   matval;
 	ecat_matrix::MatrixFile	 *file=0;
-	MatrixData	 *matrix=0;
+	ecat_matrix::MatrixData	 *matrix=0;
 	char		   *PET_img=NULL;		 /* input PET image filename */
 	char		   PET_fname[256];
 	char		   fname[256];	/* output Analyze image filename */
@@ -259,7 +259,7 @@ int main (argc, argv)
 	num_slices = matrix->zdim;
 	pixel_size = 0.001*((int)(matrix->pixel_size*1000+0.5));	/* keep 3 decimal */
 	plane_separation = matrix->z_size;
-	if ( matrix->data_type != SunShort && matrix->data_type != VAX_Ix2)  {
+	if ( matrix->data_type != ecat_matrix::MatrixDataType::SunShort && matrix->data_type != ecat_matrix::MatrixDataType::VAX_Ix2)  {
 		fprintf (stderr, "only integer 2 images are currently supported\n");
 		exit(1);
 	}

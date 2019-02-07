@@ -90,7 +90,7 @@ static int do_reverse = 0;
 static int fmri = 0;
 int verbose = 0;
 static int not_execute = 0;
-static MatrixData matrix;
+static ecat_matrix::MatrixData matrix;
 static int is_bigendian = 0;
 static DICOMMap dcm_map;
 static DICOMElem dcm_elem;
@@ -324,7 +324,7 @@ static int split_dir(const char *path, int serie_id, Tslices &slices) {
 static const char *def_study_descr = "HRRT";
 static const char *def_series_descr = "3D";
 
-static int  update_dicom_slice(Main_header *mh, ecat_matrix::Image_subheader *imh, Tslice &slice,
+static int  update_dicom_slice(ecat_matrix::Main_header *mh, ecat_matrix::Image_subheader *imh, Tslice &slice,
                                const char *transfer_dir, const char *prefix,
                                const char *series_descr)
 {
@@ -475,7 +475,7 @@ static int  update_dicom_slice(Main_header *mh, ecat_matrix::Image_subheader *im
   return 1;
 }
 
-static int ecat2DICOM(MatrixData *matrix, char *out_dir, const char *prefix, int frame, int plane) {
+static int ecat2DICOM(ecat_matrix::MatrixData *matrix, char *out_dir, const char *prefix, int frame, int plane) {
   char fname[FILENAME_MAX];
   FILE *fp = NULL;
   ecat_matrix::Image_subheader *imh = NULL;
@@ -491,7 +491,7 @@ static int ecat2DICOM(MatrixData *matrix, char *out_dir, const char *prefix, int
     /* return 0; */
   }
   if (access(out_dir, F_OK) < 0)
-    crash("First create %s directory\n", out_dir);
+    ecat_matrix::crash("First create %s directory\n", out_dir);
 
   sprintf(image_id, "%d.%d", frame, plane);
   sprintf(fname, "%s/%s_%s", out_dir, prefix, image_id);
@@ -504,7 +504,7 @@ static int ecat2DICOM(MatrixData *matrix, char *out_dir, const char *prefix, int
   data_size = matrix->xdim * matrix->ydim;
   switch (matrix->data_type) {
   default :
-    crash("unsupported matrix type : %d", matrix->data_type);
+    ecat_matrix::crash("unsupported matrix type : %d", matrix->data_type);
     break;
   case ecat_matrix::MatrixDataType::ByteData :
     break;
@@ -519,10 +519,10 @@ static int ecat2DICOM(MatrixData *matrix, char *out_dir, const char *prefix, int
   p = (unsigned char *)(header + header_size - 1);
   for (; header_size > 0; header_size--, p--)
     if (*p == 0xff) break;
-  if (header_size == 0) crash("no DICOM header found\n");
+  if (header_size == 0) ecat_matrix::crash("no DICOM header found\n");
   header_size--;
   fwrite(header, 1, header_size, fp);
-  if (ntohs(1) == 1 && matrix->data_type != ByteData)
+  if (ntohs(1) == 1 && matrix->data_type != ecat_matrix::MatrixDataType::ByteData)
   {
     buf = (void *)malloc(data_size);
     swab(matrix->data_ptr, buf, data_size);
@@ -533,7 +533,7 @@ static int ecat2DICOM(MatrixData *matrix, char *out_dir, const char *prefix, int
   return 1;
 }
 
-static int updateDICOM(Main_header *mh, ecat_matrix::Image_subheader *imh, char *in_out_dir,
+static int updateDICOM(ecat_matrix::Main_header *mh, ecat_matrix::Image_subheader *imh, char *in_out_dir,
                        const char *transfer_dir, const char *prefix,
                        unsigned series_id)
 {
@@ -568,7 +568,7 @@ static int updateDICOM(Main_header *mh, ecat_matrix::Image_subheader *imh, char 
     printf("%s %d %g\n", i->second.fname, i->second.number, i->second.location);
   if (slices.size() != imh->z_dimension)
   {
-    crash("Error: ECAT number of slices(%d) and number of dicom files(%d)"
+    ecat_matrix::crash("Error: ECAT number of slices(%d) and number of dicom files(%d)"
           "are different\n", imh->z_dimension, slices.size());
   }
   for (i = slices.begin(); i != slices.end(); i++)
@@ -581,9 +581,9 @@ static int updateDICOM(Main_header *mh, ecat_matrix::Image_subheader *imh, char 
 
 void main(int argc, char **argv)
 {
-  MatDirNode *node;
+  ecat_matrix::MatDirNode *node;
   ecat_matrix::MatrixFile *mptr;
-  MatrixData *matrix;
+  ecat_matrix::MatrixData *matrix;
   ecat_matrix::MatVal mat;
   char in_fname[FILENAME_MAX];
   char drive[_MAX_DRIVE];
@@ -630,7 +630,7 @@ void main(int argc, char **argv)
   ecat_matrix::DataSetType ftype = mptr->mhptr->file_type;
   printf("ftype is %d\n", ftype);
   if (ftype != ecat_matrix::DataSetType::PetImage && ftype != ecat_matrix::DataSetType::PetVolume) {
-    crash("%s : is not a ecat_matrix::DataSetType::PetImage file\n", in_fname);
+    ecat_matrix::crash("%s : is not a ecat_matrix::DataSetType::PetImage file\n", in_fname);
   }
 
   if (matnum != 0) {
@@ -647,7 +647,7 @@ void main(int argc, char **argv)
     mat_numdoc(matnums[i], &mat);
     matrix = matrix_read(mptr, matnums[i], UnknownMatDataType);
     if (matrix == NULL) {
-      crash("%d,%d,%d,%d,%d not found\n",
+      ecat_matrix::crash("%d,%d,%d,%d,%d not found\n",
             mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
     } else {
       printf("processing %d,%d,%d,%d,%d \n",  mat.frame,
@@ -663,7 +663,7 @@ void main(int argc, char **argv)
       printf("up to here 0\n");
       if (!updateDICOM(mptr->mhptr, (ecat_matrix::Image_subheader*)matrix->shptr, update_dir,
                        dest_dir, prefix, series_id))
-        crash("%s,%d,%d has not been generated by %s\n",
+        ecat_matrix::crash("%s,%d,%d has not been generated by %s\n",
               in_fname, mat.frame, mat.plane, argv[0]);
       // delete directory if files moved to dest dir
       if (dest_dir != NULL)
@@ -671,7 +671,7 @@ void main(int argc, char **argv)
     } else {
       printf("up to here 1\n");
       if (!ecat2DICOM(matrix, out_dir, prefix, mat.frame, mat.plane))
-        crash("%s,%d,%d has not been generated by %s\n",
+        ecat_matrix::crash("%s,%d,%d has not been generated by %s\n",
               in_fname, mat.frame, mat.plane, argv[0]);
     }
   }

@@ -160,7 +160,7 @@ static char *ftoa(float f, char *buf)
   return buf;
 }
 
-int analyze_open(ecat_matrix::ecat_matrix::MatrixFile *mptr) {
+int analyze_open(ecat_matrix::MatrixFile *mptr) {
   ecat_matrix::Main_header *mh;
   ecat_matrix::MatDir matdir;
   char *data_file, *extension, patient_id[20];
@@ -277,7 +277,7 @@ int analyze_open(ecat_matrix::ecat_matrix::MatrixFile *mptr) {
   return 1;
 }
 
-int analyze_read(ecat_matrix::ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixData *t_mdata, ecat_matrix::MatrixDataType dtype) {
+int analyze_read(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixData *t_mdata, ecat_matrix::MatrixDataType dtype) {
   ecat_matrix::MatVal matval;
 
   mat_numdoc(matnum, &matval);
@@ -296,9 +296,9 @@ int analyze_read(ecat_matrix::ecat_matrix::MatrixFile *mptr, int matnum, ecat_ma
   imagesub->x_dimension = t_mdata->xdim = hdim->dim[1];
   imagesub->y_dimension = t_mdata->ydim = hdim->dim[2];
   imagesub->z_dimension = t_mdata->zdim = hdim->dim[3];
-  imagesub->data_type = t_mdata->data_type = SunShort;
-  if (dtype == MAT_SUB_HEADER)
-    return ECATX_OK;
+  imagesub->data_type = t_mdata->data_type = ecat_matrix::MatrixDataType::SunShort;
+  if (dtype == ecat_matrix::MatrixDataType::MAT_SUB_HEADER)
+    return ecat_matrix::ECATX_OK;
 
   int  data_offset = 0;
   int elem_size = 2;
@@ -310,7 +310,7 @@ int analyze_read(ecat_matrix::ecat_matrix::MatrixFile *mptr, int matnum, ecat_ma
   if (matval.frame > 1) data_offset = (matval.frame - 1) * t_mdata->data_size;
   if (data_offset > 0) {
     if (fseek(mptr->fptr, data_offset, SEEK_SET) != 0)
-      crash("Error skeeping to offset %d\n", data_offset);
+      ecat_matrix::crash("Error skeeping to offset %d\n", data_offset);
   }
   int z_flip = 1, y_flip = 1, x_flip = 1;
   void *plane, *line;
@@ -323,18 +323,18 @@ int analyze_read(ecat_matrix::ecat_matrix::MatrixFile *mptr, int matnum, ecat_ma
       free(t_mdata->data_ptr);
       t_mdata->data_ptr = NULL;
       ecat_matrix::matrix_errno = ecat_matrix::MatrixError::READ_ERROR;
-      return ECATX_ERROR;
+      return ecat_matrix::ECATX_ERROR;
     }
     if (y_flip)
-      flip_y(plane, t_mdata->data_type, t_mdata->xdim, t_mdata->ydim);
+      interfile::flip_y(plane, t_mdata->data_type, t_mdata->xdim, t_mdata->ydim);
     if (x_flip) {
       for (int y = 0; y < t_mdata->ydim; y++) {
         // line = plane + y * t_mdata->xdim * elem_size;
         line = static_cast<uint8_t *>(plane) + y * t_mdata->xdim * elem_size;
-        flip_x(line, t_mdata->data_type, t_mdata->xdim);
+        interfile::flip_x(line, t_mdata->data_type, t_mdata->xdim);
       }
     }
   }
 // find_data_extrema(t_mdata);    /*don't trust in header extrema*/
-  return ECATX_OK;
+  return ecat_matrix::ECATX_OK;
 }

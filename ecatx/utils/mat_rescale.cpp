@@ -22,7 +22,7 @@
 #define HISTOGRAM_SIZE 32768
 #define IMAGE_MAX 32766
 
-void matrix_sum(MatrixData *matrix, MatrixData **sum)
+void matrix_sum(ecat_matrix::MatrixData *matrix, ecat_matrix::MatrixData **sum)
 {
   ecat_matrix::MatVal mat;
   int i, nvoxels, nblks;
@@ -37,8 +37,8 @@ void matrix_sum(MatrixData *matrix, MatrixData **sum)
   sdata = (short*)matrix->data_ptr;
   if (*sum == NULL)
   {
-    *sum = (MatrixData*)calloc(1, sizeof(MatrixData));
-    memcpy(*sum, matrix,sizeof(MatrixData));
+    *sum = (ecat_matrix::MatrixData*)calloc(1, sizeof(ecat_matrix::MatrixData));
+    memcpy(*sum, matrix,sizeof(ecat_matrix::MatrixData));
     (*sum)->data_size = nvoxels*sizeof(float);
     nblks = ((*sum)->data_size + MatBLKSIZE-1)/MatBLKSIZE;
     (*sum)->data_ptr = (void *)calloc(nblks,MatBLKSIZE);
@@ -70,9 +70,9 @@ void usage (const char *pgm)
 
 int main(int argc, char **argv)
 {
-  MatDirNode *node;
+  ecat_matrix::MatDirNode *node;
   ecat_matrix::MatrixFile *mptr1=NULL, *mptr2=NULL;
-  MatrixData *matrix;
+  ecat_matrix::MatrixData *matrix;
   ecat_matrix::Image_subheader *imh;
   ecat_matrix::MatVal mat;
   char *in_file=NULL, *mu_file=NULL, *out_file=NULL;
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
   }
   ftype = mptr1->mhptr->file_type;
   // if (ftype <0 || ftype >= NumDataSetTypes)
-  //   crash("%s : unkown file type\n", in_file);
+  //   ecat_matrix::crash("%s : unkown file type\n", in_file);
   printf( "%s file type  : %s\n", in_file, data_set_types_.at(ftype).name);
 
   mptr2 = matrix_open(mu_file, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
@@ -175,7 +175,7 @@ int main(int argc, char **argv)
   while (node) {
     mat_numdoc(node->matnum, &mat);
     matrix = matrix_read(mptr1,node->matnum,UnknownMatDataType);
-    if (!matrix) crash("%d,%d,%d,%d,%d not found\n",
+    if (!matrix) ecat_matrix::crash("%d,%d,%d,%d,%d not found\n",
       mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
     if (verbose) printf("Reading %s,%d done\n", in_file, mat.frame);
     mu_vol = (int)(0.5f + mu_vol_mm3/

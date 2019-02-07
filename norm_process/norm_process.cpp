@@ -151,7 +151,7 @@ float normal_irad  [8] = {5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0};
 float *head_lthick = NULL;
 float *head_irad   = NULL;
 
-void crash(const char *args) {
+void ecat_matrix::crash(const char *args) {
   g_logger->error( args);
   exit(1);
 }
@@ -1062,39 +1062,39 @@ int main(int argc, char **argv) {
       // -p nprojs, nviews - set sinogram size
       case 'p':
         if (sscanf( optarg, "%d, %d", &nprojs, &nviews) != 2)
-          crash("invalid -p arguments");
+          ecat_matrix::crash("invalid -p arguments");
         break;
       // -s span, maxrd_ - set 3D parameters
       case 's':
         if (sscanf( optarg, "%d, %d", &span, &maxrd_)  != 2)
-          crash("invalid -s arguments");
+          ecat_matrix::crash("invalid -s arguments");
         break;
       // -g geom_fname
       case 'g':   geom_fname = optarg; break;
       // -G pitch, diam, thick
       case 'G':
         if (sscanf( optarg, "%f, %f, %f", &pitch, &diam, &thick) != 3)
-          crash("invalid -G arguments");
+          ecat_matrix::crash("invalid -G arguments");
         break;
       // -o norm output file
       case 'o':  strcpy(norm_file, optarg); break;
       // specify the applied corrections
       case 'b': border = 1; break;
       case 'c':
-        if (sscanf(optarg, "%d", &corrections) != 1) crash("invalid -c argument");
+        if (sscanf(optarg, "%d", &corrections) != 1) ecat_matrix::crash("invalid -c argument");
         break;
       // user Koln geometry
       case 'k':   kflag = 1; break;
       // -I max_iterations
       case 'I':
-        if (sscanf(optarg, "%d", &max_iterations) != 1) crash("invalid -I argument");
+        if (sscanf(optarg, "%d", &max_iterations) != 1) ecat_matrix::crash("invalid -I argument");
         break;
       // -I max_iterations
       case 'M':
-        if (sscanf(optarg, "%f", &min_rmse) != 1) crash("invalid -M argument");
+        if (sscanf(optarg, "%f", &min_rmse) != 1) ecat_matrix::crash("invalid -M argument");
         break;
       case 'L':   // low resolution
-        if (sscanf( optarg, "%d", &GeometryInfo::lr_type_) != 1) crash("invalid -L argument");
+        if (sscanf( optarg, "%d", &GeometryInfo::lr_type_) != 1) ecat_matrix::crash("invalid -L argument");
         if (GeometryInfo::lr_type_ != LR_20 && GeometryInfo::lr_type_ != LR_24) {
           g_logger->error("Invalid LR mode {}", GeometryInfo::lr_type_);
           usage(argv[0]);
@@ -1110,7 +1110,7 @@ int main(int argc, char **argv) {
         break;
       case 'l':
         if (sscanf(optarg, "%d", &layer) != 1) 
-          crash("invalid -l argument");
+          ecat_matrix::crash("invalid -l argument");
         if (layer < 0 || layer > NLAYERS) {
           g_logger->error("Invalid layer {}", layer);
           usage(argv[0]);
@@ -1135,7 +1135,7 @@ int main(int argc, char **argv) {
         strcpy(rdwell_path, optarg);
         break;
       case 'T':
-        if (sscanf(optarg, "%f", &max_rotation_dwell) != 1) crash("invalid -T argument");
+        if (sscanf(optarg, "%f", &max_rotation_dwell) != 1) ecat_matrix::crash("invalid -T argument");
         break;
       // ahc
       // hrrt_rebinner.lut file now a required argument.

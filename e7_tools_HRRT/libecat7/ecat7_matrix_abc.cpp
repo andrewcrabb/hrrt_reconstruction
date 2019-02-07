@@ -53,21 +53,21 @@ ECAT7_MATRIX& ECAT7_MATRIX::operator = (const ECAT7_MATRIX &e7)
         DeleteData();
                                         // copy local variables into new object
         matrix_size=e7.DataSize();
-        if (e7.MatrixData() != NULL)
+        if (e7.getecat_matrix::MatrixData() != NULL)
          switch (e7.datatype)
           { case E7_DATATYPE_BYTE:
              data=new unsigned char[matrix_size];
-             memcpy(data, e7.MatrixData(), matrix_size*sizeof(unsigned char));
+             memcpy(data, e7.getecat_matrix::MatrixData(), matrix_size*sizeof(unsigned char));
              datatype=E7_DATATYPE_BYTE;
              break;
             case E7_DATATYPE_FLOAT:
              data=new float[matrix_size];
-             memcpy(data, e7.MatrixData(), matrix_size*sizeof(float));
+             memcpy(data, e7.getecat_matrix::MatrixData(), matrix_size*sizeof(float));
              datatype=E7_DATATYPE_FLOAT;
              break;
             case E7_DATATYPE_SHORT:
              data=new signed short int[matrix_size];
-             memcpy(data, e7.MatrixData(),
+             memcpy(data, e7.getecat_matrix::MatrixData(),
                     matrix_size*sizeof(signed short int));
              datatype=E7_DATATYPE_SHORT;
              break;
@@ -289,7 +289,7 @@ void ECAT7_MATRIX::LoadHeader(std::ifstream * const)
     Move dataset into object.
  */
 /*---------------------------------------------------------------------------*/
-void ECAT7_MATRIX::MatrixData(void * const ptr, const unsigned short int dt)
+void ECAT7_MATRIX::getecat_matrix::MatrixData(void * const ptr, const unsigned short int dt)
  { if ((dt != E7_DATATYPE_BYTE) && (dt != E7_DATATYPE_SHORT) &&
        (dt != E7_DATATYPE_FLOAT))
     throw Exception(REC_UNKNOWN_ECAT7_DATATYPE,
@@ -306,7 +306,7 @@ void ECAT7_MATRIX::MatrixData(void * const ptr, const unsigned short int dt)
     Request pointer to dataset.
  */
 /*---------------------------------------------------------------------------*/
-void *ECAT7_MATRIX::MatrixData() const
+void *ECAT7_MATRIX::getecat_matrix::MatrixData() const
  { return(data);
  }
 

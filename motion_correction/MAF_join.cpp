@@ -73,11 +73,11 @@ int main(int argc, char **argv)
   int frame_duration=0;
 	char *in_fname=NULL, *out_fname=NULL, *MAF_file=NULL;
 	ecat_matrix::MatrixFile *in = NULL, *out=NULL;
-  Main_header proto;
+  ecat_matrix::Main_header proto;
 	char *p = NULL;
   const char *log_file = "MAF_join.log";
   std::vector<int> sub_frames;
-  MatrixData *mat=NULL;
+  ecat_matrix::MatrixData *mat=NULL;
   ecat_matrix::Image_subheader *imh=NULL;
   float *fdata=NULL, w=1.0f, fmin=0.0f, fmax=0.0f;
   short *sdata = NULL;
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
       in_fname, MAF_file, in->dirlist->nmats, vicra_info.em.size());
     exit(1);
   }
-  memcpy(&proto, in->mhptr, sizeof(Main_header));
+  memcpy(&proto, in->mhptr, sizeof(ecat_matrix::Main_header));
   if ((out = matrix_create(out_fname, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, &proto)) ==NULL) {
     fprintf(log_fp,"Error creating %s\n", out_fname);
     exit(1);
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
       }
       for (j=1; j<=sub_frames.size(); j++) {
         if (keep_sub_frame(vicra_info.em[i+j].dt, frame_duration)) {
-          MatrixData *smat =matrix_read(in, ecat_matrix::mat_numcod(i+j+1,1,1,0,0), GENERIC);
+          ecat_matrix::MatrixData *smat =matrix_read(in, ecat_matrix::mat_numcod(i+j+1,1,1,0,0), GENERIC);
           if (smat == NULL) {
             fprintf(log_fp, "Error reading %s frame %u\n", in_fname, i+j+1);
             exit(1);

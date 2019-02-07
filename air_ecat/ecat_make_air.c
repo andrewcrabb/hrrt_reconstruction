@@ -32,7 +32,7 @@ main(int argc, char **argv)
 	char out_air_file[256], fname[256], *in_air_file=NULL;
 	int matnum=0, ret=0;
 	ecat_matrix::MatrixFile *mptr;
-	MatrixData *matrix;
+	ecat_matrix::MatrixData *matrix;
 	float pixel_size;
 	float tx,ty,tz,rx,ry,rz, tflag=0;
 	double par[6];	/*pitch,roll,yaw,p,q,r*/
@@ -92,11 +92,11 @@ main(int argc, char **argv)
   if (!tflag && !in_air_file) usage(argv[0]);
 	ret = matspec(air1.s_file,fname,&matnum);
 	mptr = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
-	if (mptr==NULL) crash("%s : can't open %s\n",argv[0],air1.s_file);
+	if (mptr==NULL) ecat_matrix::crash("%s : can't open %s\n",argv[0],air1.s_file);
 	if (ret == 0)	/* no matrix specified, use first */
 			matnum = mptr->dirlist->first->matnum;
-	matrix = matrix_read(mptr,matnum,MAT_SUB_HEADER);
-	if (matrix == NULL) crash("%s : can't read image header\n",argv[0]);
+	matrix = matrix_read(mptr,matnum,ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
+	if (matrix == NULL) ecat_matrix::crash("%s : can't read image header\n",argv[0]);
 	sprintf(air1.comment,"make_air -t %g,%g,%g,%g,%g,%g",rz,rx,ry,tx,ty,tz);
 	if (convention==1) {
 		strcat(air1.comment, " -N");
@@ -116,11 +116,11 @@ main(int argc, char **argv)
 	matnum = 0;
 	ret = matspec(air1.r_file,fname,&matnum);
 	mptr = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
-	if (mptr==NULL) crash("%s : can't open %s\n",argv[0],air1.r_file);
+	if (mptr==NULL) ecat_matrix::crash("%s : can't open %s\n",argv[0],air1.r_file);
 	if (ret == 0)	/* no matrix specified, use first */
 			matnum = mptr->dirlist->first->matnum;
-	matrix = matrix_read(mptr,matnum,MAT_SUB_HEADER);
-	if (matrix == NULL) crash("%s : can't read image header\n",argv[0]);
+	matrix = matrix_read(mptr,matnum,ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
+	if (matrix == NULL) ecat_matrix::crash("%s : can't read image header\n",argv[0]);
 	if (matrix->zdim == 1)					/* volume stored slice per matrix */
 		matrix->zdim = mptr->mhptr->num_planes;
   air1.r.x_dim = matrix->xdim;
