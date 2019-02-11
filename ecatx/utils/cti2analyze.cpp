@@ -29,6 +29,7 @@
 #include <string.h>
 #include "load_volume.h"
 #include "analyze.h"			 /* dsr */
+#include "my_spdlog.hpp"
 
 #define MAXSTR 64
 #define TRANSVERSE '\000'
@@ -44,17 +45,15 @@
 static char *version = "2.0";
 static char *program_date = "2000:01:02";
 static void usage() {
-	fprintf (stderr,
-		"cti2analyze version %s date %s\n", version, program_date);
-	fprintf (stderr,
-		"Usage:\tcti2analyze [-t data_type] [-T min[,max]]  [-c calibration_factor] [-p] -i PET_img -o ANALYZE_img [-h spm]\n");
-	fprintf(stderr,"\tdata_type: 2=byte,4=short integer, 16=float (default is short integer)\n");
-	fprintf(stderr,"\t-T min[,max] : min and max threshold expressed as percent of image max, Voxels where value<threshold are set to 0\n"); 
-	fprintf(stderr,"\t-p: positive only when specified (same as -T 0)\n");
-	fprintf(stderr,"\t-h spm: Use spm convention with image origin\n");
-	fprintf(stderr,"\t\t stored in the History Originator text field\n");
-	fprintf(stderr,"\tANALYZE header is generated with .hdr extension\n");
-	fprintf(stderr,"\tInterfile header is generated with .h33 extension\n");
+	LOG_ERROR("cti2analyze version {} date {}", version, program_date);
+	LOG_ERROR("Usage: cti2analyze [-t data_type] [-T min[,max]]  [-c calibration_factor] [-p] -i PET_img -o ANALYZE_img [-h spm]\n");
+	LOG_ERROR("\tdata_type: 2=byte,4=short integer, 16=float (default is short integer)\n");
+	LOG_ERROR("\t-T min[,max] : min and max threshold expressed as percent of image max, Voxels where value<threshold are set to 0\n"); 
+	LOG_ERROR("\t-p: positive only when specified (same as -T 0)\n");
+	LOG_ERROR("\t-h spm: Use spm convention with image origin\n");
+	LOG_ERROR("\t\t stored in the History Originator text field\n");
+	LOG_ERROR("\tANALYZE header is generated with .hdr extension\n");
+	LOG_ERROR("\tInterfile header is generated with .h33 extension\n");
 	exit (FAIL);
 }
 
@@ -212,35 +211,31 @@ int main (argc, argv)
 	if ((p = strrchr(ANALYZE_base,'.')) != NULL) *p = '\0';
 	
 	sprintf(fname,"%s/%s.img",ANALYZE_dir, ANALYZE_base);
-	if (verbose) fprintf(stderr,"analyze data file : %s\n",fname);
+	LOG_DEBUG("analyze data file : {}",fname);
 	if (strcmp(PET_fname,fname) == 0) {
-		fprintf(stderr,
-		"requested analyze data file is identical to CTI image file\n" );
-		exit(FAIL);
+		LOG_EXIT("requested analyze data file is identical to CTI image file" );
 	}
 	if ((fd_img = fopen (fname, "w")) == NULL) {
-		perror (fname);
-		exit (FAIL);
+		LOG_EXIT (fname);
 	}
 
 	if (ANALYZE_hdr == NULL) {
 		ANALYZE_hdr = malloc(strlen(ANALYZE_base)+10);
 		sprintf(fname,"%s/%s.hdr",ANALYZE_dir, ANALYZE_base);
-	} else sprintf(fname,"%s",ANALYZE_hdr);
-	if (verbose) fprintf(stderr,"analyze header file : %s\n",fname);
+	} else 
+	  sprintf(fname,"%s",ANALYZE_hdr);
+	LOG_DEBUG("analyze header file : {}", fname);
 	if ((fd_hdr = fopen (fname, "w")) == NULL) {
-		perror(fname);
-		exit (FAIL);
+		LOG_EXIT(fname);
 	}
 
 	if (IF_hdr == NULL) {
 		IF_hdr = malloc(strlen(ANALYZE_base)+10);
 		sprintf(fname,"%s/%s.h33",ANALYZE_dir, ANALYZE_base);
 	} else sprintf(fname,"%s",IF_hdr);
-	if (verbose) fprintf(stderr,"interfile header file : %s\n",fname);
+	LOG_DEBUG("interfile header file : %s\n",fname);
 	if ((fd_if = fopen (fname, "w")) == NULL) {
-		perror (fname);
-		exit (FAIL);
+		LOG_EXIT (fname);
 	}
 /*
  *	First image, first time -- get scanner and dimensions
@@ -248,7 +243,7 @@ int main (argc, argv)
  */
 	file = matrix_open (PET_fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY,ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
 	if (file ==  NULL) 
-		crash ("Error: cannot open %s as an ECAT image file\n", PET_img);
+		LOG_EXIT("Cannot open {} as an ECAT image file", PET_img);
 	mat_numdoc(matnum, &matval);
 	matrix = load_volume(file,matval.frame,cubic, 0);
 	if (matrix == NULL) crash ("matrix %s not found\n",PET_img);
@@ -260,26 +255,26 @@ int main (argc, argv)
 	pixel_size = 0.001*((int)(matrix->pixel_size*1000+0.5));	/* keep 3 decimal */
 	plane_separation = matrix->z_size;
 	if ( matrix->data_type != ecat_matrix::MatrixDataType::SunShort && matrix->data_type != ecat_matrix::MatrixDataType::VAX_Ix2)  {
-		fprintf (stderr, "only integer 2 images are currently supported\n");
-		exit(1);
+		LOG_EXIT( "only integer 2 images are currently supported");
 	}
 	if (verbose) {
-		fprintf(stderr,"image\trange : %g %g\n",matrix->data_min,matrix->data_max);
-		if (calibration_factor != 1.0) fprintf(stderr,
-			"\tscale_factor*calibration_factor(%g) : %g\n",matrix->scale_factor);
-		else fprintf(stderr,"\tscale_factor : %g\n",matrix->scale_factor);
+		LOG_ERROR("image range : {} {}",matrix->data_min,matrix->data_max);
+		if (calibration_factor != 1.0) 
+			LOG_INFO( "scale_factor * calibration_factor({}) : {}",matrix->scale_factor);
+		else 
+			LOG_INFO("scale_factor : {}", matrix->scale_factor);
 	}
 	threshold_val1 = threshold_val1*matrix->data_max/100;
-	if (threshold2) threshold_val2 = threshold_val2*matrix->data_max/100;
-	else threshold_val2 = matrix->data_max;
+	if (threshold2) 
+		threshold_val2 = threshold_val2*matrix->data_max/100;
+	else 
+		threshold_val2 = matrix->data_max;
 	if (threshold1 || threshold2) 
 		threshold(matrix,threshold_val1, threshold_val2);
-
 	global_min = (int)(matrix->data_min/matrix->scale_factor);
 	global_max = (int)(matrix->data_max/matrix->scale_factor);
 
-	printf ("Converting %s\n", PET_img);
-/*	Get system, institution, subject_id, study_date */
+	LOG_INFO("Converting {}", PET_img);
 
 	sprintf (model, "Siemens/CTI ECAT %d", file->mhptr->system_type);
 	strncpy (institution, file->mhptr->facility_name,MAXSTR-1);
@@ -288,16 +283,10 @@ int main (argc, argv)
 	subject_id[MAXSTR-1] = '\0';
 	memcpy(&tm,localtime((time_t*)&file->mhptr->scan_start_time), sizeof(tm));
 	sprintf(study_date,"%-d:%-d:%-d",tm.tm_year+1900,tm.tm_mon+1,tm.tm_mday);
+	// comment_info (file->mhptr->study_description, &comment_info_data);
+	// zorigin = comment_info_data.zorigin;
 
-/*
-	comment_info (file->mhptr->study_description, &comment_info_data);
-	zorigin = comment_info_data.zorigin;
-*/
-
-/*
- * Flip X, Y & Z, and write to output file
- */
-
+	// Flip X, Y & Z, and write to output file
 	image = (short*)matrix->data_ptr;
 	buf_line = (char*)calloc(xdim,4);
 	scale_factor = matrix->scale_factor;
@@ -332,8 +321,7 @@ int main (argc, argv)
 					for (k = 0; k < xdim; k++)
 						b_line[xdim-k-1] = (int)(b_scale*line[k]);
 					if (fwrite (b_line, 1, xdim, fd_img) != xdim) {
-						perror (fname);
-						exit (FAIL);
+						LOG_EXIT (fname);
 					}
 					break;
 				case 4:
@@ -344,8 +332,7 @@ int main (argc, argv)
 						memcpy(s_line,buf_line,xdim*2);
 					}
 					if (fwrite (s_line, 2, xdim, fd_img) != xdim) {
-						perror (fname);
-						exit (FAIL);
+						LOG_EXIT (fname);
 					}
 					break;
 				case 16:
@@ -356,8 +343,7 @@ int main (argc, argv)
 						swaw((short*)buf_line,(short*)f_line,xdim*2);
 					}
 					if (fwrite (f_line, 4, xdim, fd_img) != xdim) {
-						perror (fname);
-						exit (FAIL);
+						LOG_EXIT (fname);
 					}
 			}
 		}
@@ -383,8 +369,7 @@ int main (argc, argv)
 	hdr.dime.pixdim[1] = 10. * pixel_size;	 /* should be input for scanner  */
 	hdr.dime.pixdim[2] = 10. * pixel_size;	 /* should be input for scanner  */
 	hdr.dime.pixdim[3] = 10. * plane_separation;	/* z dimension of atlas   */
-	if (verbose) fprintf(stderr,"voxel size : [%g,%g,%g] mm\n",
-		hdr.dime.pixdim[1],hdr.dime.pixdim[2],hdr.dime.pixdim[3]);
+	LOG_DEBUG("voxel size : [{},{},{}] mm", hdr.dime.pixdim[1],hdr.dime.pixdim[2],hdr.dime.pixdim[3]);
 	hdr.dime.funused1 = scale_factor;
 	hdr.dime.datatype = data_type;
 	hdr.dime.glmax = global_max;
@@ -418,8 +403,7 @@ int main (argc, argv)
 	}
 
 	if ((fwrite (&hdr, sizeof (struct dsr), 1, fd_hdr)) != 1) {
-		printf ("Error writing to: %s\n", ANALYZE_hdr);
-		exit (FAIL);
+		LOG_EXIT ("Error writing to: {}", ANALYZE_hdr);
 	}
 /*
  * Create Interfile Format header file
@@ -452,14 +436,14 @@ int main (argc, argv)
 			fprintf (fd_if, "number format  := short float\n");
 			fprintf (fd_if, "number of bytes per pixel  := 4\n");
 			fprintf (fd_if, "maximum pixel count := %g\n",matrix->data_max);
-			if (verbose) fprintf(stderr,"new max : %g\n",matrix->data_max);
+			LOG_DEBUG("new max : {}", matrix->data_max);
 			break;	
 	}
 	if (data_type != 16) {
 		fprintf (fd_if, "maximum pixel count := %d\n",global_max);
 		fprintf (fd_if, ";minimum pixel count := %d\n",global_min);
-		if (verbose) fprintf(stderr,"new max : %d\n",global_max);
-		if (verbose) fprintf(stderr,"new min : %d\n",global_min);
+		LOG_DEBUG("new max : {}", global_max);
+		LOG_DEBUG("new min : {}", global_min);
 	}
 	fprintf (fd_if, "number of dimensions   := 3\n");
 	fprintf (fd_if, "matrix size [1]	:= %d\n", xdim);

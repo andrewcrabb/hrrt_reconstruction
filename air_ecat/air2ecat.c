@@ -18,6 +18,7 @@
 #include "ecat2air.h"
 #include <ecatx/ecat_matrix.hpp>
 #include <unistd.h>
+#include "my_spdlog.hpp"
 
 #define AIR_SAVE_ERROR 1
 #define AIR_SAVE_OK 0
@@ -61,7 +62,7 @@ static ecat_matrix::MatrixData* air2matrix(AIR_Pixels ***pixels, struct AIR_Key_
 	if (matrix->data_type == ecat_matrix::MatrixDataType::IeeeFloat) 	/* Interfile float input */
 		imh->data_type = matrix->data_type = ecat_matrix::MatrixDataType::SunShort;
   if (matrix->data_type != data_type) {
-		fprintf(stderr,"air2matrix : incompatible data types \n");
+		LOG_ERROR("incompatible data types");
 		free_matrix_data(matrix);
 		return NULL;
 	}
@@ -157,16 +158,13 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
 	matrix_flip(matrix,0,1,1);   /* radiolgy convention */
 	free_matrix_data(orig);
 	if ((ecat_version=getenv("ECAT_VERSION")) != NULL) {
-#ifdef VERBOSE
- 		fprintf(stderr,"current ecat version : %s\n",ecat_version);
-#endif
+ 		LOG_DEBUG("current ecat version : {}", ecat_version);
 		if (sscanf(ecat_version,"%d",&sw_version)==1 && sw_version>0)
 			mh.sw_version = sw_version;
 	}
-#ifdef VERBOSE
-	fprintf(stderr,"sw version %d\n",mh.sw_version);
-#endif
-	if (strlen(ext) == 0) strcpy(ext,".v"); // ECAT7 default output format
+	LOG_DEBUG("sw version {}", mh.sw_version);
+	if (strlen(ext) == 0) 
+  strcpy(ext,".v"); // ECAT7 default output format
 	if (strncmp(ext,".i",2) == 0)
   { // write Interfile format
     float *fdata=NULL;
@@ -225,7 +223,7 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
   mh.num_planes = matrix->zdim;
   mh.plane_separation = matrix->z_size;
   if ((file=matrix_create(fname,ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, &mh)) == NULL) {
-    matrix_perror(fname);
+    LOG_ERROR(fname);
     free_matrix_data(matrix);
     return AIR_SAVE_ERROR;
   }

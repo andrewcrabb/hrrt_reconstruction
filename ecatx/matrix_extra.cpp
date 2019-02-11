@@ -50,7 +50,7 @@
 #define TRUE 1
 #define FALSE 0
 
-MatrixError g_matrix_error;
+// MatrixError g_matrix_error;
 // char    ecat_matrix::matrix_errtxt[132];
 std::string ecat_matrix::matrix_errtxt;
 
@@ -184,7 +184,8 @@ static int matrix_write_slice(mptr,matnum,data,plane)
   case ecat_matrix::DataSetType::PetImage :
     if (data->data_type ==  ecat_matrix::MatrixDataType::ByteData) {
       /*				fprintf(stderr,"Only short data type supported in V6\n");*/
-      g_matrix_error = ecat_matrix::MatrixError::INVALID_DATA_TYPE ;
+      // g_matrix_error = ecat_matrix::MatrixError::INVALID_DATA_TYPE ;
+      LOG_ERROR(ecat_matrix::matrix_errors_.at(ecat_matrix::MatrixError::INVALID_DATA_TYPE));
       return ecat_matrix::ECATX_ERROR;
     }
     mat_numdoc(matnum,&val);
@@ -231,11 +232,14 @@ static int matrix_write_slice(mptr,matnum,data,plane)
     /*			fprintf(stderr,
                 "matrix_slice_write : ecat_matrix::Main_header file_type should be PetImage\n");
     */
-    g_matrix_error = ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH;
+    // g_matrix_error = ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH;
+        LOG_ERROR(ecat_matrix::matrix_errors_.at(ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH));
+
     return ecat_matrix::ECATX_ERROR;
   default:
     /*			fprintf(stderr,"V7 to V6 conversion only supported for images\n");*/
-    g_matrix_error = ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH;
+    // g_matrix_error = ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH;
+      LOG_ERROR(ecat_matrix::matrix_errors_.at(ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH));
     return ecat_matrix::ECATX_ERROR;
   }
 }
@@ -337,7 +341,9 @@ int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
     return interfile_read(mptr, matnum, data, dtype);
 
   if (matrix_find(mptr,matnum,&matdir) == ecat_matrix::ECATX_ERROR) {
-      g_matrix_error = ecat_matrix::MatrixError::MATRIX_NOT_FOUND ;
+      // g_matrix_error = ecat_matrix::MatrixError::MATRIX_NOT_FOUND ;
+          LOG_ERROR(ecat_matrix::matrix_errors_.at(ecat_matrix::MatrixError::MATRIX_NOT_FOUND));
+
       return(ecat_matrix::ECATX_ERROR) ;
 	}
   nblks = matdir.endblk - matdir.strtblk ;
@@ -408,7 +414,9 @@ int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
       else elem_size = 2;
       sz = data->zdim = imagesub->z_dimension ;
       if( sx*sy*elem_size == 0 ) {
-        g_matrix_error = ecat_matrix::MatrixError::INVALID_DIMENSION;
+        // g_matrix_error = ecat_matrix::MatrixError::INVALID_DIMENSION;
+              LOG_ERROR(ecat_matrix::matrix_errors_.at(ecat_matrix::MatrixError::INVALID_DIMENSION));
+
         return( ecat_matrix::ECATX_ERROR );
       }
       if (sz > data_size/(sx*sy*elem_size))
@@ -498,7 +506,9 @@ int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
                        data->data_ptr, norm3d->data_type) ;
       break ;
     default :
-      g_matrix_error = ecat_matrix::MatrixError::UNKNOWN_FILE_TYPE ;
+      // g_matrix_error = ecat_matrix::MatrixError::UNKNOWN_FILE_TYPE ;
+      LOG_ERROR(ecat_matrix::matrix_errors_.at(ecat_matrix::MatrixError::UNKNOWN_FILE_TYPE));
+
       return(ecat_matrix::ECATX_ERROR) ;
       break ;
 	}
@@ -506,7 +516,7 @@ int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
 }
 
 void set_matrix_no_error() {
-  g_matrix_error = ecat_matrix::MatrixError::OK;
+  // g_matrix_error = ecat_matrix::MatrixError::OK;
   ecat_matrix::matrix_errtxt.clear();
 }
 
@@ -681,10 +691,11 @@ void free_matrix_data(ecat_matrix::MatrixData	*data) {
 }
 
 void matrix_perror( const char* s) {
-  if (g_matrix_error)
-    fprintf( stderr, "%s: %s\n", s, ecat_matrix::matrix_errors_[g_matrix_error]);
-  else 
-    perror(s);
+  LOG_ERROR("XXX should not be calling matrix_perror: {} XXX", s)
+  // if (g_matrix_error)
+  //   fprintf( stderr, "%s: %s\n", s, ecat_matrix::matrix_errors_[g_matrix_error]);
+  // else 
+  //   perror(s);
 }
 
 ecat_matrix::Main_header *
@@ -893,7 +904,9 @@ ecat_matrix::MatrixData * matrix_read_scan(ecat_matrix::MatrixFile *mptr, int ma
     data->data_max = find_fmax((float*)data->data_ptr,sx*sy*sz);
     break;
   default:
-    g_matrix_error = ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH;
+    // g_matrix_error = ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH;
+        LOG_ERROR(ecat_matrix::matrix_errors_.at(ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH));
+
     return NULL;
   }
   return data;
@@ -992,7 +1005,9 @@ mat_rdirblk(ecat_matrix::MatrixFile *file, int blknum)
   matdirblk->nused = dirbufr[3];
 
   if (matdirblk->nused > 31) {
-    g_matrix_error = ecat_matrix::MatrixError::INVALID_DIRBLK;
+    // g_matrix_error = ecat_matrix::MatrixError::INVALID_DIRBLK;
+          LOG_ERROR(ecat_matrix::matrix_errors_.at(ecat_matrix::MatrixError::INVALID_DIRBLK));
+
     free(matdirblk);
     return (NULL);
   }
@@ -1050,13 +1065,16 @@ mat_read_directory(ecat_matrix::MatrixFile *mptr)
 ecat_matrix::MatrixFile *matrix_open(const char* fname, ecat_matrix::MatrixFileAccessMode fmode, ecat_matrix::MatrixFileType_64 mtype) {
 
   int status;
-  ecat_matrix::MatrixFile *mptr ;
+  ecat_matrix::MatrixFile *mptr = NULL;
   char *omode;
 
-  if (fmode == ecat_matrix::MatrixFileAccessMode::READ_ONLY) omode = R_MODE;
-  else {
-    if (access(fname,F_OK) == 0) omode = RW_MODE;
-    else omode = W_MODE;
+  if (fmode == ecat_matrix::MatrixFileAccessMode::READ_ONLY) {
+    omode = R_MODE;
+  } else {
+    if (access(fname,F_OK) == 0) 
+      omode = RW_MODE;
+    else 
+      omode = W_MODE;
   }
 
   set_matrix_no_error();
@@ -1064,16 +1082,13 @@ ecat_matrix::MatrixFile *matrix_open(const char* fname, ecat_matrix::MatrixFileA
   if ( (mptr = (ecat_matrix::MatrixFile *)calloc(1,sizeof(ecat_matrix::MatrixFile))) == NULL) {
     return(NULL) ;
   }
-
   if ( (mptr->mhptr = (ecat_matrix::Main_header *)calloc(1,sizeof(ecat_matrix::Main_header))) == NULL) {
     free( mptr);
     return(NULL) ;
   }
-
   if (fmode == ecat_matrix::MatrixFileAccessMode::READ_ONLY) { /* check if interfile or analyze format */
     if ((mptr->fname = is_interfile(fname)) != NULL) {
       if (interfile_open(mptr) == ecat_matrix::ECATX_ERROR) {
-        /* g_matrix_error set by interfile_open */
         free_matrix_file(mptr);
         return (NULL);
       }
@@ -1081,7 +1096,6 @@ ecat_matrix::MatrixFile *matrix_open(const char* fname, ecat_matrix::MatrixFileA
     }
     if ((mptr->fname=is_analyze(fname)) != NULL) {
       if (analyze_open(mptr) == ecat_matrix::ECATX_ERROR) {
-        /* g_matrix_error is set by analyze_open */
         free_matrix_file(mptr);
         return (NULL);
       }
@@ -1096,7 +1110,8 @@ ecat_matrix::MatrixFile *matrix_open(const char* fname, ecat_matrix::MatrixFileA
   }
   mptr->fname = strdup(fname);
   if (mat_read_main_header(mptr->fptr, mptr->mhptr) == ecat_matrix::ECATX_ERROR) {
-    g_matrix_error = ecat_matrix::MatrixError::NOMHD_FILE_OBJECT ;
+    // g_matrix_error = ecat_matrix::MatrixError::NOMHD_FILE_OBJECT ;
+    LOG_ERROR(ecat_matrix::matrix_errors_.at(ecat_matrix::MatrixError::NOMHD_FILE_OBJECT));
     free_matrix_file(mptr);
     return(NULL);
   }
@@ -1107,7 +1122,8 @@ ecat_matrix::MatrixFile *matrix_open(const char* fname, ecat_matrix::MatrixFileA
   */
   if (mtype != ecat_matrix::DataSetType::NoData && mptr->mhptr->file_type!= ecat_matrix::DataSetType::NoData)
     if (mtype != mptr->mhptr->file_type) {
-      g_matrix_error = ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH ;
+      // g_matrix_error = ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH ;
+      LOG_ERROR(ecat_matrix::matrix_errors_.at(ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH));
       free_matrix_file(mptr);
       return (NULL);
 	}
@@ -1125,10 +1141,11 @@ ecat_matrix::MatrixFile *matrix_open(const char* fname, ecat_matrix::MatrixFileA
     mptr->file_format = ecat_matrix::FileFormat::ECAT6;
   }
 
-  if( g_matrix_error == ecat_matrix::ECATX_OK ) 
+  // wtf was this.  Return mptr if no error, else return null?
+  // if( g_matrix_error == ecat_matrix::ECATX_OK ) 
     return( mptr ) ;
-  free_matrix_file( mptr);
-  return(NULL) ;
+  // free_matrix_file( mptr);
+  // return(NULL) ;
 }
 
 ecat_matrix::MatrixFile *matrix_create(const char *fname, MatrixFileAccessMode const fmode, ecat_matrix::Main_header * proto_mhptr) {
@@ -1142,11 +1159,6 @@ ecat_matrix::MatrixFile *matrix_create(const char *fname, MatrixFileAccessMode c
     mptr = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_WRITE, proto_mhptr->file_type);
     if (mptr) 
       break;
-    /*
-     * if (g_matrix_error != NFS_FILE_NOT_FOUND) break; if we
-     * got an NFS_FILE_NOT_FOUND error, then try to create the
-     * matrix file.
-     */
   case ecat_matrix::MatrixFileAccessMode::CREATE:
   case ecat_matrix::MatrixFileAccessMode::CREATE_NEW_FILE:
     set_matrix_no_error();
@@ -1186,7 +1198,8 @@ ecat_matrix::MatrixFile *matrix_create(const char *fname, MatrixFileAccessMode c
     }
     break;
   default:
-    g_matrix_error = ecat_matrix::MatrixError::BAD_FILE_ACCESS_MODE;
+    // g_matrix_error = ecat_matrix::MatrixError::BAD_FILE_ACCESS_MODE;
+      LOG_ERROR(ecat_matrix::matrix_errors_.at(ecat_matrix::MatrixError::BAD_FILE_ACCESS_MODE));
     return( NULL );
     break;
   }
@@ -1195,7 +1208,7 @@ ecat_matrix::MatrixFile *matrix_create(const char *fname, MatrixFileAccessMode c
 
 int matrix_close(ecat_matrix::MatrixFile *mptr) {
   int status = ecat_matrix::ECATX_OK;
-  g_matrix_error = ecat_matrix::MatrixError::OK;
+  // g_matrix_error = ecat_matrix::MatrixError::OK;
   if (mptr->fname) 
     strcpy(ecat_matrix::matrix_errtxt,mptr->fname);
   else 
@@ -1217,23 +1230,30 @@ int matrix_close(ecat_matrix::MatrixFile *mptr) {
 ecat_matrix::MatrixData *matrix_read(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixDataType dtype) {
   ecat_matrix::MatrixData     *data;
 
-  g_matrix_error = ecat_matrix::ECATX_OK;
-  ecat_matrix::matrix_errtxt.clear();
-  if (mptr == NULL)
-    g_matrix_error = ecat_matrix::MatrixError::READ_FROM_NILFPTR;
-  else if (mptr->mhptr == NULL)
-    g_matrix_error = ecat_matrix::MatrixError::NOMHD_FILE_OBJECT;
-  if (g_matrix_error != ecat_matrix::ECATX_OK)
-    return (NULL);
+  // g_matrix_error = ecat_matrix::ECATX_OK;
+  // ecat_matrix::matrix_errtxt.clear();
+  if (mptr == NULL) {
+    // g_matrix_error = ecat_matrix::MatrixError::READ_FROM_NILFPTR;
+    LOG_ERROR(ecat_matrix::matrix_errors_.at(ecat_matrix::MatrixError::READ_FROM_NILFPTR));
+    return NULL;
+  }
+  if (mptr->mhptr == NULL) {
+    // g_matrix_error = ecat_matrix::MatrixError::NOMHD_FILE_OBJECT;
+    LOG_ERROR(ecat_matrix::matrix_errors_.at(ecat_matrix::MatrixError::NOMHD_FILE_OBJECT));
+    return NULL;
+  }
   /* allocate space for ecat_matrix::MatrixData structure and initialize */
   data = (ecat_matrix::MatrixData *) calloc(1, sizeof(ecat_matrix::MatrixData));
   if (!data)
+    LOG_ERROR("Unable to allocate memory");
     return (NULL);
+  }
 
   /* allocate space for subheader and initialize */
   data->shptr = (void *) calloc(2, ecat_matrix::MatBLKSIZE);
   if (!data->shptr) {
     free(data);
+    LOG_ERROR("Unable to allocate memory");
     return (NULL);
   }
   if (read_host_data(mptr, matnum, data, dtype) != ecat_matrix::ECATX_OK) {

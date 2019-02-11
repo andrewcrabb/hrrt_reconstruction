@@ -10,6 +10,9 @@
 #include <string.h>
 #include <time.h>
 #include "ecat_matrix.hpp"
+#include "my_spdlog.hpp"
+
+
 
 void show_main_header( ecat_matrix::Main_header *mh );
 static char* storage_order(int idx);
@@ -25,13 +28,13 @@ int main( int argc, char **argv ) {
   int matnum = 0;
   char fname[256];
 
+  my_spdlog::init_logging(argv[0]);
   if (argc < 2)
-    ecat_matrix::crash( "usage    : %s matspec\n", argv[0]);
+    LOG_EXIT( "usage    : {} matspec", argv[0]);
   matspec( argv[1], fname, &matnum);
   ecat_matrix::MatrixFile *mptr = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (!mptr) {
-    matrix_perror(fname);
-    exit(1);
+    LOG_EXIT("Cannot open matrix from {}", fname);
   }
   if (matnum == 0) {
     show_main_header( mptr->mhptr);
@@ -39,7 +42,7 @@ int main( int argc, char **argv ) {
   }
   ecat_matrix::MatrixData *matrix = matrix_read( mptr, matnum, ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
   if (!matrix)
-    ecat_matrix::crash( "%s    : matrix not found\n", argv[0]);
+    LOG_EXIT( "{}    : matrix not found", argv[0]);
   switch ( mptr->mhptr->file_type) {
   case ecat_matrix::DataSetType::Sinogram    :
     show_scan_subheader( matrix->shptr);
@@ -65,20 +68,16 @@ int main( int argc, char **argv ) {
     show_norm3d_subheader( matrix->shptr);
     break;
   default    :
-    ecat_matrix::crash("%s    : unknown matrix file type (%d)\n", argv[0], mptr->mhptr->file_type);
+    LOG_EXIT("{}    : unknown matrix file type ({})", argv[0], mptr->mhptr->file_type);
   }
   // exit(0);
   return (0);
 }
 
-// static char *dtypes[] = {
-//  "UnknownMatDataType", "ByteData", "VAX_Ix2", "VAX_Ix4",
-//     "VAX_Rx4", "IeeeFloat", "SunShort", "SunLong" };
+// static char *dtypes[] = { "UnknownMatDataType", "ByteData", "VAX_Ix2", "VAX_Ix4", "VAX_Rx4", "IeeeFloat", "SunShort", "SunLong" };
 
-static char* storage_order(int idx)
-{
-  switch (idx)
-  {
+static char* storage_order(int idx) {
+  switch (idx) {
   case 0: return "View mode";
   case 1: return "Sinogram mode";
   }

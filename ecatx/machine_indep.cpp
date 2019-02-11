@@ -37,27 +37,21 @@
 #include <unistd.h>
 #include <linux/swab.h>
 #include <arpa/inet.h>
+#include "my_spdlog.hpp"
 
-
-void 
-SWAB(void *from, void *to, int length)
-{
+void SWAB(void *from, void *to, int length) {
 	if (ntohs(1) == 1) swab(from, to, (ssize_t)length);
 	else memcpy(to,from,length);
 }
 
-void 
-SWAW (short *from, short *to, int length)
-{
+void SWAW (short *from, short *to, int length) {
 	if (ntohs(1) == 1) 
 		ecat_matrix::swaw((short*)from,to,length);
 	else 
 		memcpy(to,from,length*2);
 } 
 
-float
-vaxftohf( unsigned short *bufr, int off)
-{
+float vaxftohf( unsigned short *bufr, int off) {
 	unsigned int sign_exp, high, low, mantissa, ret;
 	unsigned u = (bufr[off+1] << 16) + bufr[off];
 	
@@ -72,12 +66,9 @@ vaxftohf( unsigned short *bufr, int off)
 	return *(float*)(&ret);
 }
 
-int 
-file_data_to_host(char *dptr, int nblks, ecat_matrix::MatrixDataType dtype)
-{
+int file_data_to_host(char *dptr, int nblks, ecat_matrix::MatrixDataType dtype) {
 	int i, j;
 	char *tmp = new char[512];
-
 
 	ecat_matrix::matrix_errno = ecat_matrix::MatrixError::OK;
 	ecat_matrix::matrix_errtxt.clear();
@@ -140,35 +131,24 @@ file_data_to_host(char *dptr, int nblks, ecat_matrix::MatrixDataType dtype)
 	return ecat_matrix::ECATX_OK;
 }
 
-int
-read_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, ecat_matrix::MatrixDataType dtype)
-{
+int read_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, ecat_matrix::MatrixDataType dtype) {
 	int  err;
 
 	err = ecat_matrix::mat_rblk( fptr, strtblk, dptr, nblks);
-	if (err) return -1;
+	if (err) 
+		return -1;
 	return file_data_to_host(dptr,nblks,dtype);
 }
 
-int 
-write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, ecat_matrix::MatrixDataType dtype)
-{
+int write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, ecat_matrix::MatrixDataType dtype) {
 	int error_flag = 0;
 	int i, j;
 	char *bufr1 = new char[512];
 	char *bufr2 = new char[512];
 
-    /* printf("\n\n\n\n HEY2"); fflush(stdout); */
-        
 	ecat_matrix::matrix_errno = ecat_matrix::MatrixError::OK;
 	ecat_matrix::matrix_errtxt.clear();
-	// if ( (bufr1 = malloc(512)) == NULL) return ecat_matrix::ECATX_ERROR;
-	// if ( (bufr2 = malloc(512)) == NULL) {
-	// 	free(bufr1);
-	// 	return ecat_matrix::ECATX_ERROR;
-	// }
-	switch( dtype)
-	{
+	switch( dtype)	{
 	case ecat_matrix::MatrixDataType::ByteData:
 		if ( ecat_matrix::mat_wblk( fptr, strtblk, dptr, nblks) < 0) error_flag++;
 		break;
@@ -184,7 +164,7 @@ write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, ecat_matrix::M
 		break;
 	case ecat_matrix::MatrixDataType::VAX_Ix4:
 	case ecat_matrix::MatrixDataType::VAX_Rx4:
-        ecat_matrix::crash("unsupported format\n");
+        LOG_EXIT("unsupported format");
         break;
     case ecat_matrix::MatrixDataType::IeeeFloat:
 	case ecat_matrix::MatrixDataType::SunLong:

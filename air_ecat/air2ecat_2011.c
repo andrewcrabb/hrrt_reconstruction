@@ -15,6 +15,7 @@
 #include "ecat2air.h"
 #include <ecatx/ecat_matrix.hpp>
 #include <unistd.h>
+#include "my_spdlog.hpp"
 
 static char line[FILENAME_MAX];
 static char fname[FILENAME_MAX], hdr_fname[FILENAME_MAX];
@@ -55,7 +56,7 @@ static ecat_matrix::MatrixData* air2matrix(AIR_Pixels ***pixels, struct AIR_Key_
     /* Interfile float input */
     imh->data_type = matrix->data_type = ecat_matrix::MatrixDataType::SunShort;
   if (matrix->data_type != data_type) {
-    fprintf(stderr,"air2matrix : incompatible data types \n");
+    LOG_ERROR("air2matrix : incompatible data types");
     free_matrix_data(matrix);
     return NULL;
   }
@@ -118,7 +119,7 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
     if (file->dirlist->nmats) {
       i_matnum = file->dirlist->first->matnum;
     } else {
-      printf("%s : no matrix found\n", orig_specs);
+      LOG_ERROR("{} : no matrix found\n", orig_specs);
       return 0;
     }
   }
@@ -131,7 +132,7 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
     orig = matrix_read(file,val.frame, GENERIC);
   }
   if (orig == NULL) {
-    printf("error reading matrix %s\n", orig_specs);
+    LOG_ERROR("error reading matrix {}", orig_specs);
     return 0;
   }
   if (orig->data_type == ecat_matrix::MatrixDataType::IeeeFloat) {
@@ -152,24 +153,22 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
   matrix_close(file);
 		
   if (!permission && access(fname,F_OK)==0) {
-    printf("file %s exists, no permission to overwrite\n",fname);
+    LOG_ERROR("file {} exists, no permission to overwrite",fname);
     return 0;
   }
   matrix = air2matrix(pixels, stats,orig);
   if (matrix == NULL) {
-    printf("Error converting AIR pixel data to ECAT matrix\n");
+    LOG_ERROR("Error converting AIR pixel data to ECAT matrix");
     return 0;
   }
   matrix_flip(matrix,0,1,1);   /* radiolgy convention */
   free_matrix_data(orig);
   if ((ecat_version=getenv("ECAT_VERSION")) != NULL) {
-    if (verbose)
-      fprintf(stderr,"current ecat version : %s\n",ecat_version);
+      LOG_DEBUG("current ecat version : {}" ,ecat_version);
     if (sscanf(ecat_version,"%d",&sw_version)==1 && sw_version>0)
       mh.sw_version = sw_version;
   }
-  if (verbose) 
-    fprintf(stderr,"sw version %d\n",mh.sw_version);
+    LOG_DEBUG("sw version %d\n",mh.sw_version);
 
   if (strlen(ext) == 0)
     strcpy(ext,".v"); // ECAT7 default output format
@@ -180,9 +179,9 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
     npixels = matrix->xdim*matrix->ydim;
     sdata = (short*)matrix->data_ptr;
     if ((fp=fopen(fname,"wb"))==NULL) 
-      printf("%s: %d: error opening file %s",__FILE__,__LINE__, fname);
+      LOG_ERROR("error opening file {}", fname);
     if ((fdata=(float*)calloc(npixels, sizeof(float)))==NULL) 
-      printf("%s: %d: memory allocation error",__FILE__,__LINE__);
+      LOG_EXIT("memory allocation error");
     if (fp!=NULL && fdata!=NULL) {
       for (plane=0; plane<matrix->zdim; plane++) {
         for (i=0; i<npixels; i++)
@@ -230,7 +229,7 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
   mh.num_planes = matrix->zdim;
   mh.plane_separation = matrix->z_size;
   if ((file=matrix_create(fname,ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, &mh)) == NULL) {
-    matrix_perror(fname);
+    LOG_ERROR(fname);
     free_matrix_data(matrix);
     return 0;
   }
@@ -255,7 +254,7 @@ float ecat_AIR_open_header(const char *mat_spec, struct AIR_Fptrs *fp, struct AI
   matspec(mat_spec,fname,&matnum);
   file = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (file==NULL) {
-    fprintf(stderr, "%s : error opening file\n", fname); 
+    LOG_ERROR( "{} : error opening file", fname); 
     fp->errcode = 1;
     return 0.0f;
   }
@@ -263,13 +262,12 @@ float ecat_AIR_open_header(const char *mat_spec, struct AIR_Fptrs *fp, struct AI
     if (file->dirlist->nmats) matnum = file->dirlist->first->matnum;
     else { 
       fp->errcode = 1;
-      fprintf(stderr, "%s : no matrix found\n", mat_spec); 
+      LOG_ERROR( "{} : no matrix found", mat_spec); 
     }
   }
-  if (fp->errcode == 0)
-    {
+  if (fp->errcode == 0)    {
       if ((hdr = matrix_read(file,matnum,ecat_matrix::MatrixDataType::MAT_SUB_HEADER)) == NULL) {
-        fprintf(stderr, "%s : error opening matrix\n", mat_spec); 
+        LOG_ERROR( "{} : error opening matrix", mat_spec); 
         fp->errcode = 1;
         return 0.0f;
       }
@@ -318,7 +316,7 @@ AIR_Error ecat_AIR_load_probr(const char *specs, const AIR_Boolean decompressabl
   if (matnum == 0) {		/* use first */
     if (file->dirlist->nmats) matnum = file->dirlist->first->matnum;
     else {
-      printf("%s : no matrix found\n", specs);
+      LOG_ERROR("{} : no matrix found", specs);
       error++;
     }
   }

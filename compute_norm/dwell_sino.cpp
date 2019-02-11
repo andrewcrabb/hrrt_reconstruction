@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "norm_globals.h"
+#include "my_spdlog.hpp"
 #define DEFAULT_DWELL_FNAME "dwellc.n"
 #define SEPARATOR '/'
 
@@ -13,19 +14,19 @@ int dwell_sino(float *dwell, int npixels) {
     sprintf(filename, "%s%c%s", envp, SEPARATOR, DEFAULT_DWELL_FNAME);
     use_reg = 0;
   } else {
-    printf("GMINI environment variable not found\n");
+    LOG_ERROR("GMINI environment variable not found\n");
     return 0;
   }
 
   FILE *fp = fopen(filename, "rb");
   if (fp == NULL) {
-    perror(filename);
+    LOG_ERROR(filename);
     return 0;
   }
   size_t count = fread(dwell, sizeof(float), npixels, fp);
   fclose(fp);
   if (count != (size_t)npixels) {
-    printf("%s: Error reading file \n", filename);
+    LOG_ERROR("%s: Error reading file \n", filename);
     return 0;
   }
   if (qc_flag) {
@@ -35,7 +36,7 @@ int dwell_sino(float *dwell, int npixels) {
       if (mindw > dwell[i]) mindw = dwell[i];
       else if (maxdw < dwell[i]) maxdw = dwell[i];
     }
-    printf("Dwell_range :%g %g\n", mindw, maxdw);
+    LOG_INFO("Dwell_range : {} {}", mindw, maxdw);
   }
   return 1;
 }

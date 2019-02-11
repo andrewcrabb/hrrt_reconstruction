@@ -6,6 +6,7 @@
 #define FILENAME_MAX 256
 #endif
 #include "ecat_matrix.hpp"
+#include "my_spdlog.hpp"
 
 void matrix_sum(ecat_matrix::MatrixData *matrix, ecat_matrix::MatrixData **sum)
 {
@@ -59,31 +60,30 @@ int main(int argc, char **argv)
   FILE *fp=NULL;
 #endif
   
-  if (argc < 2) ecat_matrix::crash("usage : %s file start_frame,end_frame\n",argv[0]);
+  if (argc < 2) LOG_EXIT("usage : {} file start_frame,end_frame",argv[0]);
   if (argc>2) sscanf(argv[2], "%d,%d",&start_frame,&end_frame);
   mptr = matrix_open(argv[1], ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (mptr == NULL) {
-    matrix_perror(argv[1]);
+    LOG_ERROR(argv[1]);
     return 0;
   }
   strcpy(fname, argv[1]);
   if ((ext=strrchr(fname,'.')) != NULL)*ext = '\0';
   ftype = mptr->mhptr->file_type;
   // if (ftype <0 || ftype >= NumDataSetTypes)
-  //   ecat_matrix::crash("%s : unkown file type\n",argv[1]);
-  printf( "%s file type  : %s\n", argv[1], datasettype_.at(ftype).name);
-  if (!mptr) matrix_perror(fname);
+  //   LOG_EXIT("%s : unkown file type\n",argv[1]);
+  LOG_INFO( "{} file type  : {}", argv[1], datasettype_.at(ftype).name);
+  if (!mptr) 
+    LOG_ERROR(fname);
   node = mptr->dirlist->first;
-  while (node)
-  {
+  while (node)  {
     mat_numdoc(node->matnum, &mat);
     if ((start_frame==0 || mat.frame>=start_frame) &&
       (end_frame==0 || mat.frame<=end_frame))
     {
       matrix = matrix_read(mptr,node->matnum,UnknownMatDataType);
-      if (!matrix) ecat_matrix::crash("%d,%d,%d,%d,%d not found\n",
-        mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
-      printf("Adding %d,%d,%d,%d,%d\n",mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
+      if (!matrix) LOG_EXIT("{},{},{},{},{} not found",        mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
+      LOG_INFO("Adding {},{},{},{},{}",mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
       matrix_sum(matrix, &sum);
       imh = (ecat_matrix::Image_subheader*)sum->shptr;
       duration += imh->frame_duration;
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 #ifdef _DEBUG
       nvoxels =  matrix->xdim*matrix->ydim*matrix->zdim;
       imh = (ecat_matrix::Image_subheader*)matrix->shptr;
-      printf("%d,%d,%d\n",mat.frame,imh->frame_start_time/1000, imh->frame_duration/1000);
+      LOG_INFO("{},{},{}", mat.frame, imh->frame_start_time/1000, imh->frame_duration/1000);
       sprintf(dfname,"%s_frame%d.i", fname, mat.frame);
       if ((fp=fopen(dfname,"wb")) != NULL)  {
         if (fdata == NULL) fdata = (float*) calloc(nvoxels, sizeof(float));
@@ -103,18 +103,15 @@ int main(int argc, char **argv)
         fclose(fp);
       }
 #endif
-    } 
-    else
-    {
-      printf("Skipping %d,%d,%d,%d,%d\n",mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
+    }     else    {
+      LOG_INFO("Skipping {},{},{},{},{}",mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
     }
     node = node->next;
   }
   if (frame_count<2) return 0;
   if (start_frame==0 && end_frame==0) strcat(fname,"_sum.v");
   else sprintf(&fname[strlen(fname)],"_sum_%dto%d.v", start_frame, last_frame);
-  if ((sum_mptr=matrix_create(fname,ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, mptr->mhptr)) != NULL)
-  {
+  if ((sum_mptr=matrix_create(fname,ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, mptr->mhptr)) != NULL) {
     nvoxels =  matrix->xdim*matrix->ydim*matrix->zdim;
     fdata = (float*)sum->data_ptr;
     sdata = (short*)sum->data_ptr;

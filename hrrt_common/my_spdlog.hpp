@@ -32,12 +32,12 @@ using my_spdlog::g_logger;
 
 // This needs to be a macro (not library function), so that the calling line number is preserved.
 #ifndef LOG_INFO_DEFINED
-#define LOG_INFO(...)  if (g_logger->should_log(spdlog::level::info )){g_logger->info("{}::{}:{}: {} ", __FILENAME__ , __func__, __LINE__, fmt::format(__VA_ARGS__));}
+#define LOG_INFO(...)  if (g_logger->should_log(spdlog::level::info )){g_logger->info("{}::{}:{}: {} " , __FILENAME__ , __func__, __LINE__, fmt::format(__VA_ARGS__));}
 #define LOG_INFO_DEFINED 1
 #endif
 
 #ifndef LOG_ERROR_DEFINED
-#define LOG_ERROR(...) if (g_logger->should_log(spdlog::level::err)){g_logger->error("{}::{}:{}: {} ", __FILENAME__ , __func__, __LINE__, fmt::format(__VA_ARGS__));}
+#define LOG_ERROR(...) if (g_logger->should_log(spdlog::level::err)){  g_logger->error("{}::{}:{}: {} ", __FILENAME__ , __func__, __LINE__, fmt::format(__VA_ARGS__));}
 #define LOG_ERROR_DEFINED 1
 #endif
 
@@ -52,7 +52,7 @@ using my_spdlog::g_logger;
 #endif
 
 #ifndef LOG_EXIT_DEFINED
-#define LOG_EXIT(...) if (g_logger->should_log(spdlog::level::err)){g_logger->error("{}::{}:{}: {} ", __FILENAME__ , __func__, __LINE__, fmt::format(__VA_ARGS__));	exit(1); }
+#define LOG_EXIT(...) if (g_logger->should_log(spdlog::level::err)){  g_logger->error("{}::{}:{}: {} " , __FILENAME__ , __func__, __LINE__, fmt::format(__VA_ARGS__));	exit(1); }
 #define LOG_EXIT_DEFINED 1
 #endif
 

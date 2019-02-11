@@ -41,16 +41,12 @@
 #include <map>
 #include <vector>
 
-using namespace std;
-
 typedef struct _DICOMElem {
   unsigned type, offset, len;
 } DICOMElem;
 
-typedef map<unsigned, DICOMElem> DICOMGroupMap;
-typedef map<unsigned,DICOMGroupMap> DICOMMap;
-extern int DICOM_open(const char *filename, unsigned char *&buf, int &bufsize,
-					  DICOMMap &dcm_map, int &DICOM10_flag);
-extern int DICOM_get_elem(unsigned group, unsigned elem, DICOMMap &dcm_map,
-						  DICOMElem &dcm_elem);
+typedef std::map<unsigned, DICOMElem> DICOMGroupMap;
+typedef std::map<unsigned, DICOMGroupMap> DICOMMap;
+extern int DICOM_open(const char *filename, unsigned char *&buf, int &bufsize, DICOMMap &dcm_map, int &DICOM10_flag);
+extern int DICOM_get_elem(unsigned group, unsigned elem, DICOMMap &dcm_map, DICOMElem &dcm_elem);
 extern void DICOM_dump(DICOMMap &dcm_map, const unsigned char *buf, const char *filename);

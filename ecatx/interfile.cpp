@@ -36,6 +36,7 @@
 #include <ctype.h>
 #include "interfile.hpp"
 #include "machine_indep.hpp"
+#include "my_spdlog.hpp"
 
 #include <vector>
 #include <algorithm>
@@ -181,14 +182,12 @@ static int if_multiplicity(char **ifh, int **blk_offsets){
 static void clean_eol(char *line){
   int len = strlen(line);
   if (len > LINESIZE - 1) {
-    fprintf(stderr, "line too long :\n %s", line);
-    exit(1);
+    LOG_EXIT( "line too long :{}", line);
   }
   line[len - 1] = ' ';
 }
 
-static int _elem_size(ecat_matrix::MatrixDataType data_type)
-{
+static int _elem_size(ecat_matrix::MatrixDataType data_type){
   switch (data_type) {
   case ecat_matrix::MatrixDataType::ByteData :
   case ecat_matrix::MatrixDataType::Color_8 :
@@ -203,7 +202,7 @@ static int _elem_size(ecat_matrix::MatrixDataType data_type)
   case ecat_matrix::MatrixDataType::IeeeFloat:
     return 4;
   default:
-    fprintf(stderr, "unkown data type, assume short int\n");
+    LOG_ERROR( "unkown data type, assume short int");
     return 2;
   }
 }
@@ -500,7 +499,7 @@ char* is_interfile(const char* fname) {
         /* check short and full name */
         if (strcmp(item->value, img_fname) == 0 || strcmp(item->value, fname) == 0) {
           fclose(fp);
-          fprintf(stderr, "using %s header for %s data file\n", hdr_fname, fname);
+          LOG_ERROR( "using {} header for {} data file", hdr_fname, fname);
           free(item->value);
           return hdr_fname;
         }
@@ -508,13 +507,13 @@ char* is_interfile(const char* fname) {
       free(item->value);
     }
     fclose(fp);
-    fprintf(stderr, "using %s header for %s data file\n", hdr_fname, fname);
-    fprintf(stderr, "Warning: Adding Missing keyword 'name of data file'\n");
+    LOG_ERROR( "using {} header for {} data file", hdr_fname, fname);
+    LOG_ERROR( "Warning: Adding Missing keyword 'name of data file'");
     if ((fp = fopen(hdr_fname, "at")) != NULL) {
-      fprintf(fp, "\nname of data file := %s\n", fname);
+      fprintf(fp, "name of data file := {}", fname);
       fclose(fp);
     } else {
-      fprintf(stderr, "Can't open %s header for appending data file\n", hdr_fname);
+      LOG_ERROR( "Can't open {} header for appending data file", hdr_fname);
       free(hdr_fname);
       return NULL;
     }
@@ -523,9 +522,7 @@ char* is_interfile(const char* fname) {
   return NULL;
 }
 
-int
-unmap_interfile_header(char **ifh, ecat_matrix::MatrixData *mdata)
-{
+int unmap_interfile_header(char **ifh, ecat_matrix::MatrixData *mdata) {
   int  sx, sy, sz = 1, dim = 2, elem_size = 2;
   int big_endian = 0;
   float f;
@@ -807,7 +804,7 @@ int interfile_open(ecat_matrix::MatrixFile *mptr) {
       if (make_path)
         mptr->interfile_header[NAME_OF_DATA_FILE] = strdup(data_file);
     } else {
-      perror(data_file);
+      LOG_ERROR(data_file);
       free_interfile_header(mptr->interfile_header);
       return ecat_matrix::ECATX_ERROR;
     }
@@ -944,20 +941,20 @@ int interfile_read(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
     z_flip = 1;
     if (data->z_origin > 0)
       data->z_origin = (data->zdim - 1) * data->z_size - data->z_origin;
-    fprintf(stderr, "volume z direction is changed to superior->inferior\n");
+    LOG_ERROR( "volume z direction is changed to superior->inferior");
   }
   if (ifh[MATRIX_INITIAL_ELEMENT_2] &&
       *ifh[MATRIX_INITIAL_ELEMENT_2] == 'p') {
     y_flip = 1;
     if (data->y_origin > 0)
       data->y_origin = (data->ydim - 1) * data->y_size - data->y_origin;
-    fprintf(stderr, "volume y direction is changed to anterior->posterior\n");
+    LOG_ERROR( "volume y direction is changed to anterior->posterior");
   }
   if (ifh[MATRIX_INITIAL_ELEMENT_1] && *ifh[MATRIX_INITIAL_ELEMENT_1] == 'r') {
     x_flip = 1;
     if (data->x_origin > 0)
       data->x_origin = (data->xdim - 1) * data->pixel_size - data->x_origin;
-    fprintf(stderr, "volume x direction is changed to left->right\n");
+    LOG_ERROR( "volume x direction is changed to left->right");
   }
   npixels = data->xdim * data->ydim;
   nvoxels = npixels * data->zdim;
@@ -976,7 +973,7 @@ int interfile_read(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
   }
   if (data_offset > 0) {
     if (fseek(mptr->fptr, data_offset, SEEK_SET) != 0)
-      ecat_matrix::crash("Error skeeping to offset %d\n", data_offset);
+      LOG_EXIT("Error skeeping to offset {}", data_offset);
   }
   for (z = 0; z < data->zdim; z++) {
     if (z_flip)
@@ -987,7 +984,7 @@ int interfile_read(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
     bytesread += (elem_size * npixels);
     if (num_read < npixels) {
       int req_size = elem_size * npixels;
-      fprintf(stderr, "interfile_read ERROR reading z %3d of %3d, got %5d of %5d bytes in fread, total bytes read = %8d\n", z, data->zdim, num_read, req_size, bytesread);
+      LOG_ERROR( "interfile_read ERROR reading z {} of {}, got {} of {} bytes in fread, total bytes read = {}", z, data->zdim, num_read, req_size, bytesread);
       free(data->data_ptr);
       data->data_ptr = NULL;
       ecat_matrix::matrix_errno = ecat_matrix::MatrixError::READ_ERROR;
@@ -1012,7 +1009,7 @@ int interfile_read(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
     for (i = 1; i < nvoxels; i++, up++)
       if (u_max < (*up)) u_max = *up;
     if (u_max > 32767) {
-      fprintf(stderr, "converting unsigned to signed integer\n");
+      LOG_ERROR( "converting unsigned to signed integer");
       sp = (short*)data->data_ptr;
       up = (unsigned short*)data->data_ptr;
       for (i = 0; i < nvoxels; i++) {

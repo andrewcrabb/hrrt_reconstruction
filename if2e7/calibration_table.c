@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "calibration_table.h"
+#include "my_spdlog.hpp"
 
 #define MAX_LINE_LENGTH 1024
 #define MAX_TABLE_SIZE 128
@@ -52,7 +53,7 @@ do_load(const char *dir, const char *fname)
 
   if ((fp=fopen(ctable[ctable_size].fname,"rb")) == NULL) 
   {
-    printf("error opening %s\n", ctable[ctable_size].fname);
+    LOG_ERROR("error opening {}", ctable[ctable_size].fname);
     return 0;
   }
 
@@ -99,14 +100,12 @@ calibration_load(char *path)
   char fname[256], *ext=NULL;
   struct dirent *item;
 
-  if ((dir = opendir(path)) == NULL)
-  {
-    perror(path);
+  if ((dir = opendir(path)) == NULL)  {
+    LOG_ERROR(path);
     return 0;
   }
   if (ctable==NULL) ctable = (CTableEntry*)calloc(sizeof(CTableEntry), MAX_TABLE_SIZE);
-  while ( (item=readdir(dir)) != NULL)
-  {
+  while ( (item=readdir(dir)) != NULL)  {
     if ((ext=strrchr(item->d_name,'.')) != NULL)
       do_load(path,item->d_name);
   }

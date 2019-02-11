@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include "my_spdlog.hpp"
+
 #ifndef FILENAME_MAX /* SunOs 4.1.3 */
 #define FILENAME_MAX 256
 #endif
@@ -24,8 +26,7 @@ ecat_matrix::MatrixData *matrix;
 	ecat_matrix::Image_subheader *imh=NULL;
   
   mat_numdoc(matrix->matnum, &mat);
-  printf("\n\n *** Matrix := %d,%d,%d,%d,%d\n",
-	 mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
+  LOG_INFO("Matrix := {},{},{},{},{}", mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
   nvoxels = matrix->xdim*matrix->ydim*matrix->zdim ;
   switch(matrix->data_type) {
   case ecat_matrix::MatrixDataType::ByteData:
@@ -71,7 +72,7 @@ ecat_matrix::MatrixData *matrix;
   mx = mx / total * matrix->pixel_size * 10;
   my = my / total * matrix->y_size * 10;
   mz = mz / total * matrix->z_size * 10;
-  printf("Dimensions := %dx%dx%d\n",matrix->xdim,matrix->ydim,matrix->zdim);
+  LOG_INFO("Dimensions := {}x{}x{}\n",matrix->xdim,matrix->ydim,matrix->zdim);
   if (mh->calibration_units == Uncalibrated || ecf <= 1.0 || data_unit > customDisplayUnits.size())
     data_unit = 0;
   units = (data_unit) ? customDisplayUnits[data_unit] : "";
@@ -88,8 +89,8 @@ ecat_matrix::MatrixData *matrix;
     sprintf(line3+strlen(line3), ", %g Bq/ml", ecf*mean);
     sprintf(line4+strlen(line4), ", %g Bq/ml", ecf*total,units);
   }
-  printf("%s\n%s\n%s\n%s\n",line1, line2, line3, line4);
-  printf("center of mass (x,y,z) mm := %g,%g,%g\n",mx-1,my-1,mz-1);
+  LOG_INFO("{}\n{}\n{}\n{}\n",line1, line2, line3, line4);
+  LOG_INFO("center of mass (x,y,z) mm := {},{},{}\n",mx-1,my-1,mz-1);
 	if (mh->sw_version > 72 && mh->file_type == ecat_matrix::DataSetType::PetVolume) 
   { // print data rates
 		imh = (ecat_matrix::Image_subheader*)matrix->shptr;
@@ -97,12 +98,12 @@ ecat_matrix::MatrixData *matrix;
 		{ // valid Extended ECAT file
 			int frame_duration_sec;
 			frame_duration_sec = imh->frame_duration/1000;
-			printf("Image duration        := %d\n", frame_duration_sec);
-			printf("Total prompts        := %I64d\n",(__int64)((double)imh->prompt_rate * frame_duration_sec));
-			printf("Total randoms        := %I64d\n",(__int64)((double)imh->random_rate * frame_duration_sec));
-			printf("Average singles rate := %g\n", imh->singles_rate);
+			LOG_INFO("Image duration       := {}", frame_duration_sec);
+			LOG_INFO("Total prompts        := {}",(__int64)((double)imh->prompt_rate * frame_duration_sec));
+			LOG_INFO("Total randoms        := {}",(__int64)((double)imh->random_rate * frame_duration_sec));
+			LOG_INFO("Average singles rate := {}", imh->singles_rate);
 			if (imh->scatter_fraction>0.0f)
-				printf("scatter fraction     := %g\n", imh->scatter_fraction);
+				LOG_INFO("scatter fraction     := {}", imh->scatter_fraction);
 		}
 	}
 }
@@ -115,29 +116,31 @@ main(int argc, char **argv) {
   char fname[FILENAME_MAX];
   // int ftype, 
   int frame = -1, matnum=0, cubic=0, interpolate=0;
+
+   my_spdlog::init_logging(argv[0]);
   
   if (argc < 2) {
-    printf("%s: Build %s %s\n", argv[0], __DATE__, __TIME__);
-    ecat_matrix::crash("usage : %s matspec\n",argv[0]);
+    LOG_ERROR("{}: Build {} {}", argv[0], __DATE__, __TIME__);
+    LOG_EXIT("usage : {} matspec",argv[0]);
   }
   matspec( argv[1], fname, &matnum);
     ecat_matrix::MatrixFile *mptr = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (mptr == NULL) {
-    matrix_perror(fname);
+    LOG_ERROR(fname);
     return 0;
   }
   DataSetType ftype = mptr->mhptr->file_type;
   // if (ftype <0 || ftype >= NumDataSetTypes)
-  //   ecat_matrix::crash("%s : unkown file type\n",fname);
-  printf( "%s file type  : %s\n", fname, data_set_types_.at(ftype).name);
+  //   LOG_EXIT("%s : unkown file type\n",fname);
+  LOG_INFO( "{} file type  : {}", fname, data_set_types_.at(ftype).name);
   if (!mptr) 
-    matrix_perror(fname);
+    LOG_ERROR(fname);
     ecat_matrix::MatVal mat;
   if (matnum) {
 		mat_numdoc(matnum, &mat);
       ecat_matrix::MatrixData *matrix = matrix_read(mptr,matnum, UnknownMatDataType);
-    if (!matrix) ecat_matrix::crash("%d,%d,%d,%d,%d not found\n",
-		       mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
+    if (!matrix) 
+      LOG_EXIT("{},{},{},{},{} not found",		       mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
     matrix_info(mptr->mhptr,matrix);
   } 
 	else {
@@ -152,7 +155,8 @@ main(int argc, char **argv) {
 				}
 			} else {
 				matrix = matrix_read(mptr,node->matnum,UnknownMatDataType);
-				if (!matrix) ecat_matrix::crash("%d,%d,%d,%d,%d not found\n",
+				if (!matrix) 
+          LOG_EXIT("{},{},{},{},{} not found\n",
 					mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
 				matrix_info(mptr->mhptr,matrix);
 			}

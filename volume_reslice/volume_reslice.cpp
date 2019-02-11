@@ -15,6 +15,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
+#include "my_spdlog.hpp"
 
 #include <unistd.h>
 
@@ -26,28 +27,26 @@
 void loading_progress(float, float) {};
 int debug_level = 0;
 
-static void usage()
-{
-  printf("volume_reslice Build %s %s \n", __DATE__, __TIME__);
-  fprintf(stderr,
+static void usage() {
+  LOG_INFO("volume_reslice Build {} {}", __DATE__, __TIME__);
+  LOG_ERROR(
 	  "usage: volume_reslice -i in_matspec [-A | -C | -S] -o out_matspec \n"
     "       [-t transformer | -M affine_transformer | -a air_transformer] \n"
     "       [-x xdim[,dx]] [-y ydim[,dy]] [-z zdim[,dz]] -Z zoom_factor [-R] [-v]\n");
-  fprintf(stderr,"\n"
+  LOG_ERROR("\n"
     "  Load volume specified by in_matspec, apply optional transformer and\n"
 	  "  save volume in out_matspec in the requested orientation.\n"
 	  "  Optionally, use requested volume dimensions and voxelsize.\n");
-  fprintf(stderr,"\n  Transformer formats:\n"
+  LOG_ERROR("\n  Transformer formats:\n"
 	  "    -t rz(yaw),rx(pitch),ry(roll),tx,ty,tz\n"
 	  "    -M m11,m12,m13,m14,m21,m22,m23,m24,m31,m32,m33,m34\n");
-  fprintf(stderr,"\n  Orientation: -A(axial=default), -C(coronal), -S(sagittal)\n");
-  fprintf(stderr,"  Zoom  : applies a zoom factor within [1.0,10.0] range at volume center\n");
-  fprintf(stderr,"  -R Reverse transformer\n");
-  fprintf(stderr,"  -v set verbose mode on ( default is off)\n");
+  LOG_ERROR("\n  Orientation: -A(axial=default), -C(coronal), -S(sagittal)\n");
+  LOG_ERROR("  Zoom  : applies a zoom factor within [1.0,10.0] range at volume center\n");
+  LOG_ERROR("  -R Reverse transformer\n");
+  LOG_ERROR("  -v set verbose mode on ( default is off)\n");
   exit(1);
 }
 
-void display_message(const char*) {}
 static char line[FILENAME_MAX];
 static char fname[FILENAME_MAX], hdr_fname[FILENAME_MAX];
 
@@ -59,9 +58,9 @@ static int save_interfile(ecat_matrix::MatrixData *matrix, const char *fname, co
 
   sdata = (short*)matrix->data_ptr;
   if ((fp=fopen(fname,"wb"))==NULL) 
-    printf("%s: %d: error opening file %s",__FILE__,__LINE__, fname);
+    LOG_ERROR("error opening file {}", fname);
   if ((fdata=(float*)calloc(npixels, sizeof(float)))==NULL) 
-    printf("%s: %d: memory allocation error",__FILE__,__LINE__);
+    LOG_ERROR("memory allocation error");
   if (fp!=NULL && fdata!=NULL) {
     for (int plane=0; plane<matrix->zdim; plane++) {
       for (int i=0; i<npixels; i++)
@@ -195,7 +194,7 @@ int main(int argc, char **argv) {
         //mat_print(tm);
         y_reverse = 1; // transformer from Polaris Vicra tracking left handed coord
       } else {
-        fprintf(stderr, "Invalid -M argument %s\n", optarg);
+        LOG_ERROR( "Invalid -M argument %s\n", optarg);
         err_flag++;
       }
       break;
@@ -210,11 +209,11 @@ int main(int argc, char **argv) {
       break;
     case 'Z' :
       if (sscanf(optarg,"%g", &zoom_factor) != 1) {
-        fprintf(stderr, "invalid argument -Z %s\n", optarg);
+        LOG_ERROR( "invalid argument -Z %s\n", optarg);
         err_flag++;
       }
       if (zoom_factor<1.0 || zoom_factor > 10.0) {
-        fprintf(stderr, "zoom factor (%g) not in [1.0,10.0] range\n", zoom_factor);
+        LOG_ERROR( "zoom factor (%g) not in [1.0,10.0] range\n", zoom_factor);
         err_flag++;
       }
       break;
@@ -243,7 +242,7 @@ int main(int argc, char **argv) {
   if (!mptr) ecat_matrix::crash( "can't open file '%s'\n", in_file);
   if ( mptr->dirlist->nmats == 0) ecat_matrix::crash("no matrix in %s\n",in_file);
   if (in_matnum==0) in_matnum = mptr->dirlist->first->matnum;
-  if (verbose) printf("loading volume ...");
+    LOG_DEBUG("loading volume");
 
   // Create Volume Object and load data
 #ifdef ORIG_CODE
@@ -255,7 +254,7 @@ int main(int argc, char **argv) {
   if (t_flip)  matrix_flip(data,0,1,1); 		/* AIR radiology convention */
   else  if (y_reverse) matrix_flip(data,0,1,0); /* Vicra */
 
-  printf("Volume %dX%dX%d loaded\n", data->xdim, data->ydim, data->zdim);
+  LOG_INFO("Volume {} x {} x {} loaded\n", data->xdim, data->ydim, data->zdim);
   data->pixel_size *= 10.0f; // cm to mm
   data->y_size *= 10.0f; // cm to mm
   data->z_size *= 10.0f; // cm to mm
@@ -409,13 +408,12 @@ int main(int argc, char **argv) {
       area, pixel_size, interpolate);
     memcpy(dest, slice->data_ptr, plane_size);
     free_matrix_data(slice);
-    if (verbose) printf(".");
+
   }
   if (t_flip)  matrix_flip(out_data,0,1,1); 		/* AIR radiology convention */
   else  if (y_reverse) matrix_flip(out_data,0,1,0); /* Vicra */
 
-  if ((ext = strrchr(out_file,'.')) != NULL && strcmp(ext,".v") == 0)
-  {
+  if ((ext = strrchr(out_file,'.')) != NULL && strcmp(ext,".v") == 0)  {
     //Format Code to create output in ECAT format
     proto = (ecat_matrix::Main_header*)calloc(1, ecat_matrix::MatBLKSIZE);
     memcpy(proto, mptr->mhptr, sizeof(ecat_matrix::Main_header));
@@ -426,13 +424,11 @@ int main(int argc, char **argv) {
     mptr1 = matrix_create(out_file, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, proto);
     if (mptr1 == NULL) { matrix_perror(out_file); exit(1); }
     matrix_write(mptr1,out_matnum,out_data);
-  }
-  else
-  {
+  }  else  {
     save_interfile(out_data, out_file, in_file);
   }
   delete volume;
   free_matrix_data(out_data);
-  if (verbose) printf("done\n");
+  LOG_DEBUG("done");
   return 0;
 }

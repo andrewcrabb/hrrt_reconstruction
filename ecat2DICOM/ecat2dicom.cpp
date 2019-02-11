@@ -43,27 +43,23 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <cstring>
+#include "my_spdlog.hpp"
+
 
 static void usage(const char *pgm) {
-  fprintf(stderr, "%s Build %s %s\n", pgm,  __DATE__, __TIME__);
-  fprintf(stderr,
-          "usage: %s -i matspec [-o|-u] DICOM_dir [-m DICOM_Transfer_dir]\n", pgm);
-  fprintf(stderr,
-          "\t-o convert an ECAT file in DICOM files in the specified directory.\n");
-  fprintf(stderr,
-          "\t   It is limited to ECAT files converted from DICOM using DICOM2ecat\n");
-  fprintf(stderr,
-          "\t-u Use an ECAT file to update DICOM files in the specified directory.\n");
-  fprintf(stderr,
-          "\t-m Move updated DICOM files in the specified directory.\n");
+  LOG_ERROR( "%s Build %s %s\n", pgm,  __DATE__, __TIME__);
+  LOG_ERROR(          "usage: %s -i matspec [-o|-u] DICOM_dir [-m DICOM_Transfer_dir]\n", pgm);
+  LOG_ERROR(          "\t-o convert an ECAT file in DICOM files in the specified directory.\n");
+  LOG_ERROR(          "\t   It is limited to ECAT files converted from DICOM using DICOM2ecat\n");
+  LOG_ERROR(          "\t-u Use an ECAT file to update DICOM files in the specified directory.\n");
+  LOG_ERROR(          "\t-m Move updated DICOM files in the specified directory.\n");
   exit(1);
 }
 #define Z_MAX 9e+10
 #define eps 0.00001
 #define MAX_SERIES_DESC_LEN 6
 
-typedef struct _Tslice
-{
+typedef struct _Tslice {
   char fname[256];
   char study_id[68];
   char modality[20];
@@ -105,7 +101,7 @@ static int is_dir(const char *path)
 {
   struct stat st;
   if (stat(path, &st) < 0) {
-    perror(path);
+    LOG_ERROR(path);
     return 0;
   }
 #ifdef unix
@@ -129,12 +125,12 @@ static int get_string(int a, int b, char* data, unsigned data_len)
     unsigned len = (data_len - 1) > dcm_elem.len ? dcm_elem.len : (data_len - 1);
     memcpy(data, dcm_buf + dcm_elem.offset, data_len);
     if (len > 0) data[len] = '\0';
-    if (verbose) fprintf(stderr, "Element (%x,%x) %s\n", a, b, data);
+    if (verbose) LOG_ERROR( "Element (%x,%x) %s\n", a, b, data);
     DICOM_blank(data);
-    if (verbose) fprintf(stderr, "Element (%x,%x) %s\n", a, b, data);
+    if (verbose) LOG_ERROR( "Element (%x,%x) %s\n", a, b, data);
     return 1;
   }
-  if (verbose) fprintf(stderr, "Element (%x,%x) not found\n", a, b);
+  if (verbose) LOG_ERROR( "Element (%x,%x) not found\n", a, b);
   return 0;
 }
 
@@ -145,10 +141,10 @@ static int set_string(int a, int b, const char* data, unsigned data_len)
     memset(dcm_buf + dcm_elem.offset, 0, dcm_elem.len);
     unsigned len = (data_len > dcm_elem.len) ? dcm_elem.len : data_len;
     if (len > 0) memcpy(dcm_buf + dcm_elem.offset, data, len);
-    if (verbose) fprintf(stderr, "Element (%x,%x) %s\n", a, b, data);
+    if (verbose) LOG_ERROR( "Element (%x,%x) %s\n", a, b, data);
     return 1;
   }
-  if (verbose) fprintf(stderr, "Element (%x,%x) not found\n", a, b);
+  if (verbose) LOG_ERROR( "Element (%x,%x) not found\n", a, b);
   return 0;
 }
 
@@ -158,7 +154,7 @@ static int get_int32(int a, int b, int* value)
     *value = *((int*)dcm_buf + dcm_elem.offset);
     return 1;
   }
-  if (verbose) fprintf(stderr, "Element (%x,%x)not found\n", a, b);
+  if (verbose) LOG_ERROR( "Element (%x,%x)not found\n", a, b);
   return 0;
 }
 
@@ -168,7 +164,7 @@ static int set_int32(int a, int b, int value)
     *((int*)dcm_buf + dcm_elem.offset) = value;
     return 1;
   }
-  if (verbose) fprintf(stderr, "Element (%x,%x)not found\n", a, b);
+  if (verbose) LOG_ERROR( "Element (%x,%x)not found\n", a, b);
   return 0;
 }
 
@@ -179,7 +175,7 @@ static int get_int16(int a, int b, short* value)
     *value = *((short*)dcm_buf + dcm_elem.offset);
     return 1;
   }
-  if (verbose) fprintf(stderr, "Element (%x,%x)not found\n", a, b);
+  if (verbose) LOG_ERROR( "Element (%x,%x)not found\n", a, b);
   return 0;
 }
 
@@ -189,7 +185,7 @@ static int set_int16(int a, int b, short value)
     *((short*)dcm_buf + dcm_elem.offset) = value;
     return 1;
   }
-  if (verbose) fprintf(stderr, "Element (%x,%x)not found\n", a, b);
+  if (verbose) LOG_ERROR( "Element (%x,%x)not found\n", a, b);
   return 0;
 }
 
@@ -208,13 +204,13 @@ static int get_imagedata(Tslice* slice, void *data)
   image_size = pixel_bytes * slice->columns * slice->rows;
   if (DICOM_get_elem(0x7FE0, 0x0010, dcm_map, dcm_elem)) {
     if (dcm_elem.len < image_size) {
-      fprintf(stderr, "Truncated data\n");
+      LOG_ERROR( "Truncated data\n");
       return 0;
     }
     memcpy(data, dcm_buf + dcm_elem.offset, image_size);
     return dcm_elem.offset;
   }
-  if (verbose) fprintf(stderr, "Image element (0x7FE0,0x0010)not found\n");
+  if (verbose) LOG_ERROR( "Image element (0x7FE0,0x0010)not found\n");
   return 0;
 }
 
@@ -239,7 +235,7 @@ static int add_slice(const char * fname, int serie_id, Tslices &slices)
   if (slice.bits_allocated < 0 || slice.bits_allocated > 16)
   {
     if (verbose)
-      fprintf(stderr,
+      LOG_ERROR(
               "%s Error:unsupported number of bits per pixel %d\n",
               fname, slice.bits_allocated);
     return 0;
@@ -248,20 +244,20 @@ static int add_slice(const char * fname, int serie_id, Tslices &slices)
   if (slice.bits_stored < 0 || slice.bits_stored > 16)
   {
     if (verbose)
-      fprintf(stderr,
+      LOG_ERROR(
               "%s Error:unsupported number of bits per pixel %d\n",
               fname, slice.bits_stored);
     return 0;
   }
   slice.rescale_slope = 1.0;
-  /* fprintf(stderr,"modality %s\n",slice.modality); */
+  /* LOG_ERROR("modality %s\n",slice.modality); */
   if (strncmp(slice.modality, "CT", 2) == 0)
   {
     if (get_string(0x0028, 0x1052, str, sizeof(str)))
       sscanf(str, "%g", &slice.rescale_intercept);
     if (get_string(0x0028, 0x1053, str, sizeof(str)))
       sscanf(str, "%g", &slice.rescale_slope);
-    /* fprintf(stderr,"rescale_intercept %g rescale_slope %g\n"
+    /* LOG_ERROR("rescale_intercept %g rescale_slope %g\n"
               ,slice.rescale_intercept,slice.rescale_slope); */
   }
   if (get_string(0x0020, 0x0012, str, sizeof(str)))
@@ -271,7 +267,7 @@ static int add_slice(const char * fname, int serie_id, Tslices &slices)
   get_string(0x0018, 0x0050, str, sizeof(str));
   if (sscanf(str, "%g", &slice.thickness) != 1)
     if (verbose)
-      fprintf(stderr,
+      LOG_ERROR(
               "%s Warning:can't find slice thickness\n", fname);
   if (get_string(0x0020, 0x1041, str, sizeof(str)) &&
       sscanf(str, "%g", &slice.location) == 1)
@@ -290,7 +286,7 @@ static int add_slice(const char * fname, int serie_id, Tslices &slices)
     else
     {
       if (verbose)
-        fprintf(stderr,
+        LOG_ERROR(
                 "%s Warning:can't find slice location (%s)\n", fname, str);
     }
   }
@@ -310,7 +306,7 @@ static int split_dir(const char *path, int serie_id, Tslices &slices) {
   }
   dir = opendir(path);
   if (dir == NULL) {
-    perror(path);
+    LOG_ERROR(path);
     return 0;
   }
   while ( (item = readdir(dir)) != NULL) {
@@ -437,13 +433,13 @@ static int  update_dicom_slice(ecat_matrix::Main_header *mh, ecat_matrix::Image_
   {
     sprintf(new_full_path, "%s\\%s%s", transfer_dir, new_fname, ext);
     if ((fp = fopen(new_full_path, "wb")) == NULL) {
-      perror(new_full_path);
+      LOG_ERROR(new_full_path);
       return 0;
     }
     count = fwrite(dcm_buf, 1, dcm_buf_size, fp);
     if (count != dcm_buf_size) {
-      if (count < 0) perror(new_full_path);
-      else fprintf(stderr, "Write fail : only %d of %d  bytes\n",
+      if (count < 0) LOG_ERROR(new_full_path);
+      else LOG_ERROR( "Write fail : only %d of %d  bytes\n",
                      count, dcm_buf_size);
     }
     fclose(fp);
@@ -453,13 +449,13 @@ static int  update_dicom_slice(ecat_matrix::Main_header *mh, ecat_matrix::Image_
   else
   {
     if ((fp = fopen(slice.fname, "wb")) == NULL) {
-      perror(slice.fname);
+      LOG_ERROR(slice.fname);
       return 0;
     }
     count = fwrite(dcm_buf, 1, dcm_buf_size, fp);
     if (count != dcm_buf_size) {
-      if (count < 0) perror(slice.fname);
-      else fprintf(stderr, "Write fail : only %d of %d  bytes\n",
+      if (count < 0) LOG_ERROR(slice.fname);
+      else LOG_ERROR( "Write fail : only %d of %d  bytes\n",
                      count, dcm_buf_size);
     }
     fclose(fp);
@@ -487,24 +483,22 @@ static int ecat2DICOM(ecat_matrix::MatrixData *matrix, char *out_dir, const char
 
   imh = (ecat_matrix::Image_subheader*)matrix->shptr;
   if (strncmp(imh->annotation, "DICOM", 6) != 0) {
-    printf("ERROR: ecat_matrix::Image_subheader annotation is not DICOM but %s\n", imh->annotation);
-    /* return 0; */
+    LOG_ERROR("annotation is not DICOM but {}", imh->annotation);
   }
   if (access(out_dir, F_OK) < 0)
-    ecat_matrix::crash("First create %s directory\n", out_dir);
+    LOG_EXIT("First create {} directory", out_dir);
 
   sprintf(image_id, "%d.%d", frame, plane);
   sprintf(fname, "%s/%s_%s", out_dir, prefix, image_id);
-  printf("image_id %s, fname %s\n", image_id, fname);
-  if ((fp = fopen(fname, W_MODE)) == NULL)
-  {
-    perror(fname);
+  LOG_INFO("image_id {}, fname {}", image_id, fname);
+  if ((fp = fopen(fname, W_MODE)) == NULL)  {
+    LOG_ERROR(fname);
     return 0;
   }
   data_size = matrix->xdim * matrix->ydim;
   switch (matrix->data_type) {
   default :
-    ecat_matrix::crash("unsupported matrix type : %d", matrix->data_type);
+    LOG_EXIT("unsupported matrix type : {}", matrix->data_type);
     break;
   case ecat_matrix::MatrixDataType::ByteData :
     break;
@@ -519,7 +513,8 @@ static int ecat2DICOM(ecat_matrix::MatrixData *matrix, char *out_dir, const char
   p = (unsigned char *)(header + header_size - 1);
   for (; header_size > 0; header_size--, p--)
     if (*p == 0xff) break;
-  if (header_size == 0) ecat_matrix::crash("no DICOM header found\n");
+  if (header_size == 0) 
+    LOG_EXIT("no DICOM header found\n");
   header_size--;
   fwrite(header, 1, header_size, fp);
   if (ntohs(1) == 1 && matrix->data_type != ecat_matrix::MatrixDataType::ByteData)
@@ -551,40 +546,32 @@ static int updateDICOM(ecat_matrix::Main_header *mh, ecat_matrix::Image_subheade
     while (!isalpha(*file_descr) && *file_descr != '\0') file_descr++;
     if (*file_descr == '\0') file_descr = NULL;
   }
-  printf("file_descr = %s\n", file_descr);
-  if (file_descr != NULL)
-  {
+  LOG_INFO("file_descr = {}", file_descr);
+  if (file_descr != NULL)  {
     if (strlen(file_descr) > MAX_SERIES_DESC_LEN)
       file_descr += strlen(file_descr) - MAX_SERIES_DESC_LEN;
     strcpy(series_descr, file_descr);
   }
   else strcpy(series_descr, def_series_descr);
-  printf("                        Series Description: %s\n", series_descr);
-  printf("Enter new Series Description (max %d char): ", MAX_SERIES_DESC_LEN);
+  LOG_INFO("                        Series Description: {}", series_descr);
+  LOG_INFO("Enter new Series Description (max {} char): ", MAX_SERIES_DESC_LEN);
   fgets(txt, sizeof(txt) - 1, stdin);
-  if (strlen(txt) > 0) strcpy(series_descr, txt);
+  if (strlen(txt) > 0) 
+    strcpy(series_descr, txt);
 
   for (i = slices.begin(); i != slices.end(); i++)
-    printf("%s %d %g\n", i->second.fname, i->second.number, i->second.location);
-  if (slices.size() != imh->z_dimension)
-  {
-    ecat_matrix::crash("Error: ECAT number of slices(%d) and number of dicom files(%d)"
-          "are different\n", imh->z_dimension, slices.size());
+    LOG_INFO("%s %d %g\n", i->second.fname, i->second.number, i->second.location);
+  if (slices.size() != imh->z_dimension)  {
+    LOG_EXIT("ECAT slices {} and dicom files {} are different", imh->z_dimension, slices.size());
   }
-  for (i = slices.begin(); i != slices.end(); i++)
-  {
+  for (i = slices.begin(); i != slices.end(); i++) {
     i->second.serie_id = series_id; // same series id for all slices
     update_dicom_slice(mh, imh, i->second, transfer_dir, prefix, series_descr);
   }
   return (int)(slices.size());
 }
 
-void main(int argc, char **argv)
-{
-  ecat_matrix::MatDirNode *node;
-  ecat_matrix::MatrixFile *mptr;
-  ecat_matrix::MatrixData *matrix;
-  ecat_matrix::MatVal mat;
+void main(int argc, char **argv) {
   char in_fname[FILENAME_MAX];
   char drive[_MAX_DRIVE];
   char dir[_MAX_DIR];
@@ -598,6 +585,8 @@ void main(int argc, char **argv)
   struct tm *tm;
   unsigned series_id;
   extern char *optarg;
+
+  my_spdlog::init_logging(argv[0]);
 
   while ((c = getopt (argc, argv, "i:o:u:m:v")) != EOF)
   {
@@ -621,37 +610,35 @@ void main(int argc, char **argv)
   }
   if (in_spec == NULL || (out_dir == NULL && update_dir == NULL)) usage(argv[0]);
   matspec( in_spec, in_fname, &matnum);
-  mptr = matrix_open(in_fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
-  if (mptr == NULL)
-  {
-    matrix_perror(in_fname);
-    exit(0);
+    ecat_matrix::MatrixFile *mptr = matrix_open(in_fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
+  if (mptr == NULL)  {
+    LOG_EXIT(in_fname);
   }
   ecat_matrix::DataSetType ftype = mptr->mhptr->file_type;
-  printf("ftype is %d\n", ftype);
+  LOG_INFO("ftype is {}", ftype);
   if (ftype != ecat_matrix::DataSetType::PetImage && ftype != ecat_matrix::DataSetType::PetVolume) {
-    ecat_matrix::crash("%s : is not a ecat_matrix::DataSetType::PetImage file\n", in_fname);
+    LOG_EXIT("{} : is not a ecat_matrix::DataSetType::PetImage file", in_fname);
   }
 
   if (matnum != 0) {
     matnums.push_back(matnum);
   } else {
-    node = mptr->dirlist->first;
+      ecat_matrix::MatDirNode *node = mptr->dirlist->first;
     while (node) {
       matnums.push_back(node->matnum);
       node = node->next;
     }
   }
 
+  ecat_matrix::MatrixData *matrix;
+  ecat_matrix::MatVal mat;
   for (unsigned i = 0; i < matnums.size(); i++) {
     mat_numdoc(matnums[i], &mat);
     matrix = matrix_read(mptr, matnums[i], UnknownMatDataType);
     if (matrix == NULL) {
-      ecat_matrix::crash("%d,%d,%d,%d,%d not found\n",
-            mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
+      LOG_EXIT("{},{},{},{},{} not found", mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
     } else {
-      printf("processing %d,%d,%d,%d,%d \n",  mat.frame,
-             mat.plane, mat.gate, mat.data, mat.bed);
+      LOG_INFO("processing {},{},{},{},{}", mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
     }
     _splitpath(in_fname, drive, dir, prefix, ext);
     time(&t);
@@ -660,19 +647,15 @@ void main(int argc, char **argv)
     // or filtering using time minutes and seconds
     series_id = tm->tm_sec * 60 + tm->tm_sec + 1; // make sure it is positive
     if (update_dir != NULL) {
-      printf("up to here 0\n");
       if (!updateDICOM(mptr->mhptr, (ecat_matrix::Image_subheader*)matrix->shptr, update_dir,
                        dest_dir, prefix, series_id))
-        ecat_matrix::crash("%s,%d,%d has not been generated by %s\n",
-              in_fname, mat.frame, mat.plane, argv[0]);
+        LOG_EXIT("{}, {}, {} has not been generated by {}", in_fname, mat.frame, mat.plane, argv[0]);
       // delete directory if files moved to dest dir
       if (dest_dir != NULL)
         unlink(update_dir);
     } else {
-      printf("up to here 1\n");
       if (!ecat2DICOM(matrix, out_dir, prefix, mat.frame, mat.plane))
-        ecat_matrix::crash("%s,%d,%d has not been generated by %s\n",
-              in_fname, mat.frame, mat.plane, argv[0]);
+        LOG_EXIT("{},{},{} has not been generated by {}", in_fname, mat.frame, mat.plane, argv[0]);
     }
   }
   matrix_close(mptr);

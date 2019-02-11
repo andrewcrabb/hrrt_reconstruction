@@ -189,6 +189,8 @@
 #include <fcntl.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include "my_spdlog.hpp"
+
 // O_DIRECT defined here because not found otherwise CM + MS
 // #define O_DIRECT         040000 /* direct disk access hint */	
 #define		DIR_SEPARATOR '/'
@@ -1789,7 +1791,7 @@ void prepare_osem3dw3(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
 
   // if (verbose & 0x0020)
   if (!chFlag) {
-    fprintf(stderr,"  Read delayed \n");
+    LOG_ERROR("  Read delayed \n");
     for (theta=0;theta<th_pixels;theta++){
       if ( !read_flat_float_proj_ori_theta(dsinofp, &tmp_prj1[0][0][0],  theta, 0.0f))        
         crash3("  Prepare_osem3dw3: error reading delayed at theta  =%d !\n ", theta);
@@ -1801,7 +1803,7 @@ void prepare_osem3dw3(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
       }
     }
   } else { // compute random smoothing from .ch file into largeprj3
-    fprintf(stderr,"computing smooth randoms from %s to memory and scan duration %g\n", 
+    LOG_ERROR("computing smooth randoms from %s to memory and scan duration %g\n", 
             delayed_file, scan_duration);
     gen_delays(2, scan_duration, largeprj3, dsinofp, NULL,
                osem3dpar->span, osem3dpar->maxdel,
@@ -1838,7 +1840,7 @@ void prepare_osem3dw3(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
   //    d(t)*N(t)+s(t)
   if (sFlag==1) {
     float *sc2d=NULL, *scale_factors=NULL;
-    if (verbose & 0x0020) fprintf(stderr,"  Add scatter (assumed normalized) \n");
+    if (verbose & 0x0020) LOG_ERROR("  Add scatter (assumed normalized) \n");
  
     if (s2DFlag) { // pre-load unscaled scatter and scale factors
       sc2d = (float*)calloc(xr_pixels*views*z_pixels, sizeof(float));
@@ -1866,7 +1868,7 @@ void prepare_osem3dw3(int nFlag,int noattenFlag,int tFlag,int floatFlag,int sFla
   }
 
   //     (d(t)*N(t)+s(t))*A(t)
-  if (verbose & 0x0020) fprintf(stderr,"  Multiply result by attenuation\n");
+  if (verbose & 0x0020) LOG_ERROR("  Multiply result by attenuation\n");
   switch (attenType)
     {
     case Atten3D:
@@ -2032,7 +2034,7 @@ FUNCPTR pt_osem3d_proj_thread1(void *ptarg)
       update_estimate_w012(arg->prj,arg->volumeprj,segmentsize*2,xr_pixels,1);
     }	        
     if ((weighting == 3 || weighting==8)) {  
-      // fprintf(stderr, "*** ahc pt_osem3d_proj_thread1: weight '%d' prj '%x' prjshort '%x' prjfloat '%x'\n", weighting, arg->volumeprj, arg->volumeprjshort, arg->volumeprjfloat);
+      // LOG_ERROR( "*** ahc pt_osem3d_proj_thread1: weight '%d' prj '%x' prjshort '%x' prjfloat '%x'\n", weighting, arg->volumeprj, arg->volumeprjshort, arg->volumeprjfloat);
     if (floatFlag==0)
         update_estimate_w3(arg->prj,arg->volumeprj,arg->volumeprjshort,arg->volumeprjfloat,segmentsize*2,xr_pixels,1);
       if (floatFlag==1)
@@ -2675,7 +2677,7 @@ void update_estimate_w3(float **estimate,float **prj,short **prjshort,float **pr
 
   inc=nplanes/nthreads;
   for (thr=0;thr<nthreads;thr++){
-    // fprintf(stderr, "*** ahc update_estimate_w3: thr '%d', prj '%d' prjshort '%d' prjfloat '%d'\n", thr, prj, prjshort, prjfloat);
+    // LOG_ERROR( "*** ahc update_estimate_w3: thr '%d', prj '%d' prjshort '%d' prjfloat '%d'\n", thr, prj, prjshort, prjfloat);
     updatestruct[thr].est=estimate;
     updatestruct[thr].prj=prj;
     updatestruct[thr].prjshort=prjshort;
@@ -2701,7 +2703,7 @@ void alloc_tmprprj1()
 {
   tmp_prj1  = (float ***) matrix3dm128(0,yr_pixels-1,0,views-1,0,xr_pixels/4-1); // for one theta.
   if (tmp_prj1==NULL){
-    fprintf(stderr,"  Error allocating tmpprj1\n");
+    LOG_ERROR("  Error allocating tmpprj1\n");
     exit(1);
   }
   if (verbose & 0x0040) fprintf(stdout,"  Allocate tmp_prj1        :  %d kbytes\n",(yr_pixels*views*xr_pixels/4)/256);
@@ -2711,7 +2713,7 @@ void alloc_tmprprj2()
 {
   tmp_prj2  = (float ***) matrix3dm128(0,yr_pixels-1,0,views-1,0,xr_pixels/4-1); // for one theta.
   if (tmp_prj2==NULL){
-    fprintf(stderr,"  Error allocating tmpprj2\n"); 
+    LOG_ERROR("  Error allocating tmpprj2\n"); 
     exit(1);
   }
   if (verbose & 0x0040) fprintf(stdout,"  Allocate tmp_prj2         : %d kbytes\n",(yr_pixels*views*xr_pixels/4)/256);
@@ -3505,7 +3507,7 @@ void GetParameter(int argc,char **argv)
     strcpy(out_img_file, osem3dpar->out_img_file);
   }
   if (!strlen(rebinner_lut_file)) {
-    fprintf(stderr, "Error: Rebinner LUT file required\n");
+    LOG_ERROR( "Error: Rebinner LUT file required\n");
     usage();
     exit(1);
   }
@@ -3612,7 +3614,7 @@ void GetScannerParameter()
     model_info=(ScannerModel *) malloc(sizeof(ScannerModel));
     tmpfp=fopen(imodeldefname,"rt");
     if (tmpfp==NULL){
-      fprintf(stderr,"Error open %s, iModel=0, please try again with right scanner definition file\n",imodeldefname);
+      LOG_ERROR("Error open %s, iModel=0, please try again with right scanner definition file\n",imodeldefname);
       exit(1);
     }
 
@@ -4478,7 +4480,7 @@ void CalculateOsem3d(int frame)
          {	strcpy( iter_file,out_img_file);
          sprintf(buf,"_it%d_subset%d.v",(iter+1), (i+1) );
          strcpy(iter_file+strlen(iter_file)-2,buf);
-         fprintf(stderr,"  Image will be saved in %s \n", iter_file);
+         LOG_ERROR("  Image will be saved in %s \n", iter_file);
          } */
 	  
 
@@ -4512,14 +4514,14 @@ void CalculateOsem3d(int frame)
           bparg[thr].imagebuf=imagexyzf_thread[thr];
           bparg[thr].prjbuf=prjxyf_thread[thr];
           bparg[thr].volumeprj=largeprj[view];
-          // fprintf(stderr, "*** ahc CalculateOsem3d: thr '%d', bparg[thr].volumeprj '%x'\n", thr, bparg[thr].volumeprj);
+          // LOG_ERROR( "*** ahc CalculateOsem3d: thr '%d', bparg[thr].volumeprj '%x'\n", thr, bparg[thr].volumeprj);
             
           if (pFlag && (weighting == 3 || weighting==8) && floatFlag==0) {
             bparg[thr].volumeprjshort=largeprjshort[view];
-            // fprintf(stderr, "*** ahc CalculateOsem3d: thr '%d', bparg[thr].volumeprjshort '%x'\n", thr, bparg[thr].volumeprjshort);
+            // LOG_ERROR( "*** ahc CalculateOsem3d: thr '%d', bparg[thr].volumeprjshort '%x'\n", thr, bparg[thr].volumeprjshort);
           } else if (pFlag && (weighting == 3 || weighting==8) && floatFlag==1) {
             bparg[thr].volumeprjfloat=largeprjfloat[view];
-            // fprintf(stderr, "*** ahc CalculateOsem3d: thr '%d', bparg[thr].volumeprjfloat '%x'\n", thr, bparg[thr].volumeprjfloat);
+            // LOG_ERROR( "*** ahc CalculateOsem3d: thr '%d', bparg[thr].volumeprjfloat '%x'\n", thr, bparg[thr].volumeprjfloat);
           }
           bparg[thr].weighting=weighting;
           
@@ -4544,7 +4546,7 @@ void CalculateOsem3d(int frame)
           if (weighting ==0 || weighting ==1 || weighting ==2 || weighting ==5 || weighting ==6 || weighting ==7 ) { 
             update_estimate_w012(estimate_thread[0],largeprj[view],segmentsize*2,xr_pixels,nthreads);
           }  else if (pFlag && (weighting == 3 || weighting==8)) {  
-            // fprintf(stderr, "*** ahc CalculateOsem3d: weight '%d' prj '%d' prjshort '%d' prjfloat '%d'\n", weighting, largeprj[view],largeprjshort[view],NULL);
+            // LOG_ERROR( "*** ahc CalculateOsem3d: weight '%d' prj '%d' prjshort '%d' prjfloat '%d'\n", weighting, largeprj[view],largeprjshort[view],NULL);
       if (floatFlag==0)
               update_estimate_w3(estimate_thread[0],largeprj[view],largeprjshort[view],NULL,segmentsize*2,xr_pixels,nthreads);
             else if (floatFlag==1)
@@ -4642,7 +4644,7 @@ void CalculateOsem3d(int frame)
       }
       ccomm=clock();
 
-      if (count != 0) if (verbose & 0x0008) fprintf(stderr,"  Number of truncated pixels for subset (%d) = %d\n",i,count);
+      if (count != 0) if (verbose & 0x0008) LOG_ERROR("  Number of truncated pixels for subset (%d) = %d\n",i,count);
       if (verbose & 0x0008) fprintf(stdout," Reconstructing isubset = %1d/%1d in %1.2fs.\n",
                                     isubset, subsets, 1.0 * ( clock () - ClockNormfacTheta  ) / CLOCKS_PER_SEC );  
       //			goto inki_temp;

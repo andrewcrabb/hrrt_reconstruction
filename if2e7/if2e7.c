@@ -17,6 +17,7 @@
 #include <string.h>
 #include <time.h>
 #include <sys/stat.h>
+#include "my_spdlog.hpp"
 
 #include <unistd.h>
 #include "splitpath.h"
@@ -442,21 +443,6 @@ void usage(char *cmd)
  */
 
 
-///////////////////////////////////////////////////////////////////////////////
-void Logging(char *logMessage)
-/* 
-This function writes log messages to stdout and/or logfile.
-*/
-{
-  if ((int)strlen(logFileName) > 0) {
-    fprintf(logFile, logMessage); 
-    fflush(logFile);
-  }
-  if (verboseMode == 1) {
-    printf(logMessage);
-    fflush(stdout);
-  }
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 void RemoveCRfromEndOfString(char *stringToEdit)
@@ -763,7 +749,7 @@ static int copyFile(char *in_fname, char *dest_dir, ecat_matrix::Main_header *mh
     if (isalnum(*p)) 
       len++;
   if (len == 0) {
-    fprintf(stderr, "Error creating patient directory: Invalid patient name");
+    LOG_ERROR( "Error creating patient directory: Invalid patient name");
     return 0; 
   }
 
@@ -808,18 +794,18 @@ static int copyFile(char *in_fname, char *dest_dir, ecat_matrix::Main_header *mh
 
       while (retOK && fread(buf, MatBLKSIZE, 1, in) == 1) {
         if (fwrite(buf, MatBLKSIZE, 1, out) != 1) {
-          perror(path);
+          LOG_ERROR(path);
           retOK = 0;
         }
       }
       fclose(out);
     } else {
-      perror(path);
+      LOG_ERROR(path);
       retOK = 0;
     }
     fclose(in);
   } else {
-    perror(in_fname);
+    LOG_ERROR(in_fname);
     retOK = 0;
   }
   return retOK;
@@ -837,7 +823,7 @@ static int read_sensitivity(const char *fname, float **pSliceSensitivity,
   int sliceSensDim=0;
 
           if ((sliceSensFile = fopen(fname, "r")) == NULL) {
-          fprintf(stderr, "ERROR opening slice sensitivity file %s.\n", fname);
+          LOG_ERROR( "ERROR opening slice sensitivity file %s.\n", fname);
           return 1;
         }
                                      /* look for highest plane number in file */
@@ -869,14 +855,14 @@ static int read_sensitivity(const char *fname, float **pSliceSensitivity,
         } //while fread
 
         if (sliceSensDim == 0) {
-          fprintf(stderr, "ERROR: no slice sensitivity values found in %s\n", fname);
+          LOG_ERROR( "ERROR: no slice sensitivity values found in %s\n", fname);
           return 1;
         }
 
 	     /* enumeration in calibration header starts from 0 --> increment */
         sliceSensDim++;
-        sprintf(logMsg, "  Number of slice sensitivity factors is %i\n", sliceSensDim);
-        Logging(logMsg);
+        LOG_DEBUG( "  Number of slice sensitivity factors is {}", sliceSensDim);
+
 	                   /* allocate memory for sliceSensitivity (i slices) */
         sliceSensitivity = (float*)calloc(sliceSensDim, sizeof (float));
         for (i=0;i<sliceSensDim;i++) sliceSensitivity[i] = 1.0; /* initialize */
@@ -901,18 +887,16 @@ static int read_sensitivity(const char *fname, float **pSliceSensitivity,
             split_line(line, keyword, value);
             if (!memcmp(keyword, "calibration factor", 17) && calibFactor == 0) { 
               calibFactor = (float)atof(value);
-              sprintf(logMsg, "  calibration factor %g found - assuming it's in (Bq/ml)/(counts/s)\n", calibFactor);
-              Logging(logMsg);
+              LOG_INFO("  calibration factor {} found - assuming it's in (Bq/ml)/(counts/s)", calibFactor);
             } 
             else if (!strncmp(keyword, "calibration unit", 15)) {
-              sprintf(logMsg, "  %s := %s found - not used\n", keyword, value);
-              Logging(logMsg);
+              LOG_INFO("  {} := {} found - not used", keyword, value);
             }
             else if (!strncmp(keyword, "efficient factor for plane ", 27)) {
               buffer[0]='\0';
               strncat(buffer, &keyword[27], 4);    /* put plane nr in buffer */
               if (atoi(buffer) > sliceSensDim) {
-                fprintf(stderr, "ERROR: slice number is %i but should be <= %i ?"
+                LOG_ERROR( "ERROR: slice number is %i but should be <= %i ?"
                               "!? Check %s file\n\n", atoi(buffer), sliceSensDim, fname);
                 fclose(sliceSensFile);
                 return 1;
@@ -922,8 +906,6 @@ static int read_sensitivity(const char *fname, float **pSliceSensitivity,
           } // else
         } // while fread
         fclose(sliceSensFile);
-	  //          Logging("    Slice sensitivity file read...\n");
-
    *pSliceSensitivity = sliceSensitivity; 
    return sliceSensDim;
 }
@@ -1103,17 +1085,14 @@ int main(int argc, char *argv[])
           argc--;
           argv++;
         }
-        sprintf(logMsg, "image will be anonymised. Patient Name in header will be %s \n", 
-                  anonymousName);
-        Logging(logMsg);
+        LOG_INFO("image will be anonymised. Patient Name in header will be %s \n",                   anonymousName);
         break;
 
       case 'c':
         calibFactor = (float)atof(*(argv+1));
         argc--;
         argv++;
-        sprintf(logMsg, "Calibration Factor: %g\n", calibFactor);
-        Logging(logMsg);
+        LOG_INFO("Calibration Factor: %g\n", calibFactor);
         break;
 
       case 'd':
@@ -1122,16 +1101,14 @@ int main(int argc, char *argv[])
         scanStartYear = atoi(*(argv+3));
         argc = argc - 3;
         argv = argv + 3;
-        sprintf(logMsg, "Scan Start Time: %i.%i.%i\n", scanStartDay, scanStartMonth, scanStartYear);
-        Logging(logMsg);
+        LOG_INFO("Scan Start Time: %i.%i.%i\n", scanStartDay, scanStartMonth, scanStartYear);
         break;
 
       case 'e':
         deadtimeExponent = atof(*(argv+1));
         argc--;
         argv++;
-        sprintf(logMsg, "deadtimeExponent: %f\n", deadtimeExponent);
-        Logging(logMsg);
+        LOG_INFO("deadtimeExponent: %f\n", deadtimeExponent);
         break;
 
       case 'D':
@@ -1167,7 +1144,7 @@ int main(int argc, char *argv[])
           if (!memcmp(&frameInfo[i], ", ", 1)) {           /* if char is a comma */
             i++; j++; k=0;
             if (j >= frameDurDim) {
-              fprintf(stderr, "ERROR: nubmer of frames is %li but should be <= %i.\n", j, frameDurDim);
+              LOG_ERROR( "ERROR: nubmer of frames is %li but should be <= %i.\n", j, frameDurDim);
               return 1;
             }
             frameDuration[j] = atoi(buffer);           /* Frame duration in s */
@@ -1178,32 +1155,27 @@ int main(int argc, char *argv[])
           k++;
           i++;
         }
-        sprintf(logMsg, "%li frames. Frame duration (in s): %li", j, frameDuration[1]);
+        LOG_INFO("%li frames. Frame duration (in s): %li", j, frameDuration[1]);
         for (i=2;i<frameDurDim;i++) {
           sprintf(str, ", %li", frameDuration[i]);
           strcat(logMsg, str);
         }
-        strcat(logMsg, "\n");
-        Logging(logMsg);
+        LOG_INFO(logMsg);
         break;
 
       case 'g':
         gsmooth_width = atoi(*(argv+1));
         argc--;
         argv++;
-        sprintf(logMsg, "gsmooth width (default 0): %d\n", gsmooth_width);
-        Logging(logMsg);
+        LOG_INFO("gsmooth width (default 0): %d\n", gsmooth_width);
       break;
 
       case 'i':
-        if ( (isotope_info = get_isotope_info(argv[1])) == NULL)
-          {
-            fprintf(stderr, "ERROR: illegal isotope name: -i %s\n\n", argv[1]);
+        if ( (isotope_info = get_isotope_info(argv[1])) == NULL)          {
+            LOG_ERROR( "ERROR: illegal isotope name: -i %s\n\n", argv[1]);
             return 1;
           }
-        sprintf(logMsg, "isotope name: %s; isotope halflife: %g sec\n", 
-              isotope_info->name, isotope_info->halflife);
-        Logging(logMsg);
+        LOG_INFO("isotope name: {}; isotope halflife: {} sec",               isotope_info->name, isotope_info->halflife);
         argc--;
         argv++;
        break;
@@ -1217,7 +1189,7 @@ int main(int argc, char *argv[])
         argc--;
         argv++;
         if ((logFile = fopen(logFileName, "w")) == NULL) {
-          fprintf(stderr, "ERROR opening logfile %s.\n", logFileName);
+          LOG_ERROR( "ERROR opening logfile %s.\n", logFileName);
           if (verboseMode == 1) {
             printf("No logfile will be created.\n");
           }
@@ -1232,7 +1204,7 @@ int main(int argc, char *argv[])
         break;
       case 'm':
         multPixWithCalibFactor = 1;
-        Logging("pixel values will be multiplied with the calibration factor \n");
+        LOG_INFO("pixel values will be multiplied with the calibration factor");
         break;
 
       case 'o':
@@ -1253,15 +1225,14 @@ int main(int argc, char *argv[])
         pixelMax = (float)atof(*(argv+1));
         argc--;
         argv++;
-        sprintf(logMsg, "Maximum pixel value: %g\n", pixelMax);
-        Logging(logMsg);
+        LOG_INFO("Maximum pixel value: %g\n", pixelMax);
       break;
 
       case 'r':
         startPlane = atoi(*(argv+1));
         endPlane = atoi(*(argv+2));
         if (startPlane > endPlane || startPlane < 0) {
-          fprintf(stderr, "ERROR: condition 0 <= startPlane (%i) <= endPlane (%i) violated\n\n", startPlane, endPlane);
+          LOG_ERROR( "ERROR: condition 0 <= startPlane (%i) <= endPlane (%i) violated\n\n", startPlane, endPlane);
           return 1;
         }
         argc = argc - 2;
@@ -1272,8 +1243,7 @@ int main(int argc, char *argv[])
         strncpy(fname, *(argv+1), 160);
         argc--;
         argv++;
-        sprintf(logMsg, "reading calib header %s\n", fname);
-        Logging(logMsg);
+        LOG_INFO("reading calib header {}", fname);
         sliceSensDim = read_sensitivity(fname, &sliceSensitivity, buffer, line, keyword, value);
         break;
 
@@ -1281,8 +1251,7 @@ int main(int argc, char *argv[])
         calibDir = strdup(*(argv+1));
         argc--;
         argv++;
-        sprintf(logMsg, "calibration/sensitivity directory: %s\n", calibDir);
-        Logging(logMsg);
+        LOG_INFO("calibration/sensitivity directory: {}", calibDir);
         break;
 
 
@@ -1291,7 +1260,7 @@ int main(int argc, char *argv[])
         argc--;
         argv++;
         if (strcmp(scannerModel, "HRRT")) {
-          fprintf(stderr, "ERROR: illegal scanner model: -t %s\n\n", scannerModel);
+          LOG_ERROR( "ERROR: illegal scanner model: -t %s\n\n", scannerModel);
           return 1;
         }
         break;
@@ -1307,11 +1276,10 @@ int main(int argc, char *argv[])
         if (strcmp(dataUnits, "Bq/ml") && strcmp(dataUnits, "kBq/ml") && 
           strcmp(dataUnits, "MBq/ml") && strcmp(dataUnits, "Bq/cc") && 
           strcmp(dataUnits, "kBq/cc") && strcmp(dataUnits, "MBq/cc")) {
-            fprintf(stderr, "ERROR: illegal data unit: -u %s\n\n", dataUnits);
+            LOG_ERROR( "ERROR: illegal data unit: -u %s\n\n", dataUnits);
             return 1;
         }
-        sprintf(logMsg, "image will be calibrated to %s \n", dataUnits);
-        Logging(logMsg);
+        LOG_INFO("image will be calibrated to {}", dataUnits);
         break;
 
       case 'v':
@@ -1325,7 +1293,7 @@ int main(int argc, char *argv[])
         startFrame = atoi(*(argv+1));
         endFrame = atoi(*(argv+2));
         if (startFrame > endFrame || startFrame < 0) {
-          fprintf(stderr, "ERROR: condition 0 <= startFrame (%i) <= endFrame (%i) violated\n\n", startFrame, endFrame);
+          LOG_ERROR( "ERROR: condition 0 <= startFrame (%i) <= endFrame (%i) violated\n\n", startFrame, endFrame);
           return 1;
         }
         argc = argc - 2;
@@ -1348,14 +1316,14 @@ int main(int argc, char *argv[])
   fflush(stdout);
    /* by now all switches should be processed and only the inputfile is left */
   if (argc > 1){
-    fprintf(stderr, "ERROR: Don't know what is '%s' ?!? \n", argv[0]);
-    fprintf(stderr, "       Please check the command line syntax.\n");
+    LOG_ERROR( "ERROR: Don't know what is '%s' ?!? \n", argv[0]);
+    LOG_ERROR( "       Please check the command line syntax.\n");
     return 1;
   }
 
   strcpy(inFile, *argv);
   if (argc == 0) {
-    fprintf(stderr, "ERROR: No interfile image specified\n");
+    LOG_ERROR( "ERROR: No interfile image specified\n");
     return 1;
   }
 
@@ -1371,8 +1339,7 @@ int main(int argc, char *argv[])
       inFileTail[k] = inFile[i];
       k++;
     }
-  sprintf(logMsg, "processing image %s\n", inFileTail); 
-  Logging(logMsg);
+  LOG_INFO("processing image {}", inFileTail); 
                                                             /* split filename */
              /* assumption: valid file name has the form A_B_C_(...).Z with   */
              /* Z = file name extension (.i for HRRT)                         */
@@ -1391,13 +1358,12 @@ int main(int argc, char *argv[])
     k++;
   }
 
-  sprintf(logMsg, "file name extension is .%s\n", ext); 
-  Logging(logMsg);
+  LOG_INFO("file name extension is {}", ext); 
   numFields=0;k=0;              /* now split the file name itself into pieces */
     /* works also somehow when full filename is given C:\Recon-Jobs\...\xxx.i */
   for (i=0; i<pos; i++) {
     if (numFields >= 50) {
-      fprintf(stderr, "ERROR: Can't handle input filename %s (more than 50 fields).\n\n", inFileTail);
+      LOG_ERROR( "ERROR: Can't handle input filename %s (more than 50 fields).\n\n", inFileTail);
       return 1;
     }    
     if (inFile[i] == '_') {
@@ -1423,11 +1389,11 @@ int main(int argc, char *argv[])
   switch(interfile_load(hdrName, &ifh))
   {
       case IFH_FILE_INVALID:                /* Not starting with '!INTERFILE' */
-          fprintf(stderr, "%s: is not a valid interfile header\n", hdrName);
+          LOG_ERROR( "%s: is not a valid interfile header\n", hdrName);
           return 1;
 
       case IFH_FILE_OPEN_ERROR:        /* interfile header cold not be opened */
-          fprintf(stderr, "%s: Can't open file\n", hdrName);
+          LOG_ERROR( "%s: Can't open file\n", hdrName);
           return 1;
 
       // default: file loaded
@@ -1441,7 +1407,7 @@ int main(int argc, char *argv[])
                              /* Check the header: Is it really from the HRRT? */
       if (!interfile_find(&ifh, "!originating system", scannerModel, 
         sizeof(scannerModel))){
-        fprintf(stderr, "ERROR: Which scanner model?? Can't interpret header format.\n");
+        LOG_ERROR( "ERROR: Which scanner model?? Can't interpret header format.\n");
         return 1;
       }
       // Allow 328 or HRRT
@@ -1491,8 +1457,7 @@ int main(int argc, char *argv[])
           !memcmp(&outFileTail[i+2], "", 1)) break;
       studyName[i] = outFileTail[i];
     }
-    sprintf(logMsg, "Study Name is %s (got from output filename)\n", studyName); 
-    Logging(logMsg);
+    LOG_INFO("Study Name is {} (got from output filename)", studyName); 
   }
                                                            /*** calibration ***/
                   /* get study date only if not specified in the command line */
@@ -1522,21 +1487,15 @@ int main(int argc, char *argv[])
     {
       const char *scan_calib;
 
-      sprintf(logMsg, 
-        "Find calibration file for dd:mm:yyyy hh:mm:ss =%02d:%02d:%04d %02d:%02d:%02d\n", 
-        scanStartDay, scanStartMonth, scanStartYear, scanStartHour, 
-        scanStartMinute, scanStartSecond);
-      Logging(logMsg);
-      scan_calib = calibration_find(scanStartYear, scanStartMonth, scanStartDay, 
-                                scanStartHour, scanStartMinute, scanStartSecond);
-      if (scan_calib != NULL)   
-      {
-        sprintf(logMsg, "Found calibration file %s\n", scan_calib);
-        Logging(logMsg);
+      LOG_INFO("Find calibration file for dd:mm:yyyy hh:mm:ss ={:02d}:{:02d}:{:04d} {:02d}:{:02d}:{:02d}\n", scanStartDay, scanStartMonth, scanStartYear, scanStartHour, scanStartMinute, scanStartSecond);
+      scan_calib = calibration_find(scanStartYear, scanStartMonth, scanStartDay, scanStartHour, scanStartMinute, scanStartSecond);
+      if (scan_calib != NULL)   {
+        LOG_INFO("Found calibration file {}", scan_calib);
         sliceSensDim = read_sensitivity(scan_calib, &sliceSensitivity, buffer, 
                       line, keyword, value);
       }
-      else Logging("Calibration file not found\n");
+      else 
+        LOG_ERROR("Calibration file not found");
     }
   }
                                 /* check if input image is already calibrated */
@@ -1583,9 +1542,9 @@ int main(int argc, char *argv[])
         {
           muMask = CreateHRRTMuMask(value);
           if (muMask != NULL) 
-            printf ("Use %s mask to find for image extrema\n", 
+            LOG_INFO ("Use {} mask to find for image extrema", 
             value);
-          else printf ("Error creating mask from %s\n", value);
+          else LOG_INFO ("Error creating mask from {}", value);
         }
       }
     else toCalibrate = -3;                  /* value empty -> don't calibrate */
@@ -1605,9 +1564,9 @@ int main(int argc, char *argv[])
 
   is_little = 1;
   if (is_little) {
-    Logging("byte order on this system is little endian \n");
+    LOG_INFO("byte order on this system is little endian ");
   } else {
-    Logging("byte order on this system is big endian\n");
+    LOG_INFO("byte order on this system is big endian");
   }
   fflush(stdout);
 
@@ -1634,11 +1593,10 @@ int main(int argc, char *argv[])
 /******************************************************************************/
 
   if (!strcmp(scannerModel, "HRRT")) {        /* frame naming is HRRT specific */
-    sprintf(logMsg, "looking for frames for %s_??_framex_??.%s\n", field[0], ext); 
-    Logging(logMsg);
+    LOG_INFO("looking for frames for {}_??_framex_??.{}", field[0], ext); 
       
     if (framePos == 0) {                                  /* static emission */
-      Logging("seems to be a static emission (no dynamic study)\n");
+      LOG_INFO("seems to be a static emission (no dynamic study)\n");
       numFrames = 1;
     } else {  
       numFrames = 0;                                /* starting with _frame0_ */
@@ -1680,21 +1638,18 @@ int main(int argc, char *argv[])
         numFrames++;
       } // end while numFrames
         
-      sprintf(logMsg, "%i frames found for study \n", numFrames); 
-      Logging(logMsg);
+      LOG_INFO("{} frames found for study{}", numFrames); 
     }//else
   } // if HRRT
   else { // not HRRT
     numFrames = 1;
-    sprintf(logMsg, "treated as a static emission %s \n", scannerModel); 
-    Logging(logMsg);
+    LOG_INFO("treated as a static emission {}", scannerModel); 
   }
                                                  /* determine range of frames */
   if (startFrame != 0 || endFrame !=0) { 
     if (startFrame > numFrames) startFrame = 1;                /* not allowed */
     if (endFrame > numFrames) endFrame = numFrames;            /* not allowed */
-    sprintf(logMsg, "using frames %i-%i \n", startFrame, endFrame); 
-    Logging(logMsg);
+    LOG_INFO("using frames {}-{}", startFrame, endFrame); 
   }
   else {                                                 /* take all frames */
     startFrame = 1;
@@ -1718,7 +1673,7 @@ int main(int argc, char *argv[])
 /*                          fill ecat7 main header                            */
 /******************************************************************************/
 
-  Logging("\nmain header\n");
+  LOG_INFO("main header");
 	    /* if it is a HRRT interfile get values from the interfile header */
   if (main_header.system_type == 328) {
     int image_ok=0;
@@ -1728,8 +1683,8 @@ int main(int argc, char *argv[])
       if (strcmp(value, "image")  == 0) image_ok=1;
     }
     if (!image_ok) {
-      fprintf(stderr, "ERROR: no header entry 'data format := image' found.\n");
-      fprintf(stderr, "       %s is no valid HRRT interfile image header.\n", 
+      LOG_ERROR( "ERROR: no header entry 'data format := image' found.\n");
+      LOG_ERROR( "       %s is no valid HRRT interfile image header.\n", 
         ifh.filename);
         return 1;
     }
@@ -1832,7 +1787,7 @@ int main(int argc, char *argv[])
 
     fflush(stdout);
 
-    Logging("filling ecat7 main header \n");
+    LOG_INFO("filling ecat7 main header");
 
     memset(&zeit, 0, sizeof(zeit));
     zeit.tm_sec=scanStartSecond;
@@ -1928,14 +1883,12 @@ int main(int argc, char *argv[])
 /******************************************************************************/
   for (frame=startFrame;frame<=endFrame;frame++) {
     if (frame >= frameDurDim) {
-        fprintf(stderr, "ERROR: frame %i of %i frames (check -f switch)\n", 
+        LOG_ERROR( "ERROR: frame %i of %i frames (check -f switch)\n", 
           frame, frameDurDim-1);
         return 1;
       }
-    sprintf(logMsg, "\n%i. frame\n", frame);
-    Logging(logMsg);
+    LOG_INFO("{}. frame{}", frame);
     image_header.processing_code = 0;      /* reset list of corrections done */
-          fflush(stdout);
 
                                       /* construct filename for HRRT data ... */
     if (main_header.system_type == 328) {
@@ -2004,11 +1957,11 @@ int main(int argc, char *argv[])
         interfile_clear(&ifh);
         switch(interfile_load(hdrName, &ifh)) {
           case IFH_FILE_INVALID:            /* Not starting with '!INTERFILE' */
-               fprintf(stderr, "%s: is not a valid interfile header\n", hdrName);
+               LOG_ERROR( "%s: is not a valid interfile header\n", hdrName);
                return 1;
              
           case IFH_FILE_OPEN_ERROR:    /* interfile header cold not be opened */
-               fprintf(stderr, "%s: Can't open file\n", hdrName);
+               LOG_ERROR( "%s: Can't open file\n", hdrName);
                return 1;
 
                // default: file loaded
@@ -2017,9 +1970,9 @@ int main(int argc, char *argv[])
         value[0]='\0';
         interfile_find(&ifh, "number format", value, sizeof(value));
         if (strcmp(value, "float") != 0) {
-          fprintf(stderr, 
+          LOG_ERROR( 
             "ERROR: There is no 'number format := float' in the header. \n");
-          fprintf(stderr, 
+          LOG_ERROR( 
             "       Don't know what to do !?! Float format is expected.\n");
           return 1;
         }
@@ -2058,8 +2011,6 @@ int main(int argc, char *argv[])
         if (interfile_find(&ifh, "average singles per block", value, 
           sizeof(value))) {
           deadtimeCorFactor = exp(1*deadtimeExponent*atof(value));
-          //      printf("\n\n\n\n***** deadtimeCorFactor=%f", deadtimeCorFactor);
-          //      fflush(stdout);
           if (frameDuration[frame]>0) image_header.singles_rate = (float)atof(value);
         }
                                                 /* Data rates */
@@ -2119,7 +2070,7 @@ int main(int argc, char *argv[])
   /*                       fill ecat7 subheaders                              */
   /****************************************************************************/
 
-    Logging("  filling subheader \n");
+    LOG_INFO("  filling subheader");
     image_header.data_type = 6;                                  /* Sun short */
     image_header.num_dimensions = 3;
     if (dimxOutfile != 0) {                              /* from command line */
@@ -2144,8 +2095,8 @@ int main(int argc, char *argv[])
     image_header.recon_zoom = reconZoom;
    /* scale factor, image min and max are calculated by ecat7WriteImageMatrix */
     if((acquisitionType != TransmissionScan) && frameDuration[frame] == 0) {
-      fprintf(stderr, "ERROR: information about the frame length is needed but not available.\n");
-      fprintf(stderr, "       Don't know what to do.\n");
+      LOG_ERROR( "ERROR: information about the frame length is needed but not available.\n");
+      LOG_ERROR( "       Don't know what to do.\n");
       return 1;
     } 
     image_header.frame_duration = frameDuration[frame] * 1000;       /* im ms */
@@ -2165,12 +2116,10 @@ int main(int argc, char *argv[])
     if (gsmooth_width>0) {
       char *pext;
       sprintf(command, "gsmooth %s %d", fname, gsmooth_width);
-      sprintf(logMsg, "gsmooth width (default 0): %i \n", gsmooth_width);
-      Logging(logMsg);
-      sprintf(logMsg, "command: %s", command);
-      Logging(logMsg);
+      LOG_INFO("gsmooth width (default 0): {}", gsmooth_width);
+      LOG_INFO("command: {}", command);
       if ((pext = strrchr(fname, '.')) == NULL) {
-        fprintf(stderr, "ERROR locating file %s extension\n", fname);
+        LOG_ERROR( "ERROR locating file {} extension", fname);
         return 1;
       }
       system(command);
@@ -2179,15 +2128,14 @@ int main(int argc, char *argv[])
         sprintf(pext, "_%dmm.v", gsmooth_width);
       }
       else {
-        fprintf(stderr, "ERROR locating file %s extension\n", outFile);
+        LOG_ERROR( "ERROR locating file %s extension\n", outFile);
         return 1;
       }
     }
                                                      /* ... and read the file */
-    sprintf(logMsg, "  reading %s\n", fnameTail);
-    Logging(logMsg);
+    LOG_INFO("  reading {}", fnameTail);
     if ((inputImage = fopen(fname, "rb")) == NULL) {
-      fprintf(stderr, "ERROR opening image file %s \n", fname);
+      LOG_ERROR( "ERROR opening image file %s \n", fname);
       free(matrix_float);
       return 1;
     }
@@ -2201,7 +2149,7 @@ int main(int argc, char *argv[])
                              /* don't make any corrections if the data are    */
                              /* already corrected or if the '-x' switch is on */
     if (toCalibrate == -2) {
-      printf("  matrix not calibrated (interfile image is already calibrated)\n");
+      LOG_INFO("  matrix not calibrated (interfile image is already calibrated)");
       main_header.calibration_factor = calibFactor;
 
        /* 0=uncalibrated, 1=calibrated in Bq/ml, 2= calibrated in 'data_units'*/
@@ -2214,7 +2162,7 @@ int main(int argc, char *argv[])
       strcpy(main_header.data_units, dataUnits);
     } else if (correctionMode == 0){
       if (acquisitionType != TransmissionScan)
-        printf("  matrix not calibrated (as requested in command line)\n");
+        LOG_INFO("  matrix not calibrated (as requested in command line)");
       main_header.calibration_factor = 1;
        /* 0=uncalibrated, 1=calibrated in Bq/ml, 2= calibrated in 'data_units'*/
       main_header.calibration_units = 0; 
@@ -2227,8 +2175,7 @@ int main(int argc, char *argv[])
         strcpy(main_header.data_units, "HRRT counts");
     } else {
         /*** normalize for different acquisition times (counts -> counts/s) ***/
-      sprintf(logMsg, "  normalising for acquisition duration: %li s\n", frameDuration[frame]);
-      Logging(logMsg);
+      LOG_INFO("  normalising for acquisition duration: {} s\n", frameDuration[frame]);
       for (j=0;j<dimx*dimy*dimz;j++) 
         matrix_float[j] = matrix_float[j] / frameDuration[frame];
       strcpy(main_header.data_units, "counts/s");/* write units to main header */
@@ -2236,9 +2183,9 @@ int main(int argc, char *argv[])
         strcpy(main_header.data_units, "HRRT counts/s");
 
                            /*** decay correction in frame and to scan start ***/
-      Logging("  applying decay correction: ");
+      LOG_INFO("  applying decay correction: ");
       if(main_header.isotope_halflife == 0) {
-        fprintf(stderr, "\nERROR: Which isotope?? Which halflife time??"
+        LOG_ERROR( "\nERROR: Which isotope?? Which halflife time??"
                       "Can't do decay correction.\n");
         free(matrix_float);
         return 1;
@@ -2248,8 +2195,7 @@ int main(int argc, char *argv[])
       decayInFrame = frac/(1-exp(-frac));
                                                             /* to frame start */
       decayFrameStart = exp(frameStart/main_header.isotope_halflife*log(2));
-      sprintf(logMsg, "%f (in frame) and %f (frame start)\n", decayInFrame, decayFrameStart);
-      Logging(logMsg);
+      LOG_INFO("{} (in frame) and {} (frame start)", decayInFrame, decayFrameStart);
                                       /* apply decay correction to scan start */
       for (j=0;j<dimx*dimy*dimz;j++) 
         matrix_float[j] = (float)(matrix_float[j] * decayInFrame * decayFrameStart);
@@ -2264,21 +2210,18 @@ int main(int argc, char *argv[])
         main_header.calibration_factor = 1.0f;
         main_header.calibration_units = 0;    /* 0=uncalibrated, 1=calibrated */
         main_header.calibration_units_label = 0;
-        Logging("  matrix not calibrated\n");
+        LOG_INFO("  matrix not calibrated");
       } else {
                                          /*** slice sensitivity calibration ***/
-        Logging("  applying slice sensitivity correction\n");
+        LOG_INFO("  applying slice sensitivity correction");
         if (sliceSensitivity == NULL) {
-          fprintf(stderr, "WARNING: no slice sensitivity values available\n");
+          LOG_ERROR( "WARNING: no slice sensitivity values available");
         }
         else {
           for (z=0;z<dimz;z++) {
             if (z > sliceSensDim) {
-              fprintf(stderr, "WARNING: slice sensitivity values available only"
-                "for %i planes out of %i!\n", sliceSensDim, dimz);
-              Logging("CHECK IT !!!\n");
-              sprintf(logMsg, "  slice sensitivity correction stoped after %i slices\n", sliceSensDim);
-              Logging(logMsg);
+              LOG_ERROR( "WARNING: slice sensitivity values available only for {} planes out of {}!", sliceSensDim, dimz);
+              LOG_INFO("  slice sensitivity correction stoped after {} slices", sliceSensDim);
               break;
             }
             for (j=0;j<dimx*dimy;j++) 
@@ -2298,22 +2241,20 @@ int main(int argc, char *argv[])
     /* consideration while calculating the calibration factor.                */
 
         if (main_header.branching_fraction == 0) {
-          fprintf(stderr, "error: branching fraction is unknown but needed for calibration.\n");
-          fprintf(stderr, "       Try to use the '-i isotope' switch as this sets the"
+          LOG_ERROR( "error: branching fraction is unknown but needed for calibration.\n");
+          LOG_ERROR( "       Try to use the '-i isotope' switch as this sets the"
                                   "branching factor.\n");
           free(matrix_float);
           if (ECAT7file != NULL) matrix_close(ECAT7file);
           return 1;
         }
-        sprintf(logMsg, "  dividing matrix by branching fraction %g\n", main_header.branching_fraction);
-        Logging(logMsg);
+        LOG_INFO("  dividing matrix by branching fraction {}", main_header.branching_fraction);
         for (j=0;j<dimx*dimy*dimz;j++) 
           matrix_float[j] = matrix_float[j] / main_header.branching_fraction;
 
                                                   /*** dead time correction ***/
         /* deadtime correction factor is taken from the HRRT-interfile-header */
-       sprintf(logMsg, "  applying deadtime correction: %f \n", deadtimeCorFactor);
-       Logging(logMsg);
+       LOG_INFO("  applying deadtime correction: {}", deadtimeCorFactor);
         for (j=0;j<dimx*dimy*dimz;j++) 
           matrix_float[j] = (float)(matrix_float[j] * deadtimeCorFactor);
 
@@ -2325,8 +2266,7 @@ int main(int argc, char *argv[])
     /* But sometimes it might be necessary.                                   */
      
         if (multPixWithCalibFactor == 1) {
-          sprintf(logMsg, "  multiplying matrix with calibration factor %g\n", calibFactor);
-          Logging(logMsg);
+          LOG_INFO("  multiplying matrix with calibration factor {}", calibFactor);
           for (j=0;j<dimx*dimy*dimz;j++) 
             matrix_float[j] = matrix_float[j] * calibFactor;
         }
@@ -2339,10 +2279,8 @@ int main(int argc, char *argv[])
      /* in the scan.                                                          */
         if (pixelMax > 0.0f) 
         {                                                                 
-          sprintf(logMsg, "  applying maximum pixel correction %g\n", pixelMax);
-          Logging(logMsg);
-          for (j = 0; j < dimx*dimy*dimz; j++)
-          {
+          LOG_INFO("  applying maximum pixel correction {}", pixelMax);
+          for (j = 0; j < dimx*dimy*dimz; j++)          {
             if (matrix_float[j] > pixelMax)
             {	
         	  matrix_float[j] = pixelMax;
@@ -2373,12 +2311,11 @@ int main(int argc, char *argv[])
         xCentre = dimx/2;
         yCentre = dimy/2;
       }
-      sprintf(logMsg, "  reducing image size to %i planes (%i-%i), %ix%i, centre pixel (%i/%i)\n", endPlane-startPlane+1, startPlane, endPlane, dimxOutfile, dimxOutfile, xCentre, yCentre);
-      Logging(logMsg);
+      LOG_INFO("  reducing image size to {} planes ({}-{}), {} x {}, centre pixel ({}/{})", endPlane-startPlane+1, startPlane, endPlane, dimxOutfile, dimxOutfile, xCentre, yCentre);
       if (xCentre-dimxOutfile/2 < 0 || xCentre+dimxOutfile/2 > dimx ||\
           yCentre-dimxOutfile/2 < 0 || yCentre+dimxOutfile/2 > dimy) {
-        fprintf(stderr, "error: centre pixel coordiantes (%i/%i) out of range for a %ix%i matrix\n", xCentre, yCentre, dimxOutfile, dimxOutfile);
-        fprintf(stderr, "       from a %ix%i image\n\n", dimx, dimy);
+        LOG_ERROR( "error: centre pixel coordiantes ({}/{}) out of range for a {} x {} matrix", xCentre, yCentre, dimxOutfile, dimxOutfile);
+        LOG_ERROR( "       from a {} x {} image\n\n", dimx, dimy);
         free(matrix_float);
         if (ECAT7file != NULL) matrix_close(ECAT7file);
         return 1;
@@ -2401,7 +2338,7 @@ int main(int argc, char *argv[])
                 )
               continue;
             if (j > dimxOutfile*dimxOutfile*(endPlane-startPlane+1)) {
-              fprintf(stderr, "error: seems to be a programming error while reducing matrix size.\n j = %li x=%i, y=%i, z=%i\n", j, x, y, z);
+              LOG_ERROR( "error: seems to be a programming error while reducing matrix size.\n j = %li x=%i, y=%i, z=%i\n", j, x, y, z);
               free(matrix_float);
               free(matrix_float_reduced);
               if (ECAT7file != NULL) matrix_close(ECAT7file);
@@ -2419,12 +2356,11 @@ int main(int argc, char *argv[])
   /****************************************************************************/
 
     if (frame == startFrame) {  
-      sprintf(logMsg, "-> writing main header to %s\n", outFileTail);
-      Logging(logMsg);
+      LOG_INFO("-> writing main header to {}", outFileTail);
                                                  /* write main header to file */
       ECAT7file=matrix_create(outFile, ecat_matrix::MatrixFileAccessMode::CREATE_NEW_FILE, &main_header);
       if(ECAT7file == NULL) {
-        fprintf(stderr, "ERROR: cannot write main header %s.\n", outFile);
+        LOG_ERROR( "ERROR: cannot write main header %s.\n", outFile);
         return 1;
       }
     }
@@ -2436,12 +2372,9 @@ int main(int argc, char *argv[])
   /****************************************************************************/
 
 
-    sprintf(logMsg, "  -> writing subheader and matrix to %s\n", outFileTail);
-    Logging(logMsg);
+    LOG_INFO("  -> writing subheader and matrix to {}", outFileTail);
                                                       /* Create new matrix id */
-
     matrixId=ecat_matrix::mat_numcod(frame-startFrame+1, 1, 1, 0, 0);
-    //printf("\n\n\n matrixId: %d", matrixId); fflush(stdout);
     /* write subheader and matrix to file */
                      /* data are scaled to short int by ecat7WriteImageMatrix */
     if (matrix_float_reduced != NULL) {
@@ -2461,14 +2394,12 @@ int main(int argc, char *argv[])
   }
 
                                            /* Close and duplicate output file*/
-  sprintf(logMsg, "\nclose file %s\n", outFileTail);
-  Logging(logMsg);
+  LOG_INFO("close file {}", outFileTail);
   if (ECAT7file != NULL) {
     strcpy(inFile, ECAT7file->fname);  // make a copy before freeing memory
     matrix_close(ECAT7file);
     if (duplicateDir != NULL) {
-      sprintf(logMsg, "\ncopy file %s to %s\n", inFile, duplicateDir);
-      Logging(logMsg);
+      LOG_INFO("copy file {} to {}", inFile, duplicateDir);
       copyFile(inFile, duplicateDir, &main_header);
     }
   }
@@ -2542,8 +2473,8 @@ void if2e7_itoa(int n, char *s)
 /******************************************************************************/
 void print_build()
 {
-  printf(" %s %s %s\n", PROG_NAME, PROG_VERSION, COPYRIGHT);
-  printf("\n Build %s %s\n\n", __DATE__, __TIME__);
+  LOG_INFO(" {} {} {}", PROG_NAME, PROG_VERSION, COPYRIGHT);
+  LOG_INFO("\n Build {} {}", __DATE__, __TIME__);
 }
 
 /*****************************************************************************/

@@ -11,7 +11,7 @@
    * data format provided by CTI to customers. CTI or its legal successors
    * should not be held responsible for the accuracy of this software.
    * CTI, hereby disclaims all copyright interest in this software.
-   * In no event CTI shall be liable for any claim, or any special indirect or 
+   * In no event CTI shall be liable for any claim, or any special indirect or
    * consequential damage whatsoever resulting from the use of this software.
    *
    * This is a free software; you can redistribute it and/or
@@ -55,7 +55,7 @@ const std::string magicNumber = "MATRIX";
 //   };
 
 // // char* dstypecode[NumDataSetTypes] =
-//   std::vector<std::string> dstypecode_ = { 
+//   std::vector<std::string> dstypecode_ = {
 //     "u","s","i","a","n","pm","v8","v","p8","p","i8","S","S8","N", "FS"
 //   };
 
@@ -88,7 +88,7 @@ const std::string sexcode = "MFU";
 const std::string dexteritycode = "RLUA";
 
 FILE *mat_open( char *fname, char *fmode) {
-  FILE  *fptr=NULL;
+  FILE  *fptr = NULL;
 
   matrix_errno = MatrixError::OK;
   ecat_matrix::matrix_errtxt.clear();
@@ -107,76 +107,78 @@ int mat_rblk(FILE *fptr,  int blkno, char *bufr, int nblks) {
   matrix_errno = MatrixError::OK;
   ecat_matrix::matrix_errtxt.clear();
 
-    if( fseek( fptr, (blkno-1)* MatBLKSIZE, 0) ) 
-      return( ecat_matrix::ECATX_ERROR );
-    
-  int err = fread( bufr, 1, nblks* MatBLKSIZE, fptr);
-  if( err == ecat_matrix::ECATX_ERROR ) {
-    return( ecat_matrix::ECATX_ERROR );
+  if ( fseek( fptr, (blkno - 1)* MatBLKSIZE, 0) )
+    return ( ecat_matrix::ECATX_ERROR );
+
+  int err = fread( bufr, 1, nblks * MatBLKSIZE, fptr);
+  if ( err == ecat_matrix::ECATX_ERROR ) {
+    return ( ecat_matrix::ECATX_ERROR );
   }
-/*  some applications write pixel instead of block count
- ==> check if byte count less than (nblks-1) (M. Sibomana 23-oct-1997) */
-  else if( err==0 || err < (nblks-1)* MatBLKSIZE ) {
+  /*  some applications write pixel instead of block count
+   ==> check if byte count less than (nblks-1) (M. Sibomana 23-oct-1997) */
+  else if ( err == 0 || err < (nblks - 1)* MatBLKSIZE ) {
     matrix_errno = MatrixError::READ_ERROR;
-    return( ecat_matrix::ECATX_ERROR );
+    return ( ecat_matrix::ECATX_ERROR );
   }
-  return( 0 );
+  return ( 0 );
 }
 
 void swaw( short *from, short *to, int length) {
   short int temp;
 
-  for (int i=0;i<length; i+=2) {  
-    temp = from[i+1];
-     to[i+1]=from[i];
-     to[i] = temp;
+  for (int i = 0; i < length; i += 2) {
+    temp = from[i + 1];
+    to[i + 1] = from[i];
+    to[i] = temp;
   }
 }
 
 int mat_numcod( int frame, int plane, int gate, int data, int bed) {
-  return ((frame)|((bed&0xF)<<12)|((plane&0xFF)<<16)|(((plane&0x300)>>8)<<9)|
-       ((gate&0x3F)<<24)|((data&0x3)<<30)|((data&0x4)<<9));
+  return ((frame) | ((bed & 0xF) << 12) | ((plane & 0xFF) << 16) | (((plane & 0x300) >> 8) << 9) |
+          ((gate & 0x3F) << 24) | ((data & 0x3) << 30) | ((data & 0x4) << 9));
 }
 
 int mat_numdoc( int matnum, MatVal *matval) {
-  matval->frame = matnum&0x1FF;
-  matval->plane = ((matnum>>16)&0xFF) + (((matnum>>9)&0x3)<<8);
-  matval->gate  = (matnum>>24)&0x3F;
-  matval->data  = ((matnum>>9)&0x4)|(matnum>>30)&0x3;
-  matval->bed   = (matnum>>12)&0xF;
+  matval->frame = matnum & 0x1FF;
+  matval->plane = ((matnum >> 16) & 0xFF) + (((matnum >> 9) & 0x3) << 8);
+  matval->gate  = (matnum >> 24) & 0x3F;
+  matval->data  = ((matnum >> 9) & 0x4) | (matnum >> 30) & 0x3;
+  matval->bed   = (matnum >> 12) & 0xF;
   return 1;
 }
 
 int mat_lookup(FILE *fptr, Main_header *mhptr, int matnum, MatDir *entry) {
-  
+
   int blk, i;
   int nfree, nxtblk, prvblk, nused, matnbr, strtblk, endblk, matstat;
-  int dirbufr[ MatBLKSIZE/4];
+  int dirbufr[ MatBLKSIZE / 4];
 
   matrix_errno = MatrixError::OK;
   ecat_matrix::matrix_errtxt.clear();
   blk = MatFirstDirBlk;
-  while(1) {
-    if( read_matrix_data(fptr,blk,1,(char*)dirbufr,SunLong) == ecat_matrix::ECATX_ERROR ) return( ecat_matrix::ECATX_ERROR );
+  while (1) {
+    if ( read_matrix_data(fptr, blk, 1, (char*)dirbufr, SunLong) == ecat_matrix::ECATX_ERROR )
+      return ( ecat_matrix::ECATX_ERROR );
     nfree  = dirbufr[0];
     nxtblk = dirbufr[1];
     prvblk = dirbufr[2];
     nused  = dirbufr[3];
-    for (i=4; i< MatBLKSIZE/4; i+=4)
-    {  matnbr  = dirbufr[i];
-        strtblk = dirbufr[i+1];
-        endblk  = dirbufr[i+2];
-        matstat = dirbufr[i+3];
-        if (matnum == matnbr) {
-          entry->matnum  = matnbr;
-          entry->strtblk = strtblk;
-          entry->endblk  = endblk;
-          entry->matstat = matstat;
-          return (1);
+    for (i = 4; i < MatBLKSIZE / 4; i += 4) {
+      matnbr  = dirbufr[i];
+      strtblk = dirbufr[i + 1];
+      endblk  = dirbufr[i + 2];
+      matstat = dirbufr[i + 3];
+      if (matnum == matnbr) {
+        entry->matnum  = matnbr;
+        entry->strtblk = strtblk;
+        entry->endblk  = endblk;
+        entry->matstat = matstat;
+        return (1);
       }
     }
     blk = nxtblk;
-    if (blk == MatFirstDirBlk) break;
+    if (blk == MatFirstDirBlk)
+      break;
   }
   return (0);
 }
@@ -184,10 +186,10 @@ int mat_lookup(FILE *fptr, Main_header *mhptr, int matnum, MatDir *entry) {
 int unmap_main_header( char *bufr, Main_header *header) {
   int i = MagicNumLen;      /* skip magic number */
   int j = 0;
-  unsigned one_week = 7*24*3600;      /* 7 x 24 hours in seconds */
+  unsigned one_week = 7 * 24 * 3600;  /* 7 x 24 hours in seconds */
 
   bufRead(header->original_file_name, bufr, &i, NameLen);
-  header->original_file_name[NameLen-1] = '\0';
+  header->original_file_name[NameLen - 1] = '\0';
   bufRead_s(&header->sw_version, bufr, &i);
   bufRead_s(&header->system_type, bufr, &i);
   bufRead_s(&header->file_type, bufr, &i);
@@ -198,7 +200,7 @@ int unmap_main_header( char *bufr, Main_header *header) {
   header->isotope_code[7] = '\0';
   bufRead_f(&header->isotope_halflife, bufr, &i);
   bufRead(header->radiopharmaceutical, bufr, &i, NameLen);
-  header->radiopharmaceutical[NameLen-1] = '\0';
+  header->radiopharmaceutical[NameLen - 1] = '\0';
   bufRead_f(&header->gantry_tilt, bufr, &i);
   bufRead_f(&header->gantry_rotation, bufr, &i);
   bufRead_f(&header->bed_elevation, bufr, &i);
@@ -217,9 +219,9 @@ int unmap_main_header( char *bufr, Main_header *header) {
   bufRead(header->study_name, bufr, &i, 12);
   header->study_name[11] = '\0';
   bufRead(header->patient_id, bufr, &i, IDLen);
-  header->patient_id[IDLen-1] = '\0';
+  header->patient_id[IDLen - 1] = '\0';
   bufRead(header->patient_name, bufr, &i, NameLen);
-  header->patient_name[NameLen-1] = '\0';
+  header->patient_name[NameLen - 1] = '\0';
   bufRead(header->patient_sex, bufr, &i, 1);
   bufRead(header->patient_dexterity, bufr, &i, 1);
   bufRead_f(&header->patient_age, bufr, &i);
@@ -227,11 +229,11 @@ int unmap_main_header( char *bufr, Main_header *header) {
   bufRead_f(&header->patient_weight, bufr, &i);
   bufRead_i(&header->patient_birth_date, bufr, &i);
   bufRead(header->physician_name, bufr, &i, NameLen);
-  header->physician_name[NameLen-1] = '\0';
+  header->physician_name[NameLen - 1] = '\0';
   bufRead(header->operator_name, bufr, &i, NameLen);
-  header->operator_name[NameLen-1] = '\0';
+  header->operator_name[NameLen - 1] = '\0';
   bufRead(header->study_description, bufr, &i, NameLen);
-  header->study_description[NameLen-1] = '\0';
+  header->study_description[NameLen - 1] = '\0';
   bufRead_s(&header->acquisition_type, bufr, &i);
   bufRead_s(&header->patient_orientation, bufr, &i);
   bufRead(header->facility_name, bufr, &i, 20);
@@ -241,7 +243,7 @@ int unmap_main_header( char *bufr, Main_header *header) {
   bufRead_s(&header->num_gates, bufr, &i);
   bufRead_s(&header->num_bed_pos, bufr, &i);
   bufRead_f(&header->init_bed_position, bufr, &i);
-  for(j = 0; j < 15; j++)
+  for (j = 0; j < 15; j++)
     bufRead_f(&header->bed_offset[j], bufr, &i);
   bufRead_f(&header->plane_separation, bufr, &i);
   bufRead_s(&header->lwr_sctr_thres, bufr, &i);
@@ -253,11 +255,11 @@ int unmap_main_header( char *bufr, Main_header *header) {
   bufRead_f(&header->bin_size, bufr, &i);
   bufRead_f(&header->branching_fraction, bufr, &i);
   bufRead_u(&header->dose_start_time, bufr, &i);
-  if (header->dose_start_time<one_week)
+  if (header->dose_start_time < one_week)
   { /* assume 7.0 encoding */
-      // fprintf(stderr,"converting V7.0 dose start time encoding\n");
-      header->dose_start_time = header->scan_start_time -
-        header->dose_start_time;
+    // fprintf(stderr,"converting V7.0 dose start time encoding\n");
+    header->dose_start_time = header->scan_start_time -
+                              header->dose_start_time;
   }
   bufRead_f(&header->dosage, bufr, &i);
   bufRead_f(&header->well_counter_factor, bufr, &i);
@@ -275,15 +277,15 @@ int mat_read_main_header(FILE *fptr, Main_header *header) {
   ecat_matrix::matrix_errtxt.clear();
 
   /* check magic number */
-  if (mat_rblk(fptr, 1, bufr, 1) == ecat_matrix::ECATX_ERROR) 
+  if (mat_rblk(fptr, 1, bufr, 1) == ecat_matrix::ECATX_ERROR)
     return (ecat_matrix::ECATX_ERROR);
   bufRead(header->magic_number, bufr, &i, MagicNumLen);
   header->magic_number[MagicNumLen - 1] = '\0';
-    return unmap_main_header(bufr, header);
+  return unmap_main_header(bufr, header);
 }
 
 int mat_read_matrix_data(FILE *fptr, Main_header *mhptr, int blk, int nblks, short *bufr) {
-    return read_matrix_data(fptr, blk, nblks, (char *) bufr, ecat_matrix::MatrixDataType::SunShort);
+  return read_matrix_data(fptr, blk, nblks, (char *) bufr, ecat_matrix::MatrixDataType::SunShort);
 }
 
 int unmap_scan_header(char *buf, Scan_subheader *header) {
@@ -311,9 +313,9 @@ int unmap_scan_header(char *buf, Scan_subheader *header) {
   bufRead_i(&header->delayed, buf, &i);
   bufRead_i(&header->multiples, buf, &i);
   bufRead_i(&header->net_trues, buf, &i);
-  for(int j = 0; j < 16; j++)
+  for (int j = 0; j < 16; j++)
     bufRead_f(&header->cor_singles[j], buf, &i);
-  for(int j = 0; j < 16; j++)
+  for (int j = 0; j < 16; j++)
     bufRead_f(&header->uncor_singles[j], buf, &i);
   bufRead_f(&header->tot_avg_cor, buf, &i);
   bufRead_f(&header->tot_avg_uncor, buf, &i);
@@ -321,13 +323,12 @@ int unmap_scan_header(char *buf, Scan_subheader *header) {
   bufRead_u(&header->frame_start_time, buf, &i);
   bufRead_u(&header->frame_duration, buf, &i);
   bufRead_f(&header->loss_correction_fctr, buf, &i);
-  for(j = 0; j < 8; j++)
+  for (j = 0; j < 8; j++)
     bufRead_s(&header->phy_planes[j], buf, &i);
   return 0;
 }
 
-int unmap_Scan3D_header(char *buf, Scan3D_subheader *header)
-{
+int unmap_Scan3D_header(char *buf, Scan3D_subheader *header) {
   int i = 0;
   int j;
   bufRead_s(&header->data_type, buf, &i);
@@ -335,7 +336,7 @@ int unmap_Scan3D_header(char *buf, Scan3D_subheader *header)
   bufRead_s(&header->num_r_elements, buf, &i);
   bufRead_s(&header->num_angles, buf, &i);
   bufRead_s(&header->corrections_applied, buf, &i);
-  for(j = 0; j < 64; j++)
+  for (j = 0; j < 64; j++)
     bufRead_s(&header->num_z_elements[j], buf, &i);
   bufRead_s(&header->ring_difference, buf, &i);
   bufRead_s(&header->storage_order, buf, &i);
@@ -363,13 +364,12 @@ int unmap_Scan3D_header(char *buf, Scan3D_subheader *header)
   bufRead_f(&header->loss_correction_fctr, buf, &i);
   i += 90 * sizeof(short);  /* CTI reserved space */
   i += 50 * sizeof(short);  /* user reserved space */
-  for(j = 0; j < 128; j++)
+  for (j = 0; j < 128; j++)
     bufRead_f(&header->uncor_singles[j], buf, &i);
   return 0;
 }
 
-int map_Scan3D_header(char *buf, Scan3D_subheader *header)
-{
+int map_Scan3D_header(char *buf, Scan3D_subheader *header) {
   int i = 0;
   int j;
   bufWrite_s(header->data_type, buf, &i);
@@ -377,7 +377,7 @@ int map_Scan3D_header(char *buf, Scan3D_subheader *header)
   bufWrite_s(header->num_r_elements, buf, &i);
   bufWrite_s(header->num_angles, buf, &i);
   bufWrite_s(header->corrections_applied, buf, &i);
-  for(j = 0; j < 64; j++)
+  for (j = 0; j < 64; j++)
     bufWrite_s(header->num_z_elements[j], buf, &i);
   bufWrite_s(header->ring_difference, buf, &i);
   bufWrite_s(header->storage_order, buf, &i);
@@ -405,21 +405,23 @@ int map_Scan3D_header(char *buf, Scan3D_subheader *header)
   bufWrite_f(header->loss_correction_fctr, buf, &i);
   i += 90 * sizeof(short);  /* CTI reserved space */
   i += 50 * sizeof(short);  /* user reserved space */
-  for(j = 0; j < 128; j++)
+  for (j = 0; j < 128; j++)
     bufWrite_f(header->uncor_singles[j], buf, &i);
   return 0;
 }
 
 int mat_read_Scan3D_subheader( FILE *fptr, Main_header *mhptr, int blknum,   Scan3D_subheader *header) {
-  char buf[2* MatBLKSIZE];
-  if( mat_rblk( fptr, blknum, buf, 2) == ecat_matrix::ECATX_ERROR ) return( ecat_matrix::ECATX_ERROR );
-  return unmap_Scan3D_header(buf,header);
+  char buf[2 * MatBLKSIZE];
+  if ( mat_rblk( fptr, blknum, buf, 2) == ecat_matrix::ECATX_ERROR )
+    return ( ecat_matrix::ECATX_ERROR );
+  return unmap_Scan3D_header(buf, header);
 }
 
 int mat_read_scan_subheader(FILE *fptr, Main_header *mhptr, int blknum,   Scan_subheader *header) {
   char            buf[ MatBLKSIZE];
 
-  if (mat_rblk(fptr, blknum, buf, 1) == ecat_matrix::ECATX_ERROR) return (ecat_matrix::ECATX_ERROR);
+  if (mat_rblk(fptr, blknum, buf, 1) == ecat_matrix::ECATX_ERROR)
+    return (ecat_matrix::ECATX_ERROR);
   return unmap_scan_header(buf, header);
 }
 
@@ -495,11 +497,11 @@ int unmap_image_header(char *buf, Image_subheader *header) {
 int mat_read_image_subheader( FILE *fptr, Main_header *mhptr, int blknum, Image_subheader *header) {
   char buf[ MatBLKSIZE];
 
-  if( mat_rblk( fptr, blknum, buf, 1) == ecat_matrix::ECATX_ERROR ) return( ecat_matrix::ECATX_ERROR );
-  return unmap_image_header(buf,header);
+  if ( mat_rblk( fptr, blknum, buf, 1) == ecat_matrix::ECATX_ERROR ) return ( ecat_matrix::ECATX_ERROR );
+  return unmap_image_header(buf, header);
 }
 
-struct matdir *mat_read_dir( FILE *fptr, Main_header *mhptr, char *selector) { 
+struct matdir *mat_read_dir( FILE *fptr, Main_header *mhptr, char *selector) {
   int i, n, blk, nxtblk, ndblks, bufr[128];
   struct matdir *dir;
 
@@ -507,8 +509,8 @@ struct matdir *mat_read_dir( FILE *fptr, Main_header *mhptr, char *selector) {
   ecat_matrix::matrix_errtxt.clear();
   blk = MatFirstDirBlk;
   nxtblk = 0;
-  for (ndblks=0; nxtblk != MatFirstDirBlk; ndblks++)  {
- read_matrix_data(fptr,blk,1,(char*)bufr,SunLong);
+  for (ndblks = 0; nxtblk != MatFirstDirBlk; ndblks++)  {
+    read_matrix_data(fptr, blk, 1, (char*)bufr, SunLong);
     nxtblk = bufr[1];
     blk = nxtblk;
   }
@@ -516,17 +518,17 @@ struct matdir *mat_read_dir( FILE *fptr, Main_header *mhptr, char *selector) {
   dir->nmats = 0;
   dir->nmax = 31 * ndblks;
   dir->entry = (MatDir *) malloc(31 * ndblks * sizeof(MatDir));
-  for (n=0, nxtblk=0, blk=MatFirstDirBlk; nxtblk != MatFirstDirBlk; blk = nxtblk) {
-        read_matrix_data(fptr,blk,1,(char*)bufr,SunLong);
+  for (n = 0, nxtblk = 0, blk = MatFirstDirBlk; nxtblk != MatFirstDirBlk; blk = nxtblk) {
+    read_matrix_data(fptr, blk, 1, (char*)bufr, SunLong);
 
     nxtblk = bufr[1];
-    for (i=4; i< MatBLKSIZE/4; n++)    { 
+    for (i = 4; i < MatBLKSIZE / 4; n++)    {
       dir->entry[n].matnum = bufr[i++];
-    dir->entry[n].strtblk = bufr[i++];
-    dir->entry[n].endblk = bufr[i++];
-    dir->entry[n].matstat = bufr[i++];
-    if (dir->entry[n].matnum != 0) 
-      dir->nmats++;
+      dir->entry[n].strtblk = bufr[i++];
+      dir->entry[n].endblk = bufr[i++];
+      dir->entry[n].matstat = bufr[i++];
+      if (dir->entry[n].matnum != 0)
+        dir->nmats++;
     }
   }
   return dir;
@@ -536,18 +538,18 @@ struct matdir *mat_read_dir( FILE *fptr, Main_header *mhptr, char *selector) {
 int mat_wblk(FILE *fptr, int blkno, char *bufr, int nblks) {
   int             err;
 
-        matrix_errno = MatrixError::OK;
+  matrix_errno = MatrixError::OK;
   ecat_matrix::matrix_errtxt.clear();
 
   /* seek to position in file */
 
-    err = fseek(fptr, (blkno - 1) *  MatBLKSIZE, 0);
-  if (err) 
+  err = fseek(fptr, (blkno - 1) *  MatBLKSIZE, 0);
+  if (err)
     return (ecat_matrix::ECATX_ERROR);
 
   /* write matrix data */
   err = fwrite(bufr, 1, nblks *  MatBLKSIZE, fptr);
-  if (err == -1) 
+  if (err == -1)
     return (ecat_matrix::ECATX_ERROR);
   if (err != nblks *  MatBLKSIZE) {
     matrix_errno = MatrixError::WRITE_ERROR;
@@ -558,24 +560,24 @@ int mat_wblk(FILE *fptr, int blkno, char *bufr, int nblks) {
 
 FILE *mat_create( char *fname, Main_header *mhead) {
   FILE *fptr;
-  int bufr[ MatBLKSIZE/sizeof(int)];
+  int bufr[ MatBLKSIZE / sizeof(int)];
   int ret;
 
   fptr = mat_open( fname, W_MODE);
-  if (!fptr) 
-    return( NULL );
+  if (!fptr)
+    return ( NULL );
   ret = mat_write_main_header( fptr, mhead );
-  if( ret != 0 ) {
+  if ( ret != 0 ) {
     mat_close( fptr);
-    return( NULL );
+    return ( NULL );
   }
-  memset(bufr,0, MatBLKSIZE);
+  memset(bufr, 0, MatBLKSIZE);
   bufr[0] = 31;
   bufr[1] = 2;
-    ret = write_matrix_data(fptr,MatFirstDirBlk,1,(char*)bufr,SunLong);
-  if( ret != 0 ) {
+  ret = write_matrix_data(fptr, MatFirstDirBlk, 1, (char*)bufr, SunLong);
+  if ( ret != 0 ) {
     mat_close( fptr);
-    return( NULL );
+    return ( NULL );
   }
   return (fptr);
 }
@@ -587,10 +589,10 @@ int mat_enter(FILE *fptr, Main_header *mhptr, int matnum, int nblks) {
   matrix_errno = MatrixError::OK;
   ecat_matrix::matrix_errtxt.clear();
   dirblk = MatFirstDirBlk;
-  if( fseek(fptr, 0, 0) ) 
-    return( ecat_matrix::ECATX_ERROR );
-    if (read_matrix_data(fptr, dirblk, 1, (char *) dirbufr, SunLong) == ecat_matrix::ECATX_ERROR) 
-      return (ecat_matrix::ECATX_ERROR);
+  if ( fseek(fptr, 0, 0) )
+    return ( ecat_matrix::ECATX_ERROR );
+  if (read_matrix_data(fptr, dirblk, 1, (char *) dirbufr, SunLong) == ecat_matrix::ECATX_ERROR)
+    return (ecat_matrix::ECATX_ERROR);
   busy = 1;
   while (busy) {
     nxtblk = dirblk + 1;
@@ -615,13 +617,16 @@ int mat_enter(FILE *fptr, Main_header *mhptr, int matnum, int nblks) {
         nxtblk = dirbufr[i + 2] + 1;
       }
     }
-    if (!busy) break;
+    if (!busy)
+      break;
     if (dirbufr[1] != MatFirstDirBlk) {
       dirblk = dirbufr[1];
-            if (read_matrix_data(fptr, dirblk, 1, (char *) dirbufr, SunLong) == ecat_matrix::ECATX_ERROR) return (ecat_matrix::ECATX_ERROR);
+      if (read_matrix_data(fptr, dirblk, 1, (char *) dirbufr, SunLong) == ecat_matrix::ECATX_ERROR)
+        return (ecat_matrix::ECATX_ERROR);
     } else {
       dirbufr[1] = nxtblk;
-            if (write_matrix_data(fptr, dirblk, 1, (char *) dirbufr, SunLong) == ecat_matrix::ECATX_ERROR) return (ecat_matrix::ECATX_ERROR);
+      if (write_matrix_data(fptr, dirblk, 1, (char *) dirbufr, SunLong) == ecat_matrix::ECATX_ERROR)
+        return (ecat_matrix::ECATX_ERROR);
       dirbufr[0] = 31;
       dirbufr[1] = MatFirstDirBlk;
       dirbufr[2] = dirblk;
@@ -639,24 +644,22 @@ int mat_enter(FILE *fptr, Main_header *mhptr, int matnum, int nblks) {
   dirbufr[3]++;
   if (write_matrix_data(fptr, dirblk, 1, (char*)dirbufr, SunLong) == ecat_matrix::ECATX_ERROR)
     return (ecat_matrix::ECATX_ERROR);
-  if( fseek(fptr, 0, 0) ) return( ecat_matrix::ECATX_ERROR );
-  /*
-   * nfs locks are very time consuming lockf( fileno(fptr), F_UNLOCK, 0);
-   */
+  if ( fseek(fptr, 0, 0) ) 
+    return ( ecat_matrix::ECATX_ERROR );
   return (nxtblk);
 }
 
 int mat_write_data( FILE *fptr, int blk, int nbytes, char *data, int dtype) {
   int nblks;
 
-  nblks = (511+nbytes)/512;
+  nblks = (511 + nbytes) / 512;
   return write_matrix_data( fptr, blk, nblks, data, dtype);
 }
 
 int mat_read_data( FILE *fptr, int blk, int nbytes, char *data, int dtype) {
   int nblks;
 
-  nblks = (511+nbytes)/512;
+  nblks = (511 + nbytes) / 512;
   return read_matrix_data( fptr, blk, nblks, data, dtype);
 }
 
@@ -664,9 +667,9 @@ int map_main_header(char *bufr, Main_header *header) {
   int i = 0, j = 0;
   char mn[20];
   /* set magic number */
-  sprintf(mn,"%s%d%s", magicNumber, header->sw_version, data_set_types_.at(header->file_type).name);
+  sprintf(mn, "%s%d%s", magicNumber, header->sw_version, data_set_types_.at(header->file_type).name);
   bufWrite(mn, bufr, &i, 14);
-  
+
   /* copy buffer into struct */
   bufWrite(header->original_file_name, bufr, &i, NameLen);
   bufWrite_s(header->sw_version, bufr, &i);
@@ -712,7 +715,7 @@ int map_main_header(char *bufr, Main_header *header) {
   bufWrite_s(header->num_gates, bufr, &i);
   bufWrite_s(header->num_bed_pos, bufr, &i);
   bufWrite_f(header->init_bed_position, bufr, &i);
-  for(j = 0; j < 15; j++)
+  for (j = 0; j < 15; j++)
     bufWrite_f(header->bed_offset[j], bufr, &i);
   bufWrite_f(header->plane_separation, bufr, &i);
   bufWrite_s(header->lwr_sctr_thres, bufr, &i);
@@ -734,7 +737,7 @@ int mat_write_main_header(FILE *fptr, Main_header *header) {
   char            bufr[ MatBLKSIZE];
 
 
-    map_main_header(bufr, header);
+  map_main_header(bufr, header);
   return mat_wblk(fptr, 1, bufr, 1);  /* write main header at block 1 */
 }
 
@@ -806,15 +809,15 @@ int map_image_header(char *buf, Image_subheader *header) {
   return 1;
 }
 
-int mat_write_image_subheader(FILE *fptr, Main_header *mhptr, int blknum,    Image_subheader *header){
+int mat_write_image_subheader(FILE *fptr, Main_header *mhptr, int blknum,    Image_subheader *header) {
   char            buf[ MatBLKSIZE];
 
-    map_image_header(buf, header);
+  map_image_header(buf, header);
   return mat_wblk(fptr, blknum, buf, 1);
 }
 
-int map_scan_header(char *buf, Scan_subheader *header){
-  int i = 0, j= 0;
+int map_scan_header(char *buf, Scan_subheader *header) {
+  int i = 0, j = 0;
   bufWrite_s(header->data_type, buf, &i);
   bufWrite_s(header->num_dimensions, buf, &i);
   bufWrite_s(header->num_r_elements, buf, &i);
@@ -837,9 +840,9 @@ int map_scan_header(char *buf, Scan_subheader *header){
   bufWrite_i(header->delayed, buf, &i);
   bufWrite_i(header->multiples, buf, &i);
   bufWrite_i(header->net_trues, buf, &i);
-  for(j = 0; j < 16; j++)
+  for (j = 0; j < 16; j++)
     bufWrite_f(header->cor_singles[j], buf, &i);
-  for(j = 0; j < 16; j++)
+  for (j = 0; j < 16; j++)
     bufWrite_f(header->uncor_singles[j], buf, &i);
   bufWrite_f(header->tot_avg_cor, buf, &i);
   bufWrite_f(header->tot_avg_uncor, buf, &i);
@@ -847,15 +850,15 @@ int map_scan_header(char *buf, Scan_subheader *header){
   bufWrite_u(header->frame_start_time, buf, &i);
   bufWrite_u(header->frame_duration, buf, &i);
   bufWrite_f(header->loss_correction_fctr, buf, &i);
-  for(j = 0; j < 8; j++)
+  for (j = 0; j < 8; j++)
     bufWrite_s(header->phy_planes[j], buf, &i);
   return 1;
 }
 
 int mat_write_scan_subheader(FILE *fptr, Main_header *mhptr, int blknum,   Scan_subheader *header) {
   char            buf[ MatBLKSIZE];
-  
-    map_scan_header(buf, header);
+
+  map_scan_header(buf, header);
   return mat_wblk(fptr, blknum, buf, 1);
 }
 
@@ -883,12 +886,12 @@ int map_attn_header(char *buf, Attn_subheader *header) {
   bufWrite_f(header->attenuation_max, buf, &i);
   bufWrite_f(header->skull_thickness, buf, &i);
   bufWrite_s(header->num_additional_atten_coeff, buf, &i);
-  for(j = 0; j < 8; j++)
+  for (j = 0; j < 8; j++)
     bufWrite_f(header->additional_atten_coeff[j], buf, &i);
   bufWrite_f(header->edge_finding_threshold, buf, &i);
   bufWrite_s(header->storage_order, buf, &i);
   bufWrite_s(header->span, buf, &i);
-  for(j = 0; j < 64; j++)
+  for (j = 0; j < 64; j++)
     bufWrite_s(header->z_elements[j], buf, &i);
 
   return 1;
@@ -896,8 +899,8 @@ int map_attn_header(char *buf, Attn_subheader *header) {
 
 int mat_write_attn_subheader(FILE *fptr, Main_header *mhptr, int blknum,   Attn_subheader *header) {
   char            buf[ MatBLKSIZE];
-  
-    map_attn_header(buf, header);
+
+  map_attn_header(buf, header);
   return mat_wblk(fptr, blknum, buf, 1);
 }
 
@@ -917,21 +920,21 @@ int map_norm_header(char *buf, Norm_subheader *header) {
   bufWrite_s(header->norm_quality_factor_code, buf, &i);
   bufWrite_s(header->storage_order, buf, &i);
   bufWrite_s(header->span, buf, &i);
-  for(j = 0; j < 64; j++)
+  for (j = 0; j < 64; j++)
     bufWrite_s(header->z_elements[j], buf, &i);
   return 1;
 }
 
 int mat_write_norm_subheader(FILE *fptr, Main_header *mhptr, int blknum,    Norm_subheader *header) {
   char            buf[ MatBLKSIZE];
-  
-    map_norm_header(buf, header);
+
+  map_norm_header(buf, header);
   return mat_wblk(fptr, blknum, buf, 1);
 }
 
 int mat_write_Scan3D_subheader(FILE *fptr, Main_header *mhptr, int blknum,     Scan3D_subheader *header) {
-  char buf[2* MatBLKSIZE];
-  map_Scan3D_header(buf,header);
+  char buf[2 * MatBLKSIZE];
+  map_Scan3D_header(buf, header);
   return mat_wblk( fptr, blknum, buf, 2);
 }
 
@@ -959,12 +962,12 @@ int unmap_attn_header(char *buf, Attn_subheader *header)  {
   bufRead_f(&header->attenuation_max, buf, &i);
   bufRead_f(&header->skull_thickness, buf, &i);
   bufRead_s(&header->num_additional_atten_coeff, buf, &i);
-  for(j = 0; j < 8; j++)
+  for (j = 0; j < 8; j++)
     bufRead_f(&header->additional_atten_coeff[j], buf, &i);
   bufRead_f(&header->edge_finding_threshold, buf, &i);
   bufRead_s(&header->storage_order, buf, &i);
   bufRead_s(&header->span, buf, &i);
-  for(j = 0; j < 64; j++)
+  for (j = 0; j < 64; j++)
     bufRead_s(&header->z_elements[j], buf, &i);
 
   return 0;
@@ -994,14 +997,14 @@ int unmap_norm_header(char *buf, Norm_subheader *header) {
   bufRead_s(&header->norm_quality_factor_code, buf, &i);
   bufRead_s(&header->storage_order, buf, &i);
   bufRead_s(&header->span, buf, &i);
-  for(j = 0; j < 64; j++)
+  for (j = 0; j < 64; j++)
     bufRead_s(&header->z_elements[j], buf, &i);
   return 0;
 }
 
 int unmap_norm3d_header(char *buf, Norm3D_subheader *header) {
   int i = 0, j = 0;
-  memset(header,0,sizeof(Norm3D_subheader));
+  memset(header, 0, sizeof(Norm3D_subheader));
   bufRead_s(&header->data_type, buf, &i);
   bufRead_s(&header->num_r_elements, buf, &i);
   bufRead_s(&header->num_transaxial_crystals, buf, &i);
@@ -1013,19 +1016,19 @@ int unmap_norm3d_header(char *buf, Norm3D_subheader *header) {
   bufRead_s(&header->scatter_energy, buf, &i);
   bufRead_s(&header->norm_quality_factor_code, buf, &i);
   bufRead_f(&header->norm_quality_factor, buf, &i);
-  for(j = 0; j < 32; j++)
+  for (j = 0; j < 32; j++)
     bufRead_f(&header->ring_dtcor1[j], buf, &i);
-  for(j = 0; j < 32; j++)
+  for (j = 0; j < 32; j++)
     bufRead_f(&header->ring_dtcor2[j], buf, &i);
-  for(j = 0; j < 8; j++)
+  for (j = 0; j < 8; j++)
     bufRead_f(&header->crystal_dtcor[j], buf, &i);
   bufRead_s(&header->span, buf, &i);
   bufRead_s(&header->max_ring_diff, buf, &i);
   return 0;
 }
 
-int 
-mat_read_norm_subheader(FILE *fptr, Main_header *mhptr, int blknum,  Norm_subheader *header){
+int
+mat_read_norm_subheader(FILE *fptr, Main_header *mhptr, int blknum,  Norm_subheader *header) {
   char            buf[ MatBLKSIZE];
   if (mat_rblk(fptr, blknum, buf, 1) == ecat_matrix::ECATX_ERROR)
     return (ecat_matrix::ECATX_ERROR);
@@ -1034,8 +1037,8 @@ mat_read_norm_subheader(FILE *fptr, Main_header *mhptr, int blknum,  Norm_subhea
 
 int mat_read_norm3d_subheader(FILE *fptr, Main_header *mhptr, int blknum,     Norm3D_subheader *header) {
   char buf[ MatBLKSIZE];
-  if( mat_rblk( fptr, blknum, buf, 1) == ecat_matrix::ECATX_ERROR ) return( ecat_matrix::ECATX_ERROR );
-  return unmap_norm3d_header(buf,header);
+  if ( mat_rblk( fptr, blknum, buf, 1) == ecat_matrix::ECATX_ERROR ) return ( ecat_matrix::ECATX_ERROR );
+  return unmap_norm3d_header(buf, header);
   return 0;
 }
 

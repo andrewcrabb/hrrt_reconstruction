@@ -38,6 +38,8 @@
 #include <math.h>
 #include <ctype.h>
 #include <time.h>
+#include "my_spdlog.hpp"
+
 static float gauss_fwhm_xy = 2.0;
 static float gauss_fwhm_z = 2.0;
 static int num_log_cpus=1;
@@ -114,10 +116,10 @@ int main(int argc, char **argv) {
   clock_t c1=clock();
 	if (access(in_hdr_fname, F_OK) == 0) {
 		if ((in = matrix_open(in_hdr_fname,ecat_matrix::MatrixFileAccessMode::READ_ONLY,ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE)) == NULL)
-			ecat_matrix::crash("Error opening %s\n", in_hdr_fname);
+			LOG_EXIT("Error opening %s\n", in_hdr_fname);
 	} else {
 		if ((in = matrix_open(in_fname,ecat_matrix::MatrixFileAccessMode::READ_ONLY,ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE)) == NULL)
-			ecat_matrix::crash("Error opening %s\n", in_fname);
+			LOG_EXIT("Error opening %s\n", in_fname);
 		 int pos = strlen(in_fname) - 6;
 		if (pos>0 && strcasecmp(in_fname+pos, ".i.hdr")== 0) {
 			strncpy(out_fname,in_fname, pos);
@@ -125,7 +127,7 @@ int main(int argc, char **argv) {
 		}
 	}
 	if (in->dirlist->nmats == 0)
-    ecat_matrix::crash("Error: %s is empty\n", in_fname);
+    LOG_EXIT("Error: %s is empty\n", in_fname);
   clock_t c2=clock();  
   // printf("matrix_open: \t%f sec\n",(c2-c1+0.0)/CLOCKS_PER_SEC);   
   ecat_matrix::MatDirNode *node = in->dirlist->first;
@@ -134,19 +136,20 @@ int main(int argc, char **argv) {
     ecat_matrix::MatVal mat;
     int matnum = node->matnum;
     mat_numdoc(matnum, &mat);
-    if (in->dirlist->nmats > 1) printf("Smoothing frame %d\n", mat.frame);
+    if (in->dirlist->nmats > 1) 
+      LOG_INFO("Smoothing frame %d\n", mat.frame);
     c1=clock();
     ecat_matrix::MatrixData *volume = matrix_read(in, matnum,GENERIC);
     c2=clock();  
     // printf("matrix_read: \t%f sec\n",(c2-c1+0.0)/CLOCKS_PER_SEC);  
-    if (volume == NULL) ecat_matrix::crash("error loading %s frame %d\n", in_fname, mat.frame);
+    if (volume == NULL) LOG_EXIT("error loading %s frame %d\n", in_fname, mat.frame);
     if (volume->xdim != volume->ydim) 
-      ecat_matrix::crash("%s : unsupported different X and Y dimensions (%d,%d)\n",
+      LOG_EXIT("%s : unsupported different X and Y dimensions (%d,%d)\n",
 		in_fname,
 		volume->xdim, volume->ydim);
     float xfov = volume->xdim*volume->pixel_size, yfov=volume->ydim*volume->y_size;
     if (fabs(xfov - yfov) > 0.1)
-      ecat_matrix::crash("%s : unsupported non-squared image FOV (%g,%g)\n",
+      LOG_EXIT("%s : unsupported non-squared image FOV (%g,%g)\n",
       in_fname, xfov, yfov);
     
     int sx=volume->xdim, sy=volume->xdim, sz=volume->zdim;
@@ -180,7 +183,7 @@ int main(int argc, char **argv) {
       image = (float*)volume->data_ptr;
       break;
     default:
-      ecat_matrix::crash("%s : unsupported image data type (%d)\n",
+      LOG_EXIT("%s : unsupported image data type (%d)\n",
         in_fname, volume->data_type);
     }
     
@@ -280,7 +283,7 @@ int main(int argc, char **argv) {
 		    imh->scale_factor = volume->scale_factor = 1.0f;
         volume->data_max = imh->image_max;
         volume->data_min = imh->image_min;
-        printf("Image extrema : %g,%g\n", volume->data_min, volume->data_max);
+        LOG_INFO("Image extrema : {}, {}", volume->data_min, volume->data_max);
       } else {
         imh->scale_factor = volume->scale_factor;
       }
@@ -296,18 +299,18 @@ int main(int argc, char **argv) {
 			  strcpy(p+1,"i");
 			  strcpy(data_file, out_fname);
 			  FILE *fp = fopen(out_fname,"wb");
-			  if (fp==NULL) ecat_matrix::crash("Error creating %s\n", out_fname);
+			  if (fp==NULL) LOG_EXIT("Error creating %s\n", out_fname);
 			  int data_size = volume->data_type == ecat_matrix::MatrixDataType::IeeeFloat? 
 				  nvoxels*sizeof(float) : nvoxels*sizeof(short);
 			  if (fwrite(image,data_size,1,fp) != 1)
-				  ecat_matrix::crash("Error writing %s\n", out_fname);
+				  LOG_EXIT("Error writing %s\n", out_fname);
 			  fclose(fp);
 			  strcpy(p+1,"i.hdr");
 			  FILE *in_hdr = fopen(in->fname,"rb");
 			  if (fp==NULL)
-          ecat_matrix::crash("Error opening input header %s\n", in->fname);
+          LOG_EXIT("Error opening input header %s\n", in->fname);
 			  if ((fp = fopen(out_fname,"wb")) == NULL)
-				  ecat_matrix::crash("Error creating %s\n", out_fname);
+				  LOG_EXIT("Error creating %s\n", out_fname);
 			  const char *endianess = "BIGENDIAN";
   #ifdef unix
 			  if (ntohs(1)!=1) endianess = "LITTLEENDIAN";
@@ -357,10 +360,10 @@ int main(int argc, char **argv) {
       if (frame==0) 
       {
         out = matrix_create(out_fname, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, &proto);
-		     if (out==NULL) ecat_matrix::crash("Error creating %s\n", out_fname);
+		     if (out==NULL) LOG_EXIT("Error creating %s\n", out_fname);
       }
 		  if (matrix_write(out, volume->matnum, volume) != 0)
-			  ecat_matrix::crash("Error writing %s\n", out_fname);
+			  LOG_EXIT("Error writing %s\n", out_fname);
     }
 	  free_matrix_data(volume);
     node = node->next;

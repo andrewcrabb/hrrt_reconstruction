@@ -20,6 +20,8 @@ static char sccsid[]="@(#)imagemath.c	1.1 4/26/91 Copyright 1990 CTI Pet Systems
 #include "ecat_matrix.hpp"
 #include <math.h>
 #include <string.h>
+#include "my_spdlog.hpp"
+
 static char *version = "imagemath V2.4 02-Nov-2001";
 static usage(pgm) 
 char *pgm;
@@ -60,9 +62,9 @@ main( argc, argv)
 	if (!matspec( argv[1], fname, &matnuma)) matnuma = ecat_matrix::mat_numcod(1,1,1,0,0);
 	file1 = matrix_open( fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
 	if (!file1)
-	  ecat_matrix::crash( "%s: can't open file '%s'\n", argv[0], fname);
+	  LOG_EXIT( "Can't open file '{}'", fname);
 	image1 = matrix_read(file1,matnuma,ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
-	if (!image1) ecat_matrix::crash( "%s: image '%s' not found\n", argv[0], argv[1]);
+	if (!image1) LOG_EXIT( "Image '{}' not found\n", argv[1]);
 	switch(file1->mhptr->file_type) {
 	case ecat_matrix::DataSetType::InterfileImage :
 	case ecat_matrix::DataSetType::PetImage :
@@ -71,21 +73,21 @@ main( argc, argv)
 	case ecat_matrix::DataSetType::ByteVolume :
 		break;
 	default :
-		ecat_matrix::crash("input is not a Image nor Volume\n");
+		LOG_EXIT("input is not a Image nor Volume\n");
 		break;
 	}
 	if (!matspec( argv[2], fname, &matnumb)) matnumb = ecat_matrix::mat_numcod(1,1,1,0,0);
 	file2 = matrix_open( fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
 	if (!file2) {		/* check constant value argument */
 	  if (sscanf(argv[2],"%g",&valb) != 1)
-			ecat_matrix::crash("%s: can't open file '%s'\n", argv[0], fname);
+			LOG_EXIT("Can't open file '{}'", fname);
 	}
 	if (file2) {
 		image2 = matrix_read(file2,matnumb,ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
-		if (!image2) ecat_matrix::crash( "%s: image '%s' not found\n", argv[0], argv[2]);
+		if (!image2) LOG_EXIT( "image '{}' not found", argv[2]);
 		if (image1->xdim != image2->xdim || image1->ydim != image2->ydim ||
 			image1->zdim != image2->zdim)
-			ecat_matrix::crash("%s and %s are not compatible\n",argv[1], argv[2]);
+			LOG_EXIT("{} and {} are not compatible",argv[1], argv[2]);
 	}
 	npixels = image1->xdim*image1->ydim;
 	nvoxels = npixels*image1->zdim;
@@ -96,7 +98,8 @@ main( argc, argv)
 	memcpy(mh3, file1->mhptr, sizeof(ecat_matrix::Main_header));
 	mh3->file_type = ecat_matrix::DataSetType::PetVolume;
 	file3 = matrix_create( fname, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, mh3);
-	if (!file3) ecat_matrix::crash( "%s: can't open file '%s'\n", argv[0], fname);
+	if (!file3) 
+		LOG_EXIT( "Can't open file '{}'", fname);
 	image3 = (ecat_matrix::MatrixData*)calloc(1, sizeof(ecat_matrix::MatrixData));
 	memcpy(image3, image1, sizeof(ecat_matrix::MatrixData));
 	imh = (ecat_matrix::Image_subheader*)calloc(1,sizeof(ecat_matrix::Image_subheader));
@@ -184,8 +187,7 @@ main( argc, argv)
 			break;
 
 	  	default:
-			ecat_matrix::crash("%s: illegal operator \"%c\"...chose from {+,-,*,/,and,not,gt,lt}\n",
-			argv[0], op1);
+			LOG_EXIT("Illegal operator {}: chose from {+,-,*,/,and,not,gt,lt}",op1);
 		}
 		switch (op2) {
 		case 'b' :

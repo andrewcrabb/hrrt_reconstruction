@@ -155,66 +155,9 @@ void calculatevieworder(int **vieworder,int subsets,int th_pixels,int sviews) {
 char log_file[_MAX_PATH];
 unsigned int log_mode = LOG_TO_CONSOLE;
 
-void LogMessage( const char *fmt, ... )
-{
-	//variable argument list
-	int nc = 0;	va_list args;
-	char printout[_MAX_PATH];
-	
-	//log entry
-	FILE *log_fp=NULL; 
-  time_t ltime;
-	char LogEntry[_MAX_PATH];
 
-	//format the incoming string + args
-	va_start(args, fmt);
-	nc = vsprintf(printout, fmt, args);
-	va_end(args);
-
-	//prepend the time
-	time(&ltime);
-  struct tm *ptm = localtime(&ltime);
-  sprintf(LogEntry,"%02d:%02d:%02d", ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
-	LogEntry[8] = '\t';	strcpy(&LogEntry[9],printout);
-
-	//make the log entry
-  if (log_file != NULL) log_fp = fopen(log_file,"a+");
-  if(log_fp != NULL) {
-	  fprintf(log_fp,"%s",LogEntry);
-	  fclose(log_fp);
-  }
-  if (log_mode&LOG_TO_CONSOLE) fprintf(stdout,"%s",LogEntry);
-}
-
-
-/*******************************************************************************************************/
-int crash1(const char *fmt)
-{
-//	fprintf(stderr, fmt);
-	LogMessage( fmt);
-	exit(1);
-}
-
-int crash2(const char *fmt, char *a0)
-{
-//	fprintf(stderr, fmt, a0);
-	LogMessage(fmt, a0);
-	exit(1);
-}
-
-int crash3(const char *fmt, int a0)
-{
-//	fprintf(stderr, fmt, a0);
-	LogMessage(fmt, a0);
-	exit(1);
-}
-
-/*
-* calculate range of planes of each group.
-*
-*/
-void get_info(int nrings,int span,int rmax,int group,int* del,int* zmin,int* zmax,int* imin,int* imax,int* imin1,int* imax1)
-{
+ // calculate range of planes of each group.
+void get_info(int nrings,int span,int rmax,int group,int* del,int* zmin,int* zmax,int* imin,int* imax,int* imin1,int* imax1) {
 	int j;
 
 	if (group == 0) {		
@@ -288,9 +231,9 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 	/* nprojs and nviews are specified from command line  */
 	if (nprojs != 0) {
 		if (nprojs != radial_pixels) {
-			if (verbose & 0x0001) fprintf(stdout,"  Radial resampling from %d to %d pixels, i.e. from %.5f mm to ",radial_pixels, nprojs, sino_sampling);
+			if (verbose & 0x0001) LOG_INFO("  Radial resampling from %d to %d pixels, i.e. from %.5f mm to ",radial_pixels, nprojs, sino_sampling);
 			sino_sampling *= (float) radial_pixels / (float) nprojs;
-			if (verbose & 0x0001) fprintf(stdout, " %.5f mm\n", sino_sampling);
+			if (verbose & 0x0001) LOG_INFO( " %.5f mm\n", sino_sampling);
 		}
 		radial_pixels = nprojs;
 	}
@@ -312,21 +255,21 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 	x_off = x_pixels / 2;
 	y_off = y_pixels / 2;
 	z_off = z_pixels / 2;
-	if (verbose & 0x0001) fprintf(stdout, "  Image offsets: x_off=%d, y_off=%d, z_off=%d\n",x_off, y_off, z_off);
+	if (verbose & 0x0001) LOG_INFO( "  Image offsets: x_off=%d, y_off=%d, z_off=%d\n",x_off, y_off, z_off);
 
 	/* x_size, y_size, z_size */
 	x_size = (sino_sampling * radial_pixels) / (zoomlocal * x_pixels);
 	y_size = x_size;
 	z_size = ring_spacing / 2.0f;
 	if (verbose & 0x0001)
-		fprintf(stdout, "  at zoom = %f, pixel_size is %f zoom=%f newzoom=%f mm\n", zoomlocal,x_size,zoom,newzoom);
+		LOG_INFO( "  at zoom = %f, pixel_size is %f zoom=%f newzoom=%f mm\n", zoomlocal,x_size,zoom,newzoom);
 	imagesize  = z_pixels * x_pixels  * y_pixels;
 
 	/************************************/
 	/* osem_parameter                   */
 	/* views, subsets, sviews           */
 	if ((views % subsets) != 0) {
-		fprintf(stdout,"  Number of views %d should be multiple of subsets %d \n",views, subsets);
+		LOG_INFO("  Number of views %d should be multiple of subsets %d \n",views, subsets);
 		return 0;
 	}
 	sviews = views / subsets;
@@ -357,19 +300,19 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 
 
 	if (verbose & 0x0001) {
-		fprintf(stdout, "  Additional parameters \n");
-		fprintf(stdout, "  ----------------------\n");
-		fprintf(stdout, "  Number of subsets and sviews  : %d , %d \n",subsets, sviews);
-		fprintf(stdout, "  Measured projections (xr*yr)  : %d  x  %d \n",xr_pixels, yr_pixels);
-		fprintf(stdout, "  Number of segments            : %d \n",th_pixels);
-		fprintf(stdout, "  Image size (X*Y*Z)            : %d  x  %d x %d \n",x_pixels, y_pixels, z_pixels);
-		//		fprintf(stdout, "  Xr offset                     : %d \n", xr_off);
-		//		fprintf(stdout, "  Yr offset                     : %d \n", yr_off);
-		fprintf(stdout, "  Maximum ring difference       : %d \n", maxdel);
-		fprintf(stdout, "  Miminum group [segment]       : %d [%d]\n",groupmin, th_min);
-		fprintf(stdout, "  Maximum group [segment]       : %d [%d]\n",groupmax, th_pixels);
-		fprintf(stdout, "  Reconstructed FOV radius      : %f mm (%f %%) \n", rfov,rel_fov);
-		fprintf(stdout, "  Final FOV radius              : %f mm \n",ffov);
+		LOG_INFO( "  Additional parameters \n");
+		LOG_INFO( "  ----------------------\n");
+		LOG_INFO( "  Number of subsets and sviews  : %d , %d \n",subsets, sviews);
+		LOG_INFO( "  Measured projections (xr*yr)  : %d  x  %d \n",xr_pixels, yr_pixels);
+		LOG_INFO( "  Number of segments            : %d \n",th_pixels);
+		LOG_INFO( "  Image size (X*Y*Z)            : %d  x  %d x %d \n",x_pixels, y_pixels, z_pixels);
+		//		LOG_INFO( "  Xr offset                     : %d \n", xr_off);
+		//		LOG_INFO( "  Yr offset                     : %d \n", yr_off);
+		LOG_INFO( "  Maximum ring difference       : %d \n", maxdel);
+		LOG_INFO( "  Miminum group [segment]       : %d [%d]\n",groupmin, th_min);
+		LOG_INFO( "  Maximum group [segment]       : %d [%d]\n",groupmax, th_pixels);
+		LOG_INFO( "  Reconstructed FOV radius      : %f mm (%f %%) \n", rfov,rel_fov);
+		LOG_INFO( "  Final FOV radius              : %f mm \n",ffov);
 	}
 
 	/* frequently used arrays and constants  */
@@ -410,13 +353,13 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 				cylflag=0;
 			}
 		}
-		//	fprintf(stdout," Mask boundaries at line y %d\t%d\t%d\n",y,cylwiny[y][0],cylwiny[y][1]);
+		//	LOG_INFO(" Mask boundaries at line y %d\t%d\t%d\n",y,cylwiny[y][0],cylwiny[y][1]);
 	}
 	x = 0;
 	y = 0;
 	v = 0;
 	z = 0;
-	fprintf(stdout,"  Pixels in rfov [%d]\n",i);
+	LOG_INFO("  Pixels in rfov [%d]\n",i);
 	i = i/nthreads;
 	if(i<0) i = 0;
 
@@ -451,7 +394,7 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 		}
 	}	
 	for(i=0;i<nthreads;i++){
-		printf("threads %d\t%d\t%d\n",i,start_x__per_thread_back[i],cylwiny[x_pixels/2][0]);
+		LOG_INFO("threads {} {} {}",i,start_x__per_thread_back[i],cylwiny[x_pixels/2][0]);
 	}
 	free(in_fov_pixels_at_x);
 	x = y = v = z =0;
@@ -489,7 +432,7 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 		cos_theta[2 * group - 1] = (2.0f * ring_radius) / tmp_flt;
 		sin_theta[2 * group] = -sin_theta[2 * group - 1];
 		cos_theta[2 * group] = cos_theta[2 * group - 1];
-		if (verbose & 0x0001) fprintf(stdout,"  cos_theta[%d] = %f %2.20lf %2.20lf\n", group,cos_theta[2 * group - 1],-sin_theta[2 ]/cos_theta[2 ]*group,-sin_theta[2 * group]/cos_theta[2 * group]);
+		if (verbose & 0x0001) LOG_INFO("  cos_theta[%d] = %f %2.20lf %2.20lf\n", group,cos_theta[2 * group - 1],-sin_theta[2 ]/cos_theta[2 ]*group,-sin_theta[2 * group]/cos_theta[2 * group]);
 		/* LX: end of each axial groups has a theta which is different from the mean of that group */
 		for (z = 0; z < ZShift; z++) {
 			zmin = span * group - (span - 1) / 2;
@@ -525,10 +468,10 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 	}
 
 	if (verbose & 0x0001) {
-		fprintf(stdout,"  Toatl number of planes %d \n",segmentsize);
-		fprintf(stdout,"  Range and sixel_offset for each theta (group) \n");
+		LOG_INFO("  Toatl number of planes %d \n",segmentsize);
+		LOG_INFO("  Range and sixel_offset for each theta (group) \n");
 		for (group = th_min; group < th_pixels; group++)
-			fprintf(stdout,"  yr_bottom[%d] = %d; yr_top[%d] = %d offset[%d] = %d \n", group, yr_bottom[group], group, yr_top[group], group,seg_offset[group]);
+			LOG_INFO("  yr_bottom[%d] = %d; yr_top[%d] = %d offset[%d] = %d \n", group, yr_bottom[group], group, yr_top[group], group,seg_offset[group]);
 	}
 
 	sin_psi[0] = 0.0;
@@ -547,11 +490,11 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 
 	/* Calculate normalization factors: Backprojection from estimate to normfac[][][] for each subset */
 	vieworder=(int **) calloc(subsets,sizeof(int*));
-	if(vieworder==NULL) exit(1);
+	if(vieworder==NULL) LOG_EXIT("exiting");
 	for(i=0;i<subsets;i++){
 		vieworder[i]=(int *) calloc(sviews,sizeof(int));
 		if(vieworder[i]==NULL){
-			printf("error \n"); exit(1);
+			LOG_EXIT("error \n");
 		}
 	}	
 	calculatevieworder(vieworder,subsets,th_pixels,sviews);
@@ -644,7 +587,7 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 			blookup_oblique_totalnum+=blookup_oblique_start_end[y][th2].num;
 		}
 	}
-	printf("total num %d\n",blookup_oblique_totalnum);
+	LOG_INFO("total num {}",blookup_oblique_totalnum);
 	blookup_oblique_ptr=(Backprojection_lookup_oblique *) _mm_malloc(blookup_oblique_totalnum*sizeof(Backprojection_lookup_oblique),16);
 	blookup_oblique=(Backprojection_lookup_oblique ***) _mm_malloc(y_pixels*sizeof(Backprojection_lookup **),16);
 	yri=0;
@@ -723,7 +666,7 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 	//			printf("start\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",y,group,blookup_oblique_start_end[y][group].num,				blookup_oblique_start_end[y][group].z1,				blookup_oblique_start_end[y][group].z2,				blookup_oblique_start_end[y][group].z3,				blookup_oblique_start_end[y][group].z4);
 	//		}
 	//	}
-	//	exit(1);
+	//	LOG_EXIT("exiting");
 
 	for(th=2,th2=0;th<th_pixels;th+=2,th2++) {		
 		tantheta_back[th2]=-sin_theta[th]/cos_theta[th];
@@ -892,10 +835,6 @@ typedef struct {
 	float ***out;
 } RotateArg;
 
-#define errexit(code,str) \
-{ fprintf( stderr,"%s: %s\n",(str),strerror(code)); exit(1); }
-
-
 FUNCPTR pt_fproj_3d_view1(void *ptarg) {
 	BPFP_ptargs *arg = (BPFP_ptargs *) ptarg;
 	forward_proj3d_view1_thread(arg->image, arg->prj,arg->view,arg->theta, arg->verbose, arg->start, arg->end,arg->imagebuf);
@@ -936,7 +875,7 @@ void rotateimage_bspline(float ***ima,float ***out,int view,int xs,int xe){
 //	static float o[256][256]={0};
 	out2=(__m128 *)_alloca((z_pixels_simd)*sizeof(__m128));
 	if(out2==NULL){
-		exit(1);
+		LOG_EXIT("exiting");
 	}
 	
 	image=(__m128 ***) ima;
@@ -1037,7 +976,7 @@ void rotateimage(float ***ima,float ***out,int view,int xs,int xe){
 //	static float o[256][256]={0};
 	out2=(__m128 *)_alloca((z_pixels_simd)*sizeof(__m128));
 	if(out2==NULL){
-		exit(1);
+		LOG_EXIT("exiting");
 	}
 	
 	image=(__m128 ***) ima;
@@ -1512,8 +1451,8 @@ int forward_proj3d_thread1(float ***ima,float ** prj,int view,int numthread,floa
 */
 int proj_atten_view(float ***image, float *prj,int view, int verbose)
 {
-  fprintf(stdout, "proj_atten_view:TBD\n");
-  exit(1);
+  LOG_INFO( "proj_atten_view:TBD\n");
+  LOG_EXIT("exiting");
 }
 
 int back_proj3d2(float **prj,float *** ima,int view,int numthread,float ***imagebuf,float ***prjbuf)
@@ -1846,7 +1785,7 @@ int forward_proj3d_view1_thread(float ***image,float ***prj,int view,int theta2,
 	memset(rim7,0,z_pixels_simd*sizeof(__m128));
 	memset(rim8,0,z_pixels_simd*sizeof(__m128));
 	if(pam==NULL || pam2==NULL){
-		exit(1);
+		LOG_EXIT("exiting");
 	}
 
 	mptr=(float *)pam;
@@ -2108,7 +2047,7 @@ int forward_proj3d_view1_thread_2d(float ***image,float ***prj,int view,int thet
 	memset(rim7,0,z_pixels_simd*sizeof(__m128));
 	memset(rim8,0,z_pixels_simd*sizeof(__m128));
 	if(pam==NULL || pam2==NULL){
-		exit(1);
+		LOG_EXIT("exiting");
 	}
 
 	mptr=(float *)pam;
@@ -2551,7 +2490,7 @@ int forward_proj3d_view1_thread_2d(float ***image,float ***prj,int view,int thet
 //	memset(rim7,0,z_pixels_simd*sizeof(__m128));
 //	memset(rim8,0,z_pixels_simd*sizeof(__m128));
 //	if(pam==NULL || pam2==NULL){
-//		exit(1);
+//		LOG_EXIT("exiting");
 //	}
 //
 //	mptr=(float *)pam;
@@ -2849,7 +2788,7 @@ int forward_proj3d_view1_thread_2d(float ***image,float ***prj,int view,int thet
 //	i1fmm=(__m128 *)_alloca((z_pixels_simd*4)*sizeof(__m128));
 //	i2fmm=(__m128 *)_alloca((z_pixels_simd*4)*sizeof(__m128));
 //	if(i2fmm==NULL || i1fmm==NULL){
-//		exit(1);
+//		LOG_EXIT("exiting");
 //	}
 //
 //	mptr1=(float *) i1fmm;
@@ -3009,7 +2948,7 @@ int back_proj3d_view_n1(float ***image,float ***prj, int view_90flag,int view,in
 	i1fmm=(__m128 *)_alloca((z_pixels_simd*4)*sizeof(__m128));
 	i2fmm=(__m128 *)_alloca((z_pixels_simd*4)*sizeof(__m128));
 	if(i2fmm==NULL || i1fmm==NULL){
-		exit(1);
+		LOG_EXIT("exiting");
 	}
 
 	mptr1=(float *) i1fmm;
@@ -3169,7 +3108,7 @@ int z_start=0,z_end=z_pixels;
 i1fmm=(__m128 *)_alloca((z_pixels_simd*4)*sizeof(__m128));
 i2fmm=(__m128 *)_alloca((z_pixels_simd*4)*sizeof(__m128));
 if(i2fmm==NULL || i1fmm==NULL){
-exit(1);
+LOG_EXIT("exiting");
 }
 
 mptr1=(float *) i1fmm;
@@ -3343,7 +3282,7 @@ return 1;
 //	diff2=(float *)_alloca((z_pixels_simd*16)*sizeof(float));
 //
 //	if(sum1==NULL || sum2==NULL){
-//		exit(1);
+//		LOG_EXIT("exiting");
 //	}
 ////	mptr1=(float *) sum1;
 ////	mptr2=(float *) sum2;
@@ -3681,7 +3620,7 @@ return 1;
 //	diff2=(__m128 *)_alloca((z_pixels_simd*4)*sizeof(__m128));
 //
 //	if(sum1==NULL || sum2==NULL){
-//		exit(1);
+//		LOG_EXIT("exiting");
 //	}
 //	mptr1=(float *) sum1;
 //	mptr2=(float *) sum2;
@@ -3968,7 +3907,7 @@ return 1;
 //	diff2=(__m128 *)_alloca((z_pixels_simd*4)*sizeof(__m128));
 //
 //	if(sum1==NULL || sum2==NULL){
-//		exit(1);
+//		LOG_EXIT("exiting");
 //	}
 //	mptr1=(float *) sum1;
 //	mptr2=(float *) sum2;
@@ -4261,11 +4200,11 @@ int back_proj3d_view_n1thread(float ***image,float ***prj, int view_90flag,int v
 
 
 	if(sumt1==NULL || sumt2==NULL){
-		exit(1);
+		LOG_EXIT("exiting");
 	}
 
 	if(diff1==NULL || diff2==NULL){
-		exit(1);
+		LOG_EXIT("exiting");
 	}
 
 	mptr1=(float *) sumt1;
@@ -4797,11 +4736,11 @@ norm_zero_mask_label:
 //
 //
 //	if(sumt1==NULL || sumt2==NULL){
-//		exit(1);
+//		LOG_EXIT("exiting");
 //	}
 //
 //	if(diff1==NULL || diff2==NULL){
-//		exit(1);
+//		LOG_EXIT("exiting");
 //	}
 //
 //	mptr1=(float *) sumt1;
@@ -5345,7 +5284,7 @@ int back_proj3d_view_n1thread_old(float ***image,float ***prj, int view_90flag,i
 	diff2=(__m128 *)_alloca((z_pixels_simd*4)*sizeof(__m128));
 
 	if(sum1==NULL || sum2==NULL){
-		exit(1);
+		LOG_EXIT("exiting");
 	}
 	mptr1=(float *) sum1;
 	mptr2=(float *) sum2;
@@ -5529,7 +5468,7 @@ norm_zero_mask_label:
 //	i1fmm=(__m128 *)_alloca((z_pixels_simd*4)*sizeof(__m128));
 //	i2fmm=(__m128 *)_alloca((z_pixels_simd*4)*sizeof(__m128));
 //	if(i2fmm==NULL || i1fmm==NULL){
-//		exit(1);
+//		LOG_EXIT("exiting");
 //	}
 //	mptr1=(float *) i1fmm;
 //	mptr2=(float *) i2fmm;
@@ -5725,7 +5664,7 @@ norm_zero_mask_label:
 //	lptr1=(Backprojection_lookup_oblique *)_alloca((blookup_oblique_maxnum)*sizeof(Backprojection_lookup_oblique));
 //	lptr2=(Backprojection_lookup_oblique *)_alloca((blookup_oblique_maxnum)*sizeof(Backprojection_lookup_oblique));
 //	if(i2fmm==NULL || i1fmm==NULL || lptr1==NULL || lptr2==NULL){
-//		exit(1);
+//		LOG_EXIT("exiting");
 //	}
 //
 //	mptr1=(float *) i1fmm;
@@ -5902,7 +5841,7 @@ norm_zero_mask_label:
 //	lptr1=(Backprojection_lookup_oblique *)_alloca((blookup_oblique_maxnum)*sizeof(Backprojection_lookup_oblique));
 //	lptr2=(Backprojection_lookup_oblique *)_alloca((blookup_oblique_maxnum)*sizeof(Backprojection_lookup_oblique));
 //	if(i2fmm==NULL || i1fmm==NULL || lptr1==NULL || lptr2==NULL){
-//		exit(1);
+//		LOG_EXIT("exiting");
 //	}
 //	mptr1=(float *) i1fmm;
 //	mptr2=(float *) i2fmm;

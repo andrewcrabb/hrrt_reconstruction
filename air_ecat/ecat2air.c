@@ -19,6 +19,7 @@
 #include <ecatx/ecat_matrix.hpp>
 #include <ecatx/load_volume.h>
 #include <math.h>
+#include "my_spdlog.hpp"
 
 typedef struct _MatrixExtrema {
 	char *specs;
@@ -140,8 +141,7 @@ static AIR_Pixels ***matrix2air(ecat_matrix::MatrixData* matrix, struct AIR_Key_
 	AIR_Pixels ***image, *image_data;
 
 	if (sizeof(AIR_Pixels) != 1 && sizeof(AIR_Pixels) != 2) {
-		printf("ecat2air not configured for %i bits/pixel\n",
-			8*sizeof(AIR_Pixels));
+		LOG_ERROR("ecat2air not configured for {} bits/pixel", 8 * sizeof(AIR_Pixels));
 		return 0;
 	}
 	switch (matrix->data_type) {
@@ -162,7 +162,7 @@ static AIR_Pixels ***matrix2air(ecat_matrix::MatrixData* matrix, struct AIR_Key_
 */
 	if(stats->bits==1){
 		if(!binaryok){ 
-			printf("ecat matrix is binary and was therefore not converted\n");
+			LOG_ERROR("ecat matrix is binary and was therefore not converted\n");
 			return 0;
 		}
 	}
@@ -172,15 +172,13 @@ static AIR_Pixels ***matrix2air(ecat_matrix::MatrixData* matrix, struct AIR_Key_
 	if(stats->x_size>PIXEL_MAX_SIZE||stats->x_size<PIXEL_MIN_SIZE||
 		stats->y_size>PIXEL_MAX_SIZE||stats->y_size<PIXEL_MIN_SIZE||
 		stats->z_size>PIXEL_MAX_SIZE||stats->z_size<PIXEL_MIN_SIZE) {
-		printf("WARNING: matrix voxel dimensions %.4f x %.4f x %.4f\n",
-			stats->x_size,stats->y_size,stats->z_size);
+		LOG_ERROR("WARNING: matrix voxel dimensions {:.4d} x {:.4d} x {:.4d}",	stats->x_size, stats->y_size, stats->z_size);
 	}
 #endif
   /*Allocate memory for the image*/
 	image = AIR_create_vol3(stats->x_dim,stats->y_dim,stats->z_dim);
 	if (image==NULL) {
-		printf("ecat2air : unable to allocate memory for %dx%dx%d voxels\n",
-			stats->x_dim,stats->y_dim,stats->z_dim);
+		LOG_ERROR("ecat2air : unable to allocate memory for {} x {} x {} voxels",	stats->x_dim, stats->y_dim, stats->z_dim);
 		return 0;
 	}
 
@@ -189,15 +187,11 @@ static AIR_Pixels ***matrix2air(ecat_matrix::MatrixData* matrix, struct AIR_Key_
 
 	v0 = matrix->data_min/matrix->scale_factor;
 	v1 = matrix->data_max/matrix->scale_factor;
-/* change scale : f(v) = a*v+b where f(v0) = 0 and f(v1) = MAX_POSS_VALUE
-   a = (f(v1) - f(v0))/(v1-v0) 
-   b = f(v0) - a*v0
-*/
 	a = (float)(AIR_CONFIG_MAX_POSS_VALUE)/(v1-v0);
 	b = -a*v0;
 	
 	switch (matrix->data_type) {
-		case BitData:
+		case ecat_matrix::MatrixDataType::BitData:
 		case ecat_matrix::MatrixDataType::ByteData:
 			bdata = (unsigned char *)matrix->data_ptr;
 			for (i=0; i<nvoxels; i++) {
@@ -249,17 +243,18 @@ int matrix_exists(const char *specs)
     matnum = 0;
     ret = matspec(specs,fname,&matnum);
 	if (access(fname,F_OK) < 0) { /* try adding .img extension */
-		fprintf(stderr,"%s not found\n",fname);
+		LOG_ERROR("{} not found",fname);
 		strcat(fname,".img");
 		if (access(fname,F_OK) < 0) {
-			fprintf(stderr,"%s not found\n",fname);
+			LOG_ERROR("{} not found",fname);
 			return 0;
-		} else fprintf(stderr,"using %s\n",fname);
+		} else 
+		LOG_ERROR("using {}",fname);
 	}
 		
     file = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
     if (file == NULL) {
-        matrix_perror(fname);
+        LOG_ERROR(fname);
         return 0;
     }
     if (ret==0)  /* no matrix specified, use first */
@@ -289,7 +284,6 @@ AIR_Pixels ***ecat2air(const char *specs, struct AIR_Key_info *stats,
   file = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   mat_numdoc(matnum, &mat);
 
-  // printf("air_ecat/ecat2air.c: fname:%s, matnum:%d \n", fname, matnum); fflush(stdout);
   if ( (volume = matrix_read(file,matnum, GENERIC)) != NULL) {
     //if ( (volume = load_volume(file,mat.frame, /*cubic*/1, /*interp*/1)) != NULL) {
     if (matrix_extrema == NULL) {
@@ -309,7 +303,7 @@ AIR_Pixels ***ecat2air(const char *specs, struct AIR_Key_info *stats,
     pixels = matrix2air(volume,stats);
     free_matrix_data(volume);
   } else {
-    printf("air_ecat/ecat2air.c: volume %s,%d,*,*,*,* not found\n",fname,mat.frame);
+    LOG_ERROR("air_ecat/ecat2air.c: volume {}, {},*,*,*,* not found\n", fname, mat.frame);
     /* ahc addition 3/4/13 */
     *errcode = AIR_READ_IMAGE_FILE_ERROR;
   }

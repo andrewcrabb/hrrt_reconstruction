@@ -10,17 +10,18 @@ static char sccsid[]="(#)matcopy.c 1.4 7/10/92 Copyright 1990 CTI Pet Systems, I
 #include <stdlib.h>
 #include <unistd.h>
 #include "ecat_matrix.hpp"
+#include "my_spdlog.hpp"
 extern ecat_matrix::MatrixData *matrix_read_scan();
 
 static void usage();
 static int copy_scan(ecat_matrix::MatrixFile *mptr1, int matnum, ecat_matrix::MatrixFile *mptr2, int o_matnum, int storage_order);
 
 static void usage() {
-  fprintf(stderr,
+  LOG_ERROR(
     "usage: matcopy -i matspec -o matspec [-V version -v] [-s storage_order]]\n");
-  fprintf(stderr,"version is either 70 or 6 (default = 70)\n");
-  fprintf(stderr,"-s storage_order (0 or 1); valid only for sinograms and attenuations\n");
-  fprintf(stderr,"-v set verbose mode on ( default is off)\n");
+  LOG_ERROR("version is either 70 or 6 (default = 70)\n");
+  LOG_ERROR("-s storage_order (0 or 1); valid only for sinograms and attenuations\n");
+  LOG_ERROR("-v set verbose mode on ( default is off)\n");
   exit(1);
 }
 
@@ -86,17 +87,15 @@ static int copy_scan(ecat_matrix::MatrixFile *mptr1, int matnum, ecat_matrix::Ma
   if (keep_order) {
     for (i=0; i<nblks;i++) {
       if (fread(blk,MatBLKSIZE,1,mptr1->fptr) != 1) {
-        perror(mptr1->fname);
-        exit(1);
+        LOG_EXIT(mptr1->fname);
       }
       if (fwrite(blk,MatBLKSIZE,1,mptr2->fptr) != 1) {
-          perror(mptr2->fname);
-          exit(1);
+          LOG_EXIT(mptr2->fname);
         }
     }
   }  else { /* keep_order */
     if (storage_order == 1) {   /* view mode to sino mode */
-      if (verbose) fprintf(stderr,"view mode to sino mode\n");
+      LOG_DEBUG("view mode to sino mode");
       sino = (void *)malloc(line_size*num_views);
       file_pos = ftell(mptr1->fptr);
       for (plane=0;plane<num_planes;plane++) {
@@ -106,18 +105,16 @@ static int copy_scan(ecat_matrix::MatrixFile *mptr1, int matnum, ecat_matrix::Ma
             plane*line_size;
           if ((fseek(mptr1->fptr,view_pos,0) == -1) ||
             fread(dest,line_size,1,mptr1->fptr) != 1) {
-            perror(mptr1->fname);
-            exit(1);
+            LOG_EXIT(mptr1->fname);
           }
           dest += line_size;
         }
         if (fwrite(sino,line_size,num_views,mptr2->fptr) != num_views) {
-          perror(mptr2->fname);
-          exit(1);
+          LOG_EXIT(mptr2->fname);
         }
       }
     } else {        /* storage_order */
-      if (verbose) fprintf(stderr,"sino mode to view mode\n");
+      LOG_DEBUG("sino mode to view mode\n");
       planar = (void *)malloc(line_size*num_planes);
       file_pos = ftell(mptr1->fptr);
       for (view=0; view<num_views; view++) {
@@ -126,14 +123,12 @@ static int copy_scan(ecat_matrix::MatrixFile *mptr1, int matnum, ecat_matrix::Ma
         view_pos = file_pos + plane*num_views*line_size + view*line_size;
           if ((fseek(mptr1->fptr,view_pos,0) == -1) ||
             fread(dest,1,line_size,mptr1->fptr) != line_size) {
-            perror(mptr1->fname);
-            exit(1);
+            LOG_EXIT(mptr1->fname);
           }
           dest += line_size;
         }
         if (fwrite(planar,line_size,num_planes,mptr2->fptr)!=num_planes) {
-          perror(mptr2->fname);
-          exit(1);
+          LOG_EXIT(mptr2->fname);
         }
       }
     } /* storage_order */
@@ -197,8 +192,10 @@ int main( argc, argv)
     }
   }
   mptr1 = matrix_open( fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
-  if (!mptr1) ecat_matrix::crash( "%s: can't open file '%s'\n", argv[0], fname);
-  if ( mptr1->dirlist->nmats == 0) ecat_matrix::crash("no matrix in %s\n",fname);
+  if (!mptr1) 
+    LOG_EXIT( "can't open file {}", argv[0], fname);
+  if ( mptr1->dirlist->nmats == 0) 
+    LOG_EXIT("no matrix in {}",fname);
   matnums = (int*)calloc(sizeof(int),mptr1->dirlist->nmats);
   node = mptr1->dirlist->first;
   nmats = 0;
@@ -220,7 +217,8 @@ int main( argc, argv)
       matnums[nmats++] = matnum;
     }
   }
-  if (nmats == 0) ecat_matrix::crash( "%s: matrix not found\n", in_spec);
+  if (nmats == 0) 
+    LOG_EXIT( "{}: matrix not found{}", in_spec);
   matspec( out_spec, fname, &o_matnum);
   memcpy(&proto,mptr1->mhptr,sizeof(ecat_matrix::Main_header));
   proto.sw_version = version;
@@ -228,7 +226,7 @@ int main( argc, argv)
     if (proto.file_type != ecat_matrix::DataSetType::PetImage && proto.file_type != ecat_matrix::DataSetType::ByteVolume &&
     proto.file_type != ecat_matrix::DataSetType::PetVolume && proto.file_type != ecat_matrix::DataSetType::ByteImage &&
     proto.file_type != InterfileImage)
-      crash ("version 6 : only images are supported \n");
+      LOG_EXIT ("version 6 : only images are supported");
     proto.file_type = ecat_matrix::DataSetType::PetImage;
   } else {
     if (proto.file_type == InterfileImage) {
@@ -241,22 +239,22 @@ int main( argc, argv)
     }
   }
   if (proto.sw_version != mptr1->mhptr->sw_version) {
-    if (verbose) fprintf(stderr,"converting version %d to version %d\n",
+    LOG_DEBUG("converting version %d to version %d\n",
         mptr1->mhptr->sw_version, proto.sw_version); 
   } else {
-    if (verbose) fprintf(stderr,"input/output version : %d\n",proto.sw_version);
+    LOG_DEBUG("input/output version : %d\n",proto.sw_version);
   }
   mptr2 = matrix_create( fname, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, &proto);
-  if (!mptr2) ecat_matrix::crash( "%s: can't open file '%s'\n", argv[0], fname);
+  if (!mptr2) LOG_EXIT( "%s: can't open file '%s'\n", argv[0], fname);
   
   for (i=0; i<nmats; i++) {
     if (nmats > 1 || o_matnum == 0) o_matnum = matnums[i];
     if (verbose) {
           mat_numdoc(matnums[i], &mat);
-      fprintf(stderr,"input matrix : %s,%d,%d,%d,%d,%d\n",
+      LOG_ERROR("input matrix : %s,%d,%d,%d,%d,%d\n",
         mptr1->fname, mat.frame,mat.plane,mat.gate,mat.data,mat.bed);
           mat_numdoc(o_matnum, &mat);
-      fprintf(stderr,"output matrix : %s,%d,%d,%d,%d,%d\n",
+      LOG_ERROR("output matrix : %s,%d,%d,%d,%d,%d\n",
         mptr2->fname, mat.frame,mat.plane,mat.gate,mat.data,mat.bed);
     }
     if (mptr1->mhptr->file_type==Short3dSinogram ||

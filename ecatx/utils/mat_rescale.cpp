@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "my_spdlog.hpp"
 #ifndef FILENAME_MAX 
 #define FILENAME_MAX 256
 #endif
@@ -31,12 +32,10 @@ void matrix_sum(ecat_matrix::MatrixData *matrix, ecat_matrix::MatrixData **sum)
   
   nvoxels =  matrix->xdim*matrix->ydim*matrix->zdim;
   mat_numdoc(matrix->matnum, &mat);
-  printf("%d,%d,%d,%d,%d\n",
-	 mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
+  LOG_INFO("{},{},{},{},{}", mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
 
   sdata = (short*)matrix->data_ptr;
-  if (*sum == NULL)
-  {
+  if (*sum == NULL)  {
     *sum = (ecat_matrix::MatrixData*)calloc(1, sizeof(ecat_matrix::MatrixData));
     memcpy(*sum, matrix,sizeof(ecat_matrix::MatrixData));
     (*sum)->data_size = nvoxels*sizeof(float);
@@ -92,17 +91,17 @@ int main(int argc, char **argv)
     switch (i) {
       case 't' :
         if (sscanf(optarg,"%d",&em_thres) != 1){
-          printf("Invalid emission threshold %s\n", optarg);
+          LOG_ERROR("Invalid emission threshold {}", optarg);
           usage(argv[0]);
         }
         break;
       case 'T' :
         if (sscanf(optarg,"%f",&mu_thres) != 1){
-          printf("Invalid mu threshold %s\n", optarg);
+          LOG_ERROR("Invalid mu threshold {}", optarg);
           usage(argv[0]);
         }
         if (mu_thres<0.01f || mu_thres>0.096f) {
-          printf("Invalid mu threshold %s: valid value range [0.01, 0.096]\n",
+          LOG_ERROR("Invalid mu threshold {}: valid value range [0.01, 0.096]",
             optarg);
         }
         break;
@@ -128,17 +127,17 @@ int main(int argc, char **argv)
 
   mptr1 = matrix_open(in_file, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (mptr1 == NULL) {
-    matrix_perror(in_file);
+    LOG_ERROR(in_file);
     return 1;
   }
   ftype = mptr1->mhptr->file_type;
   // if (ftype <0 || ftype >= NumDataSetTypes)
-  //   ecat_matrix::crash("%s : unkown file type\n", in_file);
-  printf( "%s file type  : %s\n", in_file, data_set_types_.at(ftype).name);
+  //   LOG_EXIT("%s : unkown file type\n", in_file);
+  LOG_INFO( "{} file type  : {}", in_file, data_set_types_.at(ftype).name);
 
   mptr2 = matrix_open(mu_file, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (mptr2 == NULL) {
-    matrix_perror(mu_file);
+    LOG_ERROR(mu_file);
     return 1;
   }
   
@@ -146,7 +145,7 @@ int main(int argc, char **argv)
   if ((node = mptr2->dirlist->first) == NULL) matrix=NULL;
   else matrix = matrix_read(mptr2,node->matnum,UnknownMatDataType);
   if (matrix==NULL) {
-    printf("error reading mu-map\n");
+    LOG_ERROR("error reading mu-map\n");
     return 1;
   }
   mu_vol=0;
@@ -159,13 +158,13 @@ int main(int argc, char **argv)
       mu_vol++;
     }
   mu_vol_mm3 = mu_vol*(matrix->pixel_size*matrix->y_size*matrix->z_size);
-  if (verbose) printf("Mu-map volume %d pixels %g ml\n", mu_vol*4, mu_vol_mm3);
+  LOG_DEBUG("Mu-map volume {} pixels {} ml", mu_vol * 4, mu_vol_mm3);
   free_matrix_data(matrix);
   matrix_close(mptr2);
 
   mptr2 = matrix_create(out_file,ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, mptr1->mhptr);
   if (mptr2 == NULL) {
-    matrix_perror(out_file);
+    LOG_ERROR(out_file);
     return 1;
   }
 
@@ -175,9 +174,9 @@ int main(int argc, char **argv)
   while (node) {
     mat_numdoc(node->matnum, &mat);
     matrix = matrix_read(mptr1,node->matnum,UnknownMatDataType);
-    if (!matrix) ecat_matrix::crash("%d,%d,%d,%d,%d not found\n",
+    if (!matrix) LOG_EXIT("%d,%d,%d,%d,%d not found\n",
       mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
-    if (verbose) printf("Reading %s,%d done\n", in_file, mat.frame);
+    LOG_DEBUG("Reading {},{} done", in_file, mat.frame);
     mu_vol = (int)(0.5f + mu_vol_mm3/
       (matrix->pixel_size*matrix->y_size*matrix->z_size));
     nvoxels = matrix->xdim*matrix->ydim* matrix->zdim;
@@ -199,8 +198,7 @@ int main(int argc, char **argv)
     // new_scale = (float)(avg*matrix->scale_factor/em_thres);
     // Just make sure that max short data is same in all ftrames
     new_scale = (float)(matrix->data_max/matrix->scale_factor/IMAGE_MAX);
-    if (verbose) printf("frame %d volume %d ithres %d scale %g newscale %g\n",
-      mat.frame, em_vol, i,matrix->scale_factor,new_scale);
+    LOG_DEBUG("frame {} volume {} ithres {} scale {} newscale {}",  mat.frame, em_vol, i,matrix->scale_factor,new_scale);
     for (i=0; i<nvoxels; i++) {
       f = sdata[i]*matrix->scale_factor/new_scale;
       if (f>0.0f) {
@@ -219,7 +217,7 @@ int main(int argc, char **argv)
     imh->image_max = find_smax(sdata, nvoxels);
     imh->scale_factor =  1.0f; //new_scale;
     matrix_write(mptr2, node->matnum, matrix);
-    if (verbose) printf("Writing %s,%d done\n", out_file, mat.frame);
+    LOG_DEBUG("Writing {},{} done", out_file, mat.frame);
     node = node->next;
   }
   matrix_close(mptr1);
