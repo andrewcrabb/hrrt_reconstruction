@@ -38,34 +38,34 @@
 #include "my_spdlog.hpp"
 
 static void usage() {
-  fprintf (stderr, "fix_mh %s %s \n", __DATE__, __TIME__);
-  fprintf (stderr,
+  LOG_ERROR(" "fix_mh %s %s \n", __DATE__, __TIME__);
+  LOG_ERROR("
            "usage : \n"
            "fix_mh -i input_file  -c ecf -w patient_weight -h patient_height -s patient_sex\n"
            "       -d dose -D delay -I isotope_name -R radiopharmacentical -t tilt -f n_frames\n"
            "       -p n_planes -A anonymity -v\n");
-  fprintf (stderr, " Updates main header ... \n");
-  fprintf (stderr, " -c ecat_calibration_factor, sets calibration units to Bq/ml\n");
-  fprintf (stderr, " -w patient_weight [kg]\n");
-  fprintf (stderr, " -h patient height [cm]\n");
-  fprintf (stderr, " -d injected_dose [mCi]\n");
-  fprintf (stderr, " -D delay between injection and emission scan (hh:mm:ss)\n");
-  fprintf (stderr, " -t tilt [degrees]\n");
-  fprintf (stderr, " -I Isotope name chosen amongst the following: \n");
-  fprintf (stderr, " Br-75 C-11 Cu-62 Cu-64 F-18 Fe-52 Ga-68 N-13\n");
-  fprintf (stderr, " O-14 O-15 Rb-82 Na-22 Zn-62 Br-76 K-38\n");
-  fprintf (stderr, " -R Radiopharmaceutical: eg. FDG \n");
-  fprintf (stderr, " -f number of frames \n");
-  fprintf (stderr, " -F Facility name \n");
-  fprintf (stderr, " -p number of planes \n");
-  fprintf (stderr, " -B initial_bed_pos\n");
-  fprintf (stderr, " -b reference_file for initial_bed_pos and offsets\n");
-  fprintf (stderr, " -s patient sex :M,F or U\n");
-  fprintf (stderr, " -M Modality(CT|MR|NM|PET)\n");
-  fprintf (stderr, " -N patient_name\n");
-  fprintf (stderr, " -S scan_start_time (dd/mm/yyyy hh:mm:ss)\n");
-  fprintf (stderr, " -A anonymity sets patient_id, patient_name, study_name and original_file_name to provided argument\n");
-  fprintf (stderr, "Version 8 : Nov 07, 2005\n");
+  LOG_ERROR(" " Updates main header ... \n");
+  LOG_ERROR(" " -c ecat_calibration_factor, sets calibration units to Bq/ml\n");
+  LOG_ERROR(" " -w patient_weight [kg]\n");
+  LOG_ERROR(" " -h patient height [cm]\n");
+  LOG_ERROR(" " -d injected_dose [mCi]\n");
+  LOG_ERROR(" " -D delay between injection and emission scan (hh:mm:ss)\n");
+  LOG_ERROR(" " -t tilt [degrees]\n");
+  LOG_ERROR(" " -I Isotope name chosen amongst the following: \n");
+  LOG_ERROR(" " Br-75 C-11 Cu-62 Cu-64 F-18 Fe-52 Ga-68 N-13\n");
+  LOG_ERROR(" " O-14 O-15 Rb-82 Na-22 Zn-62 Br-76 K-38\n");
+  LOG_ERROR(" " -R Radiopharmaceutical: eg. FDG \n");
+  LOG_ERROR(" " -f number of frames \n");
+  LOG_ERROR(" " -F Facility name \n");
+  LOG_ERROR(" " -p number of planes \n");
+  LOG_ERROR(" " -B initial_bed_pos\n");
+  LOG_ERROR(" " -b reference_file for initial_bed_pos and offsets\n");
+  LOG_ERROR(" " -s patient sex :M,F or U\n");
+  LOG_ERROR(" " -M Modality(CT|MR|NM|PET)\n");
+  LOG_ERROR(" " -N patient_name\n");
+  LOG_ERROR(" " -S scan_start_time (dd/mm/yyyy hh:mm:ss)\n");
+  LOG_ERROR(" " -A anonymity sets patient_id, patient_name, study_name and original_file_name to provided argument\n");
+  LOG_ERROR(" "Version 8 : Nov 07, 2005\n");
   exit(1);
 }
 int main( argc, argv)
@@ -290,7 +290,7 @@ char** argv;
     struct tm tm;
     int y, d, M, h, m, s = 0;
     if (sscanf(scan_time, "%d/%d/%d %d:%d:%d", &d, &M, &y, &h, &m, &s) < 5)
-      crash ("bad time format : %s\n", scan_time);
+      LOG_EXIT ("bad time format : %s\n", scan_time);
     assert(d > 0 && d <= 31);
     assert(M > 0 && M <= 12);
     assert(y > 1999 && y <= 2098);

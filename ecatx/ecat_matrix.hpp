@@ -814,8 +814,6 @@ void free_matrix_data(MatrixData*);
 void matrix_perror(const char*);
 int matrix_close(MatrixFile*);
 int matrix_find(MatrixFile*, int matnum, MatDir*);
-// void crash(const char *fmt, ...);
-void crash( const char *fmt, char *a0, char *a1, char *a2, char *a3, char *a4, char *a5, char *a6, char *a7, char *a8, char *a9);
 MatrixData *load_volume7(MatrixFile *matrix_file, int frame, int gate, int data, int bedstart, int bedend);
 int save_volume7( MatrixFile *mfile, Image_subheader *shptr, float *data_ptr, int frame, int gate, int data, int bed );
 int read_host_data(MatrixFile *mptr, int matnum, MatrixData *data, MatrixDataType dtype);

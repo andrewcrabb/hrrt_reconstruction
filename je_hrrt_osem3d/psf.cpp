@@ -8,6 +8,8 @@ Modification history:
 #include <stdio.h>
 #include <math.h>
 #include "hrrt_osem3d.h"
+#include "my_spdlog.hpp"
+#include "hrrt_osem_utils.hpp"
 
 typedef struct {
 	ConvolArg *x,*y,*z;
@@ -68,7 +70,7 @@ int make1d_psf_filter(Psf1D *psf)
 
 void init_psf1D(float blur_fwhm1,float blur_fwhm2,float blur_ratio,Psf1D *psf)
 {
-	if(make1d_psf_filter(psf)==-1) crash1("Psf Init Error \n");
+	if(make1d_psf_filter(psf)==-1) LOG_EXIT("Psf Init Error \n");
 }
 
 

@@ -126,17 +126,17 @@ int run_system_command( char *prog, char *args ) {
   if ((ptr=getenv("HOME")) != NULL) {
     sprintf(ma_pattern_name, "%s/.ma_pattern.dat", ptr);
     if (!access(ma_pattern_name, R_OK)) {
-      fprintf(stderr, "*** ma_pattern file exists: '%s'\n", ma_pattern_name);      
+      LOG_ERROR("*** ma_pattern file exists: '%s'\n", ma_pattern_name);      
       if (remove(ma_pattern_name) != 0) {
-        fprintf(stderr, "*** ERROR: Removing ma_pattern file: '%s'\n", ma_pattern_name);
+        LOG_ERROR("*** ERROR: Removing ma_pattern file: '%s'\n", ma_pattern_name);
       } else {
-        fprintf(stderr, "*** Removed ma_pattern file OK: '%s'\n", ma_pattern_name);
+        LOG_ERROR("*** Removed ma_pattern file OK: '%s'\n", ma_pattern_name);
       }
     } else {
-      fprintf(stderr, "*** ma_pattern file '%s' does not exist\n", ma_pattern_name);
+      LOG_ERROR("*** ma_pattern file '%s' does not exist\n", ma_pattern_name);
     }
   } else {
-    fprintf(stderr, "*** Could not determine HOME envt var: Cannot remove ma_pattern.dat file\n");
+    LOG_ERROR("*** Could not determine HOME envt var: Cannot remove ma_pattern.dat file\n");
   }
   fflush(stderr);
        
@@ -399,15 +399,15 @@ int main(int argc, char **argv)
 
   // ahc test required parameters.
   if (!strlen(program_path)) {
-    fprintf(stderr, "Error: Missing required parameter 'p' (program path)\n");
+    LOG_ERROR("Error: Missing required parameter 'p' (program path)\n");
     usage(argv[0]);
   }
   if (!strlen(prog_gnuplot)) {
-    fprintf(stderr, "Error: Missing required parameter 'z' (FQ path of gnuplot program)\n");
+    LOG_ERROR("Error: Missing required parameter 'z' (FQ path of gnuplot program)\n");
     usage(argv[0]);
   }
   if (!strlen(rebinner_lut_file)) {
-    fprintf(stderr, "Error: Missing required parameter 'b' (FQ path of hrrt_rebinner lut file)\n");
+    LOG_ERROR("Error: Missing required parameter 'b' (FQ path of hrrt_rebinner lut file)\n");
     usage(argv[0]);
   }
 

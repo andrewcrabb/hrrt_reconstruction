@@ -172,6 +172,9 @@ For commercial use, please contact zcho@gachon.ac.kr or isslhong@kpu.ac.kr
 #include "mm_malloc.h"
 #include <gen_delays_lib/gen_delays_lib.hpp>
 #include <gen_delays_lib/segment_info.h>
+#include "my_spdlog.hpp"
+#include "hrrt_osem_utils.hpp"
+
 #ifndef NO_ECAT_SUPPORT
 #include "write_ecat_image.h"
 #endif
@@ -474,7 +477,7 @@ static void usage() {
   fprintf (stdout,"  -i initial_image [-n 3D_norm] -[a 3D_atten]  [-s 3D_scatter] -o image (or -O image) -F in_flip,out_flip"); 
   fprintf (stdout,"  [-h output corrected 3D scan or attenuation (see -U) ] [-L logfile]\n");
   fprintf (stdout,"  -g max_group,min_group -S number of subsets  -I number of iterations -W weighting method"); 
-  fprintf (stderr,"  -e epsilon1,epsilon2,epsilon3 -u image max -k number of planes -w"); 
+  LOG_ERROR(""  -e epsilon1,epsilon2,epsilon3 -u image max -k number of planes -w"); 
   fprintf (stdout,"  -z zoom -Z zoom");
   fprintf (stdout,"  -f rel_fov,trimFlag,zmin,zmax -m span,Rd -T nthreads -v verbose_level]\n");
   fprintf (stdout,"where :\n");
@@ -482,9 +485,9 @@ static void usage() {
   fprintf (stdout,"  -p  3D_flat_integer_scan (prompt)\n");
   fprintf (stdout,"  -d  3D_flat_float_scan (smoothed un-normalized delayed)) or coinc_histogram (.ch)\n");
   fprintf (stdout,"  -D  Working directory for normfac.i (when applicable)\n");
-  fprintf (stderr,"  -P  Flag: input scan is pre-corrected (i.e. float rather than integer format) [not set]");
-  fprintf (stderr,"  -Q  Flag: input scan is float but is not pre-corrected [not set]\n");
-  fprintf (stderr,"  -R  Flag: input scan is 4-bytes integer [not set]\n");
+  LOG_ERROR(""  -P  Flag: input scan is pre-corrected (i.e. float rather than integer format) [not set]");
+  LOG_ERROR(""  -Q  Flag: input scan is float but is not pre-corrected [not set]\n");
+  LOG_ERROR(""  -R  Flag: input scan is 4-bytes integer [not set]\n");
   fprintf (stdout,"  -F  input_flip, output_flip flag, 0/1  no/yes, [0,0]");
   fprintf (stdout,"  -N  normfac.i will be in memory if there is enough memory. If it is slower with this option, don't use it\n");
   fprintf (stdout,"  -n  3D_flat_normalisation");
@@ -500,18 +503,18 @@ static void usage() {
   fprintf (stdout,"  -S  number of subsets; [16]");
   fprintf (stdout,"  -I  number of iterations; [1] ");
   fprintf (stdout,"  -W  weighting method (0=UWO3D, 1=AWO3D, 2=ANWO3D, 3=OPO3D) [2]\n");
-  fprintf (stderr,"  -w  Flag: positivity in image space [sinogram space]\n");
-  fprintf (stderr,"  -e  epsilon[3] %e,%e,%e\n",epsilon1,epsilon2,epsilon3);
-  fprintf (stderr,"  -u  image upper threshold [%f]\n",image_max);
-  fprintf (stderr,"  -k  kill end segments with specified planes in image space [0]\n");
+  LOG_ERROR(""  -w  Flag: positivity in image space [sinogram space]\n");
+  LOG_ERROR(""  -e  epsilon[3] %e,%e,%e\n",epsilon1,epsilon2,epsilon3);
+  LOG_ERROR(""  -u  image upper threshold [%f]\n",image_max);
+  LOG_ERROR(""  -k  kill end segments with specified planes in image space [0]\n");
   fprintf (stdout,"  -X  image dimension [128]\n");
   fprintf (stdout,"  -z  zoom [1.0]");
   fprintf (stdout,"  -Z  zoom [1.0] zoom in projection space");
   fprintf (stdout,"  -f  fov as tomographic_fov_in_%%,trimFlag,z_min,z_max [0.95,0,5,201]");
   fprintf (stdout,"  -m  span,Rd (m-o-gram parameters of all input files) [9,67]");
-  fprintf (stderr,"  -M  scanner model number [%d] \n",iModel);
-  fprintf (stderr,"      HRRT Low Resoltion models: 9991 (2mm), 9992 (2.4375mm)\n");
-  fprintf (stderr,"      if iModel==0, needs file name which have Optional parameters");
+  LOG_ERROR(""  -M  scanner model number [%d] \n",iModel);
+  LOG_ERROR(""      HRRT Low Resoltion models: 9991 (2mm), 9992 (2.4375mm)\n");
+  LOG_ERROR(""      if iModel==0, needs file name which have Optional parameters");
   fprintf (stdout,"  -L logging_filename[,log_mode] [default is screen]\n");
   fprintf (stdout,"     log_mode:  1=console,2=file,3=file&console\n");    
   fprintf (stdout,"  -T  number of threads [# of CPU-core - 2 for linux]");    
@@ -526,62 +529,6 @@ static void usage() {
 }
 
 #define FOPEN_ERROR NULL
-// FILEPTR file_open(const char *fn,char *mode) {
-//  return fopen(fn,mode);
-// }
-
-void file_close(FILEPTR fp) {
-  fclose(fp);
-}
-
-
-/* get_scan_duration  
-read: sinogram header and sets scan_duration global variable.
-Returns 1 on success and 0 on failure.
-*/
-bool get_scan_duration(const char *sino_fname) {
-  char hdr_fname[_MAX_PATH];
-  char line[256], *p=NULL;
-  bool found = false;
-  FILE *fp;
-  sprintf(hdr_fname, "%s.hdr", sino_fname);
-  if ((fp=fopen(hdr_fname,"rt")) != NULL) {
-    while (!found && fgets(line, sizeof(line), fp) != NULL)
-      if ((p=strstr(line,"image duration")) != NULL) {
-        if ((p=strstr(p,":=")) != NULL) 
-          if (sscanf(p+2,"%g",&scan_duration) == 1) found = true;
-      }
-      fclose(fp);
-  }
-  return found;
-}
-
-static int get_num_frames(const char *em_file)
-{
-  int frame=0;
-  char *ext;
-  strcpy(em_file_prefix, em_file);
-  if ((ext=strstr(em_file_prefix,".dyn")) == NULL) return 0;
-  *ext = '\0';
-  strcpy(em_file_postfix,".tr");
-  // allocate strings for frame dependent sinogram and image file names
-  true_file = (char*)calloc(_MAX_PATH, 1);
-  out_img_file = (char*)calloc(_MAX_PATH, 1);
-  sprintf(true_file,"%s_frame%d%s.s",em_file_prefix,frame,em_file_postfix);
-  if (access(true_file,R_OK) != 0) {// try without postfix
-    em_file_postfix[0] = '\0'; 
-    sprintf(true_file,"%s_frame%d%s.s",em_file_prefix,frame,em_file_postfix);
-  }
-  while (access(true_file,R_OK) == 0) {
-    frame++;
-    sprintf(true_file,"%s_frame%d%s.s",em_file_prefix,frame,em_file_postfix);
-  }
-  if (frame>0) // allocate frame dependent image file name
-    out_img_file = (char*)calloc(_MAX_PATH, 1);
-  else  // restore sinogram file name
-    strcpy(true_file, em_file);
-  return frame;
-}
 
 
 /**************************************************************************************************************/
@@ -3776,12 +3723,6 @@ void Output_CorrectedScan()
   LOG_INFO("done");
 }
 
-void GetSystemInformation()
-{
-    /* ahc */
-  /* struct sysinfo sinfo; */
-  LOG_INFO(" Hardware information:");  
-}
 void PrepareNormfac()
 {
   FILE *tmpfp;

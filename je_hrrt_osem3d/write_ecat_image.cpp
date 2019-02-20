@@ -257,10 +257,10 @@ int write_ecat_image(float ***image, char * filename, int frame,
     switch(interfile_load(sinoHeaderName,&ifh))
       {
       case IFH_FILE_INVALID:                /* Not starting with '!INTERFILE' */
-        fprintf(stderr, "%s: is not a valid interfile header\n",sinoHeaderName);
+        LOG_ERROR("%s: is not a valid interfile header\n",sinoHeaderName);
         break;
       case IFH_FILE_OPEN_ERROR:        /* interfile header cold not be opened */
-        fprintf(stderr, "%s: Can't open file\n",sinoHeaderName);
+        LOG_ERROR("%s: Can't open file\n",sinoHeaderName);
         break;
       default: //file loaded
         ifh_ok = 1;

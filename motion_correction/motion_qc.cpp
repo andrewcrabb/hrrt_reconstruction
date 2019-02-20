@@ -483,10 +483,10 @@ int main(int argc, char **argv)
   if (argc<2) usage(argv[0]);
   em_file = argv[1];
   mu_file[0] = '\0';
-  fprintf(stderr, "hello 3?\n");   fflush(stderr);
+  LOG_ERROR("hello 3?\n");   fflush(stderr);
   while ((c = getopt (argc-1, argv+1, "n:r:F:x:D:u:a:L:g:T:R:Odtvp:z:l:")) != EOF) {
-  // fprintf(stderr, "hello 3a? argc %d argv %s\n", argc, argv);   fflush(stderr);
-  // fprintf(stderr, "c is %s\n", c);  fflush(stderr);
+  // LOG_ERROR("hello 3a? argc %d argv %s\n", argc, argv);   fflush(stderr);
+  // LOG_ERROR("c is %s\n", c);  fflush(stderr);
     switch (c) {
       case 'd':
       // No delay to look for reference frame, as scan was delayed after injection
@@ -566,19 +566,19 @@ int main(int argc, char **argv)
       break;
     }
   }
-  fprintf(stderr, "hello 4?\n");   fflush(stderr);
+  LOG_ERROR("hello 4?\n");   fflush(stderr);
 
   // Check required arguments present.
   if (!strlen(program_path)) {
-    fprintf(stderr, "Error: Missing required parameter '-p' (program path)\n");
+    LOG_ERROR("Error: Missing required parameter '-p' (program path)\n");
     usage(argv[0]);
   }
   if (!strlen(prog_gnuplot)) {
-    fprintf(stderr, "Error: Missing required parameter '-z' (FQ path of gnuplot)\n");
+    LOG_ERROR("Error: Missing required parameter '-z' (FQ path of gnuplot)\n");
     usage(argv[0]);
   }
   if (!strlen(recon_pgm)) {
-    fprintf(stderr, "Error: Missing required parameter '-x' (FQ path of recon program)\n");
+    LOG_ERROR("Error: Missing required parameter '-x' (FQ path of recon program)\n");
     usage(argv[0]);
   }
   

@@ -47,7 +47,7 @@ static void init_seg_info()
 	size_t data_size = st.st_size;
 	if (data_size== (size_t)(nprojs*nviews*nplanes_3*sizeof(T))) span = 3;
 	else if (data_size == (size_t)(nprojs*nviews*nplanes_9*sizeof(T))) span = 9;
-  else ecat_matrix::crash("unkown file size: not span 9 or span 3\n");
+  else LOG_EXIT("unkown file size: not span 9 or span 3\n");
   nsegs = (2*rd+1)/span;
   seg_offset[0] = 0; seg_planes[0] = nplns0;
   for (int iseg=1; iseg<nsegs; iseg += 2) {
@@ -163,32 +163,32 @@ int  main(int argc, char **argv)
   {
     init_seg_info<float>();
     fsino = matrix3d(0,nviews-1, 0, seg_planes[0]-1, 0,nprojs-1);
-    if (fsino==NULL) ecat_matrix::crash("memory allocation failure for 2D sinogram\n");
+    if (fsino==NULL) LOG_EXIT("memory allocation failure for 2D sinogram\n");
     if ((fsino2 = (float****)calloc(nsegs, sizeof(float***))) == NULL)
-       ecat_matrix::crash("memory allocation failure for 3D sinogram\n");
+       LOG_EXIT("memory allocation failure for 3D sinogram\n");
     for (iseg=0; iseg<nsegs; iseg++) {
       fsino2[iseg] = matrix3d(0,nviews-1, 0,seg_planes[iseg]-1, 0,nprojs-1);
       if (fsino2[iseg]==NULL) 
-        ecat_matrix::crash("memory allocation failure for 3D sinogram, segment %d\n", iseg);
+        LOG_EXIT("memory allocation failure for 3D sinogram, segment %d\n", iseg);
     }
   }
   else
   {
     init_seg_info<short>();
     sino = matrix3dshort(0,nviews-1, 0, seg_planes[0]-1, 0,nprojs-1);
-    if (sino==NULL) ecat_matrix::crash("memory allocation failure for 2D sinogram\n");
+    if (sino==NULL) LOG_EXIT("memory allocation failure for 2D sinogram\n");
     if ((sino2 = (short****)calloc(nsegs, sizeof(short***))) == NULL)
-       ecat_matrix::crash("mmory allocation failure for 3D sinogram\n");
+       LOG_EXIT("mmory allocation failure for 3D sinogram\n");
     for (iseg=0; iseg<nsegs; iseg++) {
       sino2[iseg] = matrix3dshort(0,nviews-1, 0,seg_planes[iseg]-1, 0,nprojs-1);
       if (sino2[iseg]==NULL) 
-        ecat_matrix::crash("memory allocation failure for 3D sinogram, segment %d\n", iseg);
+        LOG_EXIT("memory allocation failure for 3D sinogram, segment %d\n", iseg);
     }
   }
   if ((fpi = fopen(in_file, "rb")) == NULL)
-    ecat_matrix::crash("error opening input file %s\n", in_file);
+    LOG_EXIT("error opening input file %s\n", in_file);
   if ((fpo = fopen(out_file, "wb")) == NULL)
-    ecat_matrix::crash("error opening output file %s\n", out_file);
+    LOG_EXIT("error opening output file %s\n", out_file);
 //  for (iseg=0; iseg<nsegs; iseg++)
   for (iseg=0; iseg<1; iseg++)
   {

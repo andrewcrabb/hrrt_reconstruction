@@ -19,7 +19,6 @@ For commercial use, please contact zcho@gachon.ac.kr or isslhong@kpu.ac.kr
 
 /* Modifications history:
    08-MAY-2008: Bug fix for low resolution mode (M. Sibomana)
-   12-MAY-2009: Add const to char arg in crash1(), crash2(), crash3()
  - 02-JUL-2009: Add dual logging to console and file
 */
 #include "compile.h"

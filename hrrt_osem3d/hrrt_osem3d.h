@@ -196,9 +196,6 @@ extern float rel_fov;            /* relative fov : 0.95 (95%)  */
 
 	void free_dependencies();
 	int dependencies(int nprojs,int  nviews,int  verbose);		
-	// int crash1(const char *fmt);
-	// int crash2(const char *fmt, char *a0);
-	// int crash3(const char *fmt, int a0);
 	int forward_proj3d2(float ***ima,float ** prj,int view,int numthread,float ***imagebuf,float ***prjbuf);	
 	int forward_proj3d_thread1(float ***ima,float ** prj,int view,int numthread,float ***imagebuf,float ***prjbuf);	
 	int back_proj3d2(float **prj,float ***ima,int view,int numthread,float ***imagebuf,float ***prjbuf);
@@ -216,7 +213,7 @@ extern float rel_fov;            /* relative fov : 0.95 (95%)  */
 	void convolve3d(float ***image,float ***out,float ***buf);
 	void mulprojectionscalar(float ***prj1,float coef,int theta);
   int proj_atten_view(float ***image, float *prj,int view, int verbose=0);
-  void LogMessage( const char *fmt, ... );
+  // void LogMessage( const char *fmt, ... );
 
 
 

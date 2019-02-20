@@ -174,7 +174,7 @@ static ecat_matrix::MatrixData *load_slices(/*CProgressCtrl *progress_ctrl,*/ ec
     if (zsep < 2 * eps) continue; /* assume thickness transition */
     if (z_size > zsep + eps) {
       if (debug_level > 0)
-        fprintf(stderr, "at slice %d : zsep = %g\n", i, zsep);
+        LOG_ERROR("at slice %d : zsep = %g\n", i, zsep);
       z_size = zsep;
     }
   }
@@ -224,7 +224,7 @@ static ecat_matrix::MatrixData *load_slices(/*CProgressCtrl *progress_ctrl,*/ ec
     f_vp = (float*)vdata;
     break;
   default:
-    fprintf(stderr, "unsupported data type : %d\n", volume->data_type);
+    LOG_ERROR("unsupported data type : %d\n", volume->data_type);
     exit(1);
   }
   if (vdata == NULL) {
@@ -454,7 +454,7 @@ static ecat_matrix::MatrixData *load_slices(/*CProgressCtrl *progress_ctrl,*/ ec
         *f_vp = w * (*f_vp);
       break;
     default:
-      fprintf(stderr, "unsupported data type : %d\n", volume->data_type);
+      LOG_ERROR("unsupported data type : %d\n", volume->data_type);
       exit(1);
     }
   }
@@ -494,7 +494,7 @@ ecat_matrix::MatrixData *load_volume_v2(/*CProgressCtrl *progress_ctrl,*/ ecat_m
   if (mh->file_type != PetImage && mh->file_type != ecat_matrix::DataSetType::PetVolume &&
       mh->file_type != ecat_matrix::DataSetType::ByteVolume && mh->file_type != InterfileImage &&
       mh->file_type != ByteProjection && mh->file_type != PetProjection) {
-    fprintf(stderr, "unsupported file type %d\n", mh->file_type);
+    LOG_ERROR("unsupported file type %d\n", mh->file_type);
     return NULL;
   }
 

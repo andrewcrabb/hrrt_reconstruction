@@ -13,13 +13,13 @@
 #endif
 static void usage(const char *pgm) {
   printf("\n%s Build %s %s\n",pgm,__DATE__,__TIME__);
-  fprintf(stderr, "usage: %s -s standard_file -r reslice_file -i air_file | -t yaw(z_rot),pitch(x_rot),roll(y_rot),tx,ty,tz"
+  LOG_ERROR("usage: %s -s standard_file -r reslice_file -i air_file | -t yaw(z_rot),pitch(x_rot),roll(y_rot),tx,ty,tz"
     " -o air_file [-N]\n", pgm);
-	fprintf(stderr, "        Transformer can be specified with -i existing .air file or -t with rotation and translation\n");
-	fprintf(stderr, "       -N when transformer was generated in neurological convention (SPM95)\n");
-	fprintf(stderr, "        translations are expressed in mm\n");
-	fprintf(stderr, "        rotations are expressed in degrees\n");
-	fprintf(stderr, "        transformer data are provided by ecat_alignlinear\n");
+	LOG_ERROR("        Transformer can be specified with -i existing .air file or -t with rotation and translation\n");
+	LOG_ERROR("       -N when transformer was generated in neurological convention (SPM95)\n");
+	LOG_ERROR("        translations are expressed in mm\n");
+	LOG_ERROR("        rotations are expressed in degrees\n");
+	LOG_ERROR("        transformer data are provided by ecat_alignlinear\n");
 	exit(1);
 }
 
@@ -59,21 +59,21 @@ main(int argc, char **argv)
 			break;
 		case 's' :
 			if (strlen(optarg) > 127) {
-				fprintf(stderr,"%s : filename too long\n",optarg);
+				LOG_EXIT("filename too long\n",optarg);
 				exit(1);
 			}
 			strcpy(air1.s_file,optarg);
 			break;
 		case 'r':
 			if (strlen(optarg) > 127) {
-				fprintf(stderr,"%s : filename too long %s\n",argv[0],optarg);
+				LOG_EXIT("filename too long %s\n",argv[0],optarg);
 				exit(1);
 			}
 			strcpy(air1.r_file,optarg);
 			break;
 		case 'o' :
 			if (strlen(optarg) > 127) {
-				fprintf(stderr,"%s : filename too long %s\n",argv[0],optarg);
+				LOG_EXIT("filename too long %s\n",argv[0],optarg);
 				exit(1);
 			}
 			strcpy(out_air_file,optarg);
@@ -81,7 +81,7 @@ main(int argc, char **argv)
 		case 't' :
 			if (sscanf(optarg,"%g,%g,%g,%g,%g,%g",&rz,&rx,&ry,&tx,&ty,&tz)!=6)
 			{
-				fprintf(stderr,"%s : invalid transformer %s\n",argv[0],optarg);
+				LOG_EXIT("invalid transformer %s\n",argv[0],optarg);
 				exit(1);
 			}
 			tflag++;
@@ -92,11 +92,11 @@ main(int argc, char **argv)
   if (!tflag && !in_air_file) usage(argv[0]);
 	ret = matspec(air1.s_file,fname,&matnum);
 	mptr = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
-	if (mptr==NULL) ecat_matrix::crash("%s : can't open %s\n",argv[0],air1.s_file);
+	if (mptr==NULL) LOG_EXIT("can't open %s\n",argv[0],air1.s_file);
 	if (ret == 0)	/* no matrix specified, use first */
 			matnum = mptr->dirlist->first->matnum;
 	matrix = matrix_read(mptr,matnum,ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
-	if (matrix == NULL) ecat_matrix::crash("%s : can't read image header\n",argv[0]);
+	if (matrix == NULL) LOG_EXIT("can't read image header\n",argv[0]);
 	sprintf(air1.comment,"make_air -t %g,%g,%g,%g,%g,%g",rz,rx,ry,tx,ty,tz);
 	if (convention==1) {
 		strcat(air1.comment, " -N");
@@ -116,11 +116,11 @@ main(int argc, char **argv)
 	matnum = 0;
 	ret = matspec(air1.r_file,fname,&matnum);
 	mptr = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
-	if (mptr==NULL) ecat_matrix::crash("%s : can't open %s\n",argv[0],air1.r_file);
+	if (mptr==NULL) LOG_EXIT("can't open %s\n",argv[0],air1.r_file);
 	if (ret == 0)	/* no matrix specified, use first */
 			matnum = mptr->dirlist->first->matnum;
 	matrix = matrix_read(mptr,matnum,ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
-	if (matrix == NULL) ecat_matrix::crash("%s : can't read image header\n",argv[0]);
+	if (matrix == NULL) LOG_EXIT("can't read image header\n",argv[0]);
 	if (matrix->zdim == 1)					/* volume stored slice per matrix */
 		matrix->zdim = mptr->mhptr->num_planes;
   air1.r.x_dim = matrix->xdim;

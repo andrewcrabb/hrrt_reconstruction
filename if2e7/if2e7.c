@@ -1306,7 +1306,7 @@ int main(int argc, char *argv[])
         break;
 
       default:
-        fprintf (stderr, "ERROR: illegal option -%c\n", *str);
+        LOG_ERROR(" "ERROR: illegal option -%c\n", *str);
         argc = 0;
         return 1;
         break;

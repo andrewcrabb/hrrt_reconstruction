@@ -395,7 +395,7 @@ int gen_delays(int is_inline,
   int nplanes = 0;
   SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &SegmentInfo::m_d_tan_theta, GeometryInfo::maxrd_, t_span, GeometryInfo::NYCRYS, GeometryInfo::crystal_radius_, GeometryInfo::plane_sep_);
 
-  // fprintf(stderr, "Using Rebinner LUT file %s\n", rebinner_lut_file);
+  // LOG_ERROR("Using Rebinner LUT file %s\n", rebinner_lut_file);
   lor_sinogram::init_lut_sol(SegmentInfo::m_segzoffset);
 
 
@@ -490,7 +490,7 @@ int gen_delays(int is_inline,
       pthread_join(threads[ threadnum ] , NULL ) ;
     }
     gettimeofday(&t2, NULL);
-    fprintf(stdout, "%d\t%ld msec   \n", mp + 1          , time_diff(t1, t2));
+    LOG_INFO( "%d\t%ld msec   \n", mp + 1          , time_diff(t1, t2));
     fflush(stdout);
   }
   gettimeofday(&t1, NULL);
@@ -499,10 +499,10 @@ int gen_delays(int is_inline,
   free(lor_sinogram::solution_[0]);
   for (int i = 1; i < 21; i++) {
     for (int j = 0; j < GeometryInfo::NXCRYS * GeometryInfo::NDOIS; j++) {
-      //fprintf(stdout,"%d:%d\n",i,j);
+      //LOG_INFO("%d:%d\n",i,j);
       if (lor_sinogram::solution_[i][j] != NULL) free(lor_sinogram::solution_[i][j]);
     }
-    //fprintf(stdout,"%d:%d\n",i,j);
+    //LOG_INFO("%d:%d\n",i,j);
     free(lor_sinogram::solution_[i]);
   }
 

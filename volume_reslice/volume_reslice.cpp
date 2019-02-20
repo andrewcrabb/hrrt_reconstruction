@@ -239,8 +239,8 @@ int main(int argc, char **argv) {
 
   // Open input file
   mptr = matrix_open( in_file, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
-  if (!mptr) ecat_matrix::crash( "can't open file '%s'\n", in_file);
-  if ( mptr->dirlist->nmats == 0) ecat_matrix::crash("no matrix in %s\n",in_file);
+  if (!mptr) LOG_EXIT( "can't open file '%s'\n", in_file);
+  if ( mptr->dirlist->nmats == 0) LOG_EXIT("no matrix in %s\n",in_file);
   if (in_matnum==0) in_matnum = mptr->dirlist->first->matnum;
     LOG_DEBUG("loading volume");
 
@@ -250,7 +250,7 @@ int main(int argc, char **argv) {
   const ecat_matrix::MatrixData* data = volume->data();
 #else
   ecat_matrix::MatrixData* data = matrix_read(mptr,in_matnum, GENERIC);
-  if (data == NULL) ecat_matrix::crash("Error reading %s\n", in_file);
+  if (data == NULL) LOG_EXIT("Error reading %s\n", in_file);
   if (t_flip)  matrix_flip(data,0,1,1); 		/* AIR radiology convention */
   else  if (y_reverse) matrix_flip(data,0,1,0); /* Vicra */
 

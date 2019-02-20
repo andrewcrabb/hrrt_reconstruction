@@ -30,6 +30,7 @@
 #include "load_volume.h"
 #include "analyze.h"			 /* dsr */
 #include "my_spdlog.hpp"
+#include "hrrt_osem_utils.hpp"
 
 #define MAXSTR 64
 #define TRANSVERSE '\000'
@@ -246,7 +247,7 @@ int main (argc, argv)
 		LOG_EXIT("Cannot open {} as an ECAT image file", PET_img);
 	mat_numdoc(matnum, &matval);
 	matrix = load_volume(file,matval.frame,cubic, 0);
-	if (matrix == NULL) crash ("matrix %s not found\n",PET_img);
+	if (matrix == NULL) LOG_EXIT ("matrix %s not found\n",PET_img);
 
 	if (calibration_factor!=1.0) matrix->scale_factor *= calibration_factor;
 	xdim = matrix->xdim;

@@ -776,8 +776,8 @@ void Volume::set_origin(const VoxelCoord& pos, const char* spm_hdr)
   _data->y_origin = pos.y;
   _data->z_origin = pos.z;
   update_origin();
-if (spm_hdr) fprintf(stderr, "set origin %s\n",spm_hdr);
-else fprintf(stderr, "set origin\n");
+if (spm_hdr) LOG_ERROR("set origin %s\n",spm_hdr);
+else LOG_ERROR("set origin\n");
   if (spm_hdr && (fp=fopen(spm_hdr,"r")) &&
     fread(&hdr,sizeof(struct dsr),1,fp) == 1) {
     fclose(fp);

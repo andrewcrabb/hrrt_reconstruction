@@ -61,7 +61,7 @@ void main(int argc, char ** argv) {
       sscanf(optarg, "%d", &layer);
       if (layer<0 || layer>GeometryInfo::NDOIS) 
       {
-        fprintf(stderr, "Invalid layer %d\n", layer);
+        LOG_ERROR("Invalid layer %d\n", layer);
         usage(argv[0]);
       }
       break;
@@ -75,7 +75,7 @@ void main(int argc, char ** argv) {
   // boost::filesystem::path rebinner_lut_file;
   // if ((rebinner_lut_file=hrrt_rebinner_lut_path()) == NULL)
   // {
-  //   fprintf(stdout,"Rebinner LUT file not found\n");
+  //   LOG_INFO("Rebinner LUT file not found\n");
   //   exit(1);
   // }
   SegmentInfo::init_segment_info(&SegmentInfo::m_nsegs, &nplanes, &m_d_tan_theta, maxrd, span, GeometryInfo::NYCRYS, GeometryInfo::crystal_radius_, GeometryInfo::plane_sep_);

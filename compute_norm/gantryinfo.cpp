@@ -55,7 +55,7 @@ int GantryInfo::load(int model_number) {
 	    	exit(-1);
 	    }
 	} else {
-	  fprintf(stderr, "ERROR: GantryInfo::load(): GMINI environment variable not set: Exiting\n");
+	  LOG_ERROR("ERROR: GantryInfo::load(): GMINI environment variable not set: Exiting\n");
 	  exit(-1);
 	}
 	while (fgets(line,LINE_SIZE,fp) != NULL) {

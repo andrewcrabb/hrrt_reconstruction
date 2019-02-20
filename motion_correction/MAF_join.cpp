@@ -58,11 +58,11 @@ inline int keep_sub_frame(int sf_duration, int f_duration)
 
 static void usage(const char *pgm)
 {
-    fprintf(stderr, "\nMAF_join Build %s %s\n\n",__DATE__,__TIME__);
-		fprintf(stderr, "Usage: MAF_Join input_ecat_file -o output_ecat_file -M Vicra_MAF_file [-l log_file]\n");
-		fprintf(stderr, "        Read MAF file, and copy single frames or join sub-frames \n");
-		fprintf(stderr, "        weighted by sub-frame durations, excluding frames of weight<10%%\n");
-		fprintf(stderr, "        Default log file (MAF_join.log) \n");
+    LOG_ERROR("\nMAF_join Build %s %s\n\n",__DATE__,__TIME__);
+		LOG_ERROR("Usage: MAF_Join input_ecat_file -o output_ecat_file -M Vicra_MAF_file [-l log_file]\n");
+		LOG_ERROR("        Read MAF file, and copy single frames or join sub-frames \n");
+		LOG_ERROR("        weighted by sub-frame durations, excluding frames of weight<10%%\n");
+		LOG_ERROR("        Default log file (MAF_join.log) \n");
 		exit(1);
 }
 
@@ -97,7 +97,7 @@ int main(int argc, char **argv)
   }
 	if (MAF_file==NULL || out_fname==NULL) usage(argv[0]);
   if ((log_fp=fopen(log_file,"wt")) == NULL) {
-    fprintf(stderr, "Error opening %s, log on stderr\n", log_file);
+    LOG_ERROR("Error opening %s, log on stderr\n", log_file);
     log_fp = stderr;
   }
   if (vicra_get_info(MAF_file, log_fp) == 0) exit(1);

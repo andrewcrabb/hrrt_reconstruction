@@ -91,17 +91,17 @@ int run_system_command( char *prog, char *args, FILE *log_fp ) {
   if ((ptr=getenv("HOME")) != NULL) {
     sprintf(ma_pattern_name, "%s/.ma_pattern.dat", ptr);
     if (!access(ma_pattern_name, R_OK)) {
-      fprintf(stderr, "*** ma_pattern file exists: '%s'\n", ma_pattern_name);      
+      LOG_ERROR("*** ma_pattern file exists: '%s'\n", ma_pattern_name);      
       if (remove(ma_pattern_name) != 0) {
-        fprintf(stderr, "*** ERROR: Removing ma_pattern file: '%s'\n", ma_pattern_name);
+        LOG_ERROR("*** ERROR: Removing ma_pattern file: '%s'\n", ma_pattern_name);
       } else {
-        fprintf(stderr, "*** Removed ma_pattern file OK: '%s'\n", ma_pattern_name);
+        LOG_ERROR("*** Removed ma_pattern file OK: '%s'\n", ma_pattern_name);
       }
     } else {
-      fprintf(stderr, "*** ma_pattern file '%s' does not exist\n", ma_pattern_name);
+      LOG_ERROR("*** ma_pattern file '%s' does not exist\n", ma_pattern_name);
     }
   } else {
-    fprintf(stderr, "*** Could not determine HOME envt var: Cannot remove ma_pattern.dat file\n");
+    LOG_ERROR("*** Could not determine HOME envt var: Cannot remove ma_pattern.dat file\n");
   }
   fflush(stderr);
 
@@ -159,5 +159,17 @@ std::istream& safeGetline(std::istream& is, std::string& t)
 // template <typename T> int write_binary_file(T *t_data, int t_num_elems, boost::filesystem::path const &outpath, std::string const &msg);
 // template <float *> int write_binary_file(float *t_data, int t_num_elems, boost::filesystem::path const &outpath, std::string const &msg);
 template int write_binary_file<float>(float *t_data, int t_num_elems, boost::filesystem::path const &outpath, std::string const &msg);
+
+void GetSystemInformation() {
+  struct sysinfo sinfo;
+  LOG_INFO(" Hardware information: ");  
+  sysinfo(&sinfo);
+  LOG_INFO("  Total RAM: {}", sinfo.totalram); 
+  LOG_INFO("  Free RAM: {}", sinfo.freeram);
+  // To get n_processors we need to get the result of this command "grep processor /proc/cpuinfo | wc -l"
+  if(nthreads==0) 
+    nthreads_ = 2; // for now
+}
+
 
 }

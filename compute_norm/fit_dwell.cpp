@@ -235,7 +235,7 @@ static int oplot(const char *filename, double *parms1, double *parms2, int nplns
 	FILE *fp = fopen(filename,"wb");
 	if (fp == NULL) 
 	{
-		fprintf(stderr,"%s : error creating file\n", filename);
+		LOG_EXIT("error creating file\n", filename);
 		return 0;
 	}
 	fprintf(fp,"# %s\n", title);

@@ -248,7 +248,7 @@ float ecat_AIR_open_header(const char *mat_spec, struct AIR_Fptrs *fp, struct AI
 	matspec(mat_spec,fname,&matnum);
 	file = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
   if (file==NULL) {
-    fprintf(stderr, "%s : error opening file\n", fname); 
+    LOG_ERROR("%s : error opening file\n", fname); 
     fp->errcode = 1;
     return 0.0f;
   }
@@ -256,13 +256,13 @@ float ecat_AIR_open_header(const char *mat_spec, struct AIR_Fptrs *fp, struct AI
 		if (file->dirlist->nmats) matnum = file->dirlist->first->matnum;
     else { 
       fp->errcode = 1;
-      fprintf(stderr, "%s : no matrix found\n", mat_spec); 
+      LOG_ERROR("%s : no matrix found\n", mat_spec); 
     }
 	}
 	if (fp->errcode == 0)
   {
     if ((hdr = matrix_read(file,matnum,ecat_matrix::MatrixDataType::MAT_SUB_HEADER)) == NULL) {
-      fprintf(stderr, "%s : error opening matrix\n", mat_spec); 
+      LOG_ERROR("%s : error opening matrix\n", mat_spec); 
       fp->errcode = 1;
       return 0.0f;
     }

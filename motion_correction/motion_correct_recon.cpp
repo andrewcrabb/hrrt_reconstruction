@@ -467,15 +467,15 @@ if (strcasecmp(ext,".v") && strcasecmp(ext,".dyn")) {
 
   // ahc test required parameters.
 if (!strlen(program_path)) {
-  fprintf(stderr, "Error: Missing required parameter 'p' (program path)\n");
+  LOG_ERROR("Error: Missing required parameter 'p' (program path)\n");
   usage(argv[0]);
 }
 if (!strlen(prog_gnuplot)) {
-  fprintf(stderr, "Error: Missing required parameter 'z' (FQ path of gnuplot program)\n");
+  LOG_ERROR("Error: Missing required parameter 'z' (FQ path of gnuplot program)\n");
   usage(argv[0]);
 }
 if (!strlen(rebinner_lut_file)) {
-  fprintf(stderr, "Error: Missing required parameter 'b' (FQ path of hrrt_rebinner lut file)\n");
+  LOG_ERROR("Error: Missing required parameter 'b' (FQ path of hrrt_rebinner lut file)\n");
   usage(argv[0]);
 }
 

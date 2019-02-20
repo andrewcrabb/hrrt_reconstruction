@@ -23,6 +23,7 @@ hrrt_sinocor.c
 #include "gen_delays_lib.hpp"
 #include "write_image_header.h"
 #include "my_spdlog.hpp"
+#include "hrrt_osem_utils.hpp"
 
 // #define NHEADS 8
 // #define HEAD_XSIZE 72
@@ -173,9 +174,9 @@ static void usage() {
 	fprintf (stdout,"  -o  output corrected and gap-filled sinogram(flat format) ");
 	fprintf (stdout,"  -g  max group, min group, [groupmax,0] ");
 	fprintf (stdout,"  -m  span,Rd (m-o-gram parameters of all input files) [9,67] ");
-	fprintf (stderr,"  -M  scanner model number [%d] \n",iModel);
-  fprintf (stderr,"      HRRT Low Resoltion models: 9991 (2mm), 9992 (2.4375mm)");
-	fprintf (stderr,"      if iModel==0, needs file name which have Optional parameters ");
+	LOG_ERROR(""  -M  scanner model number [%d] \n",iModel);
+  LOG_ERROR(""      HRRT Low Resoltion models: 9991 (2mm), 9992 (2.4375mm)");
+	LOG_ERROR(""      if iModel==0, needs file name which have Optional parameters ");
 	fprintf (stdout,"  -T  number of threads [# of CPU-core - 2 for linux] ");    
 	fprintf (stdout,"  -L logging_filename[,log_mode] [default is screen]");
   fprintf (stdout,"     log_mode:  1=console,2=file,3=file&console");    
@@ -186,39 +187,6 @@ static void usage() {
 	exit(1);
 }
 #define FOPEN_ERROR -1
-int file_open(char *fn,char *mode){
-	int ret;
-	if(mode[0]=='r' && mode[1]=='b'){
-		ret= open(fn,O_RDONLY|O_DIRECT); //|O_DIRECT);
-		return ret;
-	}
-}
-
-void file_close(int fp){
-	close(fp);
-}
-
-/* get_scan_duration  
-read: sinogram header and sets scan_duration global variable.
-Returns 1 on success and 0 on failure.
-*/
-bool get_scan_duration(const char *sino_fname)
-{
-  char hdr_fname[MAX_PATH];
-  char line[256], *p=NULL;
-  bool found = false;
-  FILE *fp;
-  sprintf(hdr_fname, "%s.hdr", sino_fname);
-  if ((fp=fopen(hdr_fname,"rt")) != NULL) {
-    while (!found && fgets(line, sizeof(line), fp) != NULL)
-      if ((p=strstr(line,"image duration")) != NULL) {
-        if ((p=strstr(p,":=")) != NULL) 
-          if (sscanf(p+2,"%g",&scan_duration) == 1) found = true;
-      }
-      fclose(fp);
-  }
-  return found;
-}
 
 /***********************************************************************
 apply_scale_factors routine extracts sinograms from unscaled 2D segment
@@ -1108,19 +1076,7 @@ void Output_CorrectedScan()
   LOG_INFO("done");
 }
 
-void GetSystemInformation()
-{
-	struct sysinfo sinfo;
-	LOG_INFO(" Hardware information: ");  
-	sysinfo(&sinfo);
-	LOG_INFO("  Total RAM: {}", sinfo.totalram); 
-	LOG_INFO("  Free RAM: {}", sinfo.freeram);
-	// To get n_processors we need to get the result of this command "grep processor /proc/cpuinfo | wc -l"
-	if(nthreads==0) nthreads=2; // for now
-}
-
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
 	int nprojs=0,nviews=0;
 	unsigned long ClockB=0,ClockF=0,ClockL=0,ClockA=0;
   struct stat st;

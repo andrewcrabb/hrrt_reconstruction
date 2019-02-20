@@ -33,7 +33,7 @@ inline int mat_decode(const char *s, float *f)
 
 static void usage(const char *pgm)
 {
-  fprintf(stderr, "%s Build %s %s \n", pgm, __DATE__, __TIME__);
+  LOG_ERROR("%s Build %s %s \n", pgm, __DATE__, __TIME__);
   fprintf(stderr,
     "usage: %s [-t transf | -a air | -M affine] [-i mu-map -o distance_map]\n", pgm);
   fprintf(stderr,
@@ -138,7 +138,7 @@ void  main(int argc, char **argv)
         //mat_print(tm);
         y_reverse = 1;
       } else {
-        fprintf(stderr, "Invalid -M argument %s\n", optarg);
+        LOG_ERROR("Invalid -M argument %s\n", optarg);
         err_flag++;
       }
       break;
@@ -257,7 +257,7 @@ void  main(int argc, char **argv)
   float dy = (x2[1]-x1[1])*c_size;
   float dz = (x2[2]-x1[2])*c_size;
   float d = sqrt(dx*dx + dy*dy + dz*dz);
-  if (verbose) fprintf(stderr, "Motion point (%g,%g,%g) vector (%4.3g,%4.3g,%4.3g) amplitude %4.3g mm\n",
+  if (verbose) LOG_ERROR("Motion point (%g,%g,%g) vector (%4.3g,%4.3g,%4.3g) amplitude %4.3g mm\n",
     x1[0], x1[1], x1[2], dx, dy, dz, d);
   printf("%d %4.3g %4.3g %4.3g %4.3g \n", frame_start_time, dx, dy, dz, d);
   if (in_file == NULL) {

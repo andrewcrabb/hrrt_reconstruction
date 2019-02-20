@@ -133,7 +133,7 @@ void main(int argc, char ** argv)
 
   // if ((rebinner_lut_file=hrrt_rebinner_lut_path())==NULL)
   // {
-  //   fprintf(stdout,"Rebinner LUT file not found\n");
+  //   LOG_INFO("Rebinner LUT file not found\n");
   //   exit(1);
   // }
   // lor_sinogram::init_lut_sol(rebinner_lut_file, m_segzoffset);

@@ -22,7 +22,7 @@ static float vicra2hrrt[16] = {
 
 static void usage(const char *pgm)
 {
-  fprintf(stderr, "%s Build %s %s \n", pgm, __DATE__, __TIME__);
+  LOG_ERROR("%s Build %s %s \n", pgm, __DATE__, __TIME__);
   fprintf(stderr,
     "usage: %s [-t transformer | -a air_file | -q qw,qx,qy,qz,tx,ty,tz] | -M minc_file\n", pgm);
   fprintf(stderr,
@@ -240,7 +240,7 @@ int  main(int argc, char **argv)
 		dz = (x2[2]-x1[2])*c_size;
 		d = sqrt(dx*dx + dy*dy + dz*dz);
 	}
-  if (verbose) fprintf(stderr, "Motion point (%g,%g,%g) vector (%4.3g,%4.3g,%4.3g) amplitude %4.3g mm\n",
+  if (verbose) LOG_ERROR("Motion point (%g,%g,%g) vector (%4.3g,%4.3g,%4.3g) amplitude %4.3g mm\n",
     x1[0], x1[1], x1[2], dx, dy, dz, d);
   printf("%d %4.3g %4.3g %4.3g %4.3g \n", frame_start_time, dx, dy, dz, d);
   if (verbose) printf("done\n");

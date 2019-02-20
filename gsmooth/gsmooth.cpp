@@ -67,16 +67,16 @@ int main(int argc, char **argv) {
   int ecat_flag=1, cubic_flag=0;
 
 	if (argc<2)	{
-    fprintf(stderr, "\n%s Build %s %s\n\n",argv[0],__DATE__,__TIME__);
-		fprintf(stderr, "Usage: gsmooth input [FWHM [output [k|m|s]]]\n");
-		fprintf(stderr, "        Applies a 3D gaussian smoothing with specified FWHM in mm\n");
-		fprintf(stderr, "        Valid FWHM values are between 1.0 and 10.0, default=2.0\n");
-		fprintf(stderr, "        Default output is input_xmm.extension where x is the FWHM\n");
-		fprintf(stderr, "        Examples of extensions: .i,.v,.img,.hdr,.h33\n");
-		fprintf(stderr, "        Supports ECAT(static&multi-frame) and Interfile formats\n");
-    fprintf(stderr, "        m: multi-frame movie mode to create frames with same scale\n");
-    fprintf(stderr, "        s: use single arithmetic instead SIMD default\n");
-    fprintf(stderr, "        i: Use isotropic voxelsize output instead of original voxelsize\n");
+    LOG_ERROR("\n%s Build %s %s\n\n",argv[0],__DATE__,__TIME__);
+		LOG_ERROR("Usage: gsmooth input [FWHM [output [k|m|s]]]\n");
+		LOG_ERROR("        Applies a 3D gaussian smoothing with specified FWHM in mm\n");
+		LOG_ERROR("        Valid FWHM values are between 1.0 and 10.0, default=2.0\n");
+		LOG_ERROR("        Default output is input_xmm.extension where x is the FWHM\n");
+		LOG_ERROR("        Examples of extensions: .i,.v,.img,.hdr,.h33\n");
+		LOG_ERROR("        Supports ECAT(static&multi-frame) and Interfile formats\n");
+    LOG_ERROR("        m: multi-frame movie mode to create frames with same scale\n");
+    LOG_ERROR("        s: use single arithmetic instead SIMD default\n");
+    LOG_ERROR("        i: Use isotropic voxelsize output instead of original voxelsize\n");
 		return 1;
 	}
 	in_fname = argv[1];
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
 		if (sscanf(argv[2],"%g",&gauss_fwhm_xy) != 1 ||
 			(gauss_fwhm_xy<1.0 || gauss_fwhm_xy>10.0) )
 		{
-			fprintf(stderr, "Invalid  FWHM value: %s, must be between 1.0 and 10.0\n",
+			LOG_ERROR("Invalid  FWHM value: %s, must be between 1.0 and 10.0\n",
 				argv[2]);
 			return 1;
 		}

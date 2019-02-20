@@ -536,8 +536,8 @@ static void compute_norm(char **in_files, int nfiles, char *out_file)
 
   catch (const char *err_message)
   {
-    if (iseg > 0) fprintf(stderr, "segment %d: %s\n", seg, err_message);
-    else fprintf(stderr, "%s\n", err_message);
+    if (iseg > 0) LOG_ERROR("segment %d: %s\n", seg, err_message);
+    else LOG_ERROR("%s\n", err_message);
     err_flag++;
   }
   if (!err_flag)
