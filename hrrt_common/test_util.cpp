@@ -6,7 +6,6 @@
 #include "CHeader.hpp"
 
 // #define FMT_HEADER_ONLY
-#include <fmt/format.h>
 
 using std::string;
 using std::cout;

@@ -16,12 +16,6 @@
 #define BOOST_NO_CXX11_SCOPED_ENUMS
 #include <boost/filesystem.hpp>
 #undef BOOST_NO_CXX11_SCOPED_ENUMS
-#include "spdlog/spdlog.h"
-// #include "spdlog/sinks/stdout_color_sinks.h"
-// #include "spdlog/sinks/basic_file_sink.h"
-#include "my_spdlog.hpp"
-// Cast CHeaderError to its underlying type (int) for LOG_foo macros.  http://bit.ly/2PSzLJY
-#include <type_traits>
 
 using std::string;
 
@@ -191,5 +185,4 @@ protected:
 	string m_FileName_;
 	std::ifstream hdr_file_;
 	tag_vector tags_;
-  	std::shared_ptr<spdlog::logger> logger_;
 };

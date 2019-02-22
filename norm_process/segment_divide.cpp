@@ -85,16 +85,7 @@ static void divide_planes(FILE *fp1, FILE *fp2, int seg, int nplns)
   printf("\n");
 }
 
-void init_logging(void) {
-  if (g_logfile.length() == 0) {
-    g_logfile = fmt::format("{}_segment_divide.log", hrrt_util::time_string());
-  }
-  g_logger = spdlog::basic_logger_mt("HRRT", g_logfile);
-}
-
-
-void main(int argc, char ** argv)
-{
+void main(int argc, char ** argv) {
   int i=0, j=0, sino=0;
   int rd=GeometryInfo::MAX_RINGDIFF, span=0, seg=0, nseg=0;
   int ntotal_3, ntotal_9, nplns=0, nplns0=207;
@@ -106,6 +97,7 @@ void main(int argc, char ** argv)
   int mp, al, bl, ax, axx, bx, bxx, idx;
   float d_theta=1.0, plane_sep=1.21875f, crystal_radius=234.5f;
 
+  init_logging(argv[0]);
   nseg = (2*rd+1)/3;
 	ntotal_3 = nseg*nplns0 - (nseg-1)*(3*(nseg-1)/2+1);
 	nseg = (2*rd+1)/9;

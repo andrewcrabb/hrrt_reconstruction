@@ -79,7 +79,7 @@
 
 extern float inter(float x1, float y1, float x2, float y2, float r, float *xi, float *yi);
 
-//***** #define g_logger->error( args...) {g_logger->error( args); exit(1);}
+//***** #define LOG_ERROR( args...) {LOG_ERROR( args); exit(1);}
 
 int mpi_myrank = 0;
 int mpi_nprocs = 0;
@@ -136,7 +136,7 @@ int NumberOfProcessors;
 int NumberOfThreads;
 
 std::string g_logfile;
-extern std::shared_ptr<spdlog::logger> g_logger;
+// extern std::shared_ptr<spdlog::logger> g_logger;
 
 
 static const char *prog_id = "norm_process";
@@ -159,13 +159,6 @@ int mp_num(int ahead, int bhead) {
     if (pair[0] = = ahead && pair[1] = = bhead) 
       return i;
   return 0;
-}
-
-void init_logging(void) {
-  if (g_logfile.length() == 0) {
-    g_logfile = fmt::format("{}_norm_process.log", hrrt_util::time_string());
-  }
-  g_logger = spdlog::basic_logger_mt("HRRT", g_logfile);
 }
 
 
@@ -218,8 +211,7 @@ static short *mp_read(const char *diamond_file) {
   signed char *c_data = (signed char*)calloc(MP_SIZE, 1);
   short *mp_data = (short*)calloc(MP_SIZE, sizeof(short));
   if (c_data == NULL || mp_data == NULL) {
-    g_logger->error("memory allocation");
-    exit(1);
+    LOG_EXIT("memory allocation");
   }
 
   if ((fptr = fopen( diamond_file, "rb")) != NULL) {
@@ -227,8 +219,7 @@ static short *mp_read(const char *diamond_file) {
     // read first part
     count = fread(c_data, sizeof(char), MP_SIZE, fptr);
     if (count != MP_SIZE) {
-      g_logger->error("Error reading {}", diamond_file);
-      exit(1);
+      LOG_EXIT("Error reading {}", diamond_file);
     }
     for (i = 0; i < count; i++)
       mp_data[i] = c_data[i] + mp_data_offset;
@@ -249,10 +240,9 @@ static short *mp_read(const char *diamond_file) {
         mp_min = mp_data[i];
       tot += mp_data[i];
     }
-    g_logger->info("Reading {} done; buffers = {} total, max, min= {}, {}, {}", diamond_file, nbuffers, tot, mp_max, mp_min);
+    LOG_INFO("Reading {} done; buffers = {} total, max, min= {}, {}, {}", diamond_file, nbuffers, tot, mp_max, mp_min);
   } else {
-    g_logger->error(diamond_file);
-    exit(1);
+    LOG_EXIT(diamond_file);
   }
   free(c_data);
   return mp_data;
@@ -267,8 +257,7 @@ static short *mp_reads(const char *diamond_file) {
     // read first part
     count = fread(mp_data, sizeof(short), MP_SIZE, fptr);
     if (count != MP_SIZE) {
-      g_logger->error("Error reading diamond_file {}", diamond_file);
-      exit(1);
+      LOG_EXIT("Error reading diamond_file {}", diamond_file);
     }
     int mp_min = mp_data[0];
     int mp_max = mp_data[0];
@@ -280,10 +269,9 @@ static short *mp_reads(const char *diamond_file) {
         mp_min = mp_data[i];
       tot += mp_data[i];
     }
-    g_logger->info("Reading {} done; total, max, min= {}, {}, {}", diamond_file, tot, mp_max, mp_min);
+    LOG_INFO("Reading {} done; total, max, min= {}, {}, {}", diamond_file, tot, mp_max, mp_min);
   } else {
-    g_logger->error(diamond_file);
-    exit(1);
+    LOG_EXIT(diamond_file);
   }
   return mp_data;
 }
@@ -304,10 +292,9 @@ void init_corrections() {
 
   // create default dwell sino
   if (rdwell_sino == NULL) {
-    g_logger->info("using default rotation dwell");
+    LOG_INFO("using default rotation dwell");
     if ((rdwell_sino = (float*)calloc(GeometryInfo::nprojs_ * GeometryInfo::nviews_, sizeof(float))) == NULL) {
-      g_logger->error("Can't allocate memory for dwell correction array");
-      exit(1);
+      LOG_EXIT("Can't allocate memory for dwell correction array");
     }
     for (int mp = 1; mp <= GeometryInfo::NMPAIRS; mp++) {
       for (ax = 0; ax < NXCRYS; ax++) {
@@ -328,15 +315,14 @@ void init_corrections() {
       }
     }
   } else {
-    g_logger->info("using measured rotation dwell");
+    LOG_INFO("using measured rotation dwell");
   }
 
   // Create default omega
   if (omega_sino == NULL) {
-    g_logger->info("using default solid angle dwell");
+    LOG_INFO("using default solid angle dwell");
     if ((omega_sino = (float*)calloc(GeometryInfo::nprojs_ * GeometryInfo::nviews_, sizeof(float))) == NULL) {
-      g_logger->error("Can't allocate memory for LOR correction arrays");
-      exit(1);
+      LOG_EXIT("Can't allocate memory for LOR correction arrays");
     }
 
     float d0_sq = rdiam * rdiam, so = 0.0f;
@@ -382,7 +368,7 @@ void init_corrections() {
       }
     }
   } else {
-    g_logger->info("using measured solid angle dwell");
+    LOG_INFO("using measured solid angle dwell");
   }
 
 }
@@ -468,7 +454,7 @@ void *CNThread2( void *arglist ) {
   bhead = GeometryInfo::HRRT_MPAIRS[mp][1];
 
   //  printf("processing mp %d\t%d\t%d", args->mp, ahead, bhead);
-  g_logger->info("CNThread[{}]: ahead {} bhead {}", mp, ahead, bhead);
+  LOG_INFO("CNThread[{}]: ahead {} bhead {}", mp, ahead, bhead);
 
   for (alayer = 0; alayer < NLAYERS; alayer++) {
     // skip if not requested layer
@@ -593,10 +579,10 @@ int check_end_of_frame(struct FS_L64_Args &src) {
       if ((tag & 0xE0000000) == 0x80000000) {
         current_time = (tag & 0x3fffffff); //msec
         current_time /= 1000; // in sec
-        g_logger->info("Time in sec : {}", current_time);
+        LOG_INFO("Time in sec : {}", current_time);
         if (current_time != last_time) {
           last_time = current_time;
-          g_logger->info("Time in sec : {}", current_time);
+          LOG_INFO("Time in sec : {}", current_time);
         }
         if (current_time > duration)
           return pos;
@@ -627,8 +613,7 @@ static void compute_fan_sum(const char *l64_file, float *fan_sum) {
 
   FILE *fp = fopen(l64_file, "rb");
   if (fp == NULL) {
-    g_logger->error("Can't open listmode file {}", l64_file);
-    exit(1);
+    LOG_EXIT("Can't open listmode file {}", l64_file);
   }
   // Initialize thread arguments
   for (thread = 0; thread < NumberOfThreads; thread++) {
@@ -636,8 +621,7 @@ static void compute_fan_sum(const char *l64_file, float *fan_sum) {
     FS_L64_args[thread].in = (unsigned*)calloc(EV_BUFSIZE, 2 * sizeof(unsigned));
     FS_L64_args[thread].out = (float*)calloc(NUM_CRYSTALS, sizeof(float));
     if (FS_L64_args[thread].in == NULL || FS_L64_args[thread].out == NULL) {
-      g_logger->error("Thread buffers memory allocation failed");
-      exit(1);
+      LOG_EXIT("Thread buffers memory allocation failed");
     }
     FS_L64_args[thread].count  = 0;
     FS_MP_args[thread].TNumber = thread;
@@ -1007,7 +991,7 @@ int main(int argc, char **argv) {
   int layer = NLAYERS;
   char rdwell_path[_MAX_PATH], *omega_file = NULL;
 
-  init_logging();
+  init_logging(argv[0]);
 
   //***** MPI_Init( &argc, &argv);
   //***** MPI_Comm_rank( MPI_COMM_WORLD, &mpi_myrank);
@@ -1091,7 +1075,7 @@ int main(int argc, char **argv) {
       case 'L':   // low resolution
         if (sscanf( optarg, "%d", &GeometryInfo::lr_type_) != 1) LOG_EXIT("invalid -L argument");
         if (GeometryInfo::lr_type_ != LR_20 && GeometryInfo::lr_type_ != LR_24) {
-          g_logger->error("Invalid LR mode {}", GeometryInfo::lr_type_);
+          LOG_ERROR("Invalid LR mode {}", GeometryInfo::lr_type_);
           usage(argv[0]);
         }
         span = 7;
@@ -1107,13 +1091,13 @@ int main(int argc, char **argv) {
         if (sscanf(optarg, "%d", &layer) != 1) 
           LOG_EXIT("invalid -l argument");
         if (layer < 0 || layer > NLAYERS) {
-          g_logger->error("Invalid layer {}", layer);
+          LOG_ERROR("Invalid layer {}", layer);
           usage(argv[0]);
         }
         break;
       case 'd':
         if (sscanf(optarg, "%d", &duration) != 1) 
-          g_logger->error("invalid -d argument");
+          LOG_ERROR("invalid -d argument");
         exit(1);
       case 'O':
         omega_file = optarg;
@@ -1142,14 +1126,14 @@ int main(int argc, char **argv) {
     }
 
   /* Program build date & time --> log file */
-  g_logger->info("{} build {} {}", argv[0], __DATE__, __TIME__ );
+  LOG_INFO("{} build {} {}", argv[0], __DATE__, __TIME__ );
   if (ce_file != NULL) 
-    g_logger->info( "input crystal efficiencies file {}", ce_file);
+    LOG_INFO( "input crystal efficiencies file {}", ce_file);
   else 
-    g_logger->info( "input listmode file {}", lm_file);
-  g_logger->info( "output normalization file {}", norm_file);
+    LOG_INFO( "input listmode file {}", lm_file);
+  LOG_INFO( "output normalization file {}", norm_file);
   if (duration > 0) 
-    g_logger->info( "Used scan duration {}", duration);
+    LOG_INFO( "Used scan duration {}", duration);
 
   /*--------------------------------*/
   /* determine number of processors */
@@ -1160,15 +1144,15 @@ int main(int argc, char **argv) {
   nprocstring = getenv("NUMBER_OF_PROCESSORS");
 
   if ( nprocstring == NULL ) {
-    g_logger->info("Cannot determine the number of processors. Assuming 1.");
+    LOG_INFO("Cannot determine the number of processors. Assuming 1.");
     NumberOfProcessors = 1;
   }
   else {
     if ( sscanf(nprocstring, "%d", &NumberOfProcessors) != 1 ) {
-      g_logger->error("Error converting environment variable. Assuming nprocs = 1");
+      LOG_ERROR("Error converting environment variable. Assuming nprocs = 1");
       NumberOfProcessors = 1;
     } else {
-      g_logger->info("Running on {} processors", NumberOfProcessors );
+      LOG_INFO("Running on {} processors", NumberOfProcessors );
     }
   }
 #endif
@@ -1183,7 +1167,7 @@ int main(int argc, char **argv) {
   /*---------------------*/
   /* initialize geometry */
 
-  g_logger->info("Initializing geometry");
+  LOG_INFO("Initializing geometry");
 
   head_lthick = normal_lthick;
   head_irad = normal_irad;
@@ -1200,7 +1184,7 @@ int main(int argc, char **argv) {
   //   LOG_INFO( "Error: Rebinner LUT file not defined (opt 'r')");
   //   exit(1);
   // }
-  // g_logger->info( "Using Rebinner LUT file %s ", rebinner_lut_file);
+  // LOG_INFO( "Using Rebinner LUT file %s ", rebinner_lut_file);
   // lor_sinogram::init_lut_sol(rebinner_lut_file, SegmentInfo::m_segzoffset);
   lor_sinogram::init_lut_sol(SegmentInfo::m_segzoffset);
 
@@ -1232,9 +1216,9 @@ int main(int argc, char **argv) {
 
   //Read rotation Dwell Sino
   if (strlen(rdwell_path)) {
-    g_logger->info( "Using directory {} for rotation dwell parameter files", rdwell_path);
+    LOG_INFO( "Using directory {} for rotation dwell parameter files", rdwell_path);
     if ((rdwell_sino = rotation_dwell_sino(rdwell_path, log_fp)) == NULL) {
-      g_logger->error("Error creating rotation dwell sino from {}", rdwell_path);
+      LOG_ERROR("Error creating rotation dwell sino from {}", rdwell_path);
       exit(1);
     }
   }
@@ -1242,15 +1226,15 @@ int main(int argc, char **argv) {
   //Read solid angle Sino
   if (omega_file != NULL) {
     if ((fptr = fopen(omega_file, "rb")) == NULL) {
-      g_logger->error(omega_file);
+      LOG_ERROR(omega_file);
       exit(1);
     }
     if ((omega_sino = (float*) calloc( npixels, sizeof(float))) == NULL)  {
-      g_logger->error("memory allocation failed");
+      LOG_ERROR("memory allocation failed");
       exit(1);
     }
     if ((fread(omega_sino, sizeof(float), npixels, fptr)) != npixels) {
-      g_logger->error("Error reading {}", omega_file);
+      LOG_ERROR("Error reading {}", omega_file);
       exit(1);
     }
   }
@@ -1277,30 +1261,30 @@ int main(int argc, char **argv) {
   create_omega_sino(debug_sino);
 #endif
 
-  g_logger->info("Initializing geometry completed");
+  LOG_INFO("Initializing geometry completed");
 
   /*-----------------*/
   /* allocate memory */
-  g_logger->info("Allocating memory");
-  g_logger->info("Allocating memory for crystal efficiencies ({} bytes)", NUM_CRYSTALS * sizeof(float));
+  LOG_INFO("Allocating memory");
+  LOG_INFO("Allocating memory for crystal efficiencies ({} bytes)", NUM_CRYSTALS * sizeof(float));
   if ((ce = (float*) calloc( NUM_CRYSTALS, sizeof(float))) == NULL) {
-    g_logger->error("memory allocation failed");
+    LOG_ERROR("memory allocation failed");
     exit(1);
   }
 
-  g_logger->info("Allocating memory for radial geometric factors ... (%d bytes)", GR_SIZE * sizeof(float));
+  LOG_INFO("Allocating memory for radial geometric factors ... (%d bytes)", GR_SIZE * sizeof(float));
   cangle = (short*) calloc( GR_SIZE, sizeof(short));
   if ((gr = (float*) calloc( GR_SIZE, sizeof(float))) == NULL) {
-    g_logger->error( "memory allocation failed");
+    LOG_ERROR( "memory allocation failed");
     exit(1);
   }
-  g_logger->info("Allocating memory for axial geometric factors ... (%d bytes)", GA_SIZE * sizeof(float));
+  LOG_INFO("Allocating memory for axial geometric factors ... (%d bytes)", GA_SIZE * sizeof(float));
   if ((ga = (float*) calloc( GA_SIZE, sizeof(float))) == NULL) {
-    g_logger->error( "memory allocation failed");
+    LOG_ERROR( "memory allocation failed");
     exit(1);
   }
 
-  g_logger->info("Allocating memory completed.");
+  LOG_INFO("Allocating memory completed.");
 
   if (!get_gs(geom_fname, log_fp)) exit(1);
 
@@ -1321,22 +1305,22 @@ int main(int argc, char **argv) {
     sprintf(fname, "%s%s%s.l64.hdr", drive, dir, fname);
     if (cheader.OpenFile(fname) != -1) cheader.CloseFile();
 
-    g_logger->info( "Reading Crystal efficiencies file {}", ce_file);
+    LOG_INFO( "Reading Crystal efficiencies file {}", ce_file);
     if ((fptr = fopen( ce_file, "rb")) == NULL) {
-      g_logger->error( "Can't open crystal efficiencies file {}", ce_file);
+      LOG_ERROR( "Can't open crystal efficiencies file {}", ce_file);
       exit(1);
     }
     int n = fread( ce, sizeof(float), NUM_CRYSTALS, fptr);
     fclose( fptr);
     if ( n != NUM_CRYSTALS ) {
-      g_logger->error( "Only read {} of {} values from efficiencies file {}", n, NUM_CRYSTALS, ce_file);
+      LOG_ERROR( "Only read {} of {} values from efficiencies file {}", n, NUM_CRYSTALS, ce_file);
       exit(1);
     }
   } else {
     // 64-bit lismode input
     float *fsum = (float*)calloc(NUM_CRYSTALS, sizeof(float));
     if (fsum == NULL) {
-      g_logger->error("memory allocation");
+      LOG_ERROR("memory allocation");
       exit(1);
     }
 
@@ -1351,13 +1335,13 @@ int main(int argc, char **argv) {
       fwrite(fsum, NUM_CRYSTALS, sizeof(float), fptr);
       fclose(fptr);
     } else {
-      g_logger->error( "Can't create crystal efficiencies output file {}", fname);
+      LOG_ERROR( "Can't create crystal efficiencies output file {}", fname);
     }
 
     sprintf(fname, "%s.hdr", lm_file);
     // Copy listmode header to output directory
     if (cheader.OpenFile(fname) != -1) {
-      g_logger->info( "Copy {} to {}{}", fname, drive, dir);
+      LOG_INFO( "Copy {} to {}{}", fname, drive, dir);
       sprintf(fname, "%s.l64.hdr", base_name);
       cheader.CloseFile();
       cheader.WriteFile(fname);
@@ -1374,7 +1358,7 @@ int main(int argc, char **argv) {
       fwrite(ce, NUM_CRYSTALS, sizeof(float), fptr);
       fclose(fptr);
     } else {
-      g_logger->error( "Can't create crystal efficiencies output file {}", fname);
+      LOG_ERROR( "Can't create crystal efficiencies output file {}", fname);
     }
 
     //free allocated memory for fansum
@@ -1387,13 +1371,13 @@ int main(int argc, char **argv) {
 
   if (GeometryInfo::lr_type_ == 0) {
     calibration_scale = 9.0f / span; // 3 for span 3 and 1.0 for span9
-    g_logger->info( "Normalization span = {}, max_rd = {}, calibration scale = {}", span, maxrd_, calibration_scale);
+    LOG_INFO( "Normalization span = {}, max_rd = {}, calibration scale = {}", span, maxrd_, calibration_scale);
   } else {
     calibration_scale = (float)((9.0f / 14.0f) * (0.5f * GeometryInfo::crystal_x_pitch_ / GeometryInfo::binsize_) / 4);
     // 14: High resolution equivalent span
     // 4: 2 times fewer angles and planes
-    g_logger->info( "LR normalization: span = {}, max_rd = {}, calibration scale = {}", span, maxrd_, calibration_scale);
-    g_logger->info( "                  nprojs = {}, nviews = {}, bin_size {} mm", nprojs, nviews, GeometryInfo::binsize_);
+    LOG_INFO( "LR normalization: span = {}, max_rd = {}, calibration scale = {}", span, maxrd_, calibration_scale);
+    LOG_INFO( "                  nprojs = {}, nviews = {}, bin_size {} mm", nprojs, nviews, GeometryInfo::binsize_);
   }
   fflush(log_fp);
 
@@ -1408,23 +1392,23 @@ int main(int argc, char **argv) {
 
   //initialization and memory allocation
   StartTimer("Compute Normalization");
-  g_logger->info("Allocating memory for normalization ({} bytes)", nvoxels * sizeof(float));
+  LOG_INFO("Allocating memory for normalization ({} bytes)", nvoxels * sizeof(float));
   // Use calloc to initialize the values to 0
   if ((norm_data = (float *) calloc( nvoxels, sizeof(float) )) == NULL) {
-    g_logger->error( "memory allocation failed");
+    LOG_ERROR( "memory allocation failed");
     exit(1);
   }
 
   // Use calloc to initialize the values to 0
   if ((norm_data2 = (float **) calloc( npixels, sizeof(float*) )) == NULL) {
-    g_logger->error( "memory allocation failed");
+    LOG_ERROR( "memory allocation failed");
     exit(1);
   }
   for (int i = 0; i < npixels; i++)
     norm_data2[i] =  norm_data + i * nplanes;
 
   if ((tmp_sino = (float *) calloc(npixels, sizeof(float) )) == NULL) {
-    g_logger->error( "memory allocation failed");
+    LOG_ERROR( "memory allocation failed");
     exit(1);
   }
 
@@ -1439,12 +1423,12 @@ int main(int argc, char **argv) {
 #else
   HANDLE *threadhandles = (HANDLE *) malloc( GeometryInfo::NMPAIRS * sizeof( HANDLE ) );
   if ( threadhandles == NULL )  
-    g_logger->error("BP: ERROR malloc threadhandles");
+    LOG_ERROR("BP: ERROR malloc threadhandles");
 #endif
 
   struct CNArgs *CNargs = (struct CNArgs *) malloc( GeometryInfo::NMPAIRS * sizeof( struct CNArgs) );;
   if ( CNargs == NULL )
-    g_logger->error("BP: ERROR malloc CNargs");
+    LOG_ERROR("BP: ERROR malloc CNargs");
 
 #ifdef __linux__
   /* Initialize and set thread detached attribute */
@@ -1507,9 +1491,9 @@ int main(int argc, char **argv) {
     float norm_avg = (float)(sum / count);
     float norm_min = NORM_MIN * calibration_scale;
     float norm_max = NORM_MAX * calibration_scale;
-    g_logger->info( "segment 0 normalization average(excluding gaps): {}", norm_avg);
+    LOG_INFO( "segment 0 normalization average(excluding gaps): {}", norm_avg);
     scale = calibration_scale / norm_avg;
-    g_logger->info( "Rescale Norm with {} ({}/{}) and threshold to min = {}, max = {}",
+    LOG_INFO( "Rescale Norm with {} ({}/{}) and threshold to min = {}, max = {}",
             scale, calibration_scale, norm_avg, norm_min, norm_max);
     for (int i = 0, psino = norm_data; i < nvoxels; i++) {
       if (*psino > 0.0f) {
@@ -1543,13 +1527,13 @@ int main(int argc, char **argv) {
 
 #ifndef VTUNE_RUN
 
-  g_logger->info("Writing to disk");
+  LOG_INFO("Writing to disk");
 
   StartTimer("Disk Write");
 
   FILE *fptr = fopen(norm_file, "wb");
   if (!fptr) {
-    g_logger->error( "Can't create normalization output file '%s'", fname);
+    LOG_ERROR( "Can't create normalization output file '%s'", fname);
     exit(1);
   } else {
     int num_sinos = 0;
@@ -1557,13 +1541,13 @@ int main(int argc, char **argv) {
     // using a central plane
     plane = 0;
     for (int segnum = 0; segnum < nsegs; segnum++) {
-      g_logger->info( " writing segment {}: nplanes={}", segnum, seg_planes[segnum]);
+      LOG_INFO( " writing segment {}: nplanes={}", segnum, seg_planes[segnum]);
       num_sinos +=  seg_planes[segnum];
       for (int segplane = 0; segplane < seg_planes[segnum]; segplane++, plane++) {
         for (int i = 0; i < npixels; i++) 
           tmp_sino[i] = norm_data2[i][plane];
         if ((int n = fwrite(tmp_sino, sizeof(float), npixels, fptr)) != npixels) {
-          g_logger->error( "Write to disk error for '{}' segment {} plane {}", norm_file, segnum, plane + 1);
+          LOG_ERROR( "Write to disk error for '{}' segment {} plane {}", norm_file, segnum, plane + 1);
         }
       }
     }
@@ -1594,10 +1578,10 @@ int main(int argc, char **argv) {
     cheader.WriteInt(CHeader::SCALING_FACTOR_2         , 1);
     cheader.WriteFloat(CHeader::SCALING_FACTOR_3         , 1.218750f);
     sprintf(fname, "%s.cheader", norm_file);
-    g_logger->info( "Write header {}", fname);
+    LOG_INFO( "Write header {}", fname);
     cheader.WriteFile(fname);
 
-    g_logger->info( "Write to disk completed");
+    LOG_INFO( "Write to disk completed");
   }
 
   StopTimer("Disk Write");

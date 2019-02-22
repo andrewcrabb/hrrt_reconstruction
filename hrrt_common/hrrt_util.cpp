@@ -10,14 +10,17 @@
 #include <cstdio>
 #include <unistd.h>
 #include <fstream>
+#include <sys/sysinfo.h>
 
 #include "hrrt_util.hpp"
-#include "spdlog/spdlog.h"
+#include "my_spdlog.hpp"
 #include <boost/filesystem.hpp>
 
 namespace bf = boost::filesystem;
 
 namespace hrrt_util {
+
+  int nthreads_;
 
 int open_ostream(std::ofstream &t_outs, const bf::path &t_path, std::ios_base::openmode t_mode) {
   t_outs.open(t_path.string(), t_mode);
@@ -167,7 +170,7 @@ void GetSystemInformation() {
   LOG_INFO("  Total RAM: {}", sinfo.totalram); 
   LOG_INFO("  Free RAM: {}", sinfo.freeram);
   // To get n_processors we need to get the result of this command "grep processor /proc/cpuinfo | wc -l"
-  if(nthreads==0) 
+  if(nthreads_ == 0) 
     nthreads_ = 2; // for now
 }
 

@@ -377,7 +377,7 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 	y = 0;
 	v = 0;
 	z = 0;
-	//	printf("[%d]\n",i);
+	//	LOG_INFO("[%d]\n",i);
 	i = i/2;
 	if(i<0) i = 0;
 
@@ -400,7 +400,7 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 	i=0;
 	for(x=0;x<=x_pixels/2;x++){
 		i+=in_fov_pixels_at_x2[x];
-		//		printf("%d\t%d\t%d\n",x,i,in_fov_pixels_at_x2[x]);
+		//		LOG_INFO("%d\t%d\t%d\n",x,i,in_fov_pixels_at_x2[x]);
 	}
 
 	i=i/nthreads;
@@ -413,12 +413,12 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 			y++;
 			start_x__per_thread_back_8sysmetric[y] = x-z;
 			z =x;
-			//			printf("%d\t%d\t%d\t%d\n",i,y,start_x__per_thread_back_8sysmetric[y],v);
+			//			LOG_INFO("%d\t%d\t%d\t%d\n",i,y,start_x__per_thread_back_8sysmetric[y],v);
 			v = in_fov_pixels_at_x2[x];
 		}
 	}	
-	//	printf("%d\n",i);
-	//	for(i=0;i<nthreads;i++) printf("%d\t%d\n",i,start_x__per_thread_back_8sysmetric[i]);
+	//	LOG_INFO("%d\n",i);
+	//	for(i=0;i<nthreads;i++) LOG_INFO("%d\t%d\n",i,start_x__per_thread_back_8sysmetric[i]);
 	free(in_fov_pixels_at_x2);
 	sinosize = radial_pixels * views;
 	sin_theta[0] = 0.0;
@@ -560,7 +560,7 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 				flookup[y][th2*ZShift*2+yri].zzi=z;
 				zz0=yr+((y-y_off)*tantheta[th2][yr]);
 			}
-			//			printf("%d\t%d\t",flookup[y][th2*ZShift*2+ZShift].zzi,flookup[y][th2*ZShift*2+yri-1].zzi+1);
+			//			LOG_INFO("%d\t%d\t",flookup[y][th2*ZShift*2+ZShift].zzi,flookup[y][th2*ZShift*2+yri-1].zzi+1);
 			yri2=flookup[y][th2*ZShift*2+ZShift-1].zzi-flookup[y][th2*ZShift*2].zzi+flookup[y][th2*ZShift*2+yri-1].zzi-flookup[y][th2*ZShift*2+ZShift].zzi+2+2;
 			blookup_oblique_start_end[y][th2].z1=flookup[y][th2*ZShift*2].zzi;
 			blookup_oblique_start_end[y][th2].z2=flookup[y][th2*ZShift*2+ZShift-1].zzi+1;
@@ -569,8 +569,8 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 
 			blookup_oblique_start_end[y][th2].num=blookup_oblique_start_end[y][th2].z2-blookup_oblique_start_end[y][th2].z1+blookup_oblique_start_end[y][th2].z4-blookup_oblique_start_end[y][th2].z3+2;
 
-		//		printf("%d\n",blookup_oblique_start_end[y][th2].num);
-	//			printf("%d\t%d\t%d\t%d\t%d\t%d\n",y,th,flookup[y][th2*ZShift*2].zzi,flookup[y][th2*ZShift*2+ZShift*2-1].zzi
+		//		LOG_INFO("%d\n",blookup_oblique_start_end[y][th2].num);
+	//			LOG_INFO("%d\t%d\t%d\t%d\t%d\t%d\n",y,th,flookup[y][th2*ZShift*2].zzi,flookup[y][th2*ZShift*2+ZShift*2-1].zzi
 	//					,flookup[y][th2*ZShift*2+1].zzi,flookup[y][th2*ZShift*2+ZShift*2-2].zzi);
 		}
 	}
@@ -597,7 +597,7 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 			yri+=blookup_oblique_start_end[y][group].num;
 		}
 	}
-	//	printf("done memalloc\n");
+	//	LOG_INFO("done memalloc\n");
 	/******************************************************/
 
 	/* calculating backward projection oblique ray's interpolation coefficients */
@@ -607,7 +607,7 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 			blookup_oblique[y][group][0].yr=yr_bottom[group*2+1]-1;
 			blookup_oblique[y][group][0].z=flookup[y][group*ZShift*2].zzi;
 			for(zs=1,yr=0,z=blookup_oblique_start_end[y][group].z1+1;z<blookup_oblique_start_end[y][group].z2;z++,zs++){
-				//			printf("%d\t%d\t%d\t%d\ttotal %d\t%d\n",y,group,blookup_oblique_start_end[y][group].z1+1,blookup_oblique_start_end[y][group].z2,blookup_oblique_totalnum,zs);
+				//			LOG_INFO("%d\t%d\t%d\t%d\ttotal %d\t%d\n",y,group,blookup_oblique_start_end[y][group].z1+1,blookup_oblique_start_end[y][group].z2,blookup_oblique_totalnum,zs);
 				zz1=flookup[y][group*ZShift*2+yr].zzi+flookup[y][group*ZShift*2+yr].zzz0;
 				zz2=flookup[y][group*ZShift*2+yr+1].zzi+flookup[y][group*ZShift*2+yr+1].zzz0;
 				if(z>=zz1 && z<zz2){
@@ -626,20 +626,20 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 			zs++;
 			yr=ZShift;
 			for(z=blookup_oblique_start_end[y][group].z3;z<blookup_oblique_start_end[y][group].z4;z++,zs++){
-				//		printf("%d\t%d\t%d\t%d\ttotal %d\t%d\n",y,group,blookup_oblique_start_end[y][group].z3,blookup_oblique_start_end[y][group].z4,blookup_oblique_totalnum,zs);
+				//		LOG_INFO("%d\t%d\t%d\t%d\ttotal %d\t%d\n",y,group,blookup_oblique_start_end[y][group].z3,blookup_oblique_start_end[y][group].z4,blookup_oblique_totalnum,zs);
 				zz1=flookup[y][group*ZShift*2+yr].zzi+flookup[y][group*ZShift*2+yr].zzz0;
 				zz2=flookup[y][group*ZShift*2+yr+1].zzi+flookup[y][group*ZShift*2+yr+1].zzz0;
 				if(z>=zz1 && z<=zz2){
 					blookup_oblique[y][group][zs].z=z;
 					blookup_oblique[y][group][zs].yr=yr+yr_top[group*2+1]-ZShift*2+1;
 					blookup_oblique[y][group][zs].coef=(zz2-z)/(zz2-zz1);
-					//			printf("%f\t%f\t%d\n",zz1,zz2,z);
+					//			LOG_INFO("%f\t%f\t%d\n",zz1,zz2,z);
 				} else {
 					z--;
 					zs--;
 					yr++;
 				}
-				//			printf("%f\t%f\t%d\n",zz1,zz2,z);
+				//			LOG_INFO("%f\t%f\t%d\n",zz1,zz2,z);
 			}
 			blookup_oblique[y][group][zs].coef=flookup[y][group*ZShift*2+ZShift*2-1].zzz0;
 			blookup_oblique[y][group][zs].yr=yr_top[group*2+1];
@@ -648,21 +648,21 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 	}
 	for(y=0;y<y_pixels;y++){
 		for(group=0;group<groupmax;group++){
-			//			printf("y,group %d\t%d\n",y,group);
+			//			LOG_INFO("y,group %d\t%d\n",y,group);
 			for(yr=0;yr<blookup_oblique_start_end[y][group].num;yr++){
-				//				printf("back %d\t%d\t%f\n",blookup_oblique[y][group][yr].z,blookup_oblique[y][group][yr].yr,blookup_oblique[y][group][yr].coef);
+				//				LOG_INFO("back %d\t%d\t%f\n",blookup_oblique[y][group][yr].z,blookup_oblique[y][group][yr].yr,blookup_oblique[y][group][yr].coef);
 			}
 			for(yr=0;yr<ZShift;yr++){
-				//				printf("ford %d\t%f\n",yr+yr_bottom[group*2+1],flookup[y][group*ZShift*2+yr].zzi+flookup[y][group*ZShift*2+yr].zzz0);
+				//				LOG_INFO("ford %d\t%f\n",yr+yr_bottom[group*2+1],flookup[y][group*ZShift*2+yr].zzi+flookup[y][group*ZShift*2+yr].zzz0);
 			}
 			for(yr=0;yr<ZShift;yr++){
-				//				printf("ford %d\t%f\n",yr+yr_top[group*2+1]-ZShift+1,flookup[y][group*ZShift*2+yr+ZShift].zzi+flookup[y][group*ZShift*2+yr+ZShift].zzz0);
+				//				LOG_INFO("ford %d\t%f\n",yr+yr_top[group*2+1]-ZShift+1,flookup[y][group*ZShift*2+yr+ZShift].zzi+flookup[y][group*ZShift*2+yr+ZShift].zzz0);
 			}
 		}
 	}
 	//	for(group=0;group<groupmax;group++){
 	//		for(y=0;y<y_pixels;y++){
-	//			printf("start\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",y,group,blookup_oblique_start_end[y][group].num,				blookup_oblique_start_end[y][group].z1,				blookup_oblique_start_end[y][group].z2,				blookup_oblique_start_end[y][group].z3,				blookup_oblique_start_end[y][group].z4);
+	//			LOG_INFO("start\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",y,group,blookup_oblique_start_end[y][group].num,				blookup_oblique_start_end[y][group].z1,				blookup_oblique_start_end[y][group].z2,				blookup_oblique_start_end[y][group].z3,				blookup_oblique_start_end[y][group].z4);
 	//		}
 	//	}
 	//	LOG_EXIT("exiting");
@@ -695,7 +695,7 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 			blookup[y][th2].zea=ze;
 			blookup[y][th2].yra=yr;
 			blookup[y][th2].yr2a=yr2;
-//			printf("back\t%d\t%d\t%d\t%d\t%d\t%f\n",y,th2,zs,ze,yr,yr2);
+//			LOG_INFO("back\t%d\t%d\t%d\t%d\t%d\t%f\n",y,th2,zs,ze,yr,yr2);
 		}
 	}
 
@@ -784,7 +784,7 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 	}
 /*	for(th=2,th2=0;th<th_pixels;th+=2,th2++){
 		for (y = 0; y < y_pixels; y++) {
-			printf("%d\t%d\t%d\t%d\t%d\t%f\t%d\t%d\t%d\t%f\t%d\n",th2,y,
+			LOG_INFO("%d\t%d\t%d\t%d\t%d\t%f\t%d\t%d\t%d\t%f\t%d\n",th2,y,
 				blutacc[y][th2].z_start,
 				blutacc[y][th2].z_end,
 				blutacc[y][th2].yr_start,
@@ -892,7 +892,7 @@ void rotateimage_bspline(float ***ima,float ***out,int view,int xs,int xe){
 		for(y=cylwiny[x][0];y<cylwiny[x][1];y++){
 			//		xx0=(x-x_pixels/2)*cosv-(y-y_pixels/2)*sinv+x_pixels/2;
 			//		yy0=(x-x_pixels/2)*sinv+(y-y_pixels/2)*cosv+y_pixels/2;
-			//			printf("%f\t%f\t%f\t%f\n",xt,yt,xx0,yy0);
+			//			LOG_INFO("%f\t%f\t%f\t%f\n",xt,yt,xx0,yy0);
 			xx=(int)(xx0+0.5); 
 			yy=(int)(yy0+0.5); 
 				x1=xx0-xx;
@@ -985,7 +985,7 @@ void rotateimage(float ***ima,float ***out,int view,int xs,int xe){
 
 	xxx0=-x_pixels/2*cosv+y_pixels/2*sinv+x_pixels/2;
 	yyy0=-x_pixels/2*sinv-y_pixels/2*cosv+y_pixels/2;
-	//printf("xs xe %d\t%d\n",xs,xe);
+	//LOG_INFO("xs xe %d\t%d\n",xs,xe);
 	for(x=xs;x<xe;x++){
 		if(cylwiny[x][0]==0) continue;
 		xx0=xxx0-cylwiny[x][0]*sinv+x*cosv;
@@ -993,7 +993,7 @@ void rotateimage(float ***ima,float ***out,int view,int xs,int xe){
 		for(y=cylwiny[x][0];y<cylwiny[x][1];y++){
 			//		xx0=(x-x_pixels/2)*cosv-(y-y_pixels/2)*sinv+x_pixels/2;
 			//		yy0=(x-x_pixels/2)*sinv+(y-y_pixels/2)*cosv+y_pixels/2;
-			//			printf("%f\t%f\t%f\t%f\n",xt,yt,xx0,yy0);
+			//			LOG_INFO("%f\t%f\t%f\t%f\n",xt,yt,xx0,yy0);
 			xx=(int)xx0; 
 			yy=(int)yy0; 
 			x1=xx0-xx;
@@ -1022,7 +1022,7 @@ void rotateimage(float ***ima,float ***out,int view,int xs,int xe){
 	}
 }
 int rotate3d(float ***ima,float ***out,int view, int xstart, int xend) {
-//	printf("rotate3d %d\t%d\n",xstart,xend);
+//	LOG_INFO("rotate3d %d\t%d\n",xstart,xend);
 	rotateimage(ima,out,view,xstart,xend);
 	return 1;
 }
@@ -1102,7 +1102,7 @@ void rotateimage2_bspline(float ***image,float ***outimage,int view,int xs,int x
 
 
 			for(z=0;z<z_pixels_simd;z++){
-		//		printf("%d\t%d\t%d\t%d\n",view,x,y,z);
+		//		LOG_INFO("%d\t%d\t%d\t%d\n",view,x,y,z);
 				//				optr[z]=im1[z]*coef1+im2[z]*coef2+im3[z]*coef3+im4[z]*coef4;
 				optr[z]=_mm_add_ps(optr[z],
 							_mm_add_ps(_mm_mul_ps(im[0][0][z],coef[0][0]),
@@ -1365,7 +1365,7 @@ int forward_proj3d2(float ***ima,float ** prj,int view,int numthread,float ***im
 	}
 
 	Clock4=(clock()-Clock2);
-//	printf("%d\t%3.2f\trotation time: %3.2f,\tprojection time:\t%3.2f sec\n",view,(0.0+Clock4)/CLOCKS_PER_SEC,(0.0+Clock3)/CLOCKS_PER_SEC,(0.0+Clock1)/CLOCKS_PER_SEC );
+//	LOG_INFO("%d\t%3.2f\trotation time: %3.2f,\tprojection time:\t%3.2f sec\n",view,(0.0+Clock4)/CLOCKS_PER_SEC,(0.0+Clock3)/CLOCKS_PER_SEC,(0.0+Clock1)/CLOCKS_PER_SEC );
 
 	return 1;
 } /* end of forward_proj3d2  */
@@ -1380,12 +1380,12 @@ int forward_proj3d_thread1(float ***ima,float ** prj,int view,int numthread,floa
 	int y1,y2,yr2;
 	int xri;
 	Clock5=clock();
-//	printf("start rotating\n");
+//	LOG_INFO("start rotating\n");
 //	rotate3d(ima,imagebuf,view,0,x_pixels);
 
 	Clock2=clock();
 	Clock3=(Clock2-Clock5);
-//	printf("start forward\n");
+//	LOG_INFO("start forward\n");
 //	forward_proj3d_view1_thread(imagebuf,prjbuf,view,0,0,0,x_pixels/2+1);
 	forward_proj3d_view1_thread(ima,prjbuf,view,0,0,0,x_pixels/2+1,imagebuf);
 
@@ -1440,7 +1440,7 @@ int forward_proj3d_thread1(float ***ima,float ** prj,int view,int numthread,floa
 	}
 
 	Clock4=(clock()-Clock5);
-//	printf("%d\t%3.5f\trotation time: %3.5f,\tprojection time:\t%3.5f sec\n",view,(0.0+Clock4)/CLOCKS_PER_SEC,(0.0+Clock3)/CLOCKS_PER_SEC,(0.0+Clock1)/CLOCKS_PER_SEC );
+//	LOG_INFO("%d\t%3.5f\trotation time: %3.5f,\tprojection time:\t%3.5f sec\n",view,(0.0+Clock4)/CLOCKS_PER_SEC,(0.0+Clock3)/CLOCKS_PER_SEC,(0.0+Clock1)/CLOCKS_PER_SEC );
 
 	return 1;
 } /* end of forward_proj3d2  */
@@ -1476,7 +1476,7 @@ int back_proj3d2(float **prj,float *** ima,int view,int numthread,float ***image
 
 	Clock5=clock();
 	Clock3=Clock4=0;
-	//	printf("viewback=%d\n",view);
+	//	LOG_INFO("viewback=%d\n",view);
 	xstart=0;
 	for (thr = 0; thr < nthreads; thr++) {
 		if(thr!=nthreads-1) xend=xstart+start_x__per_thread_back[thr+1];
@@ -1605,7 +1605,7 @@ int back_proj3d2(float **prj,float *** ima,int view,int numthread,float ***image
 		roarg[thr].ima   = (float ***)imagebuf;
 		roarg[thr].out   = (float ***)ima;
 		xstart+=start_x__per_thread[thr+1];
-	//	printf("roarg[%d] %d\t%d\n",thr,roarg[thr].xstart,roarg[thr].xend);
+	//	LOG_INFO("roarg[%d] %d\t%d\n",thr,roarg[thr].xstart,roarg[thr].xend);
 		START_THREAD(threads[thr],pt_rotate3d2,roarg[thr],threadID);
 	} // All threads started...now we wait for them to complete
 
@@ -1613,9 +1613,9 @@ int back_proj3d2(float **prj,float *** ima,int view,int numthread,float ***image
 		Wait_thread(threads[thr]);
 	}
 	Clock4=(clock()-Clock2);
-	//	printf("%d\t%3.2f\trotation time: %3.2f,\tbackprojection time:\t%3.2f sec\n",view,(0.0+clock()-Clock5)/CLOCKS_PER_SEC,(0.0+Clock4)/CLOCKS_PER_SEC,(0.0+Clock3)/CLOCKS_PER_SEC );
-	//	printf("%d\t%3.2f\trotation time: %3.2f,\tbackprojection time:\t%3.2f sec\n",view,(0.0+cswap2-cswap1)/CLOCKS_PER_SEC,(0.0+Clock4)/CLOCKS_PER_SEC,(0.0+Clock3)/CLOCKS_PER_SEC );
-	//	printf("%d\t%3.2f\trotation time: %3.2f,\tbackprojection time:\t%3.2f sec\n",view,(0.0+cswap2-cswap1)/CLOCKS_PER_SEC,(0.0+Clock1-Clock5)/CLOCKS_PER_SEC,(0.0+Clock3)/CLOCKS_PER_SEC );
+	//	LOG_INFO("%d\t%3.2f\trotation time: %3.2f,\tbackprojection time:\t%3.2f sec\n",view,(0.0+clock()-Clock5)/CLOCKS_PER_SEC,(0.0+Clock4)/CLOCKS_PER_SEC,(0.0+Clock3)/CLOCKS_PER_SEC );
+	//	LOG_INFO("%d\t%3.2f\trotation time: %3.2f,\tbackprojection time:\t%3.2f sec\n",view,(0.0+cswap2-cswap1)/CLOCKS_PER_SEC,(0.0+Clock4)/CLOCKS_PER_SEC,(0.0+Clock3)/CLOCKS_PER_SEC );
+	//	LOG_INFO("%d\t%3.2f\trotation time: %3.2f,\tbackprojection time:\t%3.2f sec\n",view,(0.0+cswap2-cswap1)/CLOCKS_PER_SEC,(0.0+Clock1-Clock5)/CLOCKS_PER_SEC,(0.0+Clock3)/CLOCKS_PER_SEC );
 	return 1;
 }
 
@@ -1694,7 +1694,7 @@ int back_proj3d_thread1(float **prj,float *** ima,int view,int numthread,float *
 	Clock1=clock()-Clock5;
 	back_proj3d_view_n1thread(imagebuf,prjbuf,0,view,0,0,x_pixels/2+1);
 	Clock3=clock();
-	//	printf("%d\t%3.2f\t%3.2f  \n",view,(0.0+Clock3-Clock5)/CLOCKS_PER_SEC,(0.0+Clock1)/CLOCKS_PER_SEC);
+	//	LOG_INFO("%d\t%3.2f\t%3.2f  \n",view,(0.0+Clock3-Clock5)/CLOCKS_PER_SEC,(0.0+Clock1)/CLOCKS_PER_SEC);
 	return 1;
 }
 
@@ -2206,8 +2206,8 @@ int forward_proj3d_view1_thread_2d(float ***image,float ***prj,int view,int thet
 				//	}
 				
 					if(xx<cylwiny[yy][0]-1 || xx>cylwiny[yy][1]){
-			//			printf("Erorr %d\t%d\t%d\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\n",view,x,y,xx,i,cylwiny[yy][0],cylwiny[yy][1],cosv,sinv,xx1,yprime1+128);
-			//			printf("xx1=%f\t%d\t%d\n",(x-img_center-(y-img_center)*sinv)/cosv+img_center,cylwiny[x][0],cylwiny[x][1]);
+			//			LOG_INFO("Erorr %d\t%d\t%d\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\n",view,x,y,xx,i,cylwiny[yy][0],cylwiny[yy][1],cosv,sinv,xx1,yprime1+128);
+			//			LOG_INFO("xx1=%f\t%d\t%d\n",(x-img_center-(y-img_center)*sinv)/cosv+img_center,cylwiny[x][0],cylwiny[x][1]);
 					//	memset(rim,0,z_pixels_simd*sizeof(__m128));
 					//	continue;
 					}
@@ -2263,7 +2263,7 @@ int forward_proj3d_view1_thread_2d(float ***image,float ***prj,int view,int thet
 						continue;				
 					}
 					if(xx<cylwiny[yy][0] || xx>cylwiny[yy][1]){
-					//	printf("Erorr %d\t%d\t%d\t%d\t%d\n",view,x,y,xx,i);
+					//	LOG_INFO("Erorr %d\t%d\t%d\t%d\t%d\n",view,x,y,xx,i);
 						memset(rim,0,z_pixels_simd*sizeof(__m128));
 						continue;
 					}
@@ -2325,13 +2325,13 @@ int forward_proj3d_view1_thread_2d(float ***image,float ***prj,int view,int thet
 					z2=(int) zz1;
 					zz1=zz1-z2;
 				//	if(z<0 || z>z_pixels) {
-				//		printf("Erorr z-pixels %d\t%d\t%d\t%d\t%d\t%d\t%d\t%f\t%f\n",view,x,y,z,yri,yr,yr_bottom[th],tantheta[th2][yri],yprime1);
-				////		printf("Erorr z-pixels %d\n",z);
+				//		LOG_INFO("Erorr z-pixels %d\t%d\t%d\t%d\t%d\t%d\t%d\t%f\t%f\n",view,x,y,z,yri,yr,yr_bottom[th],tantheta[th2][yri],yprime1);
+				////		LOG_INFO("Erorr z-pixels %d\n",z);
 				//		continue;
 				//	}
 				//	if(z2<0 || z2>z_pixels) {
-				//		printf("Erorr2 z-pixels %d\t%d\t%d\t%d\t%d\t%d\t%d\t%f\t%f\n",view,x,y,z2,yri,yr,yr_bottom[th],tantheta[th2][yri],yprime1);
-				////		printf("Erorr z-pixels %d\n",z);
+				//		LOG_INFO("Erorr2 z-pixels %d\t%d\t%d\t%d\t%d\t%d\t%d\t%f\t%f\n",view,x,y,z2,yri,yr,yr_bottom[th],tantheta[th2][yri],yprime1);
+				////		LOG_INFO("Erorr z-pixels %d\n",z);
 				//		continue;
 				//	}
 
@@ -2378,7 +2378,7 @@ int forward_proj3d_view1_thread_2d(float ***image,float ***prj,int view,int thet
 					z2=(int) zz1;
 					zz1=zz1-z2;
 					//if(z<0 || z>z_pixels) {
-					//	printf("Erorr z-pixels %d\t%d\t%d\t%d\t%d\t%d\t%d\n",view,x,y,z,yri,yr,yr_top[th]);
+					//	LOG_INFO("Erorr z-pixels %d\t%d\t%d\t%d\t%d\t%d\t%d\n",view,x,y,z,yri,yr,yr_top[th]);
 					//}
 
 					//positive theta
@@ -2586,7 +2586,7 @@ int forward_proj3d_view1_thread_2d(float ***image,float ***prj,int view,int thet
 //					}
 //				}
 //	//			if(rotate_flag1!=rotate_flag2){
-//	//				printf("error %d\t%d\t%d\t%d\t%d\n",view,x,y,rotate_flag1,rotate_flag2);
+//	//				LOG_INFO("error %d\t%d\t%d\t%d\t%d\n",view,x,y,rotate_flag1,rotate_flag2);
 //	//			}
 //				for(i=0;i<8;i++){
 //					if(i==0){				xx=x         ;yy=y;rim=rim1; }								//+theta,view,	+xr
@@ -2602,7 +2602,7 @@ int forward_proj3d_view1_thread_2d(float ***image,float ***prj,int view,int thet
 //					if(xx0<0 || xx0>x_pixels-2 ||yy0<0 || xx0>x_pixels-2){
 //						//						memset(rim,0,z_pixels_simd*sizeof(__m128));
 //						//						continue;
-//						printf("error\n");
+//						LOG_INFO("error\n");
 //					}
 //					xx=(int) xx0; yy=(int) yy0;		x1=xx0-xx;y1=yy0-yy;
 //					if(i<4){
@@ -2792,7 +2792,7 @@ int forward_proj3d_view1_thread_2d(float ***image,float ***prj,int view,int thet
 //
 //	mptr1=(float *) i1fmm;
 //	mptr2=(float *) i2fmm;
-//	//	printf("backview =%d\n",view);
+//	//	LOG_INFO("backview =%d\n",view);
 //	for (x = x_start; x < x_end; x++) {
 //		if(view_90flag==0) pp1=(__m128 **)prj[x];
 //		else	pp1=(__m128 **) prj[x+xr_pixels/2];
@@ -2952,7 +2952,7 @@ int back_proj3d_view_n1(float ***image,float ***prj, int view_90flag,int view,in
 
 	mptr1=(float *) i1fmm;
 	mptr2=(float *) i2fmm;
-	//	printf("backview =%d\n",view);
+	//	LOG_INFO("backview =%d\n",view);
 	for (x = x_start; x < x_end; x++) {
 		if(view_90flag==0) pp1=(__m128 **)prj[x];
 		else	pp1=(__m128 **) prj[x+xr_pixels/2];
@@ -3112,7 +3112,7 @@ LOG_EXIT("exiting");
 
 mptr1=(float *) i1fmm;
 mptr2=(float *) i2fmm;
-//	printf("backview =%d\n",view);
+//	LOG_INFO("backview =%d\n",view);
 for (x = x_start; x < x_end; x++) {
 if(view_90flag==0) pp1=prj[x];
 else	pp1=prj[x+xr_pixels/2];
@@ -3236,7 +3236,7 @@ i1f[z]+=mptr1[yr]+mptr1[yr+1];
 }
 }
 }
-//	printf("xstart end %d\t%d\n",x_start,x_end);
+//	LOG_INFO("xstart end %d\t%d\n",x_start,x_end);
 return 1;
 }
 
@@ -4304,7 +4304,7 @@ int back_proj3d_view_n1thread(float ***image,float ***prj, int view_90flag,int v
 				yr=lptr1[th2].yra;
 
 				i1f=(float*)p1fm;
-//				printf("z=%d\t%d\t%d\t%d\n",th2,lptr1[th2].zsa,lptr1[th2].zea,yr);
+//				LOG_INFO("z=%d\t%d\t%d\t%d\n",th2,lptr1[th2].zsa,lptr1[th2].zea,yr);
 				for(z=lptr1[th2].zsa;z<=lptr1[th2].zea;z++,yr++,z2++,yr2++){
 					sumt1[z]=_mm_add_ps(sumt1[z],_mm_add_ps(p1fm[yr],_mm_mul_ps(coef1,_mm_sub_ps(p1fm[yr+1],p1fm[yr]))));
 					sumt2[z]=_mm_add_ps(sumt2[z],_mm_add_ps(p2fm[yr],_mm_mul_ps(coef1,_mm_sub_ps(p2fm[yr+1],p2fm[yr]))));
@@ -4387,10 +4387,10 @@ int back_proj3d_view_n1thread(float ***image,float ***prj, int view_90flag,int v
 			//		coeft3=coeft3*coeft2;
 		//			if(fabs(coeft1+coeft2)>1e-6&&x==126){
 			//		if(x==126){
-//						printf("%d\t%d\t%d\t%e\t%e\t%e\n",x,y,th2,coeft1,coeft2,coeft3);
+//						LOG_INFO("%d\t%d\t%d\t%e\t%e\t%e\n",x,y,th2,coeft1,coeft2,coeft3);
 			//		}
 				//	if((z3-z)==-1 && x==126){
-			//			printf("%d\t%d\t%d\t%d\t%d\t%d\t%d\n",y,th2,z,z2,z3,z4,blutacc[y_pixels-y][th2].z_end);
+			//			LOG_INFO("%d\t%d\t%d\t%d\t%d\t%d\t%d\n",y,th2,z,z2,z3,z4,blutacc[y_pixels-y][th2].z_end);
 				//	}
 					if((z3-z)!=-1){
 						for(;z<=blutacc[y][th2].z_end_pre;z++,z2++,yr++,yr2++){
@@ -4534,7 +4534,7 @@ int back_proj3d_view_n1thread(float ***image,float ***prj, int view_90flag,int v
 			//		coeft2=blutacc[y_pixels-y][th2].coef-sin_theta[th]/cos_theta[th]-1;
 			//		coef3=_mm_set_ps1(-sin_theta[th]/cos_theta[th]);
 			//		if(fabs(coeft1+coeft3)>1e-5){
-		//				printf("2nd %d\t%d\t%d\t%f\t%f\t%e\n",x,y,th2,coeft1,coeft3,fabs(coeft1+coeft3));
+		//				LOG_INFO("2nd %d\t%d\t%d\t%f\t%f\t%e\n",x,y,th2,coeft1,coeft3,fabs(coeft1+coeft3));
 		//			}
 					for(;z3<=blutacc[y][th2].z_end;z3++,z4++,yr3++,yr4++){
 						sumt1[z3]=_mm_sub_ps(sumt1[z3],_mm_mul_ps(p1fm[yr3],coef1));
@@ -4569,7 +4569,7 @@ int back_proj3d_view_n1thread(float ***image,float ***prj, int view_90flag,int v
 	//		for(z=0;z<z_pixels*4;z+=4){
 	//			tan+=fabs(i1f[z]);
 	//		}
-	//		printf("y=%d\t%e\n",y,tan);
+	//		LOG_INFO("y=%d\t%e\n",y,tan);
 	/*		i1f=(float *) sum1;
 			i2f=(float *) sumt1;
 			i3f=(float *) sumtt1;
@@ -4577,7 +4577,7 @@ int back_proj3d_view_n1thread(float ***image,float ***prj, int view_90flag,int v
 			i5f=(float *) pp1[0];
 			if(y==128 && x==128){
 				for(z=0;z<z_pixels*4;z+=4){
-					printf("%d\t%d\t%e\t%e\t%e\t%e\t%e\n",y,z/4,i1f[z],i2f[z],i3f[z],i4f[z],i5f[z]);
+					LOG_INFO("%d\t%d\t%e\t%e\t%e\t%e\t%e\n",y,z/4,i1f[z],i2f[z],i3f[z],i4f[z],i5f[z]);
 				}
 			
 			}
@@ -4883,7 +4883,7 @@ norm_zero_mask_label:
 //				yr=lptr1[th2].yra;
 //
 //				i1f=(float*)p1fm;
-////				printf("z=%d\t%d\t%d\t%d\n",th2,lptr1[th2].zsa,lptr1[th2].zea,yr);
+////				LOG_INFO("z=%d\t%d\t%d\t%d\n",th2,lptr1[th2].zsa,lptr1[th2].zea,yr);
 //				for(z=lptr1[th2].zsa;z<=lptr1[th2].zea;z++,yr++,z2++,yr2++){
 //					sumt1[z]=_mm_add_ps(sumt1[z],_mm_add_ps(p1fm[yr],_mm_mul_ps(coef1,_mm_sub_ps(p1fm[yr+1],p1fm[yr]))));
 //					sumt2[z]=_mm_add_ps(sumt2[z],_mm_add_ps(p2fm[yr],_mm_mul_ps(coef1,_mm_sub_ps(p2fm[yr+1],p2fm[yr]))));
@@ -4964,10 +4964,10 @@ norm_zero_mask_label:
 //			//		coeft3=coeft3*coeft2;
 //		//			if(fabs(coeft1+coeft2)>1e-6&&x==126){
 //			//		if(x==126){
-////						printf("%d\t%d\t%d\t%e\t%e\t%e\n",x,y,th2,coeft1,coeft2,coeft3);
+////						LOG_INFO("%d\t%d\t%d\t%e\t%e\t%e\n",x,y,th2,coeft1,coeft2,coeft3);
 //			//		}
 //				//	if((z3-z)==-1 && x==126){
-//			//			printf("%d\t%d\t%d\t%d\t%d\t%d\t%d\n",y,th2,z,z2,z3,z4,blutacc[y_pixels-y][th2].z_end);
+//			//			LOG_INFO("%d\t%d\t%d\t%d\t%d\t%d\t%d\n",y,th2,z,z2,z3,z4,blutacc[y_pixels-y][th2].z_end);
 //				//	}
 //					if((z3-z)!=-1){
 //						for(;z<=blutacc[y][th2].z_end_pre;z++,z2++,yr++,yr2++){
@@ -5111,7 +5111,7 @@ norm_zero_mask_label:
 //			//		coeft2=blutacc[y_pixels-y][th2].coef-sin_theta[th]/cos_theta[th]-1;
 //			//		coef3=_mm_set_ps1(-sin_theta[th]/cos_theta[th]);
 //			//		if(fabs(coeft1+coeft3)>1e-5){
-//		//				printf("2nd %d\t%d\t%d\t%f\t%f\t%e\n",x,y,th2,coeft1,coeft3,fabs(coeft1+coeft3));
+//		//				LOG_INFO("2nd %d\t%d\t%d\t%f\t%f\t%e\n",x,y,th2,coeft1,coeft3,fabs(coeft1+coeft3));
 //		//			}
 //					for(;z3<=blutacc[y][th2].z_end;z3++,z4++,yr3++,yr4++){
 //						sumt1[z3]=_mm_sub_ps(sumt1[z3],_mm_mul_ps(p1fm[yr3],coef1));
@@ -5146,7 +5146,7 @@ norm_zero_mask_label:
 //	//		for(z=0;z<z_pixels*4;z+=4){
 //	//			tan+=fabs(i1f[z]);
 //	//		}
-//	//		printf("y=%d\t%e\n",y,tan);
+//	//		LOG_INFO("y=%d\t%e\n",y,tan);
 //	/*		i1f=(float *) sum1;
 //			i2f=(float *) sumt1;
 //			i3f=(float *) sumtt1;
@@ -5154,7 +5154,7 @@ norm_zero_mask_label:
 //			i5f=(float *) pp1[0];
 //			if(y==128 && x==128){
 //				for(z=0;z<z_pixels*4;z+=4){
-//					printf("%d\t%d\t%e\t%e\t%e\t%e\t%e\n",y,z/4,i1f[z],i2f[z],i3f[z],i4f[z],i5f[z]);
+//					LOG_INFO("%d\t%d\t%e\t%e\t%e\t%e\t%e\n",y,z/4,i1f[z],i2f[z],i3f[z],i4f[z],i5f[z]);
 //				}
 //			
 //			}
@@ -5576,7 +5576,7 @@ norm_zero_mask_label:
 //				} else {
 //					if(!zero_mask_flag){
 //						for(z=z_start,yr=0;z<z_end;z++,yr+=4){
-//						//	printf("xyz %d\t%d\t%d\t%d\n",view,x,y,z);
+//						//	LOG_INFO("xyz %d\t%d\t%d\t%d\n",view,x,y,z);
 //							i1f[z]+=mptr1[yr];
 //							i2f[z]+=mptr1[yr+1];
 //							i3f[z]+=mptr1[yr+2];
@@ -5844,7 +5844,7 @@ norm_zero_mask_label:
 //	}
 //	mptr1=(float *) i1fmm;
 //	mptr2=(float *) i2fmm;
-//	//	printf("start thread %d\n",view_90flag);
+//	//	LOG_INFO("start thread %d\n",view_90flag);
 //	for (x = x_start; x < x_end; x++) {
 //		pp1=prj[x];
 //		pp2=prj[x+xr_pixels/2];
@@ -5879,7 +5879,7 @@ norm_zero_mask_label:
 //					i2fmm[z]=_mm_add_ps(i2fmm[z],_mm_add_ps(p1fm[yr],_mm_mul_ps(coef1,_mm_sub_ps(p1fm[yr+1],p1fm[yr]))));
 //					//					i1fmm[z]+=p1fm[lptr1[yr2].yr]*lptr1[yr].coef+p1fm[lptr1[yr].yr+1]*(1-lptr1[yr].coef);
 //				}
-//				//		printf("done\n");
+//				//		LOG_INFO("done\n");
 //				z=lut_start_end1[th2].z2;
 //				z2=lut_start_end2[th2].z2;
 //				coef1=_mm_set1_ps(1-lptr1[zi1].coef);
@@ -6022,7 +6022,7 @@ norm_zero_mask_label:
 //			}
 //		}
 //	}
-//	//	printf("done\n");
+//	//	LOG_INFO("done\n");
 //	return 1;
 //}
 //

@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include "my_spdlog.hpp"
+
 # define RMAX 32	/* Maximum number of crystal rings supported. */
 
 
@@ -78,8 +80,7 @@ int main(int argc, char *argv)
 	
 	plandefs(rmax,span,amax,vplane);
 	for (i=0; i<rmax; i++) {
-		for (j=0; j<rmax; j++) printf("%3d ",vplane[(rmax-i-1)*rmax+j]);
-		printf("\n");
+		for (j=0; j<rmax; j++) LOG_INFO("{} ",vplane[(rmax-i-1)*rmax+j]);
 	}
 }
 #endif

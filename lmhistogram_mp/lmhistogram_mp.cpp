@@ -78,11 +78,11 @@
 #include <boost/regex.hpp>
 #include <boost/xpressive/xpressive.hpp>
 
-
-#include "spdlog/spdlog.h"
-#include "spdlog/sinks/stdout_color_sinks.h" //support for stdout logging
-#include "spdlog/sinks/basic_file_sink.h" // support for basic file logging
-#include "spdlog/sinks/rotating_file_sink.h" // support for rotating file logging
+#include "my_spdlog.hpp"
+// #include "spdlog/spdlog.h"
+// #include "spdlog/sinks/stdout_color_sinks.h" //support for stdout logging
+// #include "spdlog/sinks/basic_file_sink.h" // support for basic file logging
+// #include "spdlog/sinks/rotating_file_sink.h" // support for rotating file logging
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
@@ -160,7 +160,6 @@ bf::path g_out_fname_tr;   //current frame sinogram Trues file name
 
 std::string g_logfile;
 
-extern std::shared_ptr<spdlog::logger> g_logger;
 
 // static int p39_nsegs = 25;
 // static int MODEL_HRRT = 328;
@@ -223,10 +222,10 @@ template <typename T> int init_sino(T *sino, int t_span) {
   int sinogram_subsize = 0;
   int r_size = sizeof(T);
 
-  g_logger->info("Using HRRT model");
+  LOG_INFO("Using HRRT model");
   if (g_hist_mode != HISTOGRAM_MODE::TRA) {
     // emission
-    g_logger->debug("Using HRRT Emission: g_hist_mode = {}", g_hist_mode);
+    LOG_DEBUG("Using HRRT Emission: g_hist_mode = {}", g_hist_mode);
     g_num_sino = (GeometryInfo::lr_type_ == GeometryInfo::LR_Type::LR_0) ? NUM_SINOS[t_span] : LR_NSINOS[t_span];
     g_sinogram_size = GeometryInfo::nprojs_ * GeometryInfo::nviews_ * g_num_sino;
     if (g_hist_mode == HISTOGRAM_MODE::PRO_RAN) {
@@ -235,23 +234,23 @@ template <typename T> int init_sino(T *sino, int t_span) {
     }
   } else {
     // transmission
-    g_logger->debug("XX Using HRRT Transmission, g_hist_mode = {}", g_hist_mode);
+    LOG_DEBUG("XX Using HRRT Transmission, g_hist_mode = {}", g_hist_mode);
     g_num_sino = (GeometryInfo::lr_type_ == GeometryInfo::LR_Type::LR_0) ? NUM_SINOS[0] : LR_NSINOS[0];
     g_sinogram_size = GeometryInfo::nprojs_ * GeometryInfo::nviews_ * g_num_sino;
     sinogram_subsize = g_sinogram_size; // mock memory
   }
 
   if (g_num_sino == 0) {
-    g_logger->error("Unsupported span : {}", t_span);
+    LOG_ERROR("Unsupported span : {}", t_span);
     return 0;
   }
 
-  g_logger->info("number of elements: {}", GeometryInfo::nprojs_);
-  g_logger->info("number of angles: {}"    , GeometryInfo::nviews_);
-  g_logger->info("number of sinograms: {}" , g_num_sino);
-  g_logger->info("bits per register: {}"   , r_size * 8);
-  g_logger->info("sinogram size: {}"       , g_sinogram_size);
-  g_logger->info("sinogram subsize: {}"    , sinogram_subsize);
+  LOG_INFO("number of elements: {}", GeometryInfo::nprojs_);
+  LOG_INFO("number of angles: {}"    , GeometryInfo::nviews_);
+  LOG_INFO("number of sinograms: {}" , g_num_sino);
+  LOG_INFO("bits per register: {}"   , r_size * 8);
+  LOG_INFO("sinogram size: {}"       , g_sinogram_size);
+  LOG_INFO("sinogram subsize: {}"    , sinogram_subsize);
   if (sino) {
     // memset(sino, 0, (g_sinogram_size + sinogram_subsize) * r_size);
     std::fill_n(sino, g_sinogram_size + sinogram_subsize, 0);
@@ -260,7 +259,7 @@ template <typename T> int init_sino(T *sino, int t_span) {
     sino = new T[g_sinogram_size + sinogram_subsize]();
   }
   if (!sino) {
-    g_logger->error("Unable to allocate sinogram memory: {}", g_sinogram_size + sinogram_subsize);
+    LOG_ERROR("Unable to allocate sinogram memory: {}", g_sinogram_size + sinogram_subsize);
     return 0;
   }
   return 1;
@@ -270,20 +269,20 @@ template <typename T> int init_sino(T *sino, int t_span) {
 
 template <typename T> int fill_prev_sino(T sino, const std::string &prev_sino) {
   if (g_hist_mode != HISTOGRAM_MODE::TRU) {
-    g_logger->error("Adding to existing sinogram only supported Trues mode");
+    LOG_ERROR("Adding to existing sinogram only supported Trues mode");
     return 1;
   }
 
   if (prev_sino.length() > 0) {
     std::ifstream prev_fp;
     if (hrrt_util::open_istream(prev_fp, prev_sino, std::ios::in | std::ios::binary)) {
-      g_logger->error("Could not open prev_sino: {}", prev_sino);
+      LOG_ERROR("Could not open prev_sino: {}", prev_sino);
       return 1;
     } else {
       // prev_fp.read(sino, g_sinogram_size * r_size);
       prev_fp.read((char *)sino, g_sinogram_size * sizeof(T));
       if (!prev_fp.good()) {
-        g_logger->error("Error reading {}", prev_sino);
+        LOG_ERROR("Error reading {}", prev_sino);
         prev_fp.close();
         return 1;
       }
@@ -296,7 +295,7 @@ template <typename T> int fill_prev_sino(T sino, const std::string &prev_sino) {
 
 void on_span(int span) {
   if (span != 3 && span != 9) {
-    g_logger->error("Span must be 3 or 9");
+    LOG_ERROR("Span must be 3 or 9");
     exit(1);
   }
   g_span_override = true;
@@ -356,7 +355,7 @@ void on_eb(bool b) {
 
 void assert_positive(int count) {
   if (count < 0) {
-    g_logger->error("Value must be positive");
+    LOG_ERROR("Value must be positive");
     exit(1);
   }
 }
@@ -406,7 +405,7 @@ void on_verbosity(int verbosity) {
   case 2: g_logger->set_level(spdlog::level::info ); break;
   case 3: g_logger->set_level(spdlog::level::debug); break;
   default:
-    g_logger->error("Bad log level: {}", verbosity);
+    LOG_ERROR("Bad log level: {}", verbosity);
   }
 }
 
@@ -419,7 +418,7 @@ void validate_arguments(void) {
     if (g_frames_duration.size() > 1)
       errmsg = "Adding to existing sinogram only supported multi-frame mode";
     if (errmsg.length() > 0) {
-      g_logger->error(errmsg);
+      LOG_ERROR(errmsg);
       exit(1);
     }
   }
@@ -528,7 +527,7 @@ static void create_histogram_files() {
   if (g_hist_mode == HISTOGRAM_MODE::TRA) {
     // transmission
     if (g_elem_size != ELEM_SIZE_SHORT) {
-      g_logger->error("Byte format not supported in transmission mode");
+      LOG_ERROR("Byte format not supported in transmission mode");
       exit(1);
     }
     hrrt_util::open_ostream(g_out_true_prompt_sino, g_out_fname_sino, std::ios::out | std::ios::app | std::ios::binary);
@@ -549,8 +548,8 @@ static void create_histogram_files() {
     hrrt_util::open_ostream(g_out_true_prompt_sino, g_out_fname_sino, std::ios::out | std::ios::app | std::ios::binary);
 
   }
-  g_logger->info("Output File: {}", g_out_fname);
-  g_logger->info("Output File Header: {}", g_out_fname_hdr);
+  LOG_INFO("Output File: {}", g_out_fname);
+  LOG_INFO("Output File Header: {}", g_out_fname_hdr);
 }
 
 /**
@@ -604,27 +603,27 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
   }
   av_singles /= GeometryInfo::NBLOCKS;
   t_hdr.WriteInt(CHeader::AVERAGE_SINGLES_PER_BLOCK, av_singles);
-  g_logger->info("g_lld = {}, Average Singles Per Block = ", g_lld, av_singles);
+  LOG_INFO("g_lld = {}, Average Singles Per Block = ", g_lld, av_singles);
   t_hdr.WriteFloat(CHeader::DEAD_TIME_CORRECTION_FACTOR, GetDTC(g_lld, av_singles));
 
   // Write Trues or Prompts sinogram
   // int count = g_elem_size,
   int write_error = 0;
-  g_logger->info("sinogram size: {:d}", t_sino_size);
-  g_logger->info("element size: {:d}", g_elem_size);
+  LOG_INFO("sinogram size: {:d}", t_sino_size);
+  LOG_INFO("element size: {:d}", g_elem_size);
 
   // Log message and set first data filename
   switch (g_hist_mode) {
   case HISTOGRAM_MODE::TRU:
     // Randoms substractions
-    g_logger->info("Writing Trues Sinogram: {}", g_out_fname_sino);
+    LOG_INFO("Writing Trues Sinogram: {}", g_out_fname_sino);
     t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_out_fname_sino);
     t_hdr.WriteChar(CHeader::SINOGRAM_DATA_TYPE, "true");
     g_out_true_prompt_sino.write(t_sino, t_sino_size * g_elem_size);
     break;
   case HISTOGRAM_MODE::PRO_RAN:
     // Prompts and delayed: prompts is first
-    g_logger->info("Writing Prompts Sinogram: {}", g_out_fname_pr);
+    LOG_INFO("Writing Prompts Sinogram: {}", g_out_fname_pr);
     t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_out_fname_pr);
     t_hdr.WriteChar(CHeader::SINOGRAM_DATA_TYPE, "prompt");
     t_hdr.WritePath(CHeader::NAME_OF_TRUE_DATA_FILE, g_out_fname_tr);
@@ -633,13 +632,13 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
     break;
   case HISTOGRAM_MODE::PRO:
     // Prompts only
-    g_logger->info("Writing Prompts Sinogram: {}", g_out_fname_sino);
+    LOG_INFO("Writing Prompts Sinogram: {}", g_out_fname_sino);
     t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_out_fname_sino);
     t_hdr.WriteChar(CHeader::SINOGRAM_DATA_TYPE, "prompt");
     break;
   case HISTOGRAM_MODE::TRA:
     // Transmission
-    g_logger->info("Writing EC corrected Sinogram: {}", g_out_fname_sino);
+    LOG_INFO("Writing EC corrected Sinogram: {}", g_out_fname_sino);
     g_out_fname_hdr = fmt::format("{}.hdr", g_out_fname_sino);
     t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_out_fname_sino);
     for (int i = 0; i < t_sino_size; i++) {
@@ -651,7 +650,7 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
     if (g_out_true_prompt_sino.good()) {
       t_hdr.WriteFile(g_out_fname_hdr);
     } else {
-      g_logger->error("Error writing %s\n", g_out_fname_sino);
+      LOG_ERROR("Error writing %s\n", g_out_fname_sino);
       write_error++;
     }
     break;
@@ -673,18 +672,18 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
       for (int i = 0; i < t_sino_size; i++)
         ssino[i] =  ssino[i] - delayed[i];
       if (g_span == 3) {
-        g_logger->info("Converting true t_sino to span9");
+        LOG_INFO("Converting true t_sino to span9");
         convert_span9(ssino, g_max_rd, 104);
         t_hdr.WriteInt(CHeader::AXIAL_COMPRESSION, 9);
         t_hdr.WriteInt(CHeader::MATRIX_SIZE_3, NUM_SINOS[9]);
       }
-      g_logger->info("Writing Trues Sinogram: {}", g_out_fname_tr);
+      LOG_INFO("Writing Trues Sinogram: {}", g_out_fname_tr);
       // if (fwrite(ssino, g_span == 3 ? span9_sino_size : t_sino_size, g_elem_size, g_out_true_sino) == g_elem_size) {
       g_out_true_sino.write(reinterpret_cast<char *>(ssino), g_span == 3 ? span9_sino_size * g_elem_size : t_sino_size * g_elem_size);
       if (g_out_true_sino.good()) {
         t_hdr.WriteFile(g_out_fname_hdr);
       } else {
-        g_logger->error("Error writing {}", g_out_fname_tr);
+        LOG_ERROR("Error writing {}", g_out_fname_tr);
         write_error++;
       }
       // Restore span3 header
@@ -695,7 +694,7 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
       break;
     case HISTOGRAM_MODE::TRA: // Transmission: EC corrected is second if short type
       if (g_out_ran_sino.is_open()) {
-        g_logger->info("Writing Mock Sinogram: {}", g_outfname_mock);
+        LOG_INFO("Writing Mock Sinogram: {}", g_outfname_mock);
         g_out_fname_hdr = fmt::format("{}.hdr", g_outfname_mock);
         t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_outfname_mock);
         // if (fwrite(mock, t_sino_size, g_elem_size, g_out_ran_sino) == g_elem_size) {
@@ -703,20 +702,20 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
         if (g_out_ran_sino.good()) {
           t_hdr.WriteFile(g_out_fname_hdr);
         } else {
-          g_logger->error("Error writing {}", g_outfname_mock);
+          LOG_ERROR("Error writing {}", g_outfname_mock);
           write_error++;
         }
         break;
       }
     case HISTOGRAM_MODE::TRU:
     case HISTOGRAM_MODE::PRO:
-      g_logger->error("This case {} ({}) should not be called", g_hist_mode, HISTOGRAM_MP::MODES[g_hist_mode]);
+      LOG_ERROR("This case {} ({}) should not be called", g_hist_mode, HISTOGRAM_MP::MODES[g_hist_mode]);
       break;
     }
 
   // Log message and write third data filename
   if (output_ra && write_error == 0 && g_hist_mode == HISTOGRAM_MODE::PRO_RAN) {
-    g_logger->info("Writing Randoms Sinogram: {}", g_out_fname_ra);
+    LOG_INFO("Writing Randoms Sinogram: {}", g_out_fname_ra);
     g_out_fname_hdr = fmt::format("{}.hdr", g_out_fname_ra);
     t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_out_fname_ra);
     t_hdr.WriteChar(CHeader::SINOGRAM_DATA_TYPE, "delayed");
@@ -726,7 +725,7 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
     if (g_out_ran_sino.good()) {
       t_hdr.WriteFile(g_out_fname_hdr);
     } else {
-      g_logger->error("Error writing {}", g_out_fname_ra);
+      LOG_ERROR("Error writing {}", g_out_fname_ra);
       write_error++;
     }
   }
@@ -764,7 +763,7 @@ int do_lmscan() {
 
   // FILE *outfile_hc = fopen(g_out_fname_hc, "w");
   // if (outfile_hc == nullptr) {
-  //   g_logger->error(g_out_fname_hc);
+  //   LOG_ERROR(g_out_fname_hc);
   //   exit(1);
   // }
   // memset(g_frames_duration, 0, sizeof(g_frames_duration));
@@ -779,7 +778,7 @@ int do_lmscan() {
   outfile_hc.close();
   //      for (int index = 0; index < duration; index++)
   //          cout << hc[index].time << " " << hc[index].randoms_rate << " " << hc[index].trues_rate << " " << hc[index].singles << endl;
-  g_logger->info("Scan Duration = {:d}", scan_duration);
+  LOG_INFO("Scan Duration = {:d}", scan_duration);
   return 0;
 }
 
@@ -816,7 +815,7 @@ bf::path make_file_name(FILE_TYPE file_type, bf::path stem, int frame_no) {
     break;
   } // switch
 
-  g_logger->info("make_file_name({}): {}", file_type, file_path.string());
+  LOG_INFO("make_file_name({}): {}", file_type, file_path.string());
   return file_path;
 }
 
@@ -824,7 +823,7 @@ void init_logging(void) {
   if (g_logfile.length() == 0) {
     g_logfile = fmt::format("{}_lmhistogram.log", hrrt_util::time_string());
   }
-  g_logger = spdlog::basic_logger_mt("basic_logger", g_logfile);
+  // g_logger = spdlog::basic_logger_mt("basic_logger", g_logfile);
 }
 
 int open_l64_hdr_file(CHeader &hdr) {
@@ -832,7 +831,7 @@ int open_l64_hdr_file(CHeader &hdr) {
   // CHeader *hdr = new CHeader;
   g_fname_l64_hdr = make_file_name(FILE_TYPE::L64_HDR);
   if (hdr.OpenFile(g_fname_l64_hdr) != CHeaderError::OK) {
-    g_logger->error("header {} not found", g_fname_l64_hdr.string());
+    LOG_ERROR("header {} not found", g_fname_l64_hdr.string());
     ret = 1;
   }
   return ret;
@@ -841,7 +840,7 @@ int open_l64_hdr_file(CHeader &hdr) {
 int check_input_files(void) {
   int ret{0};
   if (! bf::is_regular_file(g_fname_l64)) {
-    g_logger->error("{}: File not found", g_fname_l64);
+    LOG_ERROR("{}: File not found", g_fname_l64);
     ret = 1;
   }
   return ret;
@@ -851,17 +850,17 @@ int set_tx_source_speed(CHeader const &hdr) {
   string datatype;
   // for transmission scans, always override span to 0 (segment 0 only)
   if (hdr.ReadChar(CHeader::PET_DATA_TYPE, datatype) == CHeaderError::OK) {
-    g_logger->info("Data Type: {}", datatype);
+    LOG_INFO("Data Type: {}", datatype);
     // ahc this was failing because of trailing CR on DOS format hdr file.
     if (datatype == "transmission") {
       float axial_velocity = 0.0;
       g_span = 0;
       g_hist_mode = HISTOGRAM_MODE::TRA;
-      g_logger->info("Data Type: {}, g_hist_mode: {}", datatype, g_hist_mode);
+      LOG_INFO("Data Type: {}, g_hist_mode: {}", datatype, g_hist_mode);
       if (hdr.ReadFloat("axial velocity", axial_velocity) == CHeaderError::OK ) {
         // tx speed=6msec/crystal for axial velocity=100%
         g_tx_source_speed = 6.25f / axial_velocity / 100.0f;
-        g_logger->info("Axial velocity = {}, TX source speed = {}", axial_velocity, g_tx_source_speed);
+        LOG_INFO("Axial velocity = {}, TX source speed = {}", axial_velocity, g_tx_source_speed);
       }
     }
   }
@@ -871,7 +870,7 @@ int set_tx_source_speed(CHeader const &hdr) {
 int set_lld(const CHeader &hdr) {
   if (hdr.ReadInt("lower level", g_lld) != CHeaderError::OK)
     g_lld = DEFAULT_LLD;
-  g_logger->info("g_lld: {}", g_lld);
+  LOG_INFO("g_lld: {}", g_lld);
   return 0;
 }
 
@@ -879,9 +878,9 @@ int set_histogramming_mode(const CHeader &hdr) {
   int sino_val;
   if (hdr.ReadInt("Sinogram Mode", sino_val) == CHeaderError::OK) {
     HISTOGRAM_MODE sino_mode = static_cast<HISTOGRAM_MODE>(sino_val);
-    g_logger->info("Using Sinogram Mode from header: {}", sino_mode);
+    LOG_INFO("Using Sinogram Mode from header: {}", sino_mode);
     if ((sino_mode != HISTOGRAM_MODE::TRU) && (g_prev_sino.length() > 0)) {
-      g_logger->error("Adding to existing sinogram only supported in Trues mode");
+      LOG_ERROR("Adding to existing sinogram only supported in Trues mode");
       exit(1);
     }
     g_hist_mode = sino_mode;
@@ -895,7 +894,7 @@ int set_isotope_halflife(const CHeader &hdr) {
   if (isotope_halflife != 0.0) {
     g_decay_rate = (float)isotope_halflife;
   } else {
-    g_logger->error("No isotope halflife");
+    LOG_ERROR("No isotope halflife");
     exit(1);
   }
   return 0;
@@ -918,10 +917,10 @@ int set_span(CHeader &hdr) {
 int make_output_filename(void) {
   if (g_out_fname.string().length() == 0) {
     g_out_fname = make_file_name(FILE_TYPE::SINO);
-    g_logger->info("g_out_fname: {}", g_out_fname);
+    LOG_INFO("g_out_fname: {}", g_out_fname);
   }
   if (g_out_fname.string().length() == 0) {
-    g_logger->error("No output file name");
+    LOG_ERROR("No output file name");
     exit(1);
   }
   return 0;
@@ -931,7 +930,7 @@ void do_histogram_frame(CHeader &hdr, const int t_frame_no, int &current_time, s
   char *sinogram = nullptr, *bsino = nullptr, *delayed = nullptr;
   short *ssino = nullptr;
 
-  g_logger->info("Frame {}", t_frame_no);
+  LOG_INFO("Frame {}", t_frame_no);
   // output histogram is filename_frameX.s, histogram header is filename_frameX.s.hdr
   if (g_frames_duration.size() > 1) {
     g_out_fname_sino = make_file_name(FILE_TYPE::FR_S, g_fname_l64, t_frame_no);
@@ -966,7 +965,7 @@ void do_histogram_frame(CHeader &hdr, const int t_frame_no, int &current_time, s
       fill_ok = fill_prev_sino(bsino, g_prev_sino);
     }
     if (fill_ok == 1) {
-      g_logger->error("fill_prev_sino failed");
+      LOG_ERROR("fill_prev_sino failed");
       exit(1);
     }
     bf::path prev_sino_path = make_file_name(FILE_TYPE::SINO, g_prev_sino, -1);
@@ -977,20 +976,20 @@ void do_histogram_frame(CHeader &hdr, const int t_frame_no, int &current_time, s
   }
 
   // Position input stream to time 0 or requested time
-  g_logger->info("Histogramming Frame {:d} duration = {:d} seconds", t_frame_no, g_frames_duration[t_frame_no]);
+  LOG_INFO("Histogramming Frame {:d} duration = {:d} seconds", t_frame_no, g_frames_duration[t_frame_no]);
   if (g_skip[t_frame_no] > 0) {
     int time_pos = g_skip[t_frame_no];
     if (current_time > 0)
       time_pos += current_time;
     if (!goto_event(g_skip[t_frame_no])) {
-      g_logger->error("Unable to locate requested time {:d}", time_pos);
+      LOG_ERROR("Unable to locate requested time {:d}", time_pos);
       exit(1);
     }
   } else {
     // skipping events before coincindence processor time reset.
     if (current_time < 0)
       if (!goto_event(0)) {
-        g_logger->error("Unable to locate time reset");
+        LOG_ERROR("Unable to locate time reset");
         exit(1);
       }
   }
@@ -1009,7 +1008,7 @@ void do_histogram_frame(CHeader &hdr, const int t_frame_no, int &current_time, s
 
   if (g_frames_duration[t_frame_no] <= 0) {
     // should not happen
-    g_logger->error("Invalid t_frame_no duration {:d}", g_frames_duration[t_frame_no]);
+    LOG_ERROR("Invalid t_frame_no duration {:d}", g_frames_duration[t_frame_no]);
     exit(1);
   }
 
@@ -1022,7 +1021,7 @@ void do_histogram_frame(CHeader &hdr, const int t_frame_no, int &current_time, s
   close_files();
   if (g_hist_mode != HISTOGRAM_MODE::TRA)
     write_coin_map(g_out_fname_sino);
-  g_logger->info("Frame time histogrammed = {:d} sec", g_frames_duration[t_frame_no]);
+  LOG_INFO("Frame time histogrammed = {:d} sec", g_frames_duration[t_frame_no]);
   delete[] sinogram;
 }  // do_histogram_frame
 
@@ -1065,7 +1064,7 @@ void do_find_start_countrate(void) {
     int skip_msec = find_start_countrate(g_fname_l64);
     if (skip_msec > 0) {
       g_skip[0] = skip_msec / 1000; //msec
-      g_logger->info("{:d} sec will be skipped to start with start_countrate {}", g_skip[0], start_countrate_);
+      LOG_INFO("{:d} sec will be skipped to start with start_countrate {}", g_skip[0], start_countrate_);
     }
   }
 }
@@ -1095,9 +1094,9 @@ void do_histogramming(CHeader &hdr) {
   do_find_start_countrate();
   std::ofstream outfile_dyn = create_outfile_dyn();
 
-  // g_logger->info("using rebinner LUT {}", LM_Rebinner::rebinner_lut_file);
-  g_logger->info("Span: {}", g_span);
-  g_logger->info("Mode: %s", HISTOGRAM_MP::MODES[g_hist_mode]);
+  // LOG_INFO("using rebinner LUT {}", LM_Rebinner::rebinner_lut_file);
+  LOG_INFO("Span: {}", g_span);
+  LOG_INFO("Mode: %s", HISTOGRAM_MP::MODES[g_hist_mode]);
 
   //start reader and rebinner threads
   start_reader_thread();
@@ -1109,7 +1108,7 @@ void do_histogramming(CHeader &hdr) {
   }
   if (g_frames_duration.size() > 1) {
     outfile_dyn.close();
-    g_logger->info("Total time histogrammed = {:d} secs", current_time);
+    LOG_INFO("Total time histogrammed = {:d} secs", current_time);
   }
   // complete the main data files
   // free(sinogram);

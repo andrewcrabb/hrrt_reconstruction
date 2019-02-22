@@ -323,7 +323,7 @@ int main(int argc, char **argv) {
           if (j->second.type == S2B2("SL")) LOG_INFO(" {}", (char*)(buf + j->second.offset));
           if (j->second.type == S2B2("CS")) LOG_INFO(" {}", (char*)(buf + j->second.offset));
         } else {
-          printf("{}, {} \t {} \t {} \t {}", i->first, j->first,      j->second.offset, j->second.len);
+          LOG_INFO("{}, {} {} {} {}", i->first, j->first,      j->second.offset, j->second.len);
         }
       }
     }

@@ -18,9 +18,10 @@ Modification history:
 #include <ctype.h>
 #include <iostream>
 
-
 #include "CHeader.hpp"
 #include "hrrt_util.hpp"
+#include "my_spdlog.hpp"
+#include <type_traits>    // Cast CHeaderError to its underlying type (int) for LOG_foo macros.  http://bit.ly/2PSzLJY
 
 #include <boost/date_time.hpp>
 #include <boost/date_time/date_facet.hpp>
@@ -127,10 +128,6 @@ string Tag::sayit(void) const {
 }
 
 CHeader::CHeader() {
-  logger_ = spdlog::get("CHeader");
-  if (!logger_) {
-    std::cerr << "Error: No logger 'CHeader'" << std::endl;
-  }
 }
 
 CHeader::~CHeader() {
@@ -146,7 +143,7 @@ CHeader::~CHeader() {
  */
 
 CHeaderError CHeader::OpenFile(string const &filename) {
-  LOG_DEBUG(logger_, filename);
+  LOG_DEBUG(filename);
   if (hdr_file_.is_open())
     return (CHeaderError::FILE_ALREADY_OPEN);
   hdr_file_.open(filename, std::ifstream::in);
@@ -157,7 +154,7 @@ CHeaderError CHeader::OpenFile(string const &filename) {
 }
 
 CHeaderError CHeader::OpenFile(bf::path &filename) {
-  LOG_DEBUG(logger_, filename.string());
+  LOG_DEBUG(filename.string());
   return OpenFile(filename.string());
 }
 
@@ -176,9 +173,9 @@ CHeaderError CHeader::InsertTag(string t_buffer) {
     std::string key = match["key"];
     std::string value = match["value"];
     tags_.push_back({key, value});
-    LOG_TRACE(logger_, "push[{}, {}]: length {}", key, value, tags_.size() );
+    LOG_TRACE("push[{}, {}]: length {}", key, value, tags_.size() );
   } else {
-    LOG_DEBUG(logger_, "No match: '{}'", t_buffer);
+    LOG_DEBUG("No match: '{}'", t_buffer);
   }
   return CHeaderError::OK;
 }
@@ -192,23 +189,23 @@ CHeaderError CHeader::ReadFile() {
 }
 
 CHeaderError CHeader::WriteFile(bf::path const &fname) {
-  LOG_DEBUG(logger_, "bf::path {}", fname.string());
+  LOG_DEBUG("bf::path {}", fname.string());
   string s(fname.string());
   return WriteFile(s);  
 }
 
 CHeaderError CHeader::WriteFile(string &fname) {
   string outname = (fname.length()) ? fname : m_FileName_;
-  LOG_DEBUG(logger_, "tag count {}, string outname {}", tags_.size(), outname);
+  LOG_DEBUG("tag count {}, string outname {}", tags_.size(), outname);
   std::ofstream fp;
 
   if (tags_.size() == 0) {
-    LOG_ERROR(logger_, "tags.size = 0: {}", fname);
+    LOG_ERROR("tags.size = 0: {}", fname);
     return CHeaderError::COULD_NOT_OPEN_FILE;
   }
   fp.open(outname, std::ofstream::out);
   if (!fp.is_open()) {
-    LOG_ERROR(logger_, "Could not open file: {}", fname);
+    LOG_ERROR("Could not open file: {}", fname);
     return CHeaderError::COULD_NOT_OPEN_FILE;
   }
 
@@ -217,11 +214,11 @@ CHeaderError CHeader::WriteFile(string &fname) {
     fp << tag.key << " := " << tag.value << endl;
   }
   if (fp.fail()) {
-    LOG_ERROR(logger_, "fp.fail(): {}", fname);
+    LOG_ERROR("fp.fail(): {}", fname);
     return CHeaderError::COULD_NOT_OPEN_FILE;
   }
   fp.close();
-  LOG_DEBUG(logger_, "returning {}", to_underlying(CHeaderError::OK));
+  LOG_DEBUG("returning {}", to_underlying(CHeaderError::OK));
 
   return CHeaderError::OK;
 }
@@ -337,12 +334,12 @@ CHeaderError CHeader::ReadChar(string const &key, string &val) const {
   if (it == std::end(tags_)) {
     string file_name;
     GetFileName(file_name);
-    LOG_ERROR(logger_, "Tag not found: '{}' in {}", key, file_name);
+    LOG_ERROR("Tag not found: '{}' in {}", key, file_name);
     ret = CHeaderError::TAG_NOT_FOUND;
   } else {
     val = it->value;
   }
-  LOG_TRACE(logger_, "val {} ret {}", val, to_underlying(ret) );
+  LOG_TRACE("val {} ret {}", val, to_underlying(ret) );
   return ret;
 }
 
@@ -359,7 +356,7 @@ template <typename T>CHeaderError CHeader::convertString(string &str, T &val) co
     val = boost::lexical_cast<T>(str);
   }
   catch (boost::bad_lexical_cast const &e) {
-    LOG_ERROR(logger_, "Lexical cast: {}",  e.what());
+    LOG_ERROR("Lexical cast: {}",  e.what());
     ret = CHeaderError::BAD_LEXICAL_CAST;
   }
   return ret;
@@ -395,7 +392,7 @@ CHeaderError CHeader::ReadDateTime(string const &t_tag, string const &t_format, 
   string value;
   CHeaderError ret = CHeaderError::OK;
   if ((ret = ReadChar(t_tag, value)) == CHeaderError::OK) {
-    LOG_DEBUG(logger_, "t_tag {} value {}", t_tag, value);
+    LOG_DEBUG("t_tag {} value {}", t_tag, value);
     ret = parse_interfile_datetime(value, t_format, t_pt) ? CHeaderError::ERROR : CHeaderError::OK;
   }
   return ret;
@@ -411,7 +408,7 @@ CHeaderError CHeader::PTimeToString(bt::ptime const &t_ptime, string const &t_fo
   oss.imbue(std::locale(oss.getloc(), tfacet));
   oss << t_ptime;
   t_datetime = oss.str();
-  LOG_TRACE(logger_, "ptime {} format {} returning {}", bt::to_iso_string(t_ptime), t_format, t_datetime);
+  LOG_TRACE("ptime {} format {} returning {}", bt::to_iso_string(t_ptime), t_format, t_datetime);
   return CHeaderError::OK;
 }
 
@@ -428,9 +425,9 @@ CHeaderError CHeader::StringToPTime(string const &t_datestr, string const &t_for
   CHeaderError ret = CHeaderError::OK;
   if (t_datetime.is_not_a_date_time()) {
     ret = CHeaderError::INVALID_DATE;
-    LOG_ERROR(logger_, "datestr {} format {} ptime {}", iss.str(), t_format, bt::to_iso_string(t_datetime) );
+    LOG_ERROR("datestr {} format {} ptime {}", iss.str(), t_format, bt::to_iso_string(t_datetime) );
   } else {
-    LOG_TRACE(logger_, "datestr {} format {} ptime {}", iss.str(), t_format, bt::to_iso_string(t_datetime) );
+    LOG_TRACE("datestr {} format {} ptime {}", iss.str(), t_format, bt::to_iso_string(t_datetime) );
     // t_datetime = t_datetime;
   }
   return ret;
@@ -446,7 +443,7 @@ CHeaderError CHeader::ValidDate(bt::ptime const &t_datetime) {
   if (ret != CHeaderError::OK) {
     string str;
     PTimeToString(t_datetime, ECAT_DATE_FORMAT, str);
-    LOG_DEBUG(logger_, "{}: {}", CHdrErrorString[ret], str);
+    LOG_DEBUG("{}: {}", CHdrErrorString[ret], str);
   }
   return ret;
 }
@@ -567,18 +564,16 @@ CHeaderError CHeader::ReadDouble(string const &tag, double &val) const {
 bool CHeader::parse_interfile_datetime(const string &t_datestr, const string &t_format, bt::ptime &t_pt) {
   bt::time_input_facet *facet = new bt::time_input_facet(t_format);
   const std::locale loc(std::locale::classic(), facet);
-  auto logger = spdlog::get("CHeader");
 
-  LOG_DEBUG(logger, "t_datestr {} t_format {}", t_datestr, t_format);
+  LOG_DEBUG("t_datestr {} t_format {}", t_datestr, t_format);
   std::istringstream iss(t_datestr);
   iss.imbue(loc);
-  // iss.exceptions(std::ios_base::failbit);
 
   iss >> t_pt;
   bool ret = t_pt.is_not_a_date_time();
   std::string timestr("FILLMEIN");
-  // LOG_DEBUG(logger, "t_datestr {} posix_time {} returning {}", t_datestr, bt::to_simple_string(t_pt), ret ? "true" : "false");
-  LOG_DEBUG(logger, "t_datestr {} posix_time {} returning {}", t_datestr, timestr, ret ? "true" : "false");
+  // LOG_DEBUG("t_datestr {} posix_time {} returning {}", t_datestr, bt::to_simple_string(t_pt), ret ? "true" : "false");
+  LOG_DEBUG("t_datestr {} posix_time {} returning {}", t_datestr, timestr, ret ? "true" : "false");
   return ret;
 }
 

@@ -62,8 +62,7 @@ void mat_print(const Matrix a)
 
 	for (j=0;j<a->nrows;j++)
 	{ for (i=0;i<a->ncols;i++)
-	    printf("%13.6g ",a->data[i+j*a->ncols]);
-	  printf("\n");
+	    LOG_INFO("{}",a->data[i+j*a->ncols]);
 	}
 }
 
@@ -290,7 +289,7 @@ void mat_invert(Matrix out, Matrix const m)
 
    /* Run singularity test. */
    if (det == 0.0) {
-      /* printf("invert_matrix: Warning: Singular matrix.\n"); */
+      /* LOG_INFO("{}matrix: Warning: Singular matrix.\n"); */
       mat_unity(out);
    }
    else {
@@ -348,7 +347,7 @@ void mat_invert(Matrix out, Matrix const m)
 }
 void mat_invert2(Matrix out, const Matrix in)
 {
-  printf("mat_invert2: Matrix inversion using Derterminant and coofactor, TBD\n");
+  LOG_INFO("{}ert2: Matrix inversion using Derterminant and coofactor, TBD\n");
   exit(1);
 }
 
@@ -366,8 +365,7 @@ main()
 	mat_print(a);
 	scale(a,.25F,.25F,.25F);
 	mat_print(a);
-	printf(" Transformer = [\n");
+	LOG_INFO("{}ormer = [\n");
 	mat_print(a);
-	printf("]\n");
-}
+	LOG_INFO("{}}
 #endif

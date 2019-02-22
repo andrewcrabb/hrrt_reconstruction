@@ -10,7 +10,7 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 
-std::shared_ptr<spdlog::logger> g_logger;
+// std::shared_ptr<spdlog::logger> g_logger;
 
 boost::filesystem::path g_logfile;
 boost::filesystem::path g_coincidence_histogram_file;

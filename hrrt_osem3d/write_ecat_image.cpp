@@ -114,7 +114,7 @@ static int write_image(ecat_matrix::MatrixFile *fp, int frame, ecat_matrix::Imag
     matrix->scale_factor = imh->scale_factor=scalef;
     matrix->data_max = imh->image_max*scalef;
     matrix->data_min = imh->image_min*scalef;
-    printf("frame %d: image_min,image_max = %d,%d, scale factor=%g\n",frame+1,imh->image_min,imh->image_max,scalef);
+    LOG_INFO("frame %d: image_min,image_max = %d,%d, scale factor=%g\n",frame+1,imh->image_min,imh->image_max,scalef);
     matrix->shptr = (void *)calloc(sizeof(ecat_matrix::Image_subheader),1);
     memcpy(matrix->shptr, imh, sizeof(ecat_matrix::Image_subheader));
     return matrix_write(fp,matnum,matrix);
@@ -185,7 +185,7 @@ int write_ecat_image(float ***image, char * filename, int frame,
   if( info->datatype<1	|| info->datatype>3	
       ||	info->nx<=0			|| info->ny<=0		|| info->nz<=0
 		  ||	info->dx<=eps		|| info->dy<=eps	|| info->dz<=eps ) {
-        printf("WriteImageHeader: Parameter out of whack.\n");
+        LOG_INFO("WriteImageHeader: Parameter out of whack.\n");
         return -1;
   }
 
@@ -227,13 +227,13 @@ int write_ecat_image(float ***image, char * filename, int frame,
     strncpy(mh.original_file_name, info->promptfile, 
       sizeof(mh.original_file_name)-1);
     sprintf(sinoHeaderName, "%s.hdr",info->promptfile);
-    printf("ImageHeader from prompt sinoHeaderName  %s\n",sinoHeaderName);
+    LOG_INFO("ImageHeader from prompt sinoHeaderName  {}",sinoHeaderName);
 		sinoHeaderExists++;
 	} else if( strlen( info->truefile ) > 0 ) { 
     strncpy(mh.original_file_name, info->truefile, 
       sizeof(mh.original_file_name)-1);
     sprintf(sinoHeaderName, "%s.hdr",info->truefile);
-    printf("ImageHeader: true sinoHeaderName is %s\n",sinoHeaderName);
+    LOG_INFO("ImageHeader: true sinoHeaderName is {}",sinoHeaderName);
     sinoHeaderExists++;
   }
   
@@ -302,17 +302,17 @@ int write_ecat_image(float ***image, char * filename, int frame,
 
 		/*--------------------*/
 		/* Create or Open Main Header */
-	printf("Create or Open Main Header \n");
+	LOG_INFO("Create or Open Main Header \n");
   if (frame==0) {
-  	printf("Create Main Header %s\n", filename);
+  	LOG_INFO("Create Main Header {}", filename);
   if ((f_out=matrix_create(filename, ecat_matrix::MatrixFileAccessMode::CREATE_NEW_FILE, &mh)) == NULL) {
-      fprintf(stderr,"ERROR: cannot create '%s'\n", filename);
+      LOG_ERROR("cannot create {}", filename);
       return 0;
     }
   } else {
-	printf("Open Main Header %s\n", filename);
+	LOG_INFO("Open Main Header {}", filename);
     if ((f_out=matrix_create(filename, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, &mh)) == NULL) {
-      fprintf(stderr,"ERROR: cannot open '%s'\n", filename);
+      LOG_ERROR("cannot open {}", filename);
       return 0;
     }
   }

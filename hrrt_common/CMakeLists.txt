@@ -11,9 +11,12 @@ find_package(Boost REQUIRED)
 add_library (math_matrix math_matrix.cpp)
 target_include_directories (math_matrix PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libexception ${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libcommon)
 
+add_library (my_spdlog my_spdlog.cpp)
+
 add_executable(test_util test_util.cpp)
 # link_directories(${PROJECT_SOURCE_DIR}/cheader_lib)
-target_link_libraries(test_util hrrt_common fmt boost_system boost_date_time cheader)
+# target_link_libraries(test_util hrrt_common fmt boost_system boost_filesystem boost_date_time cheader)
+target_link_libraries(test_util  cheader boost_system boost_date_time boost_filesystem my_spdlog)
 target_include_directories (test_util PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/lmhistogram_mp)
 
 install(TARGETS hrrt_common
@@ -21,8 +24,8 @@ install(TARGETS hrrt_common
     # PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-# Make test executable
-set(TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_main.cpp)
-add_executable(tests ${TEST_SOURCES})
-target_include_directories (tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(tests LINK_PUBLIC Catch hrrt_common cheader fmt boost_system boost_filesystem boost_date_time)
+# # Make test executable
+# set(TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_main.cpp)
+# add_executable(tests ${TEST_SOURCES})
+# target_include_directories (tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+# target_link_libraries(tests LINK_PUBLIC Catch hrrt_common cheader fmt boost_system boost_filesystem boost_date_time)

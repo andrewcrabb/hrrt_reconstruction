@@ -41,11 +41,6 @@ using my_spdlog::g_logger;
 #define LOG_ERROR_DEFINED 1
 #endif
 
-#ifndef LOG_DEBUG_DEFINED
-#define LOG_DEBUG(...) if (g_logger->should_log(spdlog::level::debug)){g_logger->debug("{}::{}:{}: {} ", __FILENAME__ , __func__, __LINE__, fmt::format(__VA_ARGS__));}
-#define LOG_DEBUG_DEFINED 1
-#endif
-
 #ifndef LOG_TRACE_DEFINED
 #define LOG_TRACE(...) if (g_logger->should_log(spdlog::level::trace)){g_logger->trace("{}::{}:{}: {} ", __FILENAME__ , __func__, __LINE__, fmt::format(__VA_ARGS__));}
 #define LOG_TRACE_DEFINED 1
@@ -54,6 +49,11 @@ using my_spdlog::g_logger;
 #ifndef LOG_EXIT_DEFINED
 #define LOG_EXIT(...) if (g_logger->should_log(spdlog::level::err)){  g_logger->error("{}::{}:{}: {} " , __FILENAME__ , __func__, __LINE__, fmt::format(__VA_ARGS__));	exit(1); }
 #define LOG_EXIT_DEFINED 1
+#endif
+
+#ifndef LOG_DEBUG_DEFINED
+#define LOG_DEBUG(...) if (g_logger->should_log(spdlog::level::debug)){g_logger->debug("{}::{}:{}: {} ", __FILENAME__ , __func__, __LINE__, fmt::format(__VA_ARGS__));}
+#define LOG_DEBUG_DEFINED 1
 #endif
 
 

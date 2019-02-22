@@ -28,6 +28,7 @@ configure_file (
 # include_directories (tests PUBLIC ${CMAKE_SOURCE_DIR}/spdlog/include)
 include_directories (${CMAKE_SOURCE_DIR}/spdlog/include
 					 ${CMAKE_SOURCE_DIR}/hrrt_common
+					 ${CMAKE_SOURCE_DIR}/cheader_lib
 	)
 
 # add the binary tree to the search path for include files

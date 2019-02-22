@@ -115,8 +115,7 @@ char* is_analyze(const char* fname) {
     strcat(hdr_fname, ".hdr");
   }
 
-  if (stat(img_fname, &st) >= 0 &&
-      _is_analyze(hdr_fname) && analyze_read_hdr(hdr_fname)) {
+  if (stat(img_fname, &st) >= 0 && _is_analyze(hdr_fname) && analyze_read_hdr(hdr_fname)) {
     dim = hdr.dime.dim;
     nvoxels = dim[1] * dim[2] * dim[3] * dim[4];
     switch (hdr.dime.datatype) {
@@ -133,16 +132,17 @@ char* is_analyze(const char* fname) {
       elem_size = 4;
       break;
     }
-    if (elem_size == 0) LOG_ERROR( "unkown ANALYZE data type : {}", hdr.dime.datatype);
-    else {
+    if (elem_size == 0) {
+      LOG_ERROR( "unkown ANALYZE data type : {}", hdr.dime.datatype);
+    } else {
       if (nvoxels * elem_size == st.st_size) {
         if (strcmp(hdr_fname, fname) != 0)
           LOG_ERROR( "using {} header for {} data file", hdr_fname, img_fname);
         free(img_fname);
         return hdr_fname;
       } else {
-      LOG_ERROR("{} size does not match {} info", img_fname, hdr_fname);
-    }
+        LOG_ERROR("{} size does not match {} info", img_fname, hdr_fname);
+      }
     }
   }
   free(img_fname);

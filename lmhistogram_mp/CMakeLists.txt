@@ -10,10 +10,9 @@ set (GCC_COMPILE_FLAGS "-std=c++14")
 
 find_package(Boost REQUIRED)
 # link_directories(../gen_delays_lib)
-add_executable (lmhistogram_mp convert_span9.cpp dtc.cpp gantryinfo.cpp 
-	histogram_mp.cpp lmhistogram_mp.cpp LM_Reader_mp.cpp LM_Rebinner_mp.cpp )
+add_executable (lmhistogram_mp convert_span9.cpp dtc.cpp gantryinfo.cpp histogram_mp.cpp lmhistogram_mp.cpp LM_Reader_mp.cpp LM_Rebinner_mp.cpp )
 # link_directories(${PROJECT_SOURCE_DIR}/cheader_lib)
-target_link_libraries(lmhistogram_mp LINK_PUBLIC gen_delays hrrt_common cheader fmt boost_system boost_filesystem boost_program_options boost_date_time)
+target_link_libraries(lmhistogram_mp LINK_PUBLIC gen_delays hrrt_common cheader boost_system boost_filesystem boost_program_options boost_date_time my_spdlog)
 # target_link_libraries(lmhistogram_mp LINK_PUBLIC fmt)
 target_include_directories (lmhistogram_mp PUBLIC ${LIB_INCLUDE_DIRS})
 

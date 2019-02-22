@@ -19,6 +19,7 @@
 #include "gen_delays.hpp"
 #include "gen_delays_lib.hpp"
 #include "hrrt_util.hpp"
+#include "my_spdlog.hpp"
 
 // static const char *sw_version = "HRRT_U 1.2";
 
@@ -38,13 +39,6 @@ float g_diam  = 0.0f;
 float g_thick = 0.0f;
 float g_tau   = 6.0e-9f;
 float g_ftime = 1.0f;
-
-void init_logging(void) {
-  if (g_logfile.empty()) {
-    g_logfile = fmt::format("{}_gen_delays.log", hrrt_util::time_string());
-  }
-  g_logger = spdlog::basic_logger_mt("HRRT", g_logfile.string());
-}
 
 // void on_rebinner(std::string const &instring) {
 //   g_rebinner_lut_file = boost::filesystem::path(instring);
@@ -79,7 +73,7 @@ void on_sino_size(std::string const &instring) {
     g_num_elems = boost::lexical_cast<int>(match["nelements"]);
     g_num_views = boost::lexical_cast<int>(match["nviews"]);
   } else {
-    g_logger->error("Invalid sino size string: {}", instring);
+    LOG_ERROR("Invalid sino size string: {}", instring);
     exit(1);
   }
 }
@@ -97,7 +91,7 @@ void on_span(std::string const &instring) {
     g_span         = boost::lexical_cast<int>(match["span"]);
     g_max_ringdiff = boost::lexical_cast<int>(match["ringdiff"]);
   } else {
-    g_logger->error("Invalid span,ringdiff string: {}", instring);
+    LOG_ERROR("Invalid span,ringdiff string: {}", instring);
     exit(1);
   }
 }
@@ -116,7 +110,7 @@ void on_geometry(std::string const &instring) {
     g_diam  = boost::lexical_cast<float>(match["diam"]);
     g_thick = boost::lexical_cast<float>(match["thick"]);
   } else {
-    g_logger->error("Invalid pitch,diam,thick string: {}", instring);
+    LOG_ERROR("Invalid pitch,diam,thick string: {}", instring);
     exit(1);
   }
 }

@@ -4,6 +4,8 @@
 //#include <math.h> 
 //#include "P39_osem3d.h"
 #include "hrrt_osem3d.h"
+#include "my_spdlog.hpp"
+#include "hrrt_osem_utils.hpp"
 
 /* Updates:
    Nov 30, 07 (AR): maxPET (as well as maxMR) is calculated only once (at third subset) since with further subsets, images get very noisy and max value increases substantially (using mean-value also is not a good idea, since that does not give an idea of the range of values) 
@@ -79,20 +81,16 @@ int calculate_DPF_image(float ***PETimage, float ***MRimage, float ***DPFimage, 
   Ns = x_pixels/Rs; 
   Ns_z = z_pixels/Rs_z;  
   Ns3 = Ns*Ns*Ns_z;
-  // printf("\n maxPET:%f, maxMR:%f", maxPET, maxMR); fflush(stdout);
   /* find the maximum value in PET and MR images */
 
   if (max_computation_index==0){  /* We only calculate this once (since image keeps getting noisier and noisier, and redoing everytime disturbs the intensity-bins! */
-    printf("\n maxPET:%f", maxPET); fflush(stdout);
+    LOG_INFO("maxPET: {}", maxPET);
     maxPET = 0; 
     for(x=0; x<x_pixels; x++) {
       	for( y=cylwiny[x][0]; y<cylwiny[x][1]; y++ ) { 
      	  for(z=0; z<z_pixels; z++) {
-            //printf("\n maxPET:%f, maxMR:%f", maxPET, maxMR); fflush(stdout);	    
+
 	    if (PETimage[x][y][z]>maxPET) maxPET = PETimage[x][y][z];
-	    
-	    // if ( MRimage[x][y][z]>0.0)
-	    // printf("\n MRimage[%d][%d][%d]:%f", z,x,y,MRimage[x][y][z]); fflush(stdout);
 	    
 	  } /* for z */
         
@@ -115,22 +113,16 @@ int calculate_DPF_image(float ***PETimage, float ***MRimage, float ***DPFimage, 
     
 
   
-  //printf("\n\n\n Entering code \n\n\n\n"); fflush(stdout);
-  //printf("\n maxPET:%f, maxMR:%f", maxPET, maxMR); fflush(stdout);
   if (MAP_technique==2){  /* Proposed JE technique */
     /* Bin the PET and MR image values to Np and Nm bins */
     
     if (max_computation_index_MR==0){  /* We only calculate this once (since image keeps getting noisier and noisier, and redoing everytime disturbs the intensity-bins! */
-      printf("\n maxMR:%f", maxMR); fflush(stdout);
+      LOG_INFO("maxMR: {}", maxMR);
       maxMR = 0; 
       for(x=0; x<x_pixels; x++) {
       	for( y=cylwiny[x][0]; y<cylwiny[x][1]; y++ ) { 
      	  for(z=0; z<z_pixels; z++) {
-            if (MRimage[x][y][z]>maxMR) maxMR = MRimage[x][y][z];  
-            
-            // if ( MRimage[x][y][z]>0.0)
-            // printf("\n MRimage[%d][%d][%d]:%f", z,x,y,MRimage[x][y][z]); fflush(stdout);
-            
+            if (MRimage[x][y][z]>maxMR) maxMR = MRimage[x][y][z];              
 	  } /* for z */
           
         } /* for y */
@@ -192,15 +184,12 @@ int calculate_DPF_image(float ***PETimage, float ***MRimage, float ***DPFimage, 
 	}
       }
     }
-    
-    
-    printf("\n sCount= %d", sCount); fflush(stdout);
+
+    LOG_INFO("sCount= {}", sCount);
     
     /* Calculate log_pxy for all binned x and y */
     /* Since intensity 0 values are not considered, start i = 1 and j = 1 */
     /* log_pxy[0][j] and log_pxy[i][0] should be 0 */
-    
-
    
     for(i=0; i<Np; ++i) {
       for(j=0; j<Nm; ++j) {
@@ -231,9 +220,6 @@ int calculate_DPF_image(float ***PETimage, float ***MRimage, float ***DPFimage, 
 		  exp( -0.5*pow((xbin[i]-xinS),2)/psiXS - 0.5*pow((ybin[j]-yinS),2)/psiYS );  
 
 
-		//printf("\n color_binsize:%f, xbin[i]-xinS:%f, sqrt(psiXS):%f)", maxPET/(Np-1), xbin[i]-xinS, sqrt(psiXS)); fflush(stdout);
-		//printf("\n    MRcolor_binsize:%f, ybin[i]-yinS:%f, sqrt(psiYS):%f)", maxMR/(Nm-1), ybin[i]-yinS, sqrt(psiYS)); fflush(stdout);
-		//printf("\n ****** result for this pixel: %f", 1/sqrt(psiXS *psiYS) * exp( -0.5*pow((xbin[i]-xinS),2)/psiXS - 0.5*pow((ybin[j]-yinS),2)/psiYS ));
 	      } /* if */
 	      
 	    } /*for zz */
@@ -243,13 +229,10 @@ int calculate_DPF_image(float ***PETimage, float ***MRimage, float ***DPFimage, 
 
 
 
-	if (sumsamp!= 0) log_pxy[i][j] = log(1/(2*PI*sCount)*sumsamp);	/* printf("\n log_pxy = %f", log_pxy); */
-	
-	printf("\n (log_pxy[%d][%d] = %f, sumsamp:%f) ", i,j,log_pxy[i][j], sumsamp); fflush(stdout);
-	
+	if (sumsamp!= 0) log_pxy[i][j] = log(1/(2*PI*sCount)*sumsamp);
+	LOG_INFO("(log_pxy[{}][{}] = {}, sumsamp: {}) ", i,j,log_pxy[i][j], sumsamp);
       } /* for j */
     } /* for i */
-    
     
     /* Previous calculation of log_pxy was independent of PET voxel */
     /* Now calculate partial derivative of the joint entropy for each PET voxel value */
@@ -297,27 +280,22 @@ int calculate_DPF_image(float ***PETimage, float ***MRimage, float ***DPFimage, 
 	/* }  window */
       } /* for y */
       
-      //printf("\n x:%d, y:%d, z:%d", x,y,z);fflush(stdout);
-      printf(" (DPFimage[%d][%d][23] = %f) ", x,y_pixels/2,DPFimage[x][y_pixels/2][23]);fflush(stdout); 
-       /* printf("\n sumover = %f", sumover); */
-
+      LOG_INFO(" (DPFimage[{}][{}][23] = {}) ", x,y_pixels/2,DPFimage[x][y_pixels/2][23]);
     } /* for x */
   } else if (MAP_technique==1){  /* Conventional technique */   
     
     delta_Bayes=maxPET/20.0;
-    printf("\n ****delta_Bayes:%f", delta_Bayes);fflush(stdout);
+    LOG_INFO("delta_Bayes: {}", delta_Bayes);
     
     float better_but_expensive_method=1;  // Keep at 1; making it 0 uses faster method but seems to eat away the image over time!
 
     if (better_but_expensive_method){
       for(xx=1; xx<x_pixels-1; xx++) {
-        printf(" xx:%d ", xx); fflush(stdout);
       	for( yy=cylwiny[xx][0]; yy<cylwiny[xx][1]; yy++ ) { 
           //  for ( yy=1; yy<y_pixels-1; yy++ ){ 
           //   for ( xx=1; xx<x_pixels-1; xx++ ){
           //if ( cyl_window[xx][yy] ) {
 	  for( zz=1,i=0; zz<z_pixels-1; zz++ ) {
-            //printf("\n *********delta_Bayes:%f", delta_Bayes);fflush(stdout);	    
 	    DPFimage[xx][yy][zz]= 
 	      ((DPF(PETimage[xx][yy][zz] - PETimage[xx][yy][zz-1])+
 		DPF(PETimage[xx][yy][zz] - PETimage[xx][yy][zz+1])+
@@ -340,14 +318,6 @@ int calculate_DPF_image(float ***PETimage, float ***MRimage, float ***DPFimage, 
 		DPF(PETimage[xx][yy][zz] - PETimage[xx][yy+1][zz+1])
 		));
 
-            // printf("\n DPFimage[xx][yy][zz]=%f", DPFimage[xx][yy][zz]); fflush(stdout);
-	    //printf(" i:%f", DPFimage[xx][yy][zz]); fflush(stdout);
- 
-	    //printf("\n***************************** potential value:%f", DPF(0)); fflush(stdout);
-	    //exit(0);
-	    //printf("\n***************************** potential value:%f", tmp3Dimage[xx][yy][zz] - tmp3Dimage[xx][yy][zz-1]); fflush(stdout);
-	    //
-	    
 	  } /* z loop */
           //} /* cyl_window[x][y] */
         } /* x loop */
@@ -355,13 +325,8 @@ int calculate_DPF_image(float ***PETimage, float ***MRimage, float ***DPFimage, 
     } else {
       // Faster method:
       for(xx=1; xx<x_pixels-1; xx++) {
-        printf(" xx:%d ", xx); fflush(stdout);
       	for( yy=cylwiny[xx][0]; yy<cylwiny[xx][1]; yy++ ) { 
-          //  for ( yy=1; yy<y_pixels-1; yy++ ){ 
-          //   for ( xx=1; xx<x_pixels-1; xx++ ){
-          //if ( cyl_window[xx][yy] ) {
 	  for( zz=1,i=0; zz<z_pixels-1; zz++ ) {
-            //printf("\n *********delta_Bayes:%f", delta_Bayes);fflush(stdout);	    
 	    DPFimage[xx][yy][zz]= 
 	      DPF( (6*PETimage[xx][yy][zz]
                     - PETimage[xx][yy][zz-1]
@@ -393,9 +358,7 @@ int calculate_DPF_image(float ***PETimage, float ***MRimage, float ***DPFimage, 
     
   }/*  calculate_conventional_DPF_image */
 
-  printf(" **FINAL (DPFimage[23][64][64] = %f) ", DPFimage[23][64][64]);fflush(stdout); 
-  fflush(stdout);
-
+  LOG_INFO(" **FINAL (DPFimage[23][64][64] = {}) ", DPFimage[23][64][64]);
   return 1;
 }
 

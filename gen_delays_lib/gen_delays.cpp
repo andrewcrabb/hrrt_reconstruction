@@ -46,6 +46,7 @@
 #include "segment_info.h"
 #include "geometry_info.h"
 #include "lor_sinogram_map.h"
+#include "my_spdlog.hpp"
 
 namespace bf = boost::filesystem;
 namespace bx = boost::xpressive;
@@ -57,7 +58,6 @@ typedef struct {
   float *csings;
 } COMPUTE_DELAYS;
 
-std::shared_ptr<spdlog::logger> g_logger;
 boost::filesystem::path g_logfile;
 // boost::filesystem::path g_rebinner_lut_file;
 boost::filesystem::path g_coincidence_histogram_file;
@@ -101,7 +101,7 @@ int compute_delays(int mp, float **delays_data, float *csings) {
 
   for (int alayer = 0; alayer < GeometryInfo::NDOIS; alayer++) {
     for (int ay = 0; ay < GeometryInfo::NYCRYS; ay++) {
-      //  if (ay%10==0) printf("Generating delays for MP %d [H%d,H%d] %d\t%d \r", mp, ahead, bhead,alayer,ay);
+      //  if (ay%10==0) LOG_INFO("Generating delays for MP %d [H%d,H%d] %d\t%d \r", mp, ahead, bhead,alayer,ay);
       float cay = lor_sinogram::m_c_zpos2[ay];
       int bs = 1000;
       int be = -1000;
@@ -280,7 +280,7 @@ int compute_csings_from_drates(int *dcoins, float tau, float dt, float *srates) 
 
 void *pt_compute_delays(void *ptarg) {
   COMPUTE_DELAYS *arg = (COMPUTE_DELAYS *) ptarg;
-  //  printf("%x\t%x\t%d\n",delays_data,arg->delaydata,arg->mp);
+  //  LOG_INFO("%x\t%x\t%d\n",delays_data,arg->delaydata,arg->mp);
   compute_delays(arg->mp, arg->delaydata, arg->csings);
   pthread_exit(NULL ) ;
 }
@@ -299,13 +299,13 @@ int read_crystal_singles_file(float *csings) {
     std::ifstream instream;
     instream.open(g_crystal_singles_file.string(), std::ifstream::in | std::ifstream::binary);
     if (!instream.is_open()) {
-      g_logger->error("Cound not open crystal singles file: {}", g_crystal_singles_file);
+      LOG_ERROR("Cound not open crystal singles file: {}", g_crystal_singles_file);
       return 1;
     }
     int nbytes = GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * sizeof(float);
     instream.read((char *)csings, nbytes);
     if (instream.fail()) {
-      g_logger->error("Cound not read crystal singles file: {}", g_crystal_singles_file);
+      LOG_ERROR("Cound not read crystal singles file: {}", g_crystal_singles_file);
       return 1;
     }
     instream.close();
@@ -324,20 +324,20 @@ int read_coincidence_sinogram_file(int *t_coincidence_sinogram, FILE *t_coincide
 
   if (!fptr) {
     if (t_coincidence_file_ptr) {
-      g_logger->error("Can't open supplied sinogram FILE");
+      LOG_ERROR("Can't open supplied sinogram FILE");
     } else {
-      g_logger->error("Can't open coincidence histogram file {}", g_coincidence_histogram_file);
+      LOG_ERROR("Can't open coincidence histogram file {}", g_coincidence_histogram_file);
     }
     return (1);
   }
   // std::vector<int> coincidence_sinogram(GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * 2); // prompt followed by delayed
   // if (!coincidence_sinogram)
-  //   printf("calloc failure for coincidence_sinogram array\n");
+  //   LOG_INFO("calloc failure for coincidence_sinogram array\n");
   int n = (int)fread(t_coincidence_sinogram, sizeof(int), GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * 2, fptr);
   if (fptr != t_coincidence_file_ptr)
     fclose(fptr);
   if (n != 2 * GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS)  {
-    g_logger->error("Not enough data in coinsfile '{}' (only {} of {})", g_coincidence_histogram_file, n, GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * 2);
+    LOG_ERROR("Not enough data in coinsfile '{}' (only {} of {})", g_coincidence_histogram_file, n, GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * 2);
     return (1);
   }
   return 0;
@@ -443,13 +443,12 @@ int gen_delays(int is_inline,
   for (int i = 0; i < nsino; i++) {
     delays_data[i] = (float *) calloc (nplanes, sizeof(float));
     if (delays_data[i] == NULL) {
-      printf("error allocation delays_data\n");
-      exit(1);
+      LOG_EXIT("error allocation delays_data\n");
     }
     memset(delays_data[i], 0, nplanes * sizeof(float));
   }
   if (!delays_data)
-    printf("malloc failed for delays_data\n");
+    LOG_INFO("malloc failed for delays_data\n");
 
   //-------------------------------------------------------
   // make singles. (load or estimate)
@@ -459,24 +458,24 @@ int gen_delays(int is_inline,
   // TODO implement this as below.  Requires knowing how to read from a std::ifstream to a std::shared_ptr<float>
   // std::shared_ptr<float> crystal_singles(new float[num_crystals], std::default_delete<int[]>());
   if (read_crystal_singles_file(csings))
-    exit(1);
+    LOG_EXIT("read_crystal_singles_file");
 
   if (!g_coincidence_histogram_file.empty() || t_coincidence_file_ptr != NULL ) {
     // TODO reimplement this with shared_ptr and ifstream
     int *coincidence_sinogram = (int*) calloc(num_crystals * 2, sizeof(int)); // prompt followed by delayed
     if (read_coincidence_sinogram_file(coincidence_sinogram, t_coincidence_file_ptr))
-      exit(1);
+      LOG_EXIT("read_coincidence_sinogram_file");
 
     gettimeofday(&t2, NULL);
     // we only used the delayed coincidence_sinogram (coincidence_sinogram+num_crystals)vvvvvv
     int niter = compute_csings_from_drates(coincidence_sinogram + num_crystals, g_tau, g_ftime, csings);
     gettimeofday(&t3, NULL);
-    printf("csings computed from drates in %d iterations (%ld msec)\n", niter, (((t3.tv_sec * 1000 ) + (int)((double)t3.tv_usec / 1000.0 ) ) - ((t2.tv_sec * 1000 ) + (int)((double)t2.tv_usec / 1000.0 ))));
+    LOG_INFO("csings computed from drates in %d iterations (%ld msec)\n", niter, (((t3.tv_sec * 1000 ) + (int)((double)t3.tv_usec / 1000.0 ) ) - ((t2.tv_sec * 1000 ) + (int)((double)t2.tv_usec / 1000.0 ))));
     free(coincidence_sinogram);
     if (!g_output_csings_file.empty())
       // write_output_csings_file(csings);
       if (hrrt_util::write_binary_file<float>(csings, num_crystals, g_output_csings_file, "Singles from delayed coincidence histogram"))
-        exit(1);
+        LOG_EXIT("write_binary_file");
   }
 
   //-------------------------------------------------------
@@ -515,7 +514,7 @@ int gen_delays(int is_inline,
     fflush(stdout);
   }
   gettimeofday(&t1, NULL);
-  g_logger->info("Smooth Delays computed in {ld} msec", time_diff(t0, t1));
+  LOG_INFO("Smooth Delays computed in {ld} msec", time_diff(t0, t1));
 
   free(lor_sinogram::solution_[0]);
   for (int i = 1; i < 21; i++) {
@@ -548,7 +547,7 @@ int gen_delays(int is_inline,
     }
     if (is_inline < 2) {
       if (hrrt_util::write_binary_file<float>(dtmp, nsino, g_delayed_coincidence_file, "Delayed coincidence"))
-        exit(1);
+        LOG_EXIT("write_binary_file");
       // write_delays_file(dtmp, nsino);
     } else {
       int n = 0;
@@ -568,22 +567,10 @@ int gen_delays(int is_inline,
   gettimeofday(&t3, NULL);
   int dtime3 = (((t3.tv_sec * 1000 ) + (int)((double)t3.tv_usec / 1000.0 ) ) - ((t2.tv_sec * 1000 ) + (int)((double)t2.tv_usec / 1000.0 ) ) ) ;
   int dtime4 = (((t3.tv_sec * 1000 ) + (int)((double)t3.tv_usec / 1000.0 ) ) - ((t0.tv_sec * 1000 ) + (int)((double)t0.tv_usec / 1000.0 ) ) ) ;
-  printf("...stored to disk in %d msec.\n", dtime3);
-  printf("Total time %d msec.\n", dtime4);
+  LOG_INFO("...stored to disk in %d msec.\n", dtime3);
+  LOG_INFO("Total time %d msec.\n", dtime4);
   return 1;
 }
-
-void init_logging(void) {
-  if (g_logfile.empty()) {
-    g_logfile = fmt::format("{}_gen_delays.log", hrrt_util::time_string());
-  }
-  g_logger = spdlog::basic_logger_mt("basic_logger", g_logfile.string());
-}
-
-
-// void on_rebinner(std::string const &instring) {
-//   g_rebinner_lut_file = boost::filesystem::path(instring);
-// }
 
 void on_coincidence(std::string const &instring) {
   g_coincidence_histogram_file = boost::filesystem::path(instring);
@@ -614,8 +601,8 @@ void on_sino_size(std::string const &instring) {
     g_num_elems = boost::lexical_cast<int>(match["nelements"]);
     g_num_views = boost::lexical_cast<int>(match["nviews"]);
   } else {
-    g_logger->error("Invalid sino size string: {}", instring);
-    exit(1);
+    LOG_ERROR("Invalid sino size string: {}", instring);
+
   }
 }
 
@@ -632,7 +619,7 @@ void on_span(std::string const &instring) {
     g_span         = boost::lexical_cast<int>(match["span"]);
     g_max_ringdiff = boost::lexical_cast<int>(match["ringdiff"]);
   } else {
-    g_logger->error("Invalid span,ringdiff string: {}", instring);
+    LOG_ERROR("Invalid span,ringdiff string: {}", instring);
     exit(1);
   }
 }
@@ -651,7 +638,7 @@ void on_geometry(std::string const &instring) {
     g_diam  = boost::lexical_cast<float>(match["diam"]);
     g_thick = boost::lexical_cast<float>(match["thick"]);
   } else {
-    g_logger->error("Invalid pitch,diam,thick string: {}", instring);
+    LOG_ERROR("Invalid pitch,diam,thick string: {}", instring);
     exit(1);
   }
 }

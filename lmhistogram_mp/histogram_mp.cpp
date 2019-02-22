@@ -54,13 +54,15 @@
 #include <boost/xpressive/xpressive.hpp>
 #include <boost/lexical_cast.hpp>
 
+#include "my_spdlog.hpp"
+
 // #if !defined(FMT_HEADER_ONLY)
 // #define FMT_HEADER_ONLY
 // #endif
 
 
-#define SPDLOG_FMT_EXTERNAL
-#include "spdlog/spdlog.h"
+// #define SPDLOG_FMT_EXTERNAL
+// #include "spdlog/spdlog.h"
 // #include "spdlog.h"
 
 namespace bf = boost::filesystem;
@@ -89,8 +91,6 @@ struct TX_SourcePosition {
 //
 // Global variables
 //
-// extern auto g_logger;
-extern std::shared_ptr<spdlog::logger> g_logger;
 
 // Defined extern
 unsigned int start_countrate_ = 0;
@@ -242,14 +242,13 @@ long process_tagword(long tagword, long duration, std::ofstream &out_hc)
     }
     if (prev_time > current_time_msec) {
       if (!clock_reset) {
-        g_logger->info("Time line break: previous time={}, current time={}", prev_time, current_time_msec);
+        LOG_INFO("Time line break: previous time={}, current time={}", prev_time, current_time_msec);
         current_time = current_time_msec / 1000;
         clock_reset = 1;
         return -1; // reset all
       }
     } else if (prev_time > 0 && current_time_msec > prev_time + 1) {
-      g_logger->error("Missing timetag : {}-{} = {} msec",
-              current_time_msec - 1, prev_time, current_time_msec - prev_time - 1);
+      LOG_ERROR("Missing timetag : {}-{} = {} msec", current_time_msec - 1, prev_time, current_time_msec - prev_time - 1);
     }
     prev_time = current_time_msec;
     if (current_time != current_time_msec / 1000) {
@@ -259,7 +258,7 @@ long process_tagword(long tagword, long duration, std::ofstream &out_hc)
         total_singles += singles[i].last_sample;
       }
 
-      g_logger->info("{} {} {} {} {} ", current_time, randoms, prompts, total_singles, current_time_msec);
+      LOG_INFO("{} {} {} {} {} ", current_time, randoms, prompts, total_singles, current_time_msec);
       // fmt::print(out_hc, "%ld,%ld,%ld,%ld\n", total_singles, randoms, prompts, current_time_msec);
       fmt::print(out_hc, "{},{},{},{}", total_singles, randoms, prompts, current_time_msec);
       t_prompts += prompts;
@@ -398,14 +397,14 @@ static int goto_event_32(int target)
   // int prev_time;
   int terminate = 0;
 
-  g_logger->info("Skipping to {} secs (goto_event_32, nevent {})", target, nevents);
+  LOG_INFO("Skipping to {} secs (goto_event_32, nevent {})", target, nevents);
   while (!terminate) {
     if (!nevents) {
-      g_logger->info("load buffer");
+      LOG_INFO("load buffer");
       load_buffer_32(listbuf, nevents);
-      g_logger->info("nevents now {}", nevents);
+      LOG_INFO("nevents now {}", nevents);
       if (nevents <= 0) {
-        g_logger->info("end of file");
+        LOG_INFO("end of file");
         return 0;
       }
       listptr = listbuf;
@@ -424,7 +423,7 @@ static int goto_event_32(int target)
         } else if (current_time != tmp_time / 1000 ) {
           // goto time t
           current_time = tmp_time / 1000;
-          g_logger->info("{} sec", current_time);
+          LOG_INFO("{} sec", current_time);
           if (current_time == target)
             terminate = 1;
         }
@@ -433,7 +432,7 @@ static int goto_event_32(int target)
     listptr++;
     nevents--;
   }
-  g_logger->info("done");
+  LOG_INFO("done");
   return 1;
 }
 
@@ -475,13 +474,13 @@ static int goto_event_64(int target)
   // int64_t tot_events = 0;
   int terminate = 0;
 
-  g_logger->info("Skipping To {} secs (goto_event_64)", target);
+  LOG_INFO("Skipping To {} secs (goto_event_64)", target);
   while (!terminate) {
-    g_logger->info("nevents {}", nevents);
+    LOG_INFO("nevents {}", nevents);
     if ((nevents - (nsync + 1) / 2) == 0) {
       load_buffer_64(listbuf, nevents, nsync);
       if (nevents <= 0) {
-        g_logger->info("end of file");
+        LOG_INFO("end of file");
         return 0;
       }
       listptr = listbuf;
@@ -514,7 +513,7 @@ static int goto_event_64(int target)
         } else if (current_time != tmp_time / 1000) {
           // goto to time t;
           current_time = tmp_time / 1000;
-          g_logger->info("{} sec", current_time);
+          LOG_INFO("{} sec", current_time);
           if (current_time == target) terminate = 1;
         }
       }
@@ -522,7 +521,7 @@ static int goto_event_64(int target)
     listptr += 2;
     nevents--;
   }
-  g_logger->info("done");
+  LOG_INFO("done");
   return 1;
 }
 */
@@ -591,15 +590,15 @@ static int next_event_64(Event_32 &cew, int scan_flag)
         error_flag++;
       }
       if (ax < 0 || ax >= GeometryInfo::NXCRYS || ay < 0 || ay >= GeometryInfo::NYCRYS) {
-        g_logger->error("{}: next_event_64: Invalid crystal pair A: ({},{}) (NXCRYS {}, GeometryInfo::NYCRYS {})", current_time, ax, ay, GeometryInfo::NXCRYS, GeometryInfo::NYCRYS);
+        LOG_ERROR("{}: next_event_64: Invalid crystal pair A: ({},{}) (NXCRYS {}, GeometryInfo::NYCRYS {})", current_time, ax, ay, GeometryInfo::NXCRYS, GeometryInfo::NYCRYS);
         error_flag++;
       }
       if (bx < 0 || bx >= GeometryInfo::NXCRYS || by < 0 || by >= GeometryInfo::NYCRYS) {
-        g_logger->error("{}: next_event_64: Invalid crystal pair B: ({},{}) (NXCRYS {}, GeometryInfo::NYCRYS {})", current_time, ax, ay, GeometryInfo::NXCRYS, GeometryInfo::NYCRYS);
+        LOG_ERROR("{}: next_event_64: Invalid crystal pair B: ({},{}) (NXCRYS {}, GeometryInfo::NYCRYS {})", current_time, ax, ay, GeometryInfo::NXCRYS, GeometryInfo::NYCRYS);
         error_flag++;
       }
       if ((doia != 1 && doia != 0 && doia != 7) || (doib != 1 && doib != 0 && doib != 7)) {
-        g_logger->error("{}: Invalid interaction layer ({},{}) ", current_time, doia, doib);
+        LOG_ERROR("{}: Invalid interaction layer ({},{}) ", current_time, doia, doib);
         error_flag++;
       }
       if (!error_flag) {
@@ -672,16 +671,16 @@ int write_coin_map(const bf::path &datafile) {
   const char *coinh_p_c = reinterpret_cast<char *>(coinh_p);
   ch_file.write(coinh_p_c, ncrystals * sizeof(unsigned));
   if (ch_file.good()) {
-    g_logger->info("Writing coincidence histogram prompts {}", ch_file_name);
+    LOG_INFO("Writing coincidence histogram prompts {}", ch_file_name);
     ch_file.write(reinterpret_cast<char *>(coinh_d), ncrystals * sizeof(unsigned));
     if (ch_file.good()) {
-      g_logger->info("Writing coincidence histogram delayed {}: OK", ch_file_name);
+      LOG_INFO("Writing coincidence histogram delayed {}: OK", ch_file_name);
     } else {
-      g_logger->error("Writing coincidence histogram delayed {}: ERROR", ch_file_name);
+      LOG_ERROR("Writing coincidence histogram delayed {}: ERROR", ch_file_name);
       error_flag++;
     }
   } else {
-    g_logger->error("ERROR writing ch file {}", ch_file_name);
+    LOG_ERROR("ERROR writing ch file {}", ch_file_name);
       error_flag++;
   }
   ch_file.close();
@@ -750,7 +749,7 @@ int create_sng() {
     // Write normalized crystal singles
     fwrite( c_singles, ncrystals, sizeof(float), fp);
     fclose( fp);
-    g_logger->info("Crystal Singles stored in '%s'\n", out_file);
+    LOG_INFO("Crystal Singles stored in '%s'\n", out_file);
     free(c_singles);
 }
 */
@@ -783,7 +782,7 @@ int check_start_of_frame(L64EventPacket &src)
           // skipping mode
           first_tag_pos = pos;
           if (L64EventPacket::current_time / 1000 != current_time / 1000) {
-            g_logger->info("{} sec", current_time / 1000);
+            LOG_INFO("{} sec", current_time / 1000);
             fflush(stdout);
           }
           L64EventPacket::current_time = current_time; // msec;
@@ -821,17 +820,17 @@ static int find_start_countrate_lm(const bf::path &l64_file) {
 
   char buf[buf_size * 2 * sizeof(unsigned)];
   // if (buf == nullptr) {
-  //   g_logger->error("Error allocating {} bytes memory", buf_size * 2 * sizeof(unsigned));
+  //   LOG_ERROR("Error allocating {} bytes memory", buf_size * 2 * sizeof(unsigned));
   //   exit(1);
   // }
-  g_logger->info("Locating starting countrate {} trues/sec", start_countrate_);
+  LOG_INFO("Locating starting countrate {} trues/sec", start_countrate_);
   while (current_countrate < start_countrate_) {
     file_pos += pos;
     pos = 0;
     // if ((num_events = fread(buf, 2 * sizeof(unsigned), buf_size, fp)) == 0) {
     instream.read(buf, 2 * sizeof(unsigned) * buf_size);
     if (instream.fail()) {
-      g_logger->error("Error reading file {}", l64_file);
+      LOG_ERROR("Error reading file {}", l64_file);
       exit(1);
     }
     while (pos < num_events * 2) {
@@ -854,7 +853,7 @@ static int find_start_countrate_lm(const bf::path &l64_file) {
               instream.close();
               return L64EventPacket::current_time; //first_tag_pos;
             } else { //reset counter
-              g_logger->info("xxx {} {} {} {} {}", current_time, prompt, delayed, current_countrate, first_tag_pos);
+              LOG_INFO("xxx {} {} {} {} {}", current_time, prompt, delayed, current_countrate, first_tag_pos);
               L64EventPacket::current_time = current_time;   //msec
               current_countrate = 0;
               delayed = prompt = 0;
@@ -878,7 +877,7 @@ static int find_start_countrate_lm(const bf::path &l64_file) {
   instream.close();
   // fclose(fp);
   // free(buf);
-  g_logger->info("curr {} prompt {} delay {} countr {} first_pos {}", current_time, prompt, delayed, current_countrate, first_tag_pos);
+  LOG_INFO("curr {} prompt {} delay {} countr {} first_pos {}", current_time, prompt, delayed, current_countrate, first_tag_pos);
   return L64EventPacket::current_time; //first_tag_pos;
 }
 
@@ -913,7 +912,7 @@ bf::path &make_path(const bf::path &infile, FILE_TYPE file_type) {
 int find_start_countrate(bf::path const &l64_file) {
   const bf::path hc_file = make_path(l64_file, FILE_TYPE::HC);
   if (! bf::is_regular_file(hc_file)) {
-    g_logger->info("hc file {} not found; trying listmode file", hc_file.string());
+    LOG_INFO("hc file {} not found; trying listmode file", hc_file.string());
     return find_start_countrate_lm(l64_file);
   }
   std::ifstream instream;
@@ -934,12 +933,12 @@ int find_start_countrate(bf::path const &l64_file) {
       unsigned int random = boost::lexical_cast<unsigned int>(what["random"]);
       found = ((prompt - random) > (unsigned int)start_countrate_);
       if (lasttime > time) {
-        g_logger->error("Time out of order in hc file {}: {}", hc_file.string(), in_line);
+        LOG_ERROR("Time out of order in hc file {}: {}", hc_file.string(), in_line);
         throw;
       }
       lasttime = time;
     } else {
-      g_logger->error("Bad hc file line: {}", in_line );
+      LOG_ERROR("Bad hc file line: {}", in_line );
       throw;
     }
   }
@@ -1127,7 +1126,7 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
         doib = (ew2 & 0x01C00000) >> 22;
         if (g_hist_mode == HISTOGRAM_MODE::TRA)
           if (doia != 7 && doib != 7) {
-            g_logger->error("{}: Invalid crystal DOI fro TX event ({},{}) ({},{}) ", doia, ay, bx, by);
+            LOG_ERROR("{}: Invalid crystal DOI fro TX event ({},{}) ({},{}) ", doia, ay, bx, by);
             error_flag++;
           }
       }
@@ -1138,12 +1137,12 @@ void rebin_packet(L64EventPacket &src, L32EventPacket &dst)
       }
       if (ax < 0 || ax >= GeometryInfo::NXCRYS || ay < 0 || ay >= GeometryInfo::NYCRYS) {
         if (verbose) 
-          g_logger->error("{}: next_event_64: Invalid crystal pair A: ({},{}) (NXCRYS {}, GeometryInfo::NYCRYS {})", current_time, ax, ay, GeometryInfo::NXCRYS, GeometryInfo::NYCRYS);
+          LOG_ERROR("{}: next_event_64: Invalid crystal pair A: ({},{}) (NXCRYS {}, GeometryInfo::NYCRYS {})", current_time, ax, ay, GeometryInfo::NXCRYS, GeometryInfo::NYCRYS);
         error_flag++;
       }
       if (bx < 0 || bx >= GeometryInfo::NXCRYS || by < 0 || by >= GeometryInfo::NYCRYS) {
         if (verbose) 
-          g_logger->error("{}: next_event_64: Invalid crystal pair B: ({},{}) (NXCRYS {}, GeometryInfo::NYCRYS {})", current_time, ax, ay, GeometryInfo::NXCRYS, GeometryInfo::NYCRYS);
+          LOG_ERROR("{}: next_event_64: Invalid crystal pair B: ({},{}) (NXCRYS {}, GeometryInfo::NYCRYS {})", current_time, ax, ay, GeometryInfo::NXCRYS, GeometryInfo::NYCRYS);
         error_flag++;
       }
       // if (ax >= GeometryInfo::NXCRYS ||  ay >= GeometryInfo::NYCRYS || bx >= GeometryInfo::NXCRYS || by >= GeometryInfo::NYCRYS) {
@@ -1321,7 +1320,7 @@ template <typename T> int histogram(T *t_sino, char *delayed, int sino_size, int
   reset_statistics();
   frame_duration = t_duration;
 
-  g_logger->info("Time(sec),Randoms,Prompts,Singles,Event Time(ms)");
+  LOG_INFO("Time(sec),Randoms,Prompts,Singles,Event Time(ms)");
   switch (g_hist_mode) {
   case HISTOGRAM_MODE::TRU: // randoms subtraction
   case HISTOGRAM_MODE::PRO: // prompts only
@@ -1396,12 +1395,12 @@ template <typename T> int histogram(T *t_sino, char *delayed, int sino_size, int
   }
   t_prompts += prompts;
   t_randoms += randoms;
-  g_logger->info("Total Trues events={}", event_counter);
-  g_logger->info("Sinogram events(prompts+randoms)=({}+{})={}", t_prompts, t_randoms, t_prompts + t_randoms);
+  LOG_INFO("Total Trues events={}", event_counter);
+  LOG_INFO("Sinogram events(prompts+randoms)=({}+{})={}", t_prompts, t_randoms, t_prompts + t_randoms);
   if (!terminate_frame) {
     // round current_time_msec as current_time
     current_time = (current_time_msec + 500) / 1000;
-    g_logger->info("Current time {} msec rounded to {} sec", current_time_msec, current_time);
+    LOG_INFO("Current time {} msec rounded to {} sec", current_time_msec, current_time);
   }
   t_duration = (current_time - frame_start_time);
   return frame_start_time;
@@ -1444,7 +1443,7 @@ static void lmscan_32(std::ofstream &out, long *duration) {
       } else {
         // ahc 9/4/18
         // Have to assume this call to process_tagword(int, int) is an error and never called. See below.
-        g_logger->error("Call to process_tagword(int, int) should never be made");
+        LOG_ERROR("Call to process_tagword(int, int) should never be made");
         assert(false);
         // process_tagword(cew.value, -1);
       }
@@ -1495,7 +1494,7 @@ static void lmscan_64(std::ofstream &out, long *duration) {
         // long process_tagword(long tagword, long duration, FILE *out_hc)
         // void process_tagword(const L32EventPacket &src, FILE *out_hc)
         // void process_tagword(const L64EventPacket &src, FILE *out_hc)
-        g_logger->error("Call to process_tagword(int, int) should never be made");
+        LOG_ERROR("Call to process_tagword(int, int) should never be made");
         assert(false);
         // process_tagword(cew.value, -1);
       }

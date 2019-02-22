@@ -13,15 +13,7 @@
 #include <boost/filesystem.hpp>
 namespace bf = boost::filesystem;
 
-bf::path g_logfile;
-
-void init_logging(void) {
-  if (g_logfile.length() == 0) {
-    g_logfile = fmt::format("{}_gen_dwell.log", hrrt_util::time_string());
-  }
-  g_logger = spdlog::basic_logger_mt("HRRT", g_logfile);
-}
-
+// bf::path g_logfile;
 
 void usage(const char *pgm)
 {

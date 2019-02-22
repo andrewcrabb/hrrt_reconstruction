@@ -119,7 +119,7 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
 	if (i_matnum == 0) {		/* use first */
 		if (file->dirlist->nmats) i_matnum = file->dirlist->first->matnum;
     else {
-      printf("%s : no matrix found\n", orig_specs);
+      LOG_INFO("%s : no matrix found\n", orig_specs);
       return AIR_SAVE_ERROR;
     }
 	}
@@ -131,7 +131,7 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
 		orig = matrix_read(file,val.frame, GENERIC);
 	}
   if (orig == NULL) {
-    printf("error reading matrix %s\n", orig_specs);
+    LOG_INFO("error reading matrix %s\n", orig_specs);
     return AIR_SAVE_ERROR;
   }
   if (orig->data_type == ecat_matrix::MatrixDataType::IeeeFloat) { // load matrix and convert to short
@@ -147,12 +147,12 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
 	matrix_close(file);
 		
 	if (!permission && access(fname,F_OK)==0) {
-		printf("file %s exists, no permission to overwrite\n",fname);
+		LOG_INFO("file %s exists, no permission to overwrite\n",fname);
 		return AIR_SAVE_ERROR;
 	}
 	matrix = air2matrix(pixels, stats,orig);
   if (matrix == NULL) {
-    printf("Error converting AIR pixel data to ECAT matrix\n");
+    LOG_INFO("Error converting AIR pixel data to ECAT matrix\n");
     return AIR_SAVE_ERROR;
   }
 	matrix_flip(matrix,0,1,1);   /* radiolgy convention */
@@ -172,9 +172,9 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
     npixels = matrix->xdim*matrix->ydim;
     sdata = (short*)matrix->data_ptr;
     if ((fp=fopen(fname,"wb"))==NULL) 
-      printf("%s: %d: error opening file %s",__FILE__,__LINE__, fname);
+      LOG_INFO("%s: %d: error opening file %s",__FILE__,__LINE__, fname);
     if ((fdata=(float*)calloc(npixels, sizeof(float)))==NULL) 
-      printf("%s: %d: memory allocation error",__FILE__,__LINE__);
+      LOG_INFO("%s: %d: memory allocation error",__FILE__,__LINE__);
     if (fp!=NULL && fdata!=NULL) {
       for (plane=0; plane<matrix->zdim; plane++) {
         for (i=0; i<npixels; i++)
@@ -183,30 +183,30 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
         fwrite(fdata, sizeof(float),npixels,fp);
       }
       fclose(fp);
-      sprintf(hdr_fname,"%s.hdr",fname);
+      sLOG_INFO(hdr_fname,"%s.hdr",fname);
       strcat(orig_fname,".hdr");
       if ((fp=fopen(hdr_fname,"wt")) != NULL)
       {
         if ((fpi=fopen(orig_fname,"rt")) != 0) {
           while (fgets(line,sizeof(line),fpi) != NULL) {
             if (strstr(line,"name of data file :=") != NULL)
-              fprintf(fp,"name of data file := %s\n", fname);
-            else fprintf(fp,"%s", line);
+              fLOG_INFO(fp,"name of data file := %s\n", fname);
+            else fLOG_INFO(fp,"%s", line);
           }
           fclose(fpi);
         } else {
-          fprintf(fp, "!INTERFILE\n");
-          fprintf(fp, "name of data file := %s\n", fname);
-          fprintf(fp, "image data byte order := LITTLEENDIAN\n");
-          fprintf(fp, "number of dimensions := 3\n");
-          fprintf(fp, "matrix size [1] := %d\n", matrix->xdim);
-          fprintf(fp, "matrix size [2] := %d\n", matrix->ydim);
-          fprintf(fp, "matrix size [3] := %d\n", matrix->zdim);
-          fprintf(fp, "number format := float\n");
-          fprintf(fp, "data offset in bytes := 0\n");
-          fprintf(fp, "scaling factor (mm/pixel) [1] := %g\n", matrix->pixel_size*10.0f);
-          fprintf(fp, "scaling factor (mm/pixel) [2] := %g\n", matrix->pixel_size*10.0f);
-          fprintf(fp, "scaling factor (mm/pixel) [3] := %g\n", matrix->z_size*10.0f);
+          fLOG_INFO(fp, "!INTERFILE\n");
+          fLOG_INFO(fp, "name of data file := %s\n", fname);
+          fLOG_INFO(fp, "image data byte order := LITTLEENDIAN\n");
+          fLOG_INFO(fp, "number of dimensions := 3\n");
+          fLOG_INFO(fp, "matrix size [1] := %d\n", matrix->xdim);
+          fLOG_INFO(fp, "matrix size [2] := %d\n", matrix->ydim);
+          fLOG_INFO(fp, "matrix size [3] := %d\n", matrix->zdim);
+          fLOG_INFO(fp, "number format := float\n");
+          fLOG_INFO(fp, "data offset in bytes := 0\n");
+          fLOG_INFO(fp, "scaling factor (mm/pixel) [1] := %g\n", matrix->pixel_size*10.0f);
+          fLOG_INFO(fp, "scaling factor (mm/pixel) [2] := %g\n", matrix->pixel_size*10.0f);
+          fLOG_INFO(fp, "scaling factor (mm/pixel) [3] := %g\n", matrix->z_size*10.0f);
         }
       }
     }
@@ -311,7 +311,7 @@ AIR_Error ecat_AIR_load_probr(const char *specs, const AIR_Boolean decompressabl
 	if (matnum == 0) {		/* use first */
 		if (file->dirlist->nmats) matnum = file->dirlist->first->matnum;
     else {
-      printf("%s : no matrix found\n", specs);
+      LOG_INFO("%s : no matrix found\n", specs);
       error++;
     }
 	}

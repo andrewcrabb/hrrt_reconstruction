@@ -114,17 +114,12 @@ static void pass3(int i)
   }
 }
 
-void init_logging(void) {
-  if (g_logfile.length() == 0) {
-    g_logfile = fmt::format("{}_geom_factors.log", hrrt_util::time_string());
-  }
-  g_logger = spdlog::basic_logger_mt("HRRT", g_logfile);
-}
 
 void main(int argc, char ** argv)
 {
   int i=0;
 
+  init_logging(argv[0]);
   // TODO use boost::program_options to read in a file_path for rebinner_lut_file
   // const char *rebinner_lut_file=NULL;
   int *m_segzoffset=NULL;

@@ -227,13 +227,13 @@ int init_lut_sol(std::vector<int> const &segzoffset) {
   if (!bf::exists(lut_filename)) 
     return 1;
   if (solution_ != NULL) {
-    LOG_ERROR(logger, "solution_ not NULL");
+    LOG_ERROR("solution_ not NULL");
     return 1;
   }
 
   std::ifstream instream;
   if (hrrt_util::open_istream(instream, lut_filename, std::ifstream::in | std::ifstream::binary)) {
-    LOG_ERROR(logger, "Could not open LUT file {}", lut_filename.string());
+    LOG_ERROR("Could not open LUT file {}", lut_filename.string());
     exit(1);
   }
 
@@ -249,7 +249,7 @@ int init_lut_sol(std::vector<int> const &segzoffset) {
         instream.read((char *)solution_[i][ax], sizeof(SOL) * GeometryInfo::NUM_CRYSTALS_X_DOIS);
         if (!instream.good()) {
           instream.close();
-          LOG_ERROR(logger, "instream not good for {}", lut_filename.string());
+          LOG_ERROR("instream not good for {}", lut_filename.string());
           return 0;  // TODO really return 0 on error?
         }
       }
@@ -272,14 +272,14 @@ int init_lut_sol(std::vector<int> const &segzoffset) {
   // if (fread(m_c_zpos,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
   instream.read((char *)m_c_zpos, sizeof(float) * GeometryInfo::NYCRYS);
   if (!instream.good()) {
-    LOG_ERROR(logger, "instream not good for {}", lut_filename.string());
+    LOG_ERROR("instream not good for {}", lut_filename.string());
     instream.close();
     return 0;
   }
   // if (fread(m_c_zpos2,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
   instream.read((char *)m_c_zpos2, sizeof(float) * GeometryInfo::NYCRYS);
   if (!instream.good()) {
-    LOG_ERROR(logger, "instream not good for {}", lut_filename.string());
+    LOG_ERROR("instream not good for {}", lut_filename.string());
     instream.close();
     return 0;
   }
@@ -314,7 +314,7 @@ int save_lut_sol(bf::path const &lut_filename) {
         // if (fwrite(solution_[i][ax],sizeof(SOL),GeometryInfo::NUM_CRYSTALS_X_DOIS, fp) != GeometryInfo::NUM_CRYSTALS_X_DOIS)
         outstream.write(reinterpret_cast<char *>(solution_[i][ax]), sizeof(SOL) * GeometryInfo::NUM_CRYSTALS_X_DOIS);
         if (!outstream.good()) {
-          LOG_ERROR(logger, "outstream not good for {}", lut_filename.string());
+          LOG_ERROR("outstream not good for {}", lut_filename.string());
           outstream.close();
           return 0;
         }
@@ -323,14 +323,14 @@ int save_lut_sol(bf::path const &lut_filename) {
     // if (fwrite(m_c_zpos,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
     outstream.write(reinterpret_cast<char*>(m_c_zpos), sizeof(float) * GeometryInfo::NYCRYS);
     if (!outstream.good()) {
-          LOG_ERROR(logger, "outstream not good for {}", lut_filename.string());
+          LOG_ERROR("outstream not good for {}", lut_filename.string());
       outstream.close();
       return 0;
     }
     // if (fwrite(m_c_zpos2,sizeof(float),GeometryInfo::NYCRYS, fp) != GeometryInfo::NYCRYS)
     outstream.write(reinterpret_cast<char*>(m_c_zpos2), sizeof(float) * GeometryInfo::NYCRYS);
     if (!outstream.good()) {
-          LOG_ERROR(logger, "outstream not good for {}", lut_filename.string());
+          LOG_ERROR("outstream not good for {}", lut_filename.string());
       outstream.close();
       return 0;
     }
@@ -408,7 +408,7 @@ int save_lut_sol_tx(bf::path const &lut_filename) {
         outstream.write(reinterpret_cast<char *>(solution_tx_[0][i][ax]), sizeof(SOL) * GeometryInfo::NXCRYS);
         outstream.write(reinterpret_cast<char *>(solution_tx_[1][i][ax]), sizeof(SOL) * GeometryInfo::NXCRYS);
         if (!outstream.good()) {
-          LOG_ERROR(logger, "outstream not good for {}", lut_filename.string());
+          LOG_ERROR("outstream not good for {}", lut_filename.string());
           outstream.close();
         return 0;
       }
@@ -446,7 +446,7 @@ int init_lut_sol_tx(void) {
           instream.read(reinterpret_cast<char *>(solution_tx_[0][i][ax]), sizeof(SOL) * GeometryInfo::NXCRYS);
           instream.read(reinterpret_cast<char *>(solution_tx_[1][i][ax]), sizeof(SOL) * GeometryInfo::NXCRYS);
           if (!instream.good()) {
-          LOG_ERROR(logger, "instream not good for {}", lut_filename.string());
+          LOG_ERROR("instream not good for {}", lut_filename.string());
           instream.close();
           return 0;
         }

@@ -25,7 +25,6 @@ namespace po = boost::program_options;
 namespace bf = boost::filesystem;
 
 std::string g_logfile;
-extern std::shared_ptr<spdlog::logger> g_logger;
 
 bf::path g_out_fname;
 int g_tx_flag{0};
@@ -34,7 +33,7 @@ int g_maxrd{GeometryInfo::MAX_RINGDIFF};
 
 void on_out(const std::string &outstr) {
   g_out_fname = bf::path(outstr);
-  g_logger->debug("output file {}", g_out_fname.string());
+  LOG_DEBUG("output file {}", g_out_fname.string());
 }
 
 void on_transmission(const std::string &outstr) {

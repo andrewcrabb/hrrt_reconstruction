@@ -2,7 +2,7 @@ find_package(Boost REQUIRED)
 
 add_library (cheader CHeader.cpp)
 target_include_directories (cheader PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries (cheader LINK_PUBLIC hrrt_common fmt)
+target_link_libraries (cheader LINK_PUBLIC hrrt_common fmt my_spdlog)
 target_link_libraries(cheader PRIVATE fmt-header-only)
 
 # Make test executable

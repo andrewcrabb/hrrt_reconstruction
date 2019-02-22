@@ -106,20 +106,20 @@ int write_image_header(ImageHeaderInfo *info, int psf_flag,
 
 	//Check image file name, create header name
 	if( strlen(info->imagefile) == 0 ) {
-		printf("Error! WriteImageHeader: Null File Name\n");
+		LOG_ERROR("WriteImageHeader: Null File Name\n");
 		return -1;
 	}
-	else printf("WriteImageHeader: image '%s'\n",info->imagefile);
+	else LOG_INFO("WriteImageHeader: image '%s'\n",info->imagefile);
 
 	sprintf( ImgHeaderName, "%s.hdr",info->imagefile );
 
 	//Check image file
 	if((f_in = fopen(info->imagefile,"rb")) == NULL ){
-		printf("WriteImageHeader: No such image file '%s'\n",info->imagefile);
+		LOG_INFO("WriteImageHeader: No such image file '%s'\n",info->imagefile);
 		return -1;
 	}
 	else {
-		printf("WriteImageHeader: Image file '%s' found!\n",info->imagefile);
+		LOG_INFO("WriteImageHeader: Image file '%s' found!\n",info->imagefile);
 		fclose(f_in);
 		f_in = NULL;
 	}
@@ -131,7 +131,7 @@ int write_image_header(ImageHeaderInfo *info, int psf_flag,
 		  ||	info->nx<=0			|| info->ny<=0		|| info->nz<=0
 		  ||	info->dx<=eps		|| info->dy<=eps	|| info->dz<=eps )
 	  {
-		  printf("WriteImageHeader: Parameter out of whack.\n");
+		  LOG_INFO("WriteImageHeader: Parameter out of whack.\n");
 		  return -1;
 	  }
   }
@@ -142,13 +142,13 @@ int write_image_header(ImageHeaderInfo *info, int psf_flag,
 
 	if( strlen( info->truefile ) > 0 ){
 		sprintf(sinoHeaderName, "%s.hdr",info->truefile  );
-		printf("WriteImageHeader: true sinoHeaderName is %s\n",sinoHeaderName);
+		LOG_INFO("WriteImageHeader: true sinoHeaderName is %s\n",sinoHeaderName);
 		sinoHeaderExists++;
 	}
 	else
 		if( strlen( info->promptfile ) > 0 ){
 			sprintf(sinoHeaderName, "%s.hdr",info->promptfile  );
-			printf("WriteImageHeader: prompt sinoHeaderName is %s\n",sinoHeaderName);
+			LOG_INFO("WriteImageHeader: prompt sinoHeaderName is %s\n",sinoHeaderName);
 			sinoHeaderExists++;
 		}
 
@@ -164,16 +164,16 @@ int write_image_header(ImageHeaderInfo *info, int psf_flag,
 		//open image header
 
 		if((f_out=fopen(ImgHeaderName,"wt")) == NULL){
-			printf("WriteImageHeader: Cannot open image header file '%s'\n",ImgHeaderName);
+			LOG_INFO("WriteImageHeader: Cannot open image header file '%s'\n",ImgHeaderName);
 			return -4;
 		} 
 		else {
-			printf("WriteImageHeader: File '%s' open ok!\n",ImgHeaderName);
+			LOG_INFO("WriteImageHeader: File '%s' open ok!\n",ImgHeaderName);
 		}
 
 		if( sinoHeaderExists ){
 			if((f_in = fopen(sinoHeaderName,"r")) == NULL){
-				printf("WriteImageHeader: Cannot open sino header file '%s'\n",sinoHeaderName);
+				LOG_INFO("WriteImageHeader: Cannot open sino header file '%s'\n",sinoHeaderName);
 			}
 		}
 
