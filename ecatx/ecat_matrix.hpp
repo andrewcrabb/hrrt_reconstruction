@@ -139,7 +139,7 @@ enum class MatrixDataType {
 struct MatrixDataProperty {
   std::string name;
   int length;
-}
+};
 
 // Combines former MatrixDataType, 
 

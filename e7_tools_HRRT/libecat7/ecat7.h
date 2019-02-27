@@ -61,7 +61,10 @@ public:
   void SaveFile(const std::string);                 // print header information into string list
   void Short2Float(const unsigned short int) const;                        // put matrix data into matrix object
   void UpdateMainHeader(const std::string);             // request pointer to data part of matrix object
-  void UpdateSubheader(const std::string, const unsigned short int);                          // request pointer to matrix object
+  void UpdateSubheader(const std::string, const unsigned short int);  
+
+  template <typename T> *get_matrix(int t_matrix_index);
+                          // request pointer to matrix object
 
   void               Attn_data_type(const signed short int, const unsigned short int) const;                    // request pointer to main header object
   void               Attn_num_dimensions(const signed short int, const unsigned short int) const;

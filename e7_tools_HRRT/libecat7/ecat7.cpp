@@ -745,10 +745,7 @@ void ECAT7::LoadFile(const std::string ifilename)
 /*---------------------------------------------------------------------------*/
 /*! \brief Request pointer to main header object.
     \return pointer to main header object
-
-    Request pointer to main header object.
  */
-/*---------------------------------------------------------------------------*/
 ECAT7_MAINHEADER *ECAT7::MainHeader() const
  { return(e7_main_header_);
  }
@@ -757,10 +754,7 @@ ECAT7_MAINHEADER *ECAT7::MainHeader() const
 /*! \brief Request pointer to matrix object.
     \param[in] num   matrix number
     \return pointer to matrix object
-
-    Request pointer to matrix object.
  */
-/*---------------------------------------------------------------------------*/
 ECAT7_MATRIX *ECAT7::Matrix(const unsigned short int num) const
  { if (e7_matrix_.size() <= num) return(NULL);
    return(e7_matrix_[num]);
@@ -770,10 +764,7 @@ ECAT7_MATRIX *ECAT7::Matrix(const unsigned short int num) const
 /*! \brief Request pointer to data part of matrix object.
     \param[in] num   matrix number
     \return pointer to data part of matrix object
-
-    Request pointer to data part of matrix object.
  */
-/*---------------------------------------------------------------------------*/
 void *ECAT7::getecat_matrix::MatrixData(const unsigned short int num) const
  { if (e7_matrix_.size() <= num) return(NULL);
    return(e7_matrix_[num]->getecat_matrix::MatrixData());
@@ -785,10 +776,7 @@ void *ECAT7::getecat_matrix::MatrixData(const unsigned short int num) const
     \param[in] dt     data type
     \param[in] num    matrix number
     \exception REC_ECAT7_MATRIXHEADER_MISSING ECAT7 matrix header is missing
-
-    Put matrix data into matrix object.
  */
-/*---------------------------------------------------------------------------*/
 void ECAT7::getecat_matrix::MatrixData(void * const data, const unsigned short int dt,
                        const unsigned short int num) const
  { if ((e7_main_header_ == NULL) || (e7_matrix_.size() <= num))
@@ -800,10 +788,7 @@ void ECAT7::getecat_matrix::MatrixData(void * const data, const unsigned short i
 /*---------------------------------------------------------------------------*/
 /*! \brief Request number of matrices.
     \return number of matrices
-
-    Request number of matrices.
  */
-/*---------------------------------------------------------------------------*/
 unsigned short int ECAT7::NumberOfMatrices() const
  { if (e7_directory_ != NULL) return(e7_directory_->NumberOfMatrices());
    return(0);
@@ -812,10 +797,7 @@ unsigned short int ECAT7::NumberOfMatrices() const
 /*---------------------------------------------------------------------------*/
 /*! \brief Print header information into string list.
     \param[in] sl   string list
-
-    Print header information into string list.
  */
-/*---------------------------------------------------------------------------*/
 void ECAT7::PrintHeader(std::list <std::string> * const sl) const
  { if ((e7_main_header_ != NULL) && (sl != NULL))
     { e7_main_header_->PrintMainHeader(sl);                 // print main header
@@ -833,10 +815,7 @@ void ECAT7::PrintHeader(std::list <std::string> * const sl) const
 /*---------------------------------------------------------------------------*/
 /*! \brief Store main header and empty directory as ECAT7 file.
     \param[in] fname   name of ECAT7 file
-
-    Store main header and empty directory as ECAT7 file.
  */
-/*---------------------------------------------------------------------------*/
 void ECAT7::SaveFile(const std::string fname)
  { std::ofstream *file=NULL;
 
@@ -934,16 +913,14 @@ void ECAT7::UpdateSubheader(const std::string filename,
 // the parser from the following definitions:
 
 /*---------------------------------------------------------------------------*/
-/* Attn: request value from attenuation header                               */
-/*       change value in attenuation header                                  */
-/*---------------------------------------------------------------------------*/
+/* Attn: request/change value from attenuation header                               */
 #define Attn(var, type)\
 type ECAT7::Attn_##var(const unsigned short int num) const {\
  if ((e7_main_header_ == NULL) || (e7_matrix_.size() <= num))\
    return(0);\
-   if (e7_main_header_->HeaderPtr()->file_type == E7_FILE_TYPE_AttenuationCorrection)\
+ if (e7_main_header_->HeaderPtr()->file_type == E7_FILE_TYPE_AttenuationCorrection)\
     return(((ECAT7_ATTENUATION *)e7_matrix_[num])->HeaderPtr()->var);\
-   return(0);\
+ return(0);\
  }\
 \
 void ECAT7::Attn_##var(const type var, const unsigned short int num) const {\
@@ -953,34 +930,10 @@ void ECAT7::Attn_##var(const type var, const unsigned short int num) const {\
     ((ECAT7_ATTENUATION *)e7_matrix_[num])->HeaderPtr()->var = var;\
  }
 
-/*---------------------------------------------------------------------------*/
-/* AttnArray: request value from array in attenuation header                 */
-/*            change value in array in attenuation header                    */
-/*---------------------------------------------------------------------------*/
-#define AttnArray(var, type, maxidx)\
-type ECAT7::Attn_##var(const unsigned short int idx,\
-                       const unsigned short int num) const\
- { if ((idx >= maxidx) || (e7_main_header_ == NULL) ||\
-       (e7_matrix_.size() <= num)) return(0);\
-   if (e7_main_header_->HeaderPtr()->file_type == E7_FILE_TYPE_AttenuationCorrection)\
-    return(((ECAT7_ATTENUATION *)e7_matrix_[num])->HeaderPtr()->var[idx]);\
-   return(0);\
- }\
-\
-void ECAT7::Attn_##var(const type var, const unsigned short int idx,\
-                       const unsigned short int num) const\
- { if ((idx >= maxidx) || (e7_main_header_ == NULL) ||\
-       (e7_matrix_.size() <= num))  return;\
-   if (e7_main_header_->HeaderPtr()->file_type ==\
-       E7_FILE_TYPE_AttenuationCorrection)\
-                                                           /* change value */ \
-    ((ECAT7_ATTENUATION *)e7_matrix_[num])->HeaderPtr()->var[idx]=var;\
- }
        // generate code for the following header values of attenuation matrices
 // ahc This God-awful code generates same-named setters/getters
 // Indentation and colouring are wrong because these are all #define calls!  FFS.
 // Attn(data_type, signed short int)
-Attn(data_type, ecat_matrix::MatrixDataType)
 Attn(num_dimensions, signed short int)
 Attn(attenuation_type, signed short int)
 Attn(num_r_elements, unsigned short int)
@@ -1006,25 +959,115 @@ AttnArray(additional_atten_coeff, float, 8)
 Attn(edge_finding_threshold, float)
 Attn(storage_order, signed short int)
 Attn(span, signed short int)
+
+// ahc explicitly implementing methods created by macros
+
+// Return true if e7_main_header_->HeaderPtr()->file_type is correct for called class.
+
+template <typename T> bool ECAT7::valid_main_header_file_type(void) {
+  bool valid = false;
+  std::type_info calling_type = typeid(T);
+
+  if (e7_main_header_ ) {
+    switch (e7_main_header_->HeaderPtr()->file_type) {
+    case E7_FILE_TYPE_Sinogram:
+      valid = (calling_type == typeid(ECAT7_SCAN));
+      break;
+    case E7_FILE_TYPE_AttenuationCorrection:
+      valid = (calling_type == typeid(ECAT7_ATTENUATION));
+      break;
+    case E7_FILE_TYPE_Normalization:
+      valid = (calling_type == typeid(ECAT7_NORM));
+      break;
+    case E7_FILE_TYPE_PolarMap:
+      valid = (calling_type == typeid(ECAT7_POLAR));
+      break;
+    case E7_FILE_TYPE_Image8:
+    case E7_FILE_TYPE_Image16:
+    case E7_FILE_TYPE_Volume8:
+    case E7_FILE_TYPE_Volume16:
+      valid = (calling_type == typeid(ECAT7_IMAGE));
+      break;
+    case E7_FILE_TYPE_3D_Sinogram8:
+    case E7_FILE_TYPE_3D_Sinogram16:
+    case E7_FILE_TYPE_3D_SinogramFloat:
+      valid = (calling_type == typeid(ECAT7_SCAN3D));
+      break;
+    case E7_FILE_TYPE_3D_Normalization:
+      valid = (calling_type == typeid(ECAT7_NORM3D));
+      break;
+    default:
+      LOG_EXIT("Unknown file type {} for class {}", e7_main_header_->HeaderPtr()->file_type, typeid(T).name());
+    }
+  } else {
+    LOG_EXIT("e7_main_header_ NULL");
+  }
+  return valid;
+}
+
+// Return ECAT7_MATRIX-derived object at given index, checking class.
+
+template <typename T>T *ECAT7::get_matrix(int t_matrix_index) {
+  ECAT7_MATRIX *matrix_element = e7_matrix_.at(t_matrix_index);  // Exception if out of range
+  // std::type_info called_type  = typeid(matrix_element);
+  // std::type_info calling_type = typeid(T);
+  // if (called_type != calling_type)
+  //   LOG_EXIT("Calling type {} on type {}", calling_type.name(), called_type.name());
+  return static_cast<T *>(matrix_element);
+}
+
+template <typename T> ecat_matrix::MatrixDataType ECAT7::get_matrix_object_data_type(int t_matrix_index) {
+  if (valid_main_header_file_type<T>()) {
+    T *matrix_object = get_matrix<T>(t_matrix_index);
+    data_type = matrix_object->HeaderPtr()->get_data_type();
+  }
+}
+
+ecat_matrix::MatrixDataType ECAT7::Attn_data_type(int t_matrix_index) {
+  return get_matrix_object_data_type<ECAT7_ATTENUATION>(t_matrix_index);
+}
+
+void ECAT7::Attn_data_type(ecat_matrix::MatrixDataType t_data_type) {
+
+}
+
+/*---------------------------------------------------------------------------*/
+/* AttnArray: request/change value from array in attenuation header                 */
+#define AttnArray(var, type, maxidx)\
+type ECAT7::Attn_##var(const unsigned short int idx, const unsigned short int num) const {\
+  if ((idx >= maxidx) || (e7_main_header_ == NULL) || (e7_matrix_.size() <= num))\
+    return(0);\
+  if (e7_main_header_->HeaderPtr()->file_type == E7_FILE_TYPE_AttenuationCorrection)\
+    return(((ECAT7_ATTENUATION *)e7_matrix_[num])->HeaderPtr()->var[idx]);\
+  return(0);\
+ }\
+\
+void ECAT7::Attn_##var(const type var, const unsigned short int idx, const unsigned short int num) const {\
+  if ((idx >= maxidx) || (e7_main_header_ == NULL) || (e7_matrix_.size() <= num))\
+    return;\
+  if (e7_main_header_->HeaderPtr()->file_type == E7_FILE_TYPE_AttenuationCorrection)\
+    ((ECAT7_ATTENUATION *)e7_matrix_[num])->HeaderPtr()->var[idx]=var;\
+ }
+
 AttnArray(z_elements, signed short int, 64)
 AttnArray(fill_unused, signed short int, 86)
 AttnArray(fill_user, signed short int, 50)
 
 /*---------------------------------------------------------------------------*/
-/* Dir: request value from directory                                         */
-/*      change value in directory                                            */
-/*---------------------------------------------------------------------------*/
-#define Dir(var, type)\
-type ECAT7::Dir_##var(const unsigned short int idx) const\
- { if (e7_directory_ == NULL) return(0);\
-   if (idx >= e7_directory_->NumberOfMatrices()) return(0);\
-   return(e7_directory_->HeaderPtr()[idx].var);            /* request value */ \
+/* Dir: request/change value from directory                                         */
+#define Dir(t_var, t_type)\
+t_type ECAT7::Dir_##t_var(const unsigned short int idx) const {\
+  if (e7_directory_ == NULL)\
+    return(0);\
+  if (idx >= e7_directory_->NumberOfMatrices())\
+    return(0);\
+   return(e7_directory_->HeaderPtr()[idx].t_var);
  }\
 \
-void ECAT7::Dir_##var(const type var, const unsigned short int idx) const\
+void ECAT7::Dir_##t_var(const t_type t_var, const unsigned short int idx) const\
  { if (e7_directory_ == NULL) return;\
    if (idx >= e7_directory_->NumberOfMatrices()) return;\
-   e7_directory_->HeaderPtr()[idx].var=var;                 /* change value */ \
+   e7_directory_->HeaderPtr()[idx].t_var=t_var;                 /* change value */ \
  }
                        // generate code for the following values of directories
 Dir(bed, signed long int)
@@ -1034,106 +1077,78 @@ Dir(plane, signed long int)
 Dir(data, signed long int)
 
 /*---------------------------------------------------------------------------*/
-/* Image: request value from image header                                    */
-/*        change value in image header                                       */
-/*---------------------------------------------------------------------------*/
-#define Image(var, type)\
-type ECAT7::Image_##var(const unsigned short int num) const\
- { signed short int ft;\
-   \
+/* Image: request/change value from image header                                    */
+#define Image(t_var, t_type)\
+t_type ECAT7::Image_##t_var(const unsigned short int num) const {\
+ signed short int ft;\
    if ((e7_main_header_ == NULL) || (e7_matrix_.size() <= num)) return(0);\
    ft= e7_main_header_->HeaderPtr()->file_type;\
-   if ((ft == E7_FILE_TYPE_Image8) || (ft == E7_FILE_TYPE_Image16) ||\
-       (ft == E7_FILE_TYPE_Volume8) || (ft == E7_FILE_TYPE_Volume16))\
-                                                          /* request value */ \
-    return(((ECAT7_IMAGE *)e7_matrix_[num])->HeaderPtr()->var);\
+   if ((ft == E7_FILE_TYPE_Image8) || (ft == E7_FILE_TYPE_Image16) || (ft == E7_FILE_TYPE_Volume8) || (ft == E7_FILE_TYPE_Volume16))\
+    return(((ECAT7_IMAGE *)e7_matrix_[num])->HeaderPtr()->t_var);\
    return(0);\
  }\
 \
-void ECAT7::Image_##var(const type var, const unsigned short int num) const\
- { signed short int ft;\
-   \
-   if ((e7_main_header_ == NULL) || (e7_matrix_.size() <= num)) return;\
+void ECAT7::Image_##t_var(const t_type t_var, const unsigned short int num) const {\
+ signed short int ft;\
+   if ((e7_main_header_ == NULL) || (e7_matrix_.size() <= num))\
+    return;\
    ft= e7_main_header_->HeaderPtr()->file_type;\
-   if ((ft == E7_FILE_TYPE_Image8) || (ft == E7_FILE_TYPE_Image16) ||\
-       (ft == E7_FILE_TYPE_Volume8) || (ft == E7_FILE_TYPE_Volume16))\
-    ((ECAT7_IMAGE *)e7_matrix_[num])->HeaderPtr()->var=var; /* change value */ \
+   if ((ft == E7_FILE_TYPE_Image8) || (ft == E7_FILE_TYPE_Image16) || (ft == E7_FILE_TYPE_Volume8) || (ft == E7_FILE_TYPE_Volume16))\
+    ((ECAT7_IMAGE *)e7_matrix_[num])->HeaderPtr()->t_var=t_var;
  }
 
 /*---------------------------------------------------------------------------*/
-/* ImageArray: request value from array in image header                      */
-/*             change value in array in image header                         */
-/*---------------------------------------------------------------------------*/
-#define ImageArray(var, type, maxidx)\
-type ECAT7::Image_##var(const unsigned short int idx,\
-                        const unsigned short int num) const\
- { signed short int ft;\
-   \
-   if ((idx >= maxidx) || (e7_main_header_ == NULL) ||\
-       (e7_matrix_.size() <= num)) return(0);\
+/* ImageArray: request/change value from array in image header                      */
+#define ImageArray(t_var, t_type, maxidx)\
+t_type ECAT7::Image_##t_var(const unsigned short int idx, const unsigned short int num) const {\
+ signed short int ft;\
+   if ((idx >= maxidx) || (e7_main_header_ == NULL) || (e7_matrix_.size() <= num))\
+    return(0);\
    ft= e7_main_header_->HeaderPtr()->file_type;\
-   if ((ft == E7_FILE_TYPE_Image8) || (ft == E7_FILE_TYPE_Image16) ||\
-       (ft == E7_FILE_TYPE_Volume8) || (ft == E7_FILE_TYPE_Volume16))\
-                                                          /* request value */ \
-    return(((ECAT7_IMAGE *)e7_matrix_[num])->HeaderPtr()->var[idx]);\
+   if ((ft == E7_FILE_TYPE_Image8) || (ft == E7_FILE_TYPE_Image16) || (ft == E7_FILE_TYPE_Volume8) || (ft == E7_FILE_TYPE_Volume16))\
+    return(((ECAT7_IMAGE *)e7_matrix_[num])->HeaderPtr()->t_var[idx]);\
    return(0);\
  }\
 \
-void ECAT7::Image_##var(const type var, const unsigned short int idx,\
-                        const unsigned short int num) const\
- { signed short int ft;\
-   \
-   if ((idx >= maxidx) || (e7_main_header_ == NULL) ||\
-       (e7_matrix_.size() <= num)) return;\
+void ECAT7::Image_##t_var(const t_type t_var, const unsigned short int idx, const unsigned short int num) const {\
+ signed short int ft;\
+   if ((idx >= maxidx) || (e7_main_header_ == NULL) || (e7_matrix_.size() <= num))\
+    return;\
    ft= e7_main_header_->HeaderPtr()->file_type;\
-   if ((ft == E7_FILE_TYPE_Image8) || (ft == E7_FILE_TYPE_Image16) ||\
-       (ft == E7_FILE_TYPE_Volume8) || (ft == E7_FILE_TYPE_Volume16))\
-                                                           /* change value */ \
-    ((ECAT7_IMAGE *)e7_matrix_[num])->HeaderPtr()->var[idx]=var;\
+   if ((ft == E7_FILE_TYPE_Image8) || (ft == E7_FILE_TYPE_Image16) || (ft == E7_FILE_TYPE_Volume8) || (ft == E7_FILE_TYPE_Volume16))\
+    ((ECAT7_IMAGE *)e7_matrix_[num])->HeaderPtr()->t_var[idx]=t_var;\
  }
 
 /*---------------------------------------------------------------------------*/
-/* ImageStr: request string from image header                                */
-/*           change string in image header                                   */
-/*---------------------------------------------------------------------------*/
+/* ImageStr: request/change string from image header                                */
 #define ImageStr(var, len)\
-unsigned char *ECAT7::Image_##var(const unsigned short int num) const\
- { signed short int ft;\
-   \
-   if ((e7_main_header_ == NULL) || (e7_matrix_.size() <= num)) return(NULL);\
-   ft= e7_main_header_->HeaderPtr()->file_type;\
-   if ((ft == E7_FILE_TYPE_Image8) || (ft == E7_FILE_TYPE_Image16) ||\
-       (ft == E7_FILE_TYPE_Volume8) || (ft == E7_FILE_TYPE_Volume16))\
-    { unsigned char *str=NULL;\
- \
-      try\
-      { str=new unsigned char[strlen((char *)((ECAT7_IMAGE *)e7_matrix_[num])->\
-                                             HeaderPtr()->var)+1];\
-                                                          /* request value */ \
-        return((unsigned char *)strcpy((char *)str,\
-                                     (char *)((ECAT7_IMAGE *)e7_matrix_[num])->\
-                                             HeaderPtr()->var));\
+unsigned char *ECAT7::Image_##var(const unsigned short int num) const {\
+  signed short int ft;\
+  if ((e7_main_header_ == NULL) || (e7_matrix_.size() <= num))\
+    return(NULL);\
+   ft = e7_main_header_->HeaderPtr()->file_type;\
+   if ((ft == E7_FILE_TYPE_Image8) || (ft == E7_FILE_TYPE_Image16) || (ft == E7_FILE_TYPE_Volume8) || (ft == E7_FILE_TYPE_Volume16)) {\
+     unsigned char *str=NULL;\
+      try {\
+       str=new unsigned char[strlen((char *)((ECAT7_IMAGE *)e7_matrix_[num])->HeaderPtr()->var)+1];\
+        return((unsigned char *)strcpy((char *)str, (char *)((ECAT7_IMAGE *)e7_matrix_[num])->HeaderPtr()->var));\
       }\
-      catch (...)\
-        { if (str != NULL) delete[] str;\
-          throw;\
+      catch (...) {\
+        if (str != NULL)\
+          delete[] str;\
+        throw;\
        }\
     }\
    return(NULL);\
  }\
 \
-void ECAT7::Image_##var(unsigned char * const var,\
-                        const unsigned short int num) const\
- { signed short int ft;\
-   \
+void ECAT7::Image_##var(unsigned char * const var, const unsigned short int num) const {\
+ signed short int ft;\
    if ((var == NULL) || (e7_main_header_ == NULL) || (e7_matrix_.size() <= num))\
     return;\
    ft= e7_main_header_->HeaderPtr()->file_type;\
-   if ((ft == E7_FILE_TYPE_Image8) || (ft == E7_FILE_TYPE_Image16) ||\
-       (ft == E7_FILE_TYPE_Volume8) || (ft == E7_FILE_TYPE_Volume16))\
-    {                                                      /* change value */ \
-      strncpy((char *)((ECAT7_IMAGE *)e7_matrix_[num])->HeaderPtr()->var,\
-              (char *)var, len-1);\
+   if ((ft == E7_FILE_TYPE_Image8) || (ft == E7_FILE_TYPE_Image16) || (ft == E7_FILE_TYPE_Volume8) || (ft == E7_FILE_TYPE_Volume16)) {\
+      strncpy((char *)((ECAT7_IMAGE *)e7_matrix_[num])->HeaderPtr()->var, (char *)var, len-1);\
       ((ECAT7_IMAGE *)e7_matrix_[num])->HeaderPtr()->var[len-1]=0;\
     }\
  }
@@ -1202,50 +1217,41 @@ ImageArray(fill_cti, signed short int, 87)
 ImageArray(fill_user, signed short int, 48)
 
 /*---------------------------------------------------------------------------*/
-/* Main: request value from main header                                      */
-/*       change value in main header                                         */
-/*---------------------------------------------------------------------------*/
-#define Main(var, type)\
-type ECAT7::Main_##var() const\
+/* Main: request/change value from main header                                      */
+#define Main(var, t_type)\
+t_type ECAT7::Main_##var() const\
  { if (e7_main_header_ == NULL) return(0);\
-   return(e7_main_header_->HeaderPtr()->var);              /* request value */ \
+   return(e7_main_header_->HeaderPtr()->var);
  }\
 \
-void ECAT7::Main_##var(const type var) const\
+void ECAT7::Main_##var(const t_type var) const\
  { if (e7_main_header_ != NULL)\
-    e7_main_header_->HeaderPtr()->var=var;                  /* change value */ \
+    e7_main_header_->HeaderPtr()->var=var;
  }
 
 /*---------------------------------------------------------------------------*/
-/* MainArray: request value from array in main header                        */
-/*            change value in array in main header                           */
-/*---------------------------------------------------------------------------*/
-#define MainArray(var, type, maxidx)\
-type ECAT7::Main_##var(const unsigned short int idx) const\
+/* MainArray: request/change value from array in main header                        */
+#define MainArray(var, t_type, maxidx)\
+t_type ECAT7::Main_##var(const unsigned short int idx) const\
  { if ((idx >= maxidx) || (e7_main_header_ == NULL)) return(0);\
-   return(e7_main_header_->HeaderPtr()->var[idx]);         /* request value */ \
+   return(e7_main_header_->HeaderPtr()->var[idx]);
  }\
 \
-void ECAT7::Main_##var(const type var, const unsigned short int idx) const\
+void ECAT7::Main_##var(const t_type var, const unsigned short int idx) const\
  { if ((idx < maxidx) && (e7_main_header_ != NULL))\
-    e7_main_header_->HeaderPtr()->var[idx]=var;             /* change value */ \
+    e7_main_header_->HeaderPtr()->var[idx]=var;
  }
 
 /*---------------------------------------------------------------------------*/
-/* MainStr: request string from main header                                  */
-/*          change string in main header                                     */
-/*---------------------------------------------------------------------------*/
+/* MainStr: request/change string from main header                                  */
 #define MainStr(var, len)\
-unsigned char *ECAT7::Main_##var() const\
- { if (e7_main_header_ == NULL) return(NULL);\
-   unsigned char *str=NULL;\
- \
-   try\
-   { str=new unsigned char[strlen((char *)\
-                                  e7_main_header_->HeaderPtr()->var)+1];\
-                                                         /* request value */ \
-     return((unsigned char *)strcpy((char *)str,\
-                                   (char *)e7_main_header_->HeaderPtr()->var));\
+unsigned char *ECAT7::Main_##var() const {\
+ if (e7_main_header_ == NULL)\
+  return(NULL);\
+  unsigned char *str=NULL;\
+   try {\
+    str=new unsigned char[strlen((char *)e7_main_header_->HeaderPtr()->var)+1];\
+     return((unsigned char *)strcpy((char *)str,(char *)e7_main_header_->HeaderPtr()->var));\
    }\
    catch (...)\
     { if (str != NULL) delete[] str;\
@@ -1253,14 +1259,13 @@ unsigned char *ECAT7::Main_##var() const\
     }\
  }\
 \
-void ECAT7::Main_##var(unsigned char * const var) const\
- { if ((var != NULL) &&  (e7_main_header_ != NULL))\
-    {                                                      /* change value */ \
+void ECAT7::Main_##var(unsigned char * const var) const {\
+ if ((var != NULL) &&  (e7_main_header_ != NULL)) {\
       strncpy((char *)e7_main_header_->HeaderPtr()->var, (char *)var, len-1);\
       e7_main_header_->HeaderPtr()->var[len-1]=0;\
     }\
  }
-                       // generate code for the following values of main header
+
 MainStr(magic_number, 14)
 MainStr(original_file_name, 32)
 Main(sw_version, signed short int)
@@ -1327,18 +1332,19 @@ MainArray(fill_cti, signed short int, 6)
 /*       change value in norm header                                         */
 /*---------------------------------------------------------------------------*/
 #define Norm(var, type)\
-type ECAT7::Norm_##var(const unsigned short int num) const\
- { if ((e7_main_header_ == NULL) || (e7_matrix_.size() <= num)) return(0);\
-   if (e7_main_header_->HeaderPtr()->file_type == E7_FILE_TYPE_Normalization)\
-                                                          /* request value */ \
+type ECAT7::Norm_##var(const unsigned short int num) const {\
+  if ((e7_main_header_ == NULL) || (e7_matrix_.size() <= num))\
+    return(0);\
+  if (e7_main_header_->HeaderPtr()->file_type == E7_FILE_TYPE_Normalization)\
     return(((ECAT7_NORM *)e7_matrix_[num])->HeaderPtr()->var);\
    return(0);\
  }\
 \
-void ECAT7::Norm_##var(const type var, const unsigned short int num) const\
- { if ((e7_main_header_ == NULL) || (e7_matrix_.size() <= num)) return;\
-   if (e7_main_header_->HeaderPtr()->file_type == E7_FILE_TYPE_Normalization)\
-    ((ECAT7_NORM *)e7_matrix_[num])->HeaderPtr()->var=var;  /* change value */ \
+void ECAT7::Norm_##var(const type var, const unsigned short int num) const {\
+  if ((e7_main_header_ == NULL) || (e7_matrix_.size() <= num))\
+    return;\
+  if (e7_main_header_->HeaderPtr()->file_type == E7_FILE_TYPE_Normalization)\
+    ((ECAT7_NORM *)e7_matrix_[num])->HeaderPtr()->var=var;
  }
 
 /*---------------------------------------------------------------------------*/
@@ -1346,25 +1352,21 @@ void ECAT7::Norm_##var(const type var, const unsigned short int num) const\
 /*            change value in array in norm header                           */
 /*---------------------------------------------------------------------------*/
 #define NormArray(var, type, maxidx)\
-type ECAT7::Norm_##var(const unsigned short int idx,\
-                       const unsigned short int num) const\
- { if ((idx >= maxidx) || (e7_main_header_ == NULL) ||\
-       (e7_matrix_.size() <= num)) return(0);\
-   if (e7_main_header_->HeaderPtr()->file_type == E7_FILE_TYPE_Normalization)\
-                                                          /* request value */ \
+type ECAT7::Norm_##var(const unsigned short int idx, const unsigned short int num) const {\
+  if ((idx >= maxidx) || (e7_main_header_ == NULL) || (e7_matrix_.size() <= num))\
+    return(0);\
+  if (e7_main_header_->HeaderPtr()->file_type == E7_FILE_TYPE_Normalization)\
     return(((ECAT7_NORM *)e7_matrix_[num])->HeaderPtr()->var[idx]);\
    return(0);\
  }\
 \
-void ECAT7::Norm_##var(const type var, const unsigned short int idx,\
-                       const unsigned short int num) const\
- { if ((idx >= maxidx) || (e7_main_header_ == NULL) ||\
-       (e7_matrix_.size() <= num)) return;\
-   if (e7_main_header_->HeaderPtr()->file_type == E7_FILE_TYPE_Normalization)\
-                                                           /* change value */ \
+void ECAT7::Norm_##var(const type var, const unsigned short int idx, const unsigned short int num) const {\
+  if ((idx >= maxidx) || (e7_main_header_ == NULL) || (e7_matrix_.size() <= num))\
+    return;\
+  if (e7_main_header_->HeaderPtr()->file_type == E7_FILE_TYPE_Normalization)\
     ((ECAT7_NORM *)e7_matrix_[num])->HeaderPtr()->var[idx]=var;\
  }
-              // generate code for the following header values of norm matrices
+
 // Norm(data_type, signed short int)
 Norm(data_type, ecat_matrix::MatrixDataType)
 Norm(num_dimensions, signed short int)

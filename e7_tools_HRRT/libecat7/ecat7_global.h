@@ -24,7 +24,9 @@ const std::string ECAT7_NORM2_EXTENSION = ".n";     // norm file extension
 
 // size of a record in the ECAT7 file
 const unsigned long int E7_RECLEN = 512;
+
 // data types in file
+// ahc This duplicates ecat_matrix::MatrixDataType
 const int E7_DATA_TYPE_UnknownMatDataType = 0;        // unknown data type
 const int E7_DATA_TYPE_ByteData          = 1;                 // byte data
 const int E7_DATA_TYPE_VAX_Ix2           = 2;   // 2 byte VAX integer data
@@ -69,9 +71,8 @@ const int E7_FILTER_CODE_Boxcar     = 10;                 // boxcar filter
 // types of scatter
 const int E7_SCATTER_TYPE_NoScatter           = 0;           // no scatter
 const int E7_SCATTER_TYPE_ScatterDeconvolution = 1; // scatter deconvolution
-const int E7_SCATTER_TYPE_ScatterSimulated    = 2;    // simulated scatter
-// dual energy window scatter
-const int E7_SCATTER_TYPE_ScatterDualEnergy   = 3;
+const int E7_SCATTER_TYPE_ScatterSimulated    = 2;  // simulated scatter
+const int E7_SCATTER_TYPE_ScatterDualEnergy   = 3;  // dual energy window scatter
 
 // reconstruction algorithms
 const int E7_RECON_TYPE_FBPJ         =  0;      // filtered backprojection

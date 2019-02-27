@@ -13,14 +13,9 @@
 #include "ecat7_utils.h"
 #include "exception.h"
 
-/*- methods -----------------------------------------------------------------*/
-
 /*---------------------------------------------------------------------------*/
 /*! \brief Initialize object.
-
-    Initialize object.
  */
-/*---------------------------------------------------------------------------*/
 ECAT7_MATRIX::ECAT7_MATRIX()
  { data=NULL;
    datatype=E7_DATATYPE_UNKNOWN;
@@ -28,10 +23,7 @@ ECAT7_MATRIX::ECAT7_MATRIX()
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Destroy object.
-
-    Destroy object.
  */
-/*---------------------------------------------------------------------------*/
 ECAT7_MATRIX::~ECAT7_MATRIX()
  { DeleteData();
  }
@@ -41,15 +33,12 @@ ECAT7_MATRIX::~ECAT7_MATRIX()
     \param[in] e7   object to copy
     \return this object with new content
  
-    This operator copies the dataset and datatype from another object into
-    this one.
+    Copies dataset and datatype from another object into this one.
  */
-/*---------------------------------------------------------------------------*/
 ECAT7_MATRIX& ECAT7_MATRIX::operator = (const ECAT7_MATRIX &e7)
  { if (this != &e7)
     { try
       { unsigned long int matrix_size;
-
         DeleteData();
                                         // copy local variables into new object
         matrix_size=e7.DataSize();
@@ -87,14 +76,10 @@ ECAT7_MATRIX& ECAT7_MATRIX::operator = (const ECAT7_MATRIX &e7)
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Convert byte dataset into float dataset.
-
-    Convert byte dataset into float dataset.
  */
-/*---------------------------------------------------------------------------*/
 void ECAT7_MATRIX::Byte2Float()
  { if ((data == NULL) || (datatype != E7_DATATYPE_BYTE)) return;
    float *buffer=NULL;
-
    try
    { buffer=new float[DataSize()];
      for (unsigned long int xyz=0; xyz < DataSize(); xyz++)
@@ -110,11 +95,8 @@ void ECAT7_MATRIX::Byte2Float()
  }
 
 /*---------------------------------------------------------------------------*/
-/*! \brief Remove dataset from object.
-
-    The dataset is removed from the object without deleting it.
+/*! \brief Remove dataset from object.  The dataset is removed from the object without deleting it.
  */
-/*---------------------------------------------------------------------------*/
 void ECAT7_MATRIX::DataDeleted()
  { data=NULL;                                        // removed but not deleted
    datatype=E7_DATATYPE_UNKNOWN;
@@ -123,10 +105,7 @@ void ECAT7_MATRIX::DataDeleted()
 /*---------------------------------------------------------------------------*/
 /*! \brief Request size of dataset.
     \return size of dataset
- 
-    Request size of dataset.
  */
-/*---------------------------------------------------------------------------*/
 unsigned long int ECAT7_MATRIX::DataSize() const
  { return((unsigned long int)Width()*(unsigned long int)Height()*
           (unsigned long int)Depth());
@@ -135,12 +114,9 @@ unsigned long int ECAT7_MATRIX::DataSize() const
 /*---------------------------------------------------------------------------*/
 /*! \brief Request datatype of dataset.
     \return datatype of dataset
- 
-    Request datatype of dataset.
  */
-/*---------------------------------------------------------------------------*/
-unsigned short int ECAT7_MATRIX::DataType() const
- { return(datatype);
+unsigned short int ECAT7_MATRIX::DataType() const { 
+  return(datatype);
  }
 
 /*---------------------------------------------------------------------------*/
@@ -164,10 +140,7 @@ unsigned short int ECAT7_MATRIX::DataTypeOrig() const
 /*! \brief Delete dataset.
     \exception REC_UNKNOWN_ECAT7_DATATYPE data type not supported for ECAT7
                                           files
-
-    Delete dataset.
  */
-/*---------------------------------------------------------------------------*/
 void ECAT7_MATRIX::DeleteData()
  { if (data == NULL) return;
    switch (datatype)
@@ -194,9 +167,7 @@ void ECAT7_MATRIX::DeleteData()
     \return depth of dataset
     \exception REC_INVALID_ECAT7_MATRIXTYPE the requested operation is not
                                             defined for this ECAT7 matrix type
- 
-    Request depth of dataset. This method has to be overloaded in derived
-    classes.
+    Request depth of dataset. Must be overloaded in derived classes.
  */
 /*---------------------------------------------------------------------------*/
 unsigned short int ECAT7_MATRIX::Depth() const
@@ -212,8 +183,7 @@ unsigned short int ECAT7_MATRIX::Depth() const
     \exception REC_INVALID_ECAT7_MATRIXTYPE the requested operation is not
                                             defined for this ECAT7 matrix type
  
-    Request height of dataset. This method has to be overloaded in derived
-    classes.
+    Request height of dataset. Must be overloaded in derived classes
  */
 /*---------------------------------------------------------------------------*/
 unsigned short int ECAT7_MATRIX::Height() const
@@ -264,7 +234,7 @@ void *ECAT7_MATRIX::LoadData(std::ifstream * const file,
     \exception REC_INVALID_ECAT7_MATRIXTYPE the requested operation is not
                                             defined for this ECAT7 matrix type
 
-    Load header of matrix. This method has to be overloaded in derived classes.
+    Load header of matrix. Must be overloaded in derived classes.
  */
 /*---------------------------------------------------------------------------*/
 void ECAT7_MATRIX::LoadHeader(std::ifstream * const)
@@ -295,12 +265,8 @@ void ECAT7_MATRIX::getecat_matrix::MatrixData(void * const ptr, const unsigned s
  }
 
 /*---------------------------------------------------------------------------*/
-/*! \brief Request pointer to dataset.
-    \return pointer to dataset
- 
-    Request pointer to dataset.
+/*! \brief Request pointer to dataset.    \return pointer to dataset
  */
-/*---------------------------------------------------------------------------*/
 void *ECAT7_MATRIX::getecat_matrix::MatrixData() const
  { return(data);
  }
@@ -308,13 +274,9 @@ void *ECAT7_MATRIX::getecat_matrix::MatrixData() const
 /*---------------------------------------------------------------------------*/
 /*! \brief Calculate number of records needed for dataset.
     \return number of records for dataset
- 
-    Calculate number of records needed for dataset.
  */
-/*---------------------------------------------------------------------------*/
 unsigned long int ECAT7_MATRIX::NumberOfRecords() const
  { unsigned long int records, factor=1;
-
    switch (datatype)
     { case E7_DATATYPE_BYTE:  factor=1;
                               break;
@@ -334,8 +296,7 @@ unsigned long int ECAT7_MATRIX::NumberOfRecords() const
     \exception REC_INVALID_ECAT7_MATRIXTYPE the requested operation is not
                                             defined for this ECAT7 matrix type
 
-    Print header information into string list. This method has to be overloaded
-    in derived classes.
+    Print header information into string list. Must be overloaded in derived classes.
  */
 /*---------------------------------------------------------------------------*/
 void ECAT7_MATRIX::PrintHeader(std::list <std::string> * const,
@@ -376,25 +337,17 @@ void ECAT7_MATRIX::SaveData(std::ofstream * const file) const
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Store header of matrix.
-    \exception REC_INVALID_ECAT7_MATRIXTYPE the requested operation is not
-                                            defined for this ECAT7 matrix type
-
-    Store header of matrix.
+    \exception REC_INVALID_ECAT7_MATRIXTYPE requested operation not defined for this ECAT7 matrix type
  */
-/*---------------------------------------------------------------------------*/
 void ECAT7_MATRIX::SaveHeader(std::ofstream * const) const
  {                        // this method has to be redefined in derived classes
    throw Exception(REC_INVALID_ECAT7_MATRIXTYPE,
-                   "The requested operation is not defined for this ECAT7 "
-                   "matrix type.");
+                   "The requested operation is not defined for this ECAT7 matrix type.");
  }
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Convert dataset from short int to float.
-
-    Convert dataset from short int to float.
  */
-/*---------------------------------------------------------------------------*/
 void ECAT7_MATRIX::Short2Float()
  { if ((data == NULL) || (datatype != E7_DATATYPE_SHORT)) return;
    float *buffer=NULL;
@@ -416,15 +369,10 @@ void ECAT7_MATRIX::Short2Float()
 /*---------------------------------------------------------------------------*/
 /*! \brief Request width of dataset.
     \return width of dataset
-    \exception REC_INVALID_ECAT7_MATRIXTYPE the requested operation is not
-                                            defined for this ECAT7 matrix type
- 
-    Request width of dataset.
+    \exception REC_INVALID_ECAT7_MATRIXTYPE  not defined for this ECAT7 matrix type
  */
 /*---------------------------------------------------------------------------*/
-unsigned short int ECAT7_MATRIX::Width() const
- {                        // this method has to be redefined in derived classes
+unsigned short int ECAT7_MATRIX::Width() const {
    throw Exception(REC_INVALID_ECAT7_MATRIXTYPE,
-                   "The requested operation is not defined for this ECAT7 "
-                   "matrix type.");
+                   "The requested operation is not defined for this ECAT7 matrix type.");
  }
