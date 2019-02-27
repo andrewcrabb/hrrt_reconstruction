@@ -176,7 +176,8 @@ void ECAT7_ATTENUATION::LoadHeader(std::ifstream * const file)
    try
    { unsigned short int i;
                        // DataChanger is used to read data system independently
-     dc=new DataChanger(E7_RECLEN, false, true);
+     // dc = new DataChanger(E7_RECLEN);
+     dc=new DataChanger(E7_RECLEN);
      dc->LoadBuffer(file);                             // load data into buffer
                                                    // retrieve data from buffer
      dc->Value(&ah.data_type);
@@ -363,7 +364,7 @@ void ECAT7_ATTENUATION::SaveHeader(std::ofstream * const file) const
    try
    { unsigned short int i;
                       // DataChanger is used to store data system independently
-     dc=new DataChanger(E7_RECLEN, false, true);
+     dc = new DataChanger(E7_RECLEN);
                                                        // fill data into buffer
      dc->Value(ah.data_type);
      dc->Value(ah.num_dimensions);

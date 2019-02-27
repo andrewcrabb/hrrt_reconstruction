@@ -18,12 +18,12 @@ class DataChanger
                   *bufptr,        /*!< pointer to current position in buffer */
                   *bufend;                     /*!< pointer to end of buffer */
     unsigned long int buffer_size;                   /*!< size of the buffer */
-    bool vax_format,          /*!< does system use VAX format from Digital ? */
-             /*!< is endianess of data different from endianess of machine ? */
-         swap_data;
+    // bool vax_format;          /*!< does system use VAX format from Digital ? */  Oh ffs
+    bool swap_data; /*!< is endianess of data different from endianess of machine ? */
    public:
-                                                               // create buffer
-    DataChanger(const unsigned long int, const bool, const bool);
+
+    // DataChanger(const unsigned long int, const bool, const bool);
+    DataChanger(long int);
     ~DataChanger();                                           // destroy buffer
     void LoadBuffer(std::ifstream * const);    // load buffer content from file
     void SaveBuffer(std::ofstream * const) const;// save buffer content to file
@@ -43,7 +43,6 @@ class DataChanger
     void Value(double * const);                                // read "double"
     void Value(const double);                                 // write "double"
     void Value(unsigned char * const, const unsigned short int); // read string
-                                                                // write string
-    void Value(const unsigned short int, const unsigned char * const);
+    void Value(const unsigned short int, const unsigned char * const); // write string
  };
 

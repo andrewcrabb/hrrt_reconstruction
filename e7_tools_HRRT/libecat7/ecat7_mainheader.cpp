@@ -64,13 +64,12 @@ ECAT7_MAINHEADER::tmain_header7 *ECAT7_MAINHEADER::HeaderPtr()
     Load main header of ECAT7 file.
  */
 /*---------------------------------------------------------------------------*/
-void ECAT7_MAINHEADER::LoadMainHeader(std::ifstream * const file)
- { DataChanger *dc=NULL;
+void ECAT7_MAINHEADER::LoadMainHeader(std::ifstream * const file) { 
+  DataChanger *dc = NULL;
 
    try
-   { unsigned short int i;
-                       // DataChanger is used to read data system independently
-     dc=new DataChanger(E7_RECLEN, false, true);
+   { unsigned short int i;                       // DataChanger is used to read data system independently
+     dc = new DataChanger(E7_RECLEN);
      dc->LoadBuffer(file);                             // load data into buffer
                                                    // retrieve data from buffer
      dc->Value(mh.magic_number, 14);
@@ -95,7 +94,7 @@ void ECAT7_MAINHEADER::LoadMainHeader(std::ifstream * const file)
      dc->Value(&mh.coin_samp_mode);
      dc->Value(&mh.axial_samp_mode);
      dc->Value(&mh.ecat_calibration_factor);
-     dc->Value(&mh.calibration_units);
+     dc->Value(&mh.calibration_units);       // ahc calibration_units used to be an int.  Now it's a scoped enum index to a map.
      dc->Value(&mh.calibration_units_label);
      dc->Value(&mh.compression_code);
      dc->Value(mh.study_type, 12);
@@ -167,83 +166,76 @@ void ECAT7_MAINHEADER::PrintMainHeader(
    sl->push_back(" Software Version:         "+toString(mh.sw_version));
    sl->push_back(" System type:              "+toString(mh.system_type));
    s=" File type:                "+toString(mh.file_type)+" (";
-   switch (mh.file_type)
-    { case E7_FILE_TYPE_Sinogram:
-       s+="Sinogram";
-       break;
-      case E7_FILE_TYPE_Image16:
-       s+="Image 16";
-       break;
-      case E7_FILE_TYPE_AttenuationCorrection:
-       s+="Attenuation Correction";
-       break;
-      case E7_FILE_TYPE_Normalization:
-       s+="Normalization";
-       break;
-      case E7_FILE_TYPE_PolarMap:
-       s+="Polar Map";
-       break;
-      case E7_FILE_TYPE_Volume8:
-       s+="Volume 8";
-       break;
-      case E7_FILE_TYPE_Volume16:
-       s+="Volume 16";
-       break;
-      case E7_FILE_TYPE_Projection8:
-       s+="Projection 8";
-       break;
-      case E7_FILE_TYPE_Projection16:
-       s+="Projection 16";
-       break;
-      case E7_FILE_TYPE_Image8:
-       s+="Image 8";
-       break;
-      case E7_FILE_TYPE_3D_Sinogram16:
-       s+="3D Sinogram 16";
-       break;
-      case E7_FILE_TYPE_3D_Sinogram8:
-       s+="3D Sinogram 8";
-       break;
-      case E7_FILE_TYPE_3D_Normalization:
-       s+="3D Normalization";
-       break;
-      case E7_FILE_TYPE_3D_SinogramFloat:
-       s+="3D Sinogram float";
-       break;
-      case E7_FILE_TYPE_Interfile:
-       s+="Interfile";
-       break;
-      case E7_FILE_TYPE_unknown:
-      default:
-       s+="unknown";
-       break;
-    }
+   // ahc
+   s += ecat_matrix::data_set_types.at(mh.file_type).name;
+   // switch (mh.file_type)
+   //  { case E7_FILE_TYPE_Sinogram:
+   //     s+="Sinogram";
+   //     break;
+   //    case E7_FILE_TYPE_Image16:
+   //     s+="Image 16";
+   //     break;
+   //    case E7_FILE_TYPE_AttenuationCorrection:
+   //     s+="Attenuation Correction";
+   //     break;
+   //    case E7_FILE_TYPE_Normalization:
+   //     s+="Normalization";
+   //     break;
+   //    case E7_FILE_TYPE_PolarMap:
+   //     s+="Polar Map";
+   //     break;
+   //    case E7_FILE_TYPE_Volume8:
+   //     s+="Volume 8";
+   //     break;
+   //    case E7_FILE_TYPE_Volume16:
+   //     s+="Volume 16";
+   //     break;
+   //    case E7_FILE_TYPE_Projection8:
+   //     s+="Projection 8";
+   //     break;
+   //    case E7_FILE_TYPE_Projection16:
+   //     s+="Projection 16";
+   //     break;
+   //    case E7_FILE_TYPE_Image8:
+   //     s+="Image 8";
+   //     break;
+   //    case E7_FILE_TYPE_3D_Sinogram16:
+   //     s+="3D Sinogram 16";
+   //     break;
+   //    case E7_FILE_TYPE_3D_Sinogram8:
+   //     s+="3D Sinogram 8";
+   //     break;
+   //    case E7_FILE_TYPE_3D_Normalization:
+   //     s+="3D Normalization";
+   //     break;
+   //    case E7_FILE_TYPE_3D_SinogramFloat:
+   //     s+="3D Sinogram float";
+   //     break;
+   //    case E7_FILE_TYPE_Interfile:
+   //     s+="Interfile";
+   //     break;
+   //    case E7_FILE_TYPE_unknown:
+   //    default:
+   //     s+="unknown";
+   //     break;
+   //  }
    sl->push_back(s+")");
-   sl->push_back(" Serial Number:            "+
-                 std::string((const char *)mh.serial_number));
+   sl->push_back(" Serial Number:            "+                 std::string((const char *)mh.serial_number));
          t = mh.scan_start_time;
          { s=asctime(gmtime(&t));
            s.erase(s.length()-1, 1);
          }
    sl->push_back(" Scan Start Time:          "+s);
-   sl->push_back(" Isotope Code:             "+
-                 std::string((const char *)mh.isotope_name));
-   sl->push_back(" Isotope Half-life:        "+
-                 toString(mh.isotope_halflife)+" sec.");
-   sl->push_back(" Radio-pharmaceutical:     "+
-                 std::string((const char *)mh.radiopharmaceutical));
-   sl->push_back(" Gantry Tilt:              "+toString(mh.gantry_tilt)+
-                 " deg.");
-   sl->push_back(" Gantry Rotation:          "+toString(mh.gantry_rotation)+
-                 " deg.");
-   sl->push_back(" Bed Elevation:            "+toString(mh.bed_elevation)+
-                 " cm");
-   sl->push_back(" Intrinsic Tilt:           "+toString(mh.intrinsic_tilt)+
-                 " deg.");
+   sl->push_back(" Isotope Code:             "+                 std::string((const char *)mh.isotope_name));
+   sl->push_back(" Isotope Half-life:        "+                 toString(mh.isotope_halflife)+" sec.");
+   sl->push_back(" Radio-pharmaceutical:     "+                 std::string((const char *)mh.radiopharmaceutical));
+   sl->push_back(" Gantry Tilt:              "+toString(mh.gantry_tilt)+                 " deg.");
+   sl->push_back(" Gantry Rotation:          "+toString(mh.gantry_rotation)+                 " deg.");
+   sl->push_back(" Bed Elevation:            "+toString(mh.bed_elevation)+                 " cm");
+   sl->push_back(" Intrinsic Tilt:           "+toString(mh.intrinsic_tilt)+                 " deg.");
    if (mh.wobble_speed == 0)
     sl->push_back(" Wobble Speed:             not wobbled");
-    else sl->push_back(" Wobble Speed:             "+toString(mh.wobble_speed)+
-                       " rpm");
+    else sl->push_back(" Wobble Speed:             "+toString(mh.wobble_speed)+                       " rpm");
    s=" Transmission Source Type: "+toString(mh.transm_source_type)+" (";
    switch (mh.transm_source_type)
     { case E7_TRANSM_SOURCE_TYPE_NoSrc: s+="None";         break;
@@ -253,10 +245,8 @@ void ECAT7_MAINHEADER::PrintMainHeader(
       default:                          s+="unknown";      break;
     }
    sl->push_back(s+")");
-   sl->push_back(" Distance Scanned:         "+toString(mh.distance_scanned)+
-                 " cm");
-   sl->push_back(" Transaxial FOV:           "+toString(mh.transaxial_fov)+
-                 " cm");
+   sl->push_back(" Distance Scanned:         "+toString(mh.distance_scanned)+                 " cm");
+   sl->push_back(" Transaxial FOV:           "+toString(mh.transaxial_fov)+                 " cm");
    s=" Angular Compression:      "+toString(mh.angular_compression)+" (";
    switch (mh.angular_compression)
     { case E7_ANGULAR_COMPRESSION_NoMash: s+="no mash";   break;
@@ -284,7 +274,7 @@ void ECAT7_MAINHEADER::PrintMainHeader(
        break;
     }
    sl->push_back(s+")");
-   s=" Axial Sample Mode:        "+toString(mh.axial_samp_mode)+" (";
+   s=" Axial Sample Mode:        " + toString(mh.axial_samp_mode) + " (";
    switch (mh.axial_samp_mode)
     { case E7_AXIAL_SAMP_MODE_Normal: s+="Normal";  break;
       case E7_AXIAL_SAMP_MODE_2X:     s+="2X";      break;
@@ -292,37 +282,38 @@ void ECAT7_MAINHEADER::PrintMainHeader(
       default:                        s+="unknown"; break;
     }
    sl->push_back(s+")");
-   s=" Calibration Factor:       "+toString(mh.ecat_calibration_factor);
+   s=" Calibration Factor:       " + toString(mh.ecat_calibration_factor);
    sl->push_back(s);
-   s=" Calibration Units:        "+toString(mh.calibration_units)+" (";
-   switch (mh.calibration_units)
-    { case E7_CALIBRATION_UNITS_Uncalibrated: s+="uncalibrated"; break;
-      case E7_CALIBRATION_UNITS_Calibrated:   s+="calibrated";   break;
-      default:                                s+="unknown";      break;
-    }
-   sl->push_back(s+")");
-   s=" Calibration Units Label:  "+toString(mh.calibration_units_label)+" (";
+   // s=" Calibration Units:        " + toString(mh.calibration_units) + " (";
+   // switch (mh.calibration_units)
+   //  { case E7_CALIBRATION_UNITS_Uncalibrated: s+="uncalibrated"; break;
+   //    case E7_CALIBRATION_UNITS_Calibrated:   s+="calibrated";   break;
+   //    default:                                s+="unknown";      break;
+   //  }
+   // sl->push_back(s+")");
+   sl->push_back(fmt::format("Calibration Units:        {} ({})", to_underlying(mh.calibration_units), ecat_matrix::calibration_status_[mh.calibration_units].status));
+
+   s=" Calibration Units Label:  " + toString(mh.calibration_units_label) + " (";
    switch (mh.calibration_units_label)
     { case E7_CALIBRATION_UNITS_LABEL_BloodFlow: s+="blood flow"; break;
       case E7_CALIBRATION_UNITS_LABEL_LMRGLU:    s+="lmrglu";     break;
       default:                                   s+="unknown";    break;
     }
    sl->push_back(s+")");
-   s=" Compression Code:         "+toString(mh.compression_code)+" (";
+   s=" Compression Code:         " + toString(mh.compression_code) + " (";
    switch (mh.compression_code)
     { case E7_COMPRESSION_CODE_CompNone: s+="none";    break;
       default:                           s+="unknown"; break;
     }
    sl->push_back(s+")");
-   sl->push_back(" Study Name:               "+
-                 std::string((const char *)mh.study_type));
-   sl->push_back(" Patient ID:               "+
-                 std::string((const char *)mh.patient_id));
-   sl->push_back("         Name:             "+
-                 std::string((const char *)mh.patient_name));
+   sl->push_back(" Study Name:               "+                 std::string((const char *)mh.study_type));
+   sl->push_back(" Patient ID:               "+                 std::string((const char *)mh.patient_id));
+   sl->push_back("         Name:             "+                 std::string((const char *)mh.patient_name));
    s="         Sex:              ";
-   if (mh.patient_sex == 0) s+="0";
-    else s+=mh.patient_sex;
+   if (mh.patient_sex == 0) 
+    s+="0";
+    else 
+      s+=mh.patient_sex;
    s+=" (";
    switch (mh.patient_sex)
     { case E7_PATIENT_SEX_SexMale:    s+="male";    break;
@@ -479,7 +470,7 @@ void ECAT7_MAINHEADER::SaveMainHeader(std::ofstream * const file) const
    try
    { unsigned short int i;
 
-     dc=new DataChanger(E7_RECLEN, false, true);
+     dc = new DataChanger(E7_RECLEN);
                                                         // put data into buffer
      dc->Value(14, mh.magic_number);
      dc->Value(32, mh.original_file_name);

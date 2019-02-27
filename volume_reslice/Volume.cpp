@@ -1283,7 +1283,8 @@ const char* _fname) const{
     // reject if dimensions not comaptible
     // get volume offset
     // sprintf(data_offset,offset);
-    ifh = (char**)calloc(END_OF_INTERFILE+1,sizeof(char*));
+    // ifh = (char**)calloc(END_OF_INTERFILE+1,sizeof(char*));
+    ifh = (char**)calloc(interfile::used_keys.size() + 1, sizeof(char*));
     ifh[VERSION_OF_KEYS] = "3.3";
     ifh[NAME_OF_DATA_FILE] = matfile->fname;
     ecat_matrix::MatrixData *header = matrix_read(matfile,_data->matnum,
@@ -1317,9 +1318,9 @@ const char* _fname) const{
     return NULL;
   }
   fprintf(fp,"!INTERFILE \n");
-  for (InterfileItem* item=used_keys; item->key!=END_OF_INTERFILE; item++) {
-    if (ifh[item->key] != 0 &&  item->key!= COLORTAB && 
-    item->key != TRANSFORMER )
+  // for (InterfileItem* item = used_keys; item->key != END_OF_INTERFILE; item++) {
+  for (auto item : used_keys)
+    if (ifh[item->key] != 0 &&  item->key!= COLORTAB &&  item->key != TRANSFORMER )
         fprintf(fp,"%s := %s\n", item->value,ifh[item->key]);
   }
   if (matfile->interfile_header == NULL)

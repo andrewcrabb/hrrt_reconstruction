@@ -38,6 +38,7 @@
 #include <linux/swab.h>
 #include <arpa/inet.h>
 #include "my_spdlog.hpp"
+#include "hrrt_util.hpp"
 
 void SWAB(void *from, void *to, int length) {
 	if (ntohs(1) == 1) swab(from, to, (ssize_t)length);
@@ -46,25 +47,25 @@ void SWAB(void *from, void *to, int length) {
 
 void SWAW (short *from, short *to, int length) {
 	if (ntohs(1) == 1) 
-		ecat_matrix::swaw((short*)from,to,length);
+		hrrt_util::swaw((short*)from,to,length);
 	else 
 		memcpy(to,from,length*2);
 } 
 
-float vaxftohf( unsigned short *bufr, int off) {
-	unsigned int sign_exp, high, low, mantissa, ret;
-	unsigned u = (bufr[off+1] << 16) + bufr[off];
+// float vaxftohf( unsigned short *bufr, int off) {
+// 	unsigned int sign_exp, high, low, mantissa, ret;
+// 	unsigned u = (bufr[off+1] << 16) + bufr[off];
 	
-	if (u == 0) return 0.0;	
-	sign_exp = u & 0x0000ff80;
-	sign_exp = (sign_exp - 0x0100) & 0xff80; 
-	high = u & 0x0000007f;
-	low  = u & 0xffff0000;
-	mantissa = (high << 16) + (low >> 16);
-	sign_exp = sign_exp << 16;
-	ret = sign_exp + mantissa;
-	return *(float*)(&ret);
-}
+// 	if (u == 0) return 0.0;	
+// 	sign_exp = u & 0x0000ff80;
+// 	sign_exp = (sign_exp - 0x0100) & 0xff80; 
+// 	high = u & 0x0000007f;
+// 	low  = u & 0xffff0000;
+// 	mantissa = (high << 16) + (low >> 16);
+// 	sign_exp = sign_exp << 16;
+// 	ret = sign_exp + mantissa;
+// 	return *(float*)(&ret);
+// }
 
 int file_data_to_host(char *dptr, int nblks, ecat_matrix::MatrixDataType dtype) {
 	int i, j;
@@ -89,20 +90,20 @@ int file_data_to_host(char *dptr, int nblks, ecat_matrix::MatrixDataType dtype) 
 		if (ntohs(1) == 1)
 			for (i=0, j=0; i<nblks; i++, j+=512) {
 				swab(dptr+j, tmp, 512);
-				ecat_matrix::swaw((short*)tmp, (short*)(dptr+j), 256);
+				hrrt_util::swaw((short*)tmp, (short*)(dptr+j), 256);
 			}
 		break;
-	case ecat_matrix::MatrixDataType::VAX_Rx4:
-	 	if (ntohs(1) == 1) 
-			 for (i=0, j=0; i<nblks; i++, j+=512) {
-				swab( dptr+j, tmp, 512);
-/* remove next line (fix from Yohan.Nuyts@uz.kuleuven.ac.be, 28-oct-97)
-				ecat_matrix::swaw((short*)tmp, (short*)(dptr+j), 256);
-*/
-			}
-		for (i=0; i<nblks*128; i++)
-			((float *)dptr)[i] = vaxftohf( (unsigned short *)dptr, i*2) ;
-		break;
+	// case ecat_matrix::MatrixDataType::VAX_Rx4:
+	//  	if (ntohs(1) == 1) 
+	// 		 for (i=0, j=0; i<nblks; i++, j+=512) {
+	// 			swab( dptr+j, tmp, 512);
+ // remove next line (fix from Yohan.Nuyts@uz.kuleuven.ac.be, 28-oct-97)
+	// 			hrrt_util::swaw((short*)tmp, (short*)(dptr+j), 256);
+
+	// 		}
+	// 	for (i=0; i<nblks*128; i++)
+	// 		((float *)dptr)[i] = vaxftohf( (unsigned short *)dptr, i*2) ;
+	// 	break;
 	case ecat_matrix::MatrixDataType::SunShort:
 		if (ntohs(1) != 1)
 			for (i=0, j=0; i<nblks; i++, j+=512) {
@@ -115,7 +116,7 @@ int file_data_to_host(char *dptr, int nblks, ecat_matrix::MatrixDataType dtype) 
 		if (ntohs(1) != 1) 
 			for (i=0, j=0; i<nblks; i++, j+=512) {
 				swab(dptr+j, tmp, 512);
-				ecat_matrix::swaw((short*)tmp, (short*)(dptr+j), 256);
+				hrrt_util::swaw((short*)tmp, (short*)(dptr+j), 256);
 			}
 		break;
 	default:	/* something else...treat as Vax I*2 */
@@ -171,7 +172,7 @@ int write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, ecat_matri
 		if (ntohs(1) != 1) {
 			for (i=0, j=0; i<nblks && !error_flag; i++, j += 512) {
 				swab( dptr+j, bufr1, 512);
-				ecat_matrix::swaw( (short*)bufr1, (short*)bufr2, 256);
+				hrrt_util::swaw( (short*)bufr1, (short*)bufr2, 256);
 				if ( ecat_matrix::mat_wblk( fptr, strtblk+i, bufr2, 1) < 0) error_flag++;
 			}
 		} else if ( ecat_matrix::mat_wblk( fptr, strtblk, dptr, nblks) < 0) error_flag++;
@@ -226,7 +227,7 @@ bufWrite_i(int val, char *buf, int *i)
 	tmp.i = val;
 	if (ntohs(1) != 1) {
 		swab(tmp.b,tmp1.b,4);
-		ecat_matrix::swaw(tmp1.s,(short*)&buf[*i],2);
+		hrrt_util::swaw(tmp1.s,(short*)&buf[*i],2);
 	} else memcpy(&buf[*i], tmp.b, sizeof(int));
     *i += sizeof(int);
 }
@@ -239,7 +240,7 @@ bufWrite_u(unsigned int val, char *buf, int *i)
 	tmp.u = val;
 	if (ntohs(1) != 1) {
 		swab(tmp.b,tmp1.b,4);
-		ecat_matrix::swaw(tmp1.s,(short*)&buf[*i],2);
+		hrrt_util::swaw(tmp1.s,(short*)&buf[*i],2);
 	} else memcpy(&buf[*i], tmp.b, sizeof(unsigned int));
     *i += sizeof(unsigned int);
 }
@@ -252,7 +253,7 @@ bufWrite_f(float val, char *buf, int *i)
 	tmp.f = val;
 	if (ntohs(1) != 1) {
 		swab(tmp.b,tmp1.b,4);
-		ecat_matrix::swaw(tmp1.s,(short*)&buf[*i],2);
+		hrrt_util::swaw(tmp1.s,(short*)&buf[*i],2);
 	} else memcpy(&buf[*i], tmp.b, sizeof(float));
     *i += sizeof(float);
 }
@@ -286,7 +287,7 @@ bufRead_i(int *val, char *buf, int *i)
 	memcpy(tmp1.b,&buf[*i],4);
 	if (ntohs(1) != 1) {
 		swab((char*)tmp1.b,(char*)tmp.b,4);
-		ecat_matrix::swaw((short*)tmp.b,(short*)tmp1.b,2);
+		hrrt_util::swaw((short*)tmp.b,(short*)tmp1.b,2);
 	}
 	*val = tmp1.i;
     *i += sizeof(int);
@@ -299,7 +300,7 @@ bufRead_u(unsigned int *val, char *buf, int *i)
 	memcpy(tmp1.b,&buf[*i],4);
 	if (ntohs(1) != 1) {
 		swab((char*)tmp1.b,(char*)tmp.b,4);
-		ecat_matrix::swaw((short*)tmp.b,(short*)tmp1.b,2);
+		hrrt_util::swaw((short*)tmp.b,(short*)tmp1.b,2);
 	}
 	*val = tmp1.u;
     *i += sizeof(unsigned int);
@@ -312,7 +313,7 @@ bufRead_f(float *val, char *buf, int *i)
     memcpy(tmp1.b, &buf[*i], sizeof(float));
 	if (ntohs(1) != 1) {
 		swab((char*)tmp1.b,(char*)tmp.b,4);
-		ecat_matrix::swaw((short*)tmp.b,(short*)tmp1.b,2);
+		hrrt_util::swaw((short*)tmp.b,(short*)tmp1.b,2);
 	}
 	*val = tmp1.f;
     *i += sizeof(float);

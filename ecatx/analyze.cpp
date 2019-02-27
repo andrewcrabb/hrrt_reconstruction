@@ -40,11 +40,12 @@
 #include "interfile.hpp"
 #include "machine_indep.hpp"
 #include "my_spdlog.hpp"
+#include "hrrt_util.hpp"
 
 // ahc
 #include <unistd.h>
 
-#define END_OF_KEYS static_cast<int>(interfile::Key::END_OF_INTERFILE) + 1
+// #define END_OF_KEYS static_cast<int>(interfile::Key::END_OF_INTERFILE) + 1
 
 static struct dsr hdr;
 int analyze_orientation = 0; /* default is spm neurologist convention */
@@ -67,9 +68,9 @@ static int analyze_read_hdr(const char *fname) {
     hdr.dime.datatype = hdr.dime.datatype;
     hdr.dime.bitpix = hdr.dime.bitpix;
     swab((char*)hdr.dime.pixdim, tmp, 4 * sizeof(float));
-    ecat_matrix::swaw((short*)tmp, (short*)hdr.dime.pixdim, 4 * sizeof(float) / 2);
+    hrrt_util::swaw((short*)tmp, (short*)hdr.dime.pixdim, 4 * sizeof(float) / 2);
     swab((char*)&hdr.dime.funused1, tmp, sizeof(float));
-    ecat_matrix::swaw((short*)tmp, (short*)(&hdr.dime.funused1), sizeof(float) / 2);
+    hrrt_util::swaw((short*)tmp, (short*)(&hdr.dime.funused1), sizeof(float) / 2);
     hdr.dime.glmax = hdr.dime.glmax;
     hdr.dime.glmin = hdr.dime.glmin;
   }
@@ -92,9 +93,7 @@ static int _is_analyze(const char* fname) {
 
 char* is_analyze(const char* fname) {
   char *p, *hdr_fname = NULL, *img_fname = NULL;
-  struct stat st;
   int elem_size = 0, nvoxels;
-  short *dim = NULL;
 
   if (_is_analyze(fname)) { /* access by .hdr */
     hdr_fname = strdup(fname);
@@ -115,8 +114,9 @@ char* is_analyze(const char* fname) {
     strcat(hdr_fname, ".hdr");
   }
 
+  struct stat st;
   if (stat(img_fname, &st) >= 0 && _is_analyze(hdr_fname) && analyze_read_hdr(hdr_fname)) {
-    dim = hdr.dime.dim;
+    short *dim = hdr.dime.dim;
     nvoxels = dim[1] * dim[2] * dim[3] * dim[4];
     switch (hdr.dime.datatype) {
     case 2:   /* byte */
@@ -137,7 +137,7 @@ char* is_analyze(const char* fname) {
     } else {
       if (nvoxels * elem_size == st.st_size) {
         if (strcmp(hdr_fname, fname) != 0)
-          LOG_ERROR( "using {} header for {} data file", hdr_fname, img_fname);
+          LOG_INFO( "using {} header for {} data file", hdr_fname, img_fname);
         free(img_fname);
         return hdr_fname;
       } else {
@@ -179,7 +179,8 @@ int analyze_open(ecat_matrix::MatrixFile *mptr) {
   mh->file_type = ecat_matrix::DataSetType::InterfileImage;
   mptr->analyze_hdr = (char*)calloc(1, sizeof(struct dsr));
   memcpy(mptr->analyze_hdr, &hdr, sizeof(hdr));
-  mptr->interfile_header = (char**)calloc(END_OF_KEYS, sizeof(char*));
+  // mptr->interfile_header = (char**)calloc(END_OF_KEYS, sizeof(char*));
+  mptr->interfile_header = (char**)calloc(interfile::used_keys.size(), sizeof(char*));
   data_file = static_cast<char *>(malloc(strlen(mptr->fname) + 4));
   strcpy(data_file, mptr->fname);
   if ((extension = strrchr(data_file, '/')) == NULL)

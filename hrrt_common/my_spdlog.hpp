@@ -16,6 +16,8 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/basic_file_sink.h"
+#include <type_traits>    // Cast scoped enums to underlying type (int) for LOG_foo macros.  http://bit.ly/2PSzLJY
+
 
 // Needs to come before the macros.
 
@@ -23,6 +25,14 @@ namespace my_spdlog {
 	extern std::shared_ptr<spdlog::logger> g_logger;
 	void init_logging(std::string = "HRRT");
 }
+
+// Cast scoped enums to underlying type (int) for LOG_foo macros.  http://bit.ly/2PSzLJY
+// NOTE this is a c++14 construct.
+template <typename E>
+constexpr auto to_underlying(E e) noexcept {
+    return static_cast<std::underlying_type_t<E>>(e);
+}
+// using ::to_underlying;
 
 // https://stackoverflow.com/questions/8487986/file-macro-shows-full-path
 #include <libgen.h>

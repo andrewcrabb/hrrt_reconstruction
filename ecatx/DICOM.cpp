@@ -47,13 +47,13 @@ extern int verbose;
 static char *DICOM10MAGIC = "DICM";
 static int DICOM10OFFSET = 128;       
 
-static void swaw(short *from, short *to, int len) {
-  int i=0;
-  for (i=0;i<len; i+=2) {
-    to[i] = from[i+1];
-    to[i+1] = from[i];
-  }
-}
+// static void swaw(short *from, short *to, int len) {
+//   int i=0;
+//   for (i=0;i<len; i+=2) {
+//     to[i] = from[i+1];
+//     to[i+1] = from[i];
+//   }
+// }
 
 static void DICOM_data2host(void *buf, void *dest,
                             size_t size, size_t num_items)
@@ -72,7 +72,7 @@ static void DICOM_data2host(void *buf, void *dest,
       break;
     case 4 :
       swab((char*)buf,tmp,num_items*4);
-      swaw((short*)tmp,(short*)dest,num_items*2);
+      hrrt_util::swaw((short*)tmp,(short*)dest,num_items*2);
       break;
     }
   free(tmp);

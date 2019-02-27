@@ -237,27 +237,22 @@ void *ECAT7_MATRIX::LoadData(std::ifstream * const file,
  { DeleteData();
    switch (DataTypeOrig())
     { case E7_DATA_TYPE_ByteData:
-       data=(void *)loaddata <unsigned char>(file, DataSize(), matrix_records,
-                                             1);
+       data=(void *)loaddata <unsigned char>(file, DataSize(), matrix_records,                                             1);
        datatype=E7_DATATYPE_BYTE;
        break;
       case E7_DATA_TYPE_VAX_Ix2:
-       break;
       case E7_DATA_TYPE_VAX_Ix4:
-       break;
       case E7_DATA_TYPE_VAX_Rx4:
-       break;
+      case E7_DATA_TYPE_SunLong:
+             break;
       case E7_DATA_TYPE_IeeeFloat:
        data=(void *)loaddata <float>(file, DataSize(), matrix_records, 4);
        datatype=E7_DATATYPE_FLOAT;
        break;
       case E7_DATA_TYPE_SunShort:
-       data=(void *)loaddata <signed short int>(file, DataSize(),
-                                                matrix_records, 2);
+       data=(void *)loaddata <signed short int>(file, DataSize(),                                                matrix_records, 2);
        datatype=E7_DATATYPE_SHORT;
-       break;
-      case E7_DATA_TYPE_SunLong:
-       break;
+             break;
       default:
        break;
     }

@@ -196,49 +196,42 @@ void ECAT7_NORM3D::IntfCorrPtr(float * const ptr)
     records long, is skipped.
  */
 /*---------------------------------------------------------------------------*/
-void *ECAT7_NORM3D::LoadData(std::ifstream * const file,
-                             const unsigned long int)
- { DataChanger *dc=NULL;
+void *ECAT7_NORM3D::LoadData(std::ifstream * const file,                             const unsigned long int) { 
+  DataChanger *dc=NULL;
 
    file->seekg(E7_RECLEN, std::ios::cur);                 // skip matrix header
    //   matrix_records--;
-   try
-   { unsigned long int i, size;
-
+   try   { 
+    unsigned long int i, size;
      DeleteData();                                           // delete old data
-                                    // read data for plane geometric correction
-     size=nh.num_r_elements*nh.num_geo_corr_planes;
+     size=nh.num_r_elements*nh.num_geo_corr_planes;                                    // read data for plane geometric correction
      plane_corr=new float[size];
-                       // DataChanger is used to read data system independently
-     dc=new DataChanger(size*sizeof(float), false, true);
+     dc = new DataChanger(size * sizeof(float));                       // DataChanger is used to read data system independently
      dc->LoadBuffer(file);                             // load data into buffer
-                                                   // retrieve data from buffer
-     for (i=0; i < size; i++) dc->Value(&plane_corr[i]);
+     for (i=0; i < size; i++)                                                    // retrieve data from buffer
+      dc->Value(&plane_corr[i]);
      delete dc;
      dc=NULL;
-                               // read data for crystal interference correction
-     size=nh.num_transaxial_crystals*nh.num_r_elements;
+     size=nh.num_transaxial_crystals*nh.num_r_elements;                               // read data for crystal interference correction
      intfcorr=new float[size];
-                       // DataChanger is used to read data system independently
-     dc=new DataChanger(size*sizeof(float), false, true);
+     dc = new DataChanger(size * sizeof(float));                       // DataChanger is used to read data system independently
      dc->LoadBuffer(file);                             // load data into buffer
-                                                   // retrieve data from buffer
-     for (i=0; i < size; i++) dc->Value(&intfcorr[i]);
+
+     for (i=0; i < size; i++)                                                    // retrieve data from buffer
+      dc->Value(&intfcorr[i]);
      delete dc;
      dc=NULL;
-                                 // read data for crystal efficiency correction
-     size=nh.crystals_per_ring*nh.num_crystal_rings;
+     size=nh.crystals_per_ring*nh.num_crystal_rings;                                 // read data for crystal efficiency correction
      crystal_eff=new float[size];
-                       // DataChanger is used to read data system independently
-     dc=new DataChanger(size*sizeof(float), false, true);
+     dc = new DataChanger(size * sizeof(float));                       // DataChanger is used to read data system independently
      dc->LoadBuffer(file);                             // load data into buffer
-                                                   // retrieve data from buffer
-     for (i=0; i < size; i++) dc->Value(&crystal_eff[i]);
+
+     for (i=0; i < size; i++)                                                   // retrieve data from buffer
+      dc->Value(&crystal_eff[i]);
      delete dc;
      dc=NULL;
-   }
-   catch (...)                                             // handle exceptions
-    { if (dc != NULL) delete dc;
+   }   catch (...)    { 
+    if (dc != NULL) delete dc;
       DeleteData();
       throw;
     }
@@ -258,10 +251,9 @@ void ECAT7_NORM3D::LoadHeader(std::ifstream * const file)
    try
    { unsigned short int i;
                        // DataChanger is used to read data system independently
-     dc=new DataChanger(E7_RECLEN, false, true);
-     dc->LoadBuffer(file);                             // load data into buffer
-                                                   // retrieve data from buffer
-     dc->Value(&nh.data_type);
+     dc = new DataChanger(E7_RECLEN);
+     dc->LoadBuffer(file);                             // load data into buffer    
+     dc->Value(&nh.data_type);                                               // retrieve data from buffer
      dc->Value(&nh.num_r_elements);
      dc->Value(&nh.num_transaxial_crystals);
      dc->Value(&nh.num_crystal_rings);
@@ -274,7 +266,7 @@ void ECAT7_NORM3D::LoadHeader(std::ifstream * const file)
      dc->Value(&nh.norm_quality_factor_code);
      for (i=0; i < 32; i++) dc->Value(&nh.ring_dtcor1[i]);
      for (i=0; i < 32; i++) dc->Value(&nh.ring_dtcor2[i]);
-     for (i=0; i < 8; i++) dc->Value(&nh.crystal_dtcor[i]);
+     for (i=0; i < 8; i++)  dc->Value(&nh.crystal_dtcor[i]);
      dc->Value(&nh.span);
      dc->Value(&nh.max_ring_diff);
      for (i=0; i < 48; i++) dc->Value(&nh.fill_cti[i]);
@@ -298,14 +290,15 @@ void ECAT7_NORM3D::LoadHeader(std::ifstream * const file)
 /*---------------------------------------------------------------------------*/
 unsigned long int ECAT7_NORM3D::NumberOfRecords() const
  { unsigned long int size=0, records;
-                               // count size of plane geometric correction data
-   if (plane_corr != NULL) size+=nh.num_r_elements*nh.num_geo_corr_planes;
-                          // count size of crystal interference correction data
-   if (intfcorr != NULL) size+=nh.num_transaxial_crystals*nh.num_r_elements;
-                            // count size of crystal efficiency correction data
-   if (crystal_eff != NULL) size+=nh.crystals_per_ring*nh.num_crystal_rings;
+   if (plane_corr != NULL)                               // count size of plane geometric correction data
+    size+=nh.num_r_elements*nh.num_geo_corr_planes;
+   if (intfcorr != NULL)                           // count size of crystal interference correction data
+    size+=nh.num_transaxial_crystals*nh.num_r_elements;
+   if (crystal_eff != NULL)                             // count size of crystal efficiency correction data
+    size+=nh.crystals_per_ring*nh.num_crystal_rings;
    records=(size*sizeof(float))/E7_RECLEN;
-   if (((size*sizeof(float)) % E7_RECLEN) != 0) records++;
+   if (((size*sizeof(float)) % E7_RECLEN) != 0) 
+    records++;
    return(records);
  }
 
@@ -355,8 +348,7 @@ void ECAT7_NORM3D::PrintHeader(std::list <std::string> * const sl,
  { unsigned short int i, j;
    std::string s;
 
-   sl->push_back("************* 3D-Norm-Matrix ("+toString(num, 2)+
-                 ") *************");
+   sl->push_back("************* 3D-Norm-Matrix ("+toString(num, 2)+                 ") *************");
    s=" data_type:                      "+toString(nh.data_type)+" (";
    switch (nh.data_type)
     { case E7_DATA_TYPE_UnknownMatDataType:
@@ -388,24 +380,16 @@ void ECAT7_NORM3D::PrintHeader(std::list <std::string> * const sl,
        break;
     }
    sl->push_back(s+")");
-   sl->push_back(" ring elements:                  "+
-                 toString(nh.num_r_elements));
-   sl->push_back(" transaxial crystals:            "+
-                 toString(nh.num_transaxial_crystals));
-   sl->push_back(" crystal rings:                  "+
-                 toString(nh.num_crystal_rings));
-   sl->push_back(" crystal per ring:               "+
-                 toString(nh.crystals_per_ring));
-   sl->push_back(" geometric correction planes:    "+
-                 toString(nh.num_geo_corr_planes));
+   sl->push_back(" ring elements:                  " + toString(nh.num_r_elements));
+   sl->push_back(" transaxial crystals:            " + toString(nh.num_transaxial_crystals));
+   sl->push_back(" crystal rings:                  " + toString(nh.num_crystal_rings));
+   sl->push_back(" crystal per ring:               " + toString(nh.crystals_per_ring));
+   sl->push_back(" geometric correction planes:    " + toString(nh.num_geo_corr_planes));
    sl->push_back(" upper energy limit:             "+toString(nh.uld));
    sl->push_back(" lower energy limit:             "+toString(nh.lld));
-   sl->push_back(" scatter energy:                 "+
-                 toString(nh.scatter_energy));
-   sl->push_back(" norm quality factor:            "+
-                 toString(nh.norm_quality_factor));
-   sl->push_back(" norm quality factor code:       "+
-                 toString(nh.norm_quality_factor_code));
+   sl->push_back(" scatter energy:                 " + toString(nh.scatter_energy));
+   sl->push_back(" norm quality factor:            " + toString(nh.norm_quality_factor));
+   sl->push_back(" norm quality factor code:       " + toString(nh.norm_quality_factor_code));
    sl->push_back(" ring dead time corr. coeff. 1:  ");
    for (i=0; i < 4; i++)
     { s=std::string();
@@ -453,7 +437,7 @@ void ECAT7_NORM3D::SaveData(std::ofstream * const file) const
                                    // write data for plane geometric correction
      if (plane_corr != NULL)
       { size=nh.num_r_elements*nh.num_geo_corr_planes;
-        dc=new DataChanger(size*sizeof(float), false, true);
+        dc = new DataChanger(size * sizeof(float));
         for (i=0; i < size; i++) dc->Value(plane_corr[i]);
         dc->SaveBuffer(file);
         delete dc;
@@ -463,7 +447,7 @@ void ECAT7_NORM3D::SaveData(std::ofstream * const file) const
                               // write data for crystal interference correction
      if (intfcorr != NULL)
       { size=nh.num_transaxial_crystals*nh.num_r_elements;
-        dc=new DataChanger(size*sizeof(float), false, true);
+        dc = new DataChanger(size * sizeof(float));
         for (i=0; i < size; i++) dc->Value(intfcorr[i]);
         dc->SaveBuffer(file);
         delete dc;
@@ -473,7 +457,7 @@ void ECAT7_NORM3D::SaveData(std::ofstream * const file) const
                                 // write data for crystal efficiency correction
      if (crystal_eff != NULL)
       { size=nh.crystals_per_ring*nh.num_crystal_rings;
-        dc=new DataChanger(size*sizeof(float), false, true);
+        dc = new DataChanger(size * sizeof(float));
         for (i=0; i < size; i++) dc->Value(crystal_eff[i]);
         dc->SaveBuffer(file);
         delete dc;
@@ -481,7 +465,7 @@ void ECAT7_NORM3D::SaveData(std::ofstream * const file) const
         fsize+=size*sizeof(float);
       }
      fsize=fsize % 512;
-     dc=new DataChanger(fsize*sizeof(char), false, true);
+     dc = new DataChanger(fsize * sizeof(char));
      dc->SaveBuffer(file);
      delete dc;
      dc=NULL;
@@ -505,7 +489,7 @@ void ECAT7_NORM3D::SaveHeader(std::ofstream * const file) const
    try
    { unsigned short int i;
                       // DataChanger is used to store data system independently
-     dc=new DataChanger(E7_RECLEN, false, true);
+     dc = new DataChanger(E7_RECLEN);
      dc->Value(nh.data_type);
      dc->Value(nh.num_r_elements);
      dc->Value(nh.num_transaxial_crystals);

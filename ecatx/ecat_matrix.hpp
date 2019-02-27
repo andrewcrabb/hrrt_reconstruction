@@ -118,9 +118,9 @@ static std::map<DataSetType, CodeName> data_set_types_ = {
 enum class MatrixDataType {
   UnknownMatDataType,
   ByteData,
-  VAX_Ix2,
-  VAX_Ix4,
-  VAX_Rx4,
+  VAX_Ix2,  // Can't comment these out as existing code assigns raw ints to this variable.
+  VAX_Ix4,  // Can't comment these out as existing code assigns raw ints to this variable.
+  VAX_Rx4,  // Can't comment these out as existing code assigns raw ints to this variable.
   IeeeFloat,
   SunShort,
   SunLong,
@@ -136,23 +136,27 @@ enum class MatrixDataType {
 // constexpr int MAT_SUB_HEADER = 255;  // operation to sub-header only
 // constexpr MatrixDataType MAT_SUB_HEADER = 255;  // operation to sub-header only
 
+struct MatrixDataProperty {
+  std::string name;
+  int length;
+}
+
 // Combines former MatrixDataType, 
 
-static std::map<MatrixDataType, std::string> matrix_data_types_ = {
-  {MatrixDataType::UnknownMatDataType, "UnknownMatDataType"},
-  {MatrixDataType::ByteData          , "ByteData"},
-  {MatrixDataType::VAX_Ix2           , "VAX_Ix2"},
-  {MatrixDataType::VAX_Ix4           , "VAX_Ix4,"},
-  {MatrixDataType::VAX_Rx4           , "VAX_Rx4"},
-  {MatrixDataType::IeeeFloat         , "IeeeFloat"},
-  {MatrixDataType::SunShort          , "SunShort"},
-  {MatrixDataType::SunLong           , "SunLong"},
-  {MatrixDataType::NumMatrixDataTypes, "NumMatrixDataTypes,"},
-  {MatrixDataType::UShort_BE         , "UShort_BE"},
-  {MatrixDataType::UShort_LE         , "UShort_LE"},
-  {MatrixDataType::Color_24          , "Color_24"},
-  {MatrixDataType::Color_8           , "Color_8"},
-  {MatrixDataType::BitData           , "BitData"}
+static std::map<MatrixDataType, MatrixDataProperty> matrix_data_types_ = {
+  {MatrixDataType::UnknownMatDataType, {"UnknownMatDataType" , 0}},
+  {MatrixDataType::ByteData          , {"ByteData"           , 1}},
+  {MatrixDataType::VAX_Ix2           , {"VAX_Ix2"            , 2}},
+  {MatrixDataType::VAX_Ix4           , {"VAX_Ix4,"           , 4}},
+  {MatrixDataType::VAX_Rx4           , {"VAX_Rx4"            , 4}},
+  {MatrixDataType::IeeeFloat         , {"IeeeFloat"          , 4}},
+  {MatrixDataType::SunShort          , {"SunShort"           , 2}},  // big endian
+  {MatrixDataType::SunLong           , {"SunLong"            , 4}},  // big endian
+  {MatrixDataType::UShort_BE         , {"UShort_BE"          , 2}},
+  {MatrixDataType::UShort_LE         , {"UShort_LE"          , 2}},
+  {MatrixDataType::Color_24          , {"Color_24"           , 3}},
+  {MatrixDataType::Color_8           , {"Color_8"            , 1}},
+  {MatrixDataType::BitData           , {"BitData"            , 1}}
 };
 
 // Combines former enum CalibrationStatus, char *calstatus[], char *ecfunits[]
@@ -171,8 +175,8 @@ struct CalibrationStruct {
 
 static std::map<CalibrationStatus, CalibrationStruct> calibration_status_ = {
   {CalibrationStatus::Uncalibrated, {"Uncalibrated", "ECAT Counts/Sec"}},
-  {CalibrationStatus::Calibrated  , {"Calibrated"  , "Bq/ml"}},
-  {CalibrationStatus::Processed   , {"Processed"   , "Processed"}}
+  {CalibrationStatus::Calibrated  , {"Calibrated"  , "Bq/ml"          }},
+  {CalibrationStatus::Processed   , {"Processed"   , "Processed"      }}
 };
 
 enum class ScanType {
@@ -374,9 +378,9 @@ std::map<ProcessingCode, std::string> applied_proc_ = {
 enum class MatrixDataType_64 {
   GENERIC,
   BYTE_TYPE,
-  VAX_I2,
-  VAX_I4,
-  VAX_R4,
+  VAX_I2,  // Can't comment these out as existing code assigns raw ints to this variable.
+  VAX_I4,  // Can't comment these out as existing code assigns raw ints to this variable.
+  VAX_R4,  // Can't comment these out as existing code assigns raw ints to this variable.
   SUN_R4,
   SUN_I2,
   SUN_I4
@@ -851,7 +855,7 @@ int mat_enter(FILE *, Main_header *mhptr, int matnum, int nblks);
 int mat_lookup(FILE *fptr, Main_header *mhptr, int matnum,  MatDir *entry);
 int mat_rblk(FILE *fptr, int blkno, char *bufr,  int nblks);
 int mat_wblk(FILE *fptr, int blkno, char *bufr,  int nblks);
-void swaw(short *from, short *to, int length);
+// void swaw(short *from, short *to, int length);
 int insert_mdir(MatDir *matdir, MatDirList *dirlist);
 
 // int numDisplayUnits;

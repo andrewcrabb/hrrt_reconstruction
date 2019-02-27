@@ -341,7 +341,7 @@ int main (argc, argv)
 						f_line[xdim-k-1] = scale_factor*line[k];
 					if (ntohs(1) != 1) {
 						swab((char*)f_line, buf_line,xdim*4);
-						swaw((short*)buf_line,(short*)f_line,xdim*2);
+						hrrt_util::swaw((short*)buf_line,(short*)f_line,xdim*2);
 					}
 					if (fwrite (f_line, 4, xdim, fd_img) != xdim) {
 						LOG_EXIT (fname);
@@ -396,9 +396,9 @@ int main (argc, argv)
 		hdr.dime.datatype = ntohs(hdr.dime.datatype);
 		hdr.dime.bitpix = ntohs(hdr.dime.bitpix);
 		swab((char*)hdr.dime.pixdim,tmp,8*sizeof(float));
-		swaw((short*)tmp,(short*)hdr.dime.pixdim,8*sizeof(float)/2);
+		hrrt_util::swaw((short*)tmp,(short*)hdr.dime.pixdim,8*sizeof(float)/2);
 		swab((char*)&hdr.dime.funused1,(char*)tmp,sizeof(float));
-		swaw((short*)tmp,(short*)&hdr.dime.funused1,sizeof(float)/2);
+		hrrt_util::swaw((short*)tmp,(short*)&hdr.dime.funused1,sizeof(float)/2);
 		hdr.dime.glmax = ntohl(hdr.dime.glmax);
 		hdr.dime.glmin = ntohl(hdr.dime.glmin);
 	}

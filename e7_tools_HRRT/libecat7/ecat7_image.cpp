@@ -137,7 +137,7 @@ void ECAT7_IMAGE::LoadHeader(std::ifstream * const file)
    try
    { unsigned short int i;
                        // DataChanger is used to read data system independently
-     dc=new DataChanger(E7_RECLEN, false, true);
+     dc = new DataChanger(E7_RECLEN);
      dc->LoadBuffer(file);                             // load data into buffer
                                                    // retrieve data from buffer
      dc->Value(&ih.data_type);
@@ -265,36 +265,22 @@ void ECAT7_IMAGE::PrintHeader(std::list <std::string> * const sl,
          break;
       }
      sl->push_back(s+")");
-     sl->push_back(" Number of Dimensions:           "+
-                   toString(ih.num_dimensions));
-     sl->push_back(" x-Dimension:                    "+
-                   toString(ih.x_dimension));
-     sl->push_back(" y-Dimension:                    "+
-                   toString(ih.y_dimension));
-     sl->push_back(" z-Dimension:                    "+
-                   toString(ih.z_dimension));
-     sl->push_back(" x-offset:                       "+toString(ih.x_offset)+
-                   " cm");
-     sl->push_back(" y-offset:                       "+toString(ih.y_offset)+
-                   " cm");
-     sl->push_back(" z-offset:                       "+toString(ih.z_offset)+
-                   " cm");
-     sl->push_back(" recon_zoom:                     "+
-                   toString(ih.recon_zoom));
-     sl->push_back(" scale_factor:                   "+
-                   toString(ih.scale_factor));
-     sl->push_back(" image_min:                      "+toString(ih.image_min));
-     sl->push_back(" image_max:                      "+toString(ih.image_max));
-     sl->push_back(" x_pixel_size:                   "+
-                   toString(ih.x_pixel_size)+" cm");
-     sl->push_back(" y_pixel_size:                   "+
-                   toString(ih.y_pixel_size)+" cm");
-     sl->push_back(" z_pixel_size:                   "+
-                   toString(ih.z_pixel_size)+" cm");
-     sl->push_back(" frame_duration:                 "+
-                   toString(ih.frame_duration)+" msec.");
-     sl->push_back(" frame_start_time:               "+
-                   toString(ih.frame_start_time)+" msec.");
+     sl->push_back(" Number of Dimensions:           " + toString(ih.num_dimensions));
+     sl->push_back(" x-Dimension:                    " + toString(ih.x_dimension));
+     sl->push_back(" y-Dimension:                    " + toString(ih.y_dimension));
+     sl->push_back(" z-Dimension:                    " + toString(ih.z_dimension));
+     sl->push_back(" x-offset:                       " + toString(ih.x_offset) + " cm");
+     sl->push_back(" y-offset:                       " + toString(ih.y_offset) + " cm");
+     sl->push_back(" z-offset:                       " + toString(ih.z_offset) + " cm");
+     sl->push_back(" recon_zoom:                     " + toString(ih.recon_zoom));
+     sl->push_back(" scale_factor:                   " + toString(ih.scale_factor));
+     sl->push_back(" image_min:                      " + toString(ih.image_min));
+     sl->push_back(" image_max:                      " + toString(ih.image_max));
+     sl->push_back(" x_pixel_size:                   " + toString(ih.x_pixel_size)+" cm");
+     sl->push_back(" y_pixel_size:                   " + toString(ih.y_pixel_size)+" cm");
+     sl->push_back(" z_pixel_size:                   " + toString(ih.z_pixel_size)+" cm");
+     sl->push_back(" frame_duration:                 " + toString(ih.frame_duration)+" msec.");
+     sl->push_back(" frame_start_time:               " + toString(ih.frame_start_time)+" msec.");
      s=" filter_code:                    "+toString(ih.filter_code)+" (";
      switch (ih.filter_code)
       { case E7_FILTER_CODE_NoFilter:    s+="no filter";   break;
@@ -311,22 +297,14 @@ void ECAT7_IMAGE::PrintHeader(std::list <std::string> * const sl,
         default:                         s+="unknown";     break;
       }
      sl->push_back(s+")");
-     sl->push_back(" x_resolution:                   "+
-                   toString(ih.x_resolution)+" cm");
-     sl->push_back(" y_resolution:                   "+
-                   toString(ih.y_resolution)+" cm");
-     sl->push_back(" y_resolution:                   "+
-                   toString(ih.z_resolution)+" cm");
-     sl->push_back(" num_r_elements:                 "+
-                   toString(ih.num_r_elements));
-     sl->push_back(" num_angles:                     "+
-                   toString(ih.num_angles));
-     sl->push_back(" z_rotation_angle:               "+
-                   toString(ih.z_rotation_angle)+" deg.");
-     sl->push_back(" decay_corr_fctr:                "+
-                   toString(ih.decay_corr_fctr));
-     sl->push_back(" processing_code:                "+
-                   toString(ih.processing_code));
+     sl->push_back(" x_resolution:                   " + toString(ih.x_resolution)+" cm");
+     sl->push_back(" y_resolution:                   " + toString(ih.y_resolution)+" cm");
+     sl->push_back(" y_resolution:                   " + toString(ih.z_resolution)+" cm");
+     sl->push_back(" num_r_elements:                 " + toString(ih.num_r_elements));
+     sl->push_back(" num_angles:                     " + toString(ih.num_angles));
+     sl->push_back(" z_rotation_angle:               " + toString(ih.z_rotation_angle)+" deg.");
+     sl->push_back(" decay_corr_fctr:                " + toString(ih.decay_corr_fctr));
+     sl->push_back(" processing_code:                " + toString(ih.processing_code));
      if ((j=ih.processing_code) > 0)
       { s="  ( ";
         for (i=0; i < 15; i++)
@@ -455,7 +433,7 @@ void ECAT7_IMAGE::SaveHeader(std::ofstream * const file) const
    try
    { unsigned short int i;
                       // DataChanger is used to store data system independently
-     dc=new DataChanger(E7_RECLEN, false, true);
+     dc = new DataChanger(E7_RECLEN);
                                                        // fill data into buffer
      dc->Value(ih.data_type);
      dc->Value(ih.num_dimensions);

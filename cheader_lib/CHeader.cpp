@@ -21,7 +21,6 @@ Modification history:
 #include "CHeader.hpp"
 #include "hrrt_util.hpp"
 #include "my_spdlog.hpp"
-#include <type_traits>    // Cast CHeaderError to its underlying type (int) for LOG_foo macros.  http://bit.ly/2PSzLJY
 
 #include <boost/date_time.hpp>
 #include <boost/date_time/date_facet.hpp>
@@ -42,16 +41,6 @@ using std::string;
 namespace bf = boost::filesystem;
 namespace bt = boost::posix_time;
 namespace bx = boost::xpressive;
-
-// Cast CHeaderError to its underlying type (int) for LOG_foo macros.  http://bit.ly/2PSzLJY
-// NOTE this is a c++14 construct.
-    // template <typename E> constexpr auto CHeader::to_underlying(E e);
-    // Cast CHeaderError to its underlying type (int) for LOG_foo macros.
-template <typename E>
-constexpr auto to_underlying(E e) noexcept {
-    return static_cast<std::underlying_type_t<E>>(e);
-}
-using ::to_underlying;
 
 // Define const strings only once.  Declared as externs in .hpp 
 // 'extern' approach: http://bit.ly/2Sn8eSS gives 'error: storage class specified for ‘AXIAL_COMPRESSION’'

@@ -22,6 +22,16 @@ namespace hrrt_util {
 
   int nthreads_;
 
+void swaw( short *from, short *to, int length) {
+  short int temp;
+
+  for (int i = 0; i < length; i += 2) {
+    temp = from[i + 1];
+    to[i + 1] = from[i];
+    to[i] = temp;
+  }
+}
+
 int open_ostream(std::ofstream &t_outs, const bf::path &t_path, std::ios_base::openmode t_mode) {
   t_outs.open(t_path.string(), t_mode);
   if (!t_outs.is_open()) {

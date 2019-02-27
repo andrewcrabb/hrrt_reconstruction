@@ -24,17 +24,18 @@ static ecat_matrix::MatrixData* air2matrix(AIR_Pixels ***pixels, struct AIR_Key_
   ecat_matrix::MatrixData *matrix=NULL;
   ecat_matrix::Image_subheader *imh=NULL;
   AIR_Pixels *image_data;
-  int elem_size=2, data_type=ecat_matrix::MatrixDataType::SunShort;	/* default */
+  int elem_size=2;
+  ecat_matrix::MatrixDataType data_type = ecat_matrix::MatrixDataType::SunShort;	/* default */
   int i, nvoxels, nblks;
-  unsigned char *bdata = NULL;
-  short *sdata = NULL;
   float a,v;
 
   if (stats->bits == 8) {
-    data_type = ecat_matrix::MatrixDataType::ByteData; elem_size = 1;
+    data_type = ecat_matrix::MatrixDataType::ByteData; 
+    elem_size = 1;
   }  else if (stats->bits == 1) {
 	/* BitData not yet implemented */
-    data_type = ecat_matrix::MatrixDataType::ByteData; elem_size = 1;
+    data_type = ecat_matrix::MatrixDataType::ByteData; 
+    elem_size = 1;
   } 
   nvoxels = stats->x_dim*stats->y_dim*stats->z_dim;
 
@@ -49,11 +50,9 @@ static ecat_matrix::MatrixData* air2matrix(AIR_Pixels ***pixels, struct AIR_Key_
     imh->image_max = (int)(matrix->data_max/matrix->scale_factor);
   }
   matrix->shptr = (void *)imh;
-  if (matrix->data_type == ecat_matrix::MatrixDataType::VAX_Ix2)
-    /* old integer 2 image format */
+  if (matrix->data_type == ecat_matrix::MatrixDataType::VAX_Ix2)      /* old integer 2 image format */
     imh->data_type = matrix->data_type = ecat_matrix::MatrixDataType::SunShort;
-  if (matrix->data_type == ecat_matrix::MatrixDataType::IeeeFloat)
-    /* Interfile float input */
+  if (matrix->data_type == ecat_matrix::MatrixDataType::IeeeFloat)      /* Interfile float input */
     imh->data_type = matrix->data_type = ecat_matrix::MatrixDataType::SunShort;
   if (matrix->data_type != data_type) {
     LOG_ERROR("air2matrix : incompatible data types");
@@ -74,14 +73,14 @@ static ecat_matrix::MatrixData* air2matrix(AIR_Pixels ***pixels, struct AIR_Key_
   image_data = pixels[0][0];
   switch(data_type) {
   case ecat_matrix::MatrixDataType::ByteData :
-  case BitData :
-    a = 255.0f/AIR_CONFIG_MAX_POSS_VALUE;
-    bdata = (unsigned char *)matrix->data_ptr;
+  case ecat_matrix::MatrixDataType::BitData :
+    a = 255.0f / AIR_CONFIG_MAX_POSS_VALUE;
+    unsigned char *bdata = (unsigned char *)matrix->data_ptr;
     for (i=0; i<nvoxels; i++)
       *bdata++ = (int)(0.5+a*(*image_data++));
     break;
   case ecat_matrix::MatrixDataType::SunShort:
-    sdata = (short*)matrix->data_ptr;
+    short *sdata = (short*)matrix->data_ptr;
     for (i=0; i<nvoxels; i++, sdata++) {
       v = *image_data++;
       if (v>32768)
@@ -107,10 +106,6 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
   int cubic=0, interpolate=0;
   int i=0, npixels=0, plane=0;
   char* ecat_version;
-  int verbose = 0;
-#ifdef VERBOSE
-  $verbose = 1;
-#endif
 
   matspec(orig_specs,orig_fname,&i_matnum);
   file = matrix_open(orig_fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
@@ -242,9 +237,7 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
 }
 
 
-float ecat_AIR_open_header(const char *mat_spec, struct AIR_Fptrs *fp, struct AIR_Key_info *stats, int *flag)
-
-{
+float ecat_AIR_open_header(const char *mat_spec, struct AIR_Fptrs *fp, struct AIR_Key_info *stats, int *flag) {
   char fname[FILENAME_MAX];
   ecat_matrix::MatrixFile* file;
   ecat_matrix::MatrixData *hdr=NULL;
@@ -296,14 +289,11 @@ float ecat_AIR_open_header(const char *mat_spec, struct AIR_Fptrs *fp, struct AI
   else return 0.0f;
 }
 
-void AIR_close_header(struct AIR_Fptrs *fp)
-{
+void AIR_close_header(struct AIR_Fptrs *fp) {
   fp->errcode = 0;
 }
 
-AIR_Error ecat_AIR_load_probr(const char *specs, const AIR_Boolean decompressable_read)
-
-{
+AIR_Error ecat_AIR_load_probr(const char *specs, const AIR_Boolean decompressable_read) {
   char fname[FILENAME_MAX];
   ecat_matrix::MatrixFile* file;
   ecat_matrix::MatrixData  *hdr=NULL;

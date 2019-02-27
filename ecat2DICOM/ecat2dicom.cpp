@@ -340,34 +340,42 @@ static int  update_dicom_slice(ecat_matrix::Main_header *mh, ecat_matrix::Image_
   float x_location, y_location, z_location;
 
   /* Make sure to use a new buffer to get the correct file size */
-  if (dcm_buf_size > 0)
-  {
+  if (dcm_buf_size > 0)  {
     free(dcm_buf); dcm_buf = NULL;
     dcm_buf_size = 0;
   }
   if (!DICOM_open(slice.fname, dcm_buf, dcm_buf_size, dcm_map, DICOM10_flag)) return 0;
   tm = localtime(&t);
   /* set Study date and time */
-  if (tm != NULL)
-  {
+  if (tm != NULL)  {
     /* Date format YYYYMMDD */
     sprintf(str, "%d", tm->tm_year + 1900);
-    if (tm->tm_mon < 9) sprintf(str + 4, "0%d", tm->tm_mon + 1);
-    else sprintf(str + 4, "%d", tm->tm_mon + 1);
-    if (tm->tm_mday < 10) sprintf(str + 6, "0%d", tm->tm_mday);
-    else sprintf(str + 6, "%d", tm->tm_mday);
+    if (tm->tm_mon < 9) 
+      sprintf(str + 4, "0%d", tm->tm_mon + 1);
+    else 
+      sprintf(str + 4, "%d", tm->tm_mon + 1);
+    if (tm->tm_mday < 10) 
+      sprintf(str + 6, "0%d", tm->tm_mday);
+    else 
+      sprintf(str + 6, "%d", tm->tm_mday);
     set_string(0x0008, 0x0020, str, strlen(str)); /* study date */
     set_string(0x0008, 0x0021, str, strlen(str)); /* series date */
     set_string(0x0008, 0x0022, str, strlen(str)); /* acquisition date */
     set_string(0x0008, 0x0023, str, strlen(str)); /* image date */
 
     /* time format hhmmss.ffff */
-    if (tm->tm_hour < 10) sprintf(str, "0%d", tm->tm_hour);
-    else sprintf(str, "%d", tm->tm_hour);
-    if (tm->tm_min < 10) sprintf(str + 2, "0%d", tm->tm_min);
-    else sprintf(str + 2, "%d", tm->tm_min);
-    if (tm->tm_sec < 10) sprintf(str + 4, "0%d", tm->tm_sec);
-    else sprintf(str + 4, "%d", tm->tm_sec);
+    if (tm->tm_hour < 10) 
+      sprintf(str, "0%d", tm->tm_hour);
+    else 
+      sprintf(str, "%d", tm->tm_hour);
+    if (tm->tm_min < 10) 
+      sprintf(str + 2, "0%d", tm->tm_min);
+    else 
+      sprintf(str + 2, "%d", tm->tm_min);
+    if (tm->tm_sec < 10) 
+      sprintf(str + 4, "0%d", tm->tm_sec);
+    else 
+      sprintf(str + 4, "%d", tm->tm_sec);
     strcat(str, ".0000");
     set_string(0x0008, 0x0030, str, strlen(str));  /*study time */
     set_string(0x0008, 0x0031, str, strlen(str));  /*series time */
@@ -429,8 +437,7 @@ static int  update_dicom_slice(ecat_matrix::Main_header *mh, ecat_matrix::Image_
   if (strstr(fname, "IM_00") == fname) {
     sprintf(new_fname, "%s.%s.IMA", prefix, fname);
   } else strcpy(new_fname, fname);
-  if (transfer_dir != NULL)
-  {
+  if (transfer_dir != NULL)  {
     sprintf(new_full_path, "%s\\%s%s", transfer_dir, new_fname, ext);
     if ((fp = fopen(new_full_path, "wb")) == NULL) {
       LOG_ERROR(new_full_path);
@@ -438,16 +445,15 @@ static int  update_dicom_slice(ecat_matrix::Main_header *mh, ecat_matrix::Image_
     }
     count = fwrite(dcm_buf, 1, dcm_buf_size, fp);
     if (count != dcm_buf_size) {
-      if (count < 0) LOG_ERROR(new_full_path);
-      else LOG_ERROR( "Write fail : only %d of %d  bytes\n",
-                     count, dcm_buf_size);
+      if (count < 0) 
+        LOG_ERROR(new_full_path);
+      else 
+        LOG_ERROR( "Write fail : only %d of %d  bytes\n",                     count, dcm_buf_size);
     }
     fclose(fp);
     unlink(slice.fname);
     strncpy(slice.fname, new_full_path, sizeof(slice.fname) - 1);
-  }
-  else
-  {
+  }  else  {
     if ((fp = fopen(slice.fname, "wb")) == NULL) {
       LOG_ERROR(slice.fname);
       return 0;
@@ -497,14 +503,15 @@ static int ecat2DICOM(ecat_matrix::MatrixData *matrix, char *out_dir, const char
   }
   data_size = matrix->xdim * matrix->ydim;
   switch (matrix->data_type) {
-  default :
-    LOG_EXIT("unsupported matrix type : {}", matrix->data_type);
-    break;
   case ecat_matrix::MatrixDataType::ByteData :
     break;
   case ecat_matrix::MatrixDataType::SunShort :
   case ecat_matrix::MatrixDataType::VAX_Ix2 :
     data_size *= 2;
+    break;
+  default :
+    LOG_EXIT("unsupported matrix type : {}", matrix->data_type);
+    break;
   }
 
   nblks = (data_size + 511) / 512;
@@ -512,13 +519,13 @@ static int ecat2DICOM(ecat_matrix::MatrixData *matrix, char *out_dir, const char
   header_size = matrix->data_size - nblks * 512;
   p = (unsigned char *)(header + header_size - 1);
   for (; header_size > 0; header_size--, p--)
-    if (*p == 0xff) break;
+    if (*p == 0xff) 
+      break;
   if (header_size == 0) 
     LOG_EXIT("no DICOM header found\n");
   header_size--;
   fwrite(header, 1, header_size, fp);
-  if (ntohs(1) == 1 && matrix->data_type != ecat_matrix::MatrixDataType::ByteData)
-  {
+  if (ntohs(1) == 1 && matrix->data_type != ecat_matrix::MatrixDataType::ByteData)  {
     buf = (void *)malloc(data_size);
     swab(matrix->data_ptr, buf, data_size);
     fwrite(matrix->data_ptr, data_size, 1, fp);
@@ -529,9 +536,7 @@ static int ecat2DICOM(ecat_matrix::MatrixData *matrix, char *out_dir, const char
 }
 
 static int updateDICOM(ecat_matrix::Main_header *mh, ecat_matrix::Image_subheader *imh, char *in_out_dir,
-                       const char *transfer_dir, const char *prefix,
-                       unsigned series_id)
-{
+                       const char *transfer_dir, const char *prefix,                       unsigned series_id) {
   Tslices slices;
   char series_descr[20], txt[20];
   const char *file_descr = NULL;
@@ -540,8 +545,7 @@ static int updateDICOM(ecat_matrix::Main_header *mh, ecat_matrix::Image_subheade
   split_dir(in_out_dir, -1, slices);
 
   // locate "EM_3D" or "EM_3D_Xmm" or "TX" from filename
-  if ((file_descr = strrchr(prefix, '.')) != NULL)
-  {
+  if ((file_descr = strrchr(prefix, '.')) != NULL)  {
     file_descr++;
     while (!isalpha(*file_descr) && *file_descr != '\0') file_descr++;
     if (*file_descr == '\0') file_descr = NULL;
@@ -551,8 +555,9 @@ static int updateDICOM(ecat_matrix::Main_header *mh, ecat_matrix::Image_subheade
     if (strlen(file_descr) > MAX_SERIES_DESC_LEN)
       file_descr += strlen(file_descr) - MAX_SERIES_DESC_LEN;
     strcpy(series_descr, file_descr);
+  }  else {
+    strcpy(series_descr, def_series_descr);
   }
-  else strcpy(series_descr, def_series_descr);
   LOG_INFO("                        Series Description: {}", series_descr);
   LOG_INFO("Enter new Series Description (max {} char): ", MAX_SERIES_DESC_LEN);
   fgets(txt, sizeof(txt) - 1, stdin);

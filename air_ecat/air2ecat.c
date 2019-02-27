@@ -57,7 +57,7 @@ static ecat_matrix::MatrixData* air2matrix(AIR_Pixels ***pixels, struct AIR_Key_
 		imh->image_max = (int)(matrix->data_max/matrix->scale_factor);
 	}
 	matrix->shptr = (void *)imh;
-	if (matrix->data_type == ecat_matrix::MatrixDataType::VAX_Ix2) 	/* old integer 2 image format */
+	if (matrix->data_type == ecat_matrix::MatrixDataType::VAX_Ix2) 	 old integer 2 image format 
 		imh->data_type = matrix->data_type = ecat_matrix::MatrixDataType::SunShort;
 	if (matrix->data_type == ecat_matrix::MatrixDataType::IeeeFloat) 	/* Interfile float input */
 		imh->data_type = matrix->data_type = ecat_matrix::MatrixDataType::SunShort;

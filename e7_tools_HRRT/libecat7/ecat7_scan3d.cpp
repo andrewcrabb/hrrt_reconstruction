@@ -194,7 +194,7 @@ void ECAT7_SCAN3D::LoadHeader(std::ifstream * const file)
    try
    { unsigned short int i;
                        // DataChanger is used to read data system independently
-     dc=new DataChanger(2*E7_RECLEN, false, true);
+     dc = new DataChanger(2 * E7_RECLEN);
      dc->LoadBuffer(file);                             // load data into buffer
                                                    // retrieve data from buffer
      dc->Value(&sh.data_type);
@@ -271,9 +271,9 @@ void ECAT7_SCAN3D::PrintHeader(std::list <std::string> * const sl,
    //           "FORE", "SSRB", "SEG0", "Random-smoothing" }, s;
   std::string s;
 
-   sl->push_back("************* 3D-Scan-Matrix ("+toString(num)+
+   sl->push_back("************* 3D-Scan-Matrix (" + toString(num)+
                  ") *************");
-   s=" data_type:                      "+toString(sh.data_type)+" (";
+   s=" data_type:                      " + toString(sh.data_type)+" (";
    switch (sh.data_type)
     { case E7_DATA_TYPE_UnknownMatDataType:
        s+="UnknownMatDataType";
@@ -304,10 +304,8 @@ void ECAT7_SCAN3D::PrintHeader(std::list <std::string> * const sl,
        break;
     }
    sl->push_back(s+")");
-   sl->push_back(" Number of Dimensions:           "+
-                 toString(sh.num_dimensions));
-   sl->push_back(" Dimension 1 (ring elements):    "+
-                 toString(sh.num_r_elements));
+   sl->push_back(" Number of Dimensions:           " + toString(sh.num_dimensions));
+   sl->push_back(" Dimension 1 (ring elements):    " + toString(sh.num_r_elements));
    sl->push_back(" Dimension 2 (angles):           " + toString(sh.num_angles));
    sl->push_back(" corrections_applied:            " +                 toString(sh.corrections_applied));
    if ((j=sh.corrections_applied) > 0)
@@ -316,65 +314,50 @@ void ECAT7_SCAN3D::PrintHeader(std::list <std::string> * const sl,
        if ((j & (1 << i)) != 0) s+=ecat_matrix::applied_proc_.at(i) + " ";
       sl->push_back(s+")");
     }
-   s=" num_z_elements:                 "+toString(sh.num_z_elements[0]);
+   s=" num_z_elements:                 " + toString(sh.num_z_elements[0]);
    for (i=1; sh.num_z_elements[i] != 0; i++)
-    s+="+"+toString(sh.num_z_elements[i]);
+    s+="+" + toString(sh.num_z_elements[i]);
    sl->push_back(s);
-   sl->push_back(" ring difference:                "+
-                 toString(sh.ring_difference));
-   s=" storage order:                  "+toString(sh.storage_order)+" (";
+   sl->push_back(" ring difference:                " + toString(sh.ring_difference));
+   s=" storage order:                  " + toString(sh.storage_order)+" (";
    switch (sh.storage_order)
     { case E7_STORAGE_ORDER_RTZD:  s+="r, theta, z, d"; break;
       case E7_STORAGE_ORDER_RZTD:  s+="r, z, theta, d"; break;
       default:                     s+="none";           break;
     }
    sl->push_back(s+")");
-   sl->push_back(" axial compression (span):       "+
-                 toString(sh.axial_compression));
-   sl->push_back(" x resolution (sample distance): "+toString(sh.x_resolution)+
-                 " cm");
-   sl->push_back(" v_resolution:                   "+toString(sh.v_resolution)+
-                 " deg.");
-   sl->push_back(" z_resolution:                   "+toString(sh.z_resolution)+
-                 " cm");
-   sl->push_back(" w_resolution:                   "+
-                 toString(sh.w_resolution));
+   sl->push_back(" axial compression (span):       " + toString(sh.axial_compression));
+   sl->push_back(" x resolution (sample distance): " + toString(sh.x_resolution)+ " cm");
+   sl->push_back(" v_resolution:                   " + toString(sh.v_resolution)+ " deg.");
+   sl->push_back(" z_resolution:                   " + toString(sh.z_resolution)+ " cm");
+   sl->push_back(" w_resolution:                   " + toString(sh.w_resolution));
    /*
    for (i=0; i < 6; i++)
-    sl->push_back(" fill ("+toString(i)+"):                      "+
+    sl->push_back(" fill (" + toString(i)+"):                      "+
                   toString(sh.fill_gate[i]));
    */
-   sl->push_back(" Gate duration:                  "+
-                 toString(sh.gate_duration)+" msec.");
-   sl->push_back(" R-wave Offset:                  "+
-                 toString(sh.r_wave_offset)+" msec.");
-   sl->push_back(" num_accepted_beats:             "+
-                 toString(sh.num_accepted_beats));
-   sl->push_back(" Scale factor:                   "+
-                 toString(sh.scale_factor));
-   sl->push_back(" Scan_min:                       "+toString(sh.scan_min));
-   sl->push_back(" Scan_max:                       "+toString(sh.scan_max));
-   sl->push_back(" Prompt Events:                  "+toString(sh.prompts));
-   sl->push_back(" Delayed Events:                 "+toString(sh.delayed));
-   sl->push_back(" Multiple Events:                "+toString(sh.multiples));
-   sl->push_back(" Net True Events:                "+toString(sh.net_trues));
-   sl->push_back(" Total Avg. Corrected Singles:   "+toString(sh.tot_avg_cor));
-   sl->push_back(" Total Avg. Uncorrected Singles: "+
-                 toString(sh.tot_avg_uncor));
-   sl->push_back(" Total Coincidence Rate:         "+
-                 toString(sh.total_coin_rate));
-   sl->push_back(" Frame Start Time:               "+
-                 toString(sh.frame_start_time)+" msec.");
-   sl->push_back(" Frame Duration:                 "+
-                 toString(sh.frame_duration)+" msec.");
-   sl->push_back(" Deadtime Correction Factor:     "+
-                 toString(sh.deadtime_correction_factor));
+   sl->push_back(" Gate duration:                  " + toString(sh.gate_duration)+" msec.");
+   sl->push_back(" R-wave Offset:                  " + toString(sh.r_wave_offset)+" msec.");
+   sl->push_back(" num_accepted_beats:             " + toString(sh.num_accepted_beats));
+   sl->push_back(" Scale factor:                   " + toString(sh.scale_factor));
+   sl->push_back(" Scan_min:                       " + toString(sh.scan_min));
+   sl->push_back(" Scan_max:                       " + toString(sh.scan_max));
+   sl->push_back(" Prompt Events:                  " + toString(sh.prompts));
+   sl->push_back(" Delayed Events:                 " + toString(sh.delayed));
+   sl->push_back(" Multiple Events:                " + toString(sh.multiples));
+   sl->push_back(" Net True Events:                " + toString(sh.net_trues));
+   sl->push_back(" Total Avg. Corrected Singles:   " + toString(sh.tot_avg_cor));
+   sl->push_back(" Total Avg. Uncorrected Singles: " + toString(sh.tot_avg_uncor));
+   sl->push_back(" Total Coincidence Rate:         " + toString(sh.total_coin_rate));
+   sl->push_back(" Frame Start Time:               " + toString(sh.frame_start_time)+" msec.");
+   sl->push_back(" Frame Duration:                 " + toString(sh.frame_duration)+" msec.");
+   sl->push_back(" Deadtime Correction Factor:     " + toString(sh.deadtime_correction_factor));
    /*
    for (i=0; i < 90; i++)
-    sl->push_back(" fill ("+toString(i, 2)+"):                     "+
+    sl->push_back(" fill (" + toString(i, 2)+"):                     "+
                   toString(sh.fill_cti[i]));
    for (i=0; i < 50; i++)
-    sl->push_back(" fill ("+toString(i, 2)+"):                     "+
+    sl->push_back(" fill (" + toString(i, 2)+"):                     "+
                   toString(sh.fill_user[i]));
    */
    sl->push_back(" Uncorrected Singles:");
@@ -425,8 +408,7 @@ void ECAT7_SCAN3D::SaveHeader(std::ofstream * const file) const
    try
    { unsigned short int i;
                        // DataChanger is used to read data system independently
-     dc=new DataChanger(2*E7_RECLEN, false, true);
-                                                       // fill data into buffer
+     dc = new DataChanger(2 * E7_RECLEN);
      dc->Value(sh.data_type);
      dc->Value(sh.num_dimensions);
      dc->Value(sh.num_r_elements);

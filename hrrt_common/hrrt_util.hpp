@@ -13,6 +13,7 @@
 namespace hrrt_util {
 extern int nthreads_;
 
+void swaw( short *from, short *to, int length);
 // Utility file-open
 int open_istream(std::ifstream &ifstr, const boost::filesystem::path &name, std::ios_base::openmode t_mode = std::ios::in );
 int open_ostream(std::ofstream &ofstr, const boost::filesystem::path &name, std::ios_base::openmode t_mode = std::ios::out );

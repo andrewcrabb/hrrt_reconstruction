@@ -94,8 +94,7 @@ enum class Key {
 	IMAGE_RELATIVE_START_TIME,
 	TOTAL_PROMPTS,
 	TOTAL_RANDOMS,
-
-	END_OF_INTERFILE
+	// END_OF_INTERFILE
 };
 
 enum class TypeOfData {
@@ -125,6 +124,8 @@ struct InterfileItem {
 	std::string value;
 };
 
+extern std::vector <InterfileItem> used_keys;
+
 int interfile_write_volume(ecat_matrix::MatrixFile* mptr, char *image_name ,char *header_name, unsigned char* data_matrix, int size);
 char *is_interfile(const char*);
 int interfile_open(ecat_matrix::MatrixFile*);
@@ -134,8 +135,5 @@ ecat_matrix::MatrixData *interfile_read_scan(ecat_matrix::MatrixFile *mptr,int m
 int free_interfile_header(char** ifh);
 void flip_x(void *line, ecat_matrix::MatrixDataType data_type, int xdim);
 void flip_y(void *plane, ecat_matrix::MatrixDataType data_type, int xdim, int ydim);
-
-// extern "C" InterfileItem used_keys[];
-// std::vector <InterfileItem> used_keys;
 
 }  // namespace interfile
