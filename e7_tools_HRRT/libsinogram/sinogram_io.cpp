@@ -30,7 +30,7 @@
 #include "e7_tools_const.h"
 #include "e7_common.h"
 #include "ecat7.h"
-#include "ecat7_attenuation.h"
+#include "ecat7_attenuation.hpp"
 #include "ecat7_norm3d.h"
 #include "ecat7_scan3d.h"
 #include "ecat_tmpl.h"

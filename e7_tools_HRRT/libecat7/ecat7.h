@@ -14,6 +14,7 @@
 #include "ecat7_global.h"
 #include "ecat7_mainheader.h"
 #include "ecat7_matrix_abc.h"
+#include "ecat_matrix.hpp"
 
 /*- definitions -------------------------------------------------------------*/
 
@@ -63,10 +64,12 @@ public:
   void UpdateMainHeader(const std::string);             // request pointer to data part of matrix object
   void UpdateSubheader(const std::string, const unsigned short int);  
 
-  template <typename T> *get_matrix(int t_matrix_index);
+  template <typename T>T *get_matrix(int t_matrix_index);
                           // request pointer to matrix object
 
-  void               Attn_data_type(const signed short int, const unsigned short int) const;                    // request pointer to main header object
+  // void               Attn_data_type(const signed short int, const unsigned short int) const;
+  void               Attn_data_type(ecat_matrix::MatrixDataType t_data_type, int t_matrix_index) const;
+
   void               Attn_num_dimensions(const signed short int, const unsigned short int) const;
   void               Attn_attenuation_type(const signed short int, const unsigned short int) const;
   void               Attn_num_r_elements(const unsigned short int, const unsigned short int) const;
@@ -96,7 +99,9 @@ public:
   void               Attn_fill_unused(const signed short int, const unsigned short int, unsigned short int) const;
   void               Attn_fill_user(const signed short int, const unsigned short int, unsigned short int) const;
 
-  signed short int   Attn_data_type(const unsigned short int) const;                    // request values from Attenuation header
+  // signed short int   Attn_data_type(const unsigned short int) const;                    // request values from Attenuation header
+  ecat_matrix::MatrixDataType Attn_data_type(int t_matrix_index) const;
+
   signed short int   Attn_num_dimensions(const unsigned short int) const;
   signed short int   Attn_attenuation_type(const unsigned short int) const;
   unsigned short int Attn_num_r_elements(const unsigned short int) const;
