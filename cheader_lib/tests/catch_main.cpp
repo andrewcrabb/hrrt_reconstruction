@@ -98,14 +98,14 @@ int test_read_tags(CHeader *chdr) {
     boost::posix_time::ptime valid_time;
     LOG_TRACE("Should find time tag {} in {}", CHeader::VALID_TIME.sayit(), infile);
     REQUIRE(chdr->ReadTime(CHeader::VALID_TIME.key, the_time) == CHeaderError::OK);
-    REQUIRE_FALSE(CHeader::parse_interfile_time(CHeader::VALID_TIME.value, valid_time));
+    REQUIRE_FALSE(hrrt_util::parse_interfile_time(CHeader::VALID_TIME.value, valid_time));
     REQUIRE(the_time == valid_time);
 
     boost::posix_time::ptime the_date;
     boost::posix_time::ptime valid_date;
     LOG_TRACE("Should find date tag {}", CHeader::VALID_DATE.sayit());
     REQUIRE(chdr->ReadDate(CHeader::VALID_DATE.key, the_date) == CHeaderError::OK);
-    REQUIRE_FALSE(CHeader::parse_interfile_date(CHeader::VALID_DATE.value, valid_date));
+    REQUIRE_FALSE(hrrt_util::parse_interfile_date(CHeader::VALID_DATE.value, valid_date));
     REQUIRE(the_date == valid_date);
 
     return 0;

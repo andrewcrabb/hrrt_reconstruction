@@ -11,6 +11,25 @@
 #include <boost/filesystem.hpp>
 
 namespace hrrt_util {
+
+  // DateFormat / date_formats_ define date formats for parsing into Boost.
+
+  enum class DateFormat {
+    ecat_date,     // 18:09:2017
+    ecat_time,     // 15:26:00
+    ecat_datetime
+  };
+
+  static std::map<DateFormat, std::string> date_formats_ = {
+    {DateFormat::ecat_date    , "%d:%m:%Y"},          // !study date (dd:mm:yryr) := 18:09:2017
+    {DateFormat::ecat_time    , "%H:%M:%S"},          // !study time (hh:mm:ss) := 15:26:00
+    {DateFormat::ecat_datetime, "%d:%m:%Y %H:%M:%S"}  //
+  };
+
+// string const ECAT_DATE_FORMAT = "%d:%m:%Y";  
+// string const ECAT_TIME_FORMAT = "%H:%M:%S";  
+// string const ECAT_DATETIME_FORMAT = "%d:%m:%Y %H:%M:%S";  
+
 extern int nthreads_;
 
 void swaw( short *from, short *to, int length);
@@ -24,4 +43,8 @@ extern int run_system_command( char *prog, char *args, FILE *log_fp );
 extern  bool file_exists (const std::string& name);
 std::string time_string(void);
 std::istream& safeGetline(std::istream& is, std::string& t);
+  // Class methods
+  bool parse_interfile_datetime(const std::string &datestr, DateFormat t_format, boost::posix_time::ptime &pt);
+  bool parse_interfile_time(const std::string &timestr, boost::posix_time::ptime &pt);
+  bool parse_interfile_date(const std::string &datestr, boost::posix_time::ptime &pt);
 }

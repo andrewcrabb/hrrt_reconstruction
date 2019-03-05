@@ -96,11 +96,7 @@ float t1, t2;
 	return(0);
 }
 		
-int main (argc, argv)
-	int			 argc;
-	char		   *argv[];
-{
-
+int main (int argc, char **argv) {
 	struct dsr	  hdr;			 /* header for ANALYZE */
 	FILE		   *fd_hdr=0;			 /* file for ANALYZE hdr */
 	FILE		   *fd_if=0;			 /* output Interfile Format header */

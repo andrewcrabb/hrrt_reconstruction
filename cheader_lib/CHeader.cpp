@@ -107,10 +107,6 @@ Tag const CHeader::VALID_INT(CHeader::IMAGE_DURATION     , "5400");
 Tag const CHeader::VALID_DATE(CHeader::STUDY_DATE        , "03:12:2009");  // DD:MM:YYYY
 Tag const CHeader::VALID_TIME(CHeader::STUDY_TIME        , "12:03:00");    // HH:MM:SS
 
-string const ECAT_DATE_FORMAT = "%d:%m:%Y";  // !study date (dd:mm:yryr) := 18:09:2017
-string const ECAT_TIME_FORMAT = "%H:%M:%S";  // !study time (hh:mm:ss) := 15:26:00
-string const ECAT_DATETIME_FORMAT = "%d:%m:%Y %H:%M:%S";  // !study time (hh:mm:ss) := 15:26:00
-
 string Tag::sayit(void) const {
   string str = fmt::format("'{}' with value '{}'", key, value);
   return str;
@@ -358,7 +354,7 @@ template <typename T>CHeaderError CHeader::convertString(string &str, T &val) co
  * @return     0 on success, else 1
  */
 CHeaderError CHeader::ReadDate(std::string const &t_tag, bt::ptime &t_date) const {
-  return (ReadDateTime(t_tag, ECAT_DATE_FORMAT, t_date) == CHeaderError::OK) ? CHeaderError::OK : CHeaderError::NOT_A_DATE;
+  return (ReadDateTime(t_tag, hrrt_util::DateFormat::ecat_date, t_date) == CHeaderError::OK) ? CHeaderError::OK : CHeaderError::NOT_A_DATE;
 }
 
 /**
@@ -368,7 +364,7 @@ CHeaderError CHeader::ReadDate(std::string const &t_tag, bt::ptime &t_date) cons
  * @return     0 on success, else 1
  */
 CHeaderError CHeader::ReadTime(std::string const &t_tag, bt::ptime &t_time) const {
-  return (ReadDateTime(t_tag, ECAT_TIME_FORMAT, t_time) == CHeaderError::OK) ? CHeaderError::OK : CHeaderError::NOT_A_TIME;
+  return (ReadDateTime(t_tag, hrrt_util::DateFormat::ecat_time, t_time) == CHeaderError::OK) ? CHeaderError::OK : CHeaderError::NOT_A_TIME;
 }
 
 /**
@@ -377,62 +373,12 @@ CHeaderError CHeader::ReadTime(std::string const &t_tag, bt::ptime &t_time) cons
  * @param t_pt
  * @return CHeaderError 
  */
-CHeaderError CHeader::ReadDateTime(string const &t_tag, string const &t_format, bt::ptime &t_pt) const {
+CHeaderError CHeader::ReadDateTime(string const &t_tag, hrrt_util::DateFormat t_format, bt::ptime &t_pt) const {
   string value;
   CHeaderError ret = CHeaderError::OK;
   if ((ret = ReadChar(t_tag, value)) == CHeaderError::OK) {
     LOG_DEBUG("t_tag {} value {}", t_tag, value);
     ret = parse_interfile_datetime(value, t_format, t_pt) ? CHeaderError::ERROR : CHeaderError::OK;
-  }
-  return ret;
-}
-
-// Convert ptime to time/date string in given format
-// TODO: This doesn't do any error checking
-
-CHeaderError CHeader::PTimeToString(bt::ptime const &t_ptime, string const &t_format, string &t_datetime) {
-  bt::time_facet *tfacet = new bt::time_facet();
-  tfacet->format(t_format.c_str());
-  std::ostringstream oss;
-  oss.imbue(std::locale(oss.getloc(), tfacet));
-  oss << t_ptime;
-  t_datetime = oss.str();
-  LOG_TRACE("ptime {} format {} returning {}", bt::to_iso_string(t_ptime), t_format, t_datetime);
-  return CHeaderError::OK;
-}
-
-// Convert datetime string to a ptime
-// Can't convert a time by itself: must be a datetime
-
-CHeaderError CHeader::StringToPTime(string const &t_datestr, string const &t_format, bt::ptime &t_datetime) {
-  bt::time_input_facet *tfacet = new bt::time_input_facet();
-  tfacet->format(t_format.c_str());
-  std::istringstream iss(t_datestr);
-  iss.imbue(std::locale(iss.getloc(), tfacet));
-  // bt::ptime the_datetime;
-  iss >> t_datetime;
-  CHeaderError ret = CHeaderError::OK;
-  if (t_datetime.is_not_a_date_time()) {
-    ret = CHeaderError::INVALID_DATE;
-    LOG_ERROR("datestr {} format {} ptime {}", iss.str(), t_format, bt::to_iso_string(t_datetime) );
-  } else {
-    LOG_TRACE("datestr {} format {} ptime {}", iss.str(), t_format, bt::to_iso_string(t_datetime) );
-    // t_datetime = t_datetime;
-  }
-  return ret;
-}
-
-// Check that given date is between 1900 and 2100.
-
-CHeaderError CHeader::ValidDate(bt::ptime const &t_datetime) {
-  static bt::ptime low_time(boost::gregorian::date(1900,01,01), bt::time_duration(0,0,0));
-  static bt::ptime high_time(boost::gregorian::date(2099,12,31), bt::time_duration(24,0,0));
-
-  CHeaderError ret = ((t_datetime < low_time) || (t_datetime > high_time)) ? CHeaderError::INVALID_DATE : CHeaderError::OK;
-  if (ret != CHeaderError::OK) {
-    string str;
-    PTimeToString(t_datetime, ECAT_DATE_FORMAT, str);
-    LOG_DEBUG("{}: {}", CHdrErrorString[ret], str);
   }
   return ret;
 }
@@ -539,38 +485,4 @@ CHeaderError CHeader::ReadDouble(string const &tag, double &val) const {
   return ReadNum<double>(tag, val);
 }
 
-// These came from hrrt_util.cpp
-// But all CHeader lines are 'HRRT' ECAT-format lines, so they have been moved here to CHeader.
-
-/**
- * @brief      Parse ECAT-format date into Boost ptime
- *
- * @param[in]  str   Date string in format '18:09:2017'
- * @param[in]  pt    bt::ptime object to set to date
- *
- * @return     false on success, else true
- */
-bool CHeader::parse_interfile_datetime(const string &t_datestr, const string &t_format, bt::ptime &t_pt) {
-  bt::time_input_facet *facet = new bt::time_input_facet(t_format);
-  const std::locale loc(std::locale::classic(), facet);
-
-  LOG_DEBUG("t_datestr {} t_format {}", t_datestr, t_format);
-  std::istringstream iss(t_datestr);
-  iss.imbue(loc);
-
-  iss >> t_pt;
-  bool ret = t_pt.is_not_a_date_time();
-  std::string timestr("FILLMEIN");
-  // LOG_DEBUG("t_datestr {} posix_time {} returning {}", t_datestr, bt::to_simple_string(t_pt), ret ? "true" : "false");
-  LOG_DEBUG("t_datestr {} posix_time {} returning {}", t_datestr, timestr, ret ? "true" : "false");
-  return ret;
-}
-
-bool CHeader::parse_interfile_date(const string &datestr, bt::ptime &pt) {
-  return parse_interfile_datetime(datestr, ECAT_DATE_FORMAT, pt);
-}
-
-bool CHeader::parse_interfile_time(const string &timestr, bt::ptime &pt) {
-  return parse_interfile_datetime(timestr, ECAT_TIME_FORMAT, pt);
-}
 

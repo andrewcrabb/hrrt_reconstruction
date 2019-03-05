@@ -12,7 +12,7 @@
  */
 
 #include <cstdio>
-#include "ecat7_image.h"
+#include "ecat7_image.hpp"
 #include "data_changer.h"
 #include "ecat7_global.h"
 #include "ecat7_utils.h"
@@ -23,12 +23,9 @@
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Initialize object.
-
-    Initialize object and fill header data structure with 0s.
  */
-/*---------------------------------------------------------------------------*/
 ECAT7_IMAGE::ECAT7_IMAGE()
- { memset(&ih, 0, sizeof(timage_subheader));
+ { memset(&image_subheader_, 0, sizeof(timage_subheader));
  }
 
 /*---------------------------------------------------------------------------*/
@@ -39,11 +36,10 @@ ECAT7_IMAGE::ECAT7_IMAGE()
     This operator copies the image header and uses the copy operator of the
     base class to copy the dataset from another object into this one.
  */
-/*---------------------------------------------------------------------------*/
 ECAT7_IMAGE& ECAT7_IMAGE::operator = (const ECAT7_IMAGE &e7)
  { if (this != &e7)
     {                                // copy header information into new object
-      memcpy(&ih, &e7.ih, sizeof(timage_subheader));
+      memcpy(&image_subheader_, &e7.image_subheader_, sizeof(timage_subheader));
       ECAT7_MATRIX:: operator = (e7);         // call copy operator from parent
     }
    return(*this);
@@ -52,23 +48,17 @@ ECAT7_IMAGE& ECAT7_IMAGE::operator = (const ECAT7_IMAGE &e7)
 /*---------------------------------------------------------------------------*/
 /*! \brief Request datatype from matrix header.
     \return datatype from matrix header
-
-    Request datatype from matrix header.
  */
-/*---------------------------------------------------------------------------*/
 unsigned short int ECAT7_IMAGE::DataTypeOrig() const
- { return(ih.data_type);
+ { return(image_subheader_.data_type);
  }
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Request number of slices in image.
     \return number of slices in image
- 
-    Request number of slices in image.
- */
-/*---------------------------------------------------------------------------*/
+  */
 unsigned short int ECAT7_IMAGE::Depth() const
- { return(ih.z_dimension);
+ { return(image_subheader_.z_dimension);
  }
 
 /*---------------------------------------------------------------------------*/
@@ -77,35 +67,28 @@ unsigned short int ECAT7_IMAGE::Depth() const
     Change orientation between feet first amd head first. The dataset is
     flipped in z-direction.
  */
-/*---------------------------------------------------------------------------*/
 void ECAT7_IMAGE::Feet2Head() const
  { unsigned short int nze[2];         // number of slices in different segments
 
-   nze[0]=ih.z_dimension;
+   nze[0]=image_subheader_.z_dimension;
    nze[1]=0;                            // these datasets have only one segment
-   utils_Feet2Head(data, datatype, ih.x_dimension, ih.y_dimension, nze);
+   utils_Feet2Head(data, datatype, image_subheader_.x_dimension, image_subheader_.y_dimension, nze);
  }
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Request pointer to header data structure.
     \return pointer to header data structure
- 
-    Request pointer to header data structure.
- */
-/*---------------------------------------------------------------------------*/
+  */
 ECAT7_IMAGE::timage_subheader *ECAT7_IMAGE::HeaderPtr()
- { return(&ih);
+ { return(&image_subheader_);
  }
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Request height of image.
     \return height of image
- 
-    Request height of image.
- */
-/*---------------------------------------------------------------------------*/
+  */
 unsigned short int ECAT7_IMAGE::Height() const
- { return(ih.y_dimension);
+ { return(image_subheader_.y_dimension);
  }
 
 /*---------------------------------------------------------------------------*/
@@ -118,8 +101,7 @@ unsigned short int ECAT7_IMAGE::Height() const
     records long, is skipped.
  */
 /*---------------------------------------------------------------------------*/
-void *ECAT7_IMAGE::LoadData(std::ifstream * const file,
-                            const unsigned long int matrix_records)
+void *ECAT7_IMAGE::LoadData(std::ifstream * const file,                            const unsigned long int matrix_records)
  { file->seekg(E7_RECLEN, std::ios::cur);                 // skip matrix header
    return(ECAT7_MATRIX::LoadData(file, matrix_records-1));         // load data
  }
@@ -127,8 +109,6 @@ void *ECAT7_IMAGE::LoadData(std::ifstream * const file,
 /*---------------------------------------------------------------------------*/
 /*! \brief Load header of image matrix.
     \param[in] file   handle of file
-
-    Load header of image matrix.
  */
 /*---------------------------------------------------------------------------*/
 void ECAT7_IMAGE::LoadHeader(std::ifstream * const file)
@@ -140,67 +120,67 @@ void ECAT7_IMAGE::LoadHeader(std::ifstream * const file)
      dc = new DataChanger(E7_RECLEN);
      dc->LoadBuffer(file);                             // load data into buffer
                                                    // retrieve data from buffer
-     dc->Value(&ih.data_type);
-     dc->Value(&ih.num_dimensions);
-     dc->Value(&ih.x_dimension);
-     dc->Value(&ih.y_dimension);
-     dc->Value(&ih.z_dimension);
-     dc->Value(&ih.x_offset);
-     dc->Value(&ih.y_offset);
-     dc->Value(&ih.z_offset);
-     dc->Value(&ih.recon_zoom);
-     dc->Value(&ih.scale_factor);
-     dc->Value(&ih.image_min);
-     dc->Value(&ih.image_max);
-     dc->Value(&ih.x_pixel_size);
-     dc->Value(&ih.y_pixel_size);
-     dc->Value(&ih.z_pixel_size);
-     dc->Value(&ih.frame_duration);
-     dc->Value(&ih.frame_start_time);
-     dc->Value(&ih.filter_code);
-     dc->Value(&ih.x_resolution);
-     dc->Value(&ih.y_resolution);
-     dc->Value(&ih.z_resolution);
-     dc->Value(&ih.num_r_elements);
-     dc->Value(&ih.num_angles);
-     dc->Value(&ih.z_rotation_angle);
-     dc->Value(&ih.decay_corr_fctr);
-     dc->Value(&ih.processing_code);
-     dc->Value(&ih.gate_duration);
-     dc->Value(&ih.r_wave_offset);
-     dc->Value(&ih.num_accepted_beats);
-     dc->Value(&ih.filter_cutoff_frequency);
-     dc->Value(&ih.filter_resolution);
-     dc->Value(&ih.filter_ramp_slope);
-     dc->Value(&ih.filter_order);
-     dc->Value(&ih.filter_scatter_fraction);
-     dc->Value(&ih.filter_scatter_slope);
-     dc->Value(ih.annotation, 40);
-     dc->Value(&ih.mt_1_1);
-     dc->Value(&ih.mt_1_2);
-     dc->Value(&ih.mt_1_3);
-     dc->Value(&ih.mt_2_1);
-     dc->Value(&ih.mt_2_2);
-     dc->Value(&ih.mt_2_3);
-     dc->Value(&ih.mt_3_1);
-     dc->Value(&ih.mt_3_2);
-     dc->Value(&ih.mt_3_3);
-     dc->Value(&ih.rfilter_cutoff);
-     dc->Value(&ih.rfilter_resolution);
-     dc->Value(&ih.rfilter_code);
-     dc->Value(&ih.rfilter_order);
-     dc->Value(&ih.zfilter_cutoff);
-     dc->Value(&ih.zfilter_resolution);
-     dc->Value(&ih.zfilter_code);
-     dc->Value(&ih.zfilter_order);
-     dc->Value(&ih.mt_1_4);
-     dc->Value(&ih.mt_2_4);
-     dc->Value(&ih.mt_3_4);
-     dc->Value(&ih.scatter_type);
-     dc->Value(&ih.recon_type);
-     dc->Value(&ih.recon_views);
-     for (i=0; i < 87; i++) dc->Value(&ih.fill_cti[i]);
-     for (i=0; i < 48; i++) dc->Value(&ih.fill_user[i]);
+     dc->Value(&image_subheader_.data_type);
+     dc->Value(&image_subheader_.num_dimensions);
+     dc->Value(&image_subheader_.x_dimension);
+     dc->Value(&image_subheader_.y_dimension);
+     dc->Value(&image_subheader_.z_dimension);
+     dc->Value(&image_subheader_.x_offset);
+     dc->Value(&image_subheader_.y_offset);
+     dc->Value(&image_subheader_.z_offset);
+     dc->Value(&image_subheader_.recon_zoom);
+     dc->Value(&image_subheader_.scale_factor);
+     dc->Value(&image_subheader_.image_min);
+     dc->Value(&image_subheader_.image_max);
+     dc->Value(&image_subheader_.x_pixel_size);
+     dc->Value(&image_subheader_.y_pixel_size);
+     dc->Value(&image_subheader_.z_pixel_size);
+     dc->Value(&image_subheader_.frame_duration);
+     dc->Value(&image_subheader_.frame_start_time);
+     dc->Value(&image_subheader_.filter_code);
+     dc->Value(&image_subheader_.x_resolution);
+     dc->Value(&image_subheader_.y_resolution);
+     dc->Value(&image_subheader_.z_resolution);
+     dc->Value(&image_subheader_.num_r_elements);
+     dc->Value(&image_subheader_.num_angles);
+     dc->Value(&image_subheader_.z_rotation_angle);
+     dc->Value(&image_subheader_.decay_corr_fctr);
+     dc->Value(&image_subheader_.processing_code);
+     dc->Value(&image_subheader_.gate_duration);
+     dc->Value(&image_subheader_.r_wave_offset);
+     dc->Value(&image_subheader_.num_accepted_beats);
+     dc->Value(&image_subheader_.filter_cutoff_frequency);
+     dc->Value(&image_subheader_.filter_resolution);
+     dc->Value(&image_subheader_.filter_ramp_slope);
+     dc->Value(&image_subheader_.filter_order);
+     dc->Value(&image_subheader_.filter_scatter_fraction);
+     dc->Value(&image_subheader_.filter_scatter_slope);
+     dc->Value(image_subheader_.annotation, 40);
+     dc->Value(&image_subheader_.mt_1_1);
+     dc->Value(&image_subheader_.mt_1_2);
+     dc->Value(&image_subheader_.mt_1_3);
+     dc->Value(&image_subheader_.mt_2_1);
+     dc->Value(&image_subheader_.mt_2_2);
+     dc->Value(&image_subheader_.mt_2_3);
+     dc->Value(&image_subheader_.mt_3_1);
+     dc->Value(&image_subheader_.mt_3_2);
+     dc->Value(&image_subheader_.mt_3_3);
+     dc->Value(&image_subheader_.rfilter_cutoff);
+     dc->Value(&image_subheader_.rfilter_resolution);
+     dc->Value(&image_subheader_.rfilter_code);
+     dc->Value(&image_subheader_.rfilter_order);
+     dc->Value(&image_subheader_.zfilter_cutoff);
+     dc->Value(&image_subheader_.zfilter_resolution);
+     dc->Value(&image_subheader_.zfilter_code);
+     dc->Value(&image_subheader_.zfilter_order);
+     dc->Value(&image_subheader_.mt_1_4);
+     dc->Value(&image_subheader_.mt_2_4);
+     dc->Value(&image_subheader_.mt_3_4);
+     dc->Value(&image_subheader_.scatter_type);
+     dc->Value(&image_subheader_.recon_type);
+     dc->Value(&image_subheader_.recon_views);
+     for (i=0; i < 87; i++) dc->Value(&image_subheader_.fill_cti[i]);
+     for (i=0; i < 48; i++) dc->Value(&image_subheader_.fill_user[i]);
      delete dc;
      dc=NULL;
    }
@@ -214,13 +194,10 @@ void ECAT7_IMAGE::LoadHeader(std::ifstream * const file)
 /*! \brief Print header information into string list.
     \param[in] sl    string list
     \param[in] num   matrix number
-
-    Print header information into string list.
  */
 /*---------------------------------------------------------------------------*/
-void ECAT7_IMAGE::PrintHeader(std::list <std::string> * const sl,
-                              const unsigned short int num) const
- { DataChanger *dc=NULL;
+void ECAT7_IMAGE::PrintHeader(std::list <std::string> * const sl,                              const unsigned short int num) const { 
+    DataChanger *dc=NULL;
 
    try
    { int i, j;
@@ -232,57 +209,57 @@ void ECAT7_IMAGE::PrintHeader(std::list <std::string> * const sl,
      //         "FORE", "SSRB", "Seg0", "Randoms Smoothing" }, s;
              std::string s;
 
-     sl->push_back("************** Image-Matrix ("+toString(num, 2)+
-                   ") **************");
-     s=" data_type:                      "+toString(ih.data_type)+" (";
-     switch (ih.data_type)
-      { case E7_DATA_TYPE_UnknownMatDataType:
-         s+="UnknownMatDataType";
-         break;
-        case E7_DATA_TYPE_ByteData:
-         s+="ByteData";
-         break;
-        case E7_DATA_TYPE_VAX_Ix2:
-         s+="VAX_Ix2";
-         break;
-        case E7_DATA_TYPE_VAX_Ix4:
-         s+="VAX_Ix4";
-         break;
-        case E7_DATA_TYPE_VAX_Rx4:
-         s+="VAX_Rx4";
-         break;
-        case E7_DATA_TYPE_IeeeFloat:
-         s+="IeeeFloat";
-         break;
-        case E7_DATA_TYPE_SunShort:
-         s+="SunShort";
-         break;
-        case E7_DATA_TYPE_SunLong:
-         s+="SunLong";
-         break;
-        default:
-         s+="unknown";
-         break;
-      }
-     sl->push_back(s+")");
-     sl->push_back(" Number of Dimensions:           " + toString(ih.num_dimensions));
-     sl->push_back(" x-Dimension:                    " + toString(ih.x_dimension));
-     sl->push_back(" y-Dimension:                    " + toString(ih.y_dimension));
-     sl->push_back(" z-Dimension:                    " + toString(ih.z_dimension));
-     sl->push_back(" x-offset:                       " + toString(ih.x_offset) + " cm");
-     sl->push_back(" y-offset:                       " + toString(ih.y_offset) + " cm");
-     sl->push_back(" z-offset:                       " + toString(ih.z_offset) + " cm");
-     sl->push_back(" recon_zoom:                     " + toString(ih.recon_zoom));
-     sl->push_back(" scale_factor:                   " + toString(ih.scale_factor));
-     sl->push_back(" image_min:                      " + toString(ih.image_min));
-     sl->push_back(" image_max:                      " + toString(ih.image_max));
-     sl->push_back(" x_pixel_size:                   " + toString(ih.x_pixel_size)+" cm");
-     sl->push_back(" y_pixel_size:                   " + toString(ih.y_pixel_size)+" cm");
-     sl->push_back(" z_pixel_size:                   " + toString(ih.z_pixel_size)+" cm");
-     sl->push_back(" frame_duration:                 " + toString(ih.frame_duration)+" msec.");
-     sl->push_back(" frame_start_time:               " + toString(ih.frame_start_time)+" msec.");
-     s=" filter_code:                    "+toString(ih.filter_code)+" (";
-     switch (ih.filter_code)
+     sl->push_back("************** Image-Matrix ("+toString(num, 2)+                   ") **************");
+     // s=" data_type:                      "+toString(image_subheader_.data_type)+" (";
+     // switch (image_subheader_.data_type)
+     //  { case E7_DATA_TYPE_UnknownMatDataType:
+     //     s+="UnknownMatDataType";
+     //     break;
+     //    case E7_DATA_TYPE_ByteData:
+     //     s+="ByteData";
+     //     break;
+     //    case E7_DATA_TYPE_VAX_Ix2:
+     //     s+="VAX_Ix2";
+     //     break;
+     //    case E7_DATA_TYPE_VAX_Ix4:
+     //     s+="VAX_Ix4";
+     //     break;
+     //    case E7_DATA_TYPE_VAX_Rx4:
+     //     s+="VAX_Rx4";
+     //     break;
+     //    case E7_DATA_TYPE_IeeeFloat:
+     //     s+="IeeeFloat";
+     //     break;
+     //    case E7_DATA_TYPE_SunShort:
+     //     s+="SunShort";
+     //     break;
+     //    case E7_DATA_TYPE_SunLong:
+     //     s+="SunLong";
+     //     break;
+     //    default:
+     //     s+="unknown";
+     //     break;
+     //  }
+     // sl->push_back(s+")");
+     sl->push_back(print_header_data_type(image_subheader_.data_type));
+     sl->push_back(" Number of Dimensions:           " + toString(image_subheader_.num_dimensions));
+     sl->push_back(" x-Dimension:                    " + toString(image_subheader_.x_dimension));
+     sl->push_back(" y-Dimension:                    " + toString(image_subheader_.y_dimension));
+     sl->push_back(" z-Dimension:                    " + toString(image_subheader_.z_dimension));
+     sl->push_back(" x-offset:                       " + toString(image_subheader_.x_offset) + " cm");
+     sl->push_back(" y-offset:                       " + toString(image_subheader_.y_offset) + " cm");
+     sl->push_back(" z-offset:                       " + toString(image_subheader_.z_offset) + " cm");
+     sl->push_back(" recon_zoom:                     " + toString(image_subheader_.recon_zoom));
+     sl->push_back(" scale_factor:                   " + toString(image_subheader_.scale_factor));
+     sl->push_back(" image_min:                      " + toString(image_subheader_.image_min));
+     sl->push_back(" image_max:                      " + toString(image_subheader_.image_max));
+     sl->push_back(" x_pixel_size:                   " + toString(image_subheader_.x_pixel_size)+" cm");
+     sl->push_back(" y_pixel_size:                   " + toString(image_subheader_.y_pixel_size)+" cm");
+     sl->push_back(" z_pixel_size:                   " + toString(image_subheader_.z_pixel_size)+" cm");
+     sl->push_back(" frame_duration:                 " + toString(image_subheader_.frame_duration)+" msec.");
+     sl->push_back(" frame_start_time:               " + toString(image_subheader_.frame_start_time)+" msec.");
+     s=" filter_code:                    "+toString(image_subheader_.filter_code)+" (";
+     switch (image_subheader_.filter_code)
       { case E7_FILTER_CODE_NoFilter:    s+="no filter";   break;
         case E7_FILTER_CODE_Ramp:        s+="ramp";        break;
         case E7_FILTER_CODE_Butterfield: s+="Butterfield"; break;
@@ -297,52 +274,52 @@ void ECAT7_IMAGE::PrintHeader(std::list <std::string> * const sl,
         default:                         s+="unknown";     break;
       }
      sl->push_back(s+")");
-     sl->push_back(" x_resolution:                   " + toString(ih.x_resolution)+" cm");
-     sl->push_back(" y_resolution:                   " + toString(ih.y_resolution)+" cm");
-     sl->push_back(" y_resolution:                   " + toString(ih.z_resolution)+" cm");
-     sl->push_back(" num_r_elements:                 " + toString(ih.num_r_elements));
-     sl->push_back(" num_angles:                     " + toString(ih.num_angles));
-     sl->push_back(" z_rotation_angle:               " + toString(ih.z_rotation_angle)+" deg.");
-     sl->push_back(" decay_corr_fctr:                " + toString(ih.decay_corr_fctr));
-     sl->push_back(" processing_code:                " + toString(ih.processing_code));
-     if ((j=ih.processing_code) > 0)
+     sl->push_back(" x_resolution:                   " + toString(image_subheader_.x_resolution)+" cm");
+     sl->push_back(" y_resolution:                   " + toString(image_subheader_.y_resolution)+" cm");
+     sl->push_back(" y_resolution:                   " + toString(image_subheader_.z_resolution)+" cm");
+     sl->push_back(" num_r_elements:                 " + toString(image_subheader_.num_r_elements));
+     sl->push_back(" num_angles:                     " + toString(image_subheader_.num_angles));
+     sl->push_back(" z_rotation_angle:               " + toString(image_subheader_.z_rotation_angle)+" deg.");
+     sl->push_back(" decay_corr_fctr:                " + toString(image_subheader_.decay_corr_fctr));
+     sl->push_back(" processing_code:                " + toString(image_subheader_.processing_code));
+     if ((j=image_subheader_.processing_code) > 0)
       { s="  ( ";
         for (i=0; i < 15; i++)
          if ((j & (1 << i)) != 0) s+=ecat_matrix::applied_proc_.at(i) + " ";
         sl->push_back(s+")");
       }
-     sl->push_back(" gate duration:                  " + toString(ih.gate_duration)+" msec.");
-     sl->push_back(" r_wave_offset:                  " + toString(ih.r_wave_offset)+" msec.");
-     sl->push_back(" num_accepted_beats:             " + toString(ih.num_accepted_beats));
-     sl->push_back(" filter_cutoff_frequency:        " + toString(ih.filter_cutoff_frequency));
-     sl->push_back(" filter_resolution:              " + toString(ih.filter_resolution));
-     sl->push_back(" filter_ramp_slope:              " + toString(ih.filter_ramp_slope));
-     sl->push_back(" filter_order:                   " + toString(ih.filter_order));
-     sl->push_back(" filter_scatter_fraction:        " + toString(ih.filter_scatter_fraction));
-     sl->push_back(" filter_scatter_slope:           " + toString(ih.filter_scatter_slope));
-     sl->push_back(" annotation:                     " + (std::string)(const char *)ih.annotation);
-     sl->push_back(" mt_1_1:                         " + toString(ih.mt_1_1));
-     sl->push_back(" mt_1_2:                         " + toString(ih.mt_1_2));
-     sl->push_back(" mt_1_3:                         " + toString(ih.mt_1_3));
-     sl->push_back(" mt_2_1:                         " + toString(ih.mt_2_1));
-     sl->push_back(" mt_2_2:                         " + toString(ih.mt_2_2));
-     sl->push_back(" mt_2_3:                         " + toString(ih.mt_2_3));
-     sl->push_back(" mt_3_1:                         " + toString(ih.mt_3_1));
-     sl->push_back(" mt_3_2:                         " + toString(ih.mt_3_2));
-     sl->push_back(" mt_3_3:                         " + toString(ih.mt_3_3));
-     sl->push_back(" rfilter_cutoff:                 " + toString(ih.rfilter_cutoff));
-     sl->push_back(" rfilter_resolution:             " + toString(ih.rfilter_resolution));
-     sl->push_back(" rfilter_code:                   " + toString(ih.rfilter_code));
-     sl->push_back(" rfilter_order:                  " + toString(ih.rfilter_order));
-     sl->push_back(" zfilter_cutoff:                 " + toString(ih.zfilter_cutoff));
-     sl->push_back(" zfilter_resolution:             " + toString(ih.zfilter_resolution));
-     sl->push_back(" zfilter_code:                   " + toString(ih.zfilter_code));
-     sl->push_back(" zfilter_order:                  " + toString(ih.zfilter_order));
-     sl->push_back(" mt_1_4:                         " + toString(ih.mt_1_4));
-     sl->push_back(" mt_2_4:                         " + toString(ih.mt_2_4));
-     sl->push_back(" mt_3_4:                         " + toString(ih.mt_3_4));
-     s=" scatter_type:                   "+toString(ih.scatter_type)+" (";
-     switch (ih.scatter_type)
+     sl->push_back(" gate duration:                  " + toString(image_subheader_.gate_duration)+" msec.");
+     sl->push_back(" r_wave_offset:                  " + toString(image_subheader_.r_wave_offset)+" msec.");
+     sl->push_back(" num_accepted_beats:             " + toString(image_subheader_.num_accepted_beats));
+     sl->push_back(" filter_cutoff_frequency:        " + toString(image_subheader_.filter_cutoff_frequency));
+     sl->push_back(" filter_resolution:              " + toString(image_subheader_.filter_resolution));
+     sl->push_back(" filter_ramp_slope:              " + toString(image_subheader_.filter_ramp_slope));
+     sl->push_back(" filter_order:                   " + toString(image_subheader_.filter_order));
+     sl->push_back(" filter_scatter_fraction:        " + toString(image_subheader_.filter_scatter_fraction));
+     sl->push_back(" filter_scatter_slope:           " + toString(image_subheader_.filter_scatter_slope));
+     sl->push_back(" annotation:                     " + (std::string)(const char *)image_subheader_.annotation);
+     sl->push_back(" mt_1_1:                         " + toString(image_subheader_.mt_1_1));
+     sl->push_back(" mt_1_2:                         " + toString(image_subheader_.mt_1_2));
+     sl->push_back(" mt_1_3:                         " + toString(image_subheader_.mt_1_3));
+     sl->push_back(" mt_2_1:                         " + toString(image_subheader_.mt_2_1));
+     sl->push_back(" mt_2_2:                         " + toString(image_subheader_.mt_2_2));
+     sl->push_back(" mt_2_3:                         " + toString(image_subheader_.mt_2_3));
+     sl->push_back(" mt_3_1:                         " + toString(image_subheader_.mt_3_1));
+     sl->push_back(" mt_3_2:                         " + toString(image_subheader_.mt_3_2));
+     sl->push_back(" mt_3_3:                         " + toString(image_subheader_.mt_3_3));
+     sl->push_back(" rfilter_cutoff:                 " + toString(image_subheader_.rfilter_cutoff));
+     sl->push_back(" rfilter_resolution:             " + toString(image_subheader_.rfilter_resolution));
+     sl->push_back(" rfilter_code:                   " + toString(image_subheader_.rfilter_code));
+     sl->push_back(" rfilter_order:                  " + toString(image_subheader_.rfilter_order));
+     sl->push_back(" zfilter_cutoff:                 " + toString(image_subheader_.zfilter_cutoff));
+     sl->push_back(" zfilter_resolution:             " + toString(image_subheader_.zfilter_resolution));
+     sl->push_back(" zfilter_code:                   " + toString(image_subheader_.zfilter_code));
+     sl->push_back(" zfilter_order:                  " + toString(image_subheader_.zfilter_order));
+     sl->push_back(" mt_1_4:                         " + toString(image_subheader_.mt_1_4));
+     sl->push_back(" mt_2_4:                         " + toString(image_subheader_.mt_2_4));
+     sl->push_back(" mt_3_4:                         " + toString(image_subheader_.mt_3_4));
+     s=" scatter_type:                   "+toString(image_subheader_.scatter_type)+" (";
+     switch (image_subheader_.scatter_type)
        { case E7_SCATTER_TYPE_NoScatter:
           s+="None";
           break;
@@ -360,8 +337,8 @@ void ECAT7_IMAGE::PrintHeader(std::list <std::string> * const sl,
           break;
        }
      sl->push_back(s+")");
-     s=" recon_type:                     "+toString(ih.recon_type)+" (";
-     switch (ih.recon_type)
+     s=" recon_type:                     "+toString(image_subheader_.recon_type)+" (";
+     switch (image_subheader_.recon_type)
       { case E7_RECON_TYPE_FBPJ:
          s+="Filtered backprojection";
          break;
@@ -392,7 +369,7 @@ void ECAT7_IMAGE::PrintHeader(std::list <std::string> * const sl,
       }
      sl->push_back(s+")");
      sl->push_back(" recon_views:                    "+
-                   toString(ih.recon_views));
+                   toString(image_subheader_.recon_views));
      /*
      for (i=0; i < 87; i++)
       sl->push_back(" fill ("+toString(i, 2)+"):                     "+
@@ -416,15 +393,12 @@ void ECAT7_IMAGE::PrintHeader(std::list <std::string> * const sl,
  */
 /*---------------------------------------------------------------------------*/
 void ECAT7_IMAGE::Prone2Supine() const
- { utils_Prone2Supine(data, datatype, ih.x_dimension, ih.y_dimension,
-                      ih.z_dimension);
+ { utils_Prone2Supine(data, datatype, image_subheader_.x_dimension, image_subheader_.y_dimension,                      image_subheader_.z_dimension);
  }
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Store header of image matrix.
     \param[in] file   handle of file
-
-    Store header of image matrix.
  */
 /*---------------------------------------------------------------------------*/
 void ECAT7_IMAGE::SaveHeader(std::ofstream * const file) const
@@ -435,67 +409,67 @@ void ECAT7_IMAGE::SaveHeader(std::ofstream * const file) const
                       // DataChanger is used to store data system independently
      dc = new DataChanger(E7_RECLEN);
                                                        // fill data into buffer
-     dc->Value(ih.data_type);
-     dc->Value(ih.num_dimensions);
-     dc->Value(ih.x_dimension);
-     dc->Value(ih.y_dimension);
-     dc->Value(ih.z_dimension);
-     dc->Value(ih.x_offset);
-     dc->Value(ih.y_offset);
-     dc->Value(ih.z_offset);
-     dc->Value(ih.recon_zoom);
-     dc->Value(ih.scale_factor);
-     dc->Value(ih.image_min);
-     dc->Value(ih.image_max);
-     dc->Value(ih.x_pixel_size);
-     dc->Value(ih.y_pixel_size);
-     dc->Value(ih.z_pixel_size);
-     dc->Value(ih.frame_duration);
-     dc->Value(ih.frame_start_time);
-     dc->Value(ih.filter_code);
-     dc->Value(ih.x_resolution);
-     dc->Value(ih.y_resolution);
-     dc->Value(ih.z_resolution);
-     dc->Value(ih.num_r_elements);
-     dc->Value(ih.num_angles);
-     dc->Value(ih.z_rotation_angle);
-     dc->Value(ih.decay_corr_fctr);
-     dc->Value(ih.processing_code);
-     dc->Value(ih.gate_duration);
-     dc->Value(ih.r_wave_offset);
-     dc->Value(ih.num_accepted_beats);
-     dc->Value(ih.filter_cutoff_frequency);
-     dc->Value(ih.filter_resolution);
-     dc->Value(ih.filter_ramp_slope);
-     dc->Value(ih.filter_order);
-     dc->Value(ih.filter_scatter_fraction);
-     dc->Value(ih.filter_scatter_slope);
-     dc->Value(40, ih.annotation);
-     dc->Value(ih.mt_1_1);
-     dc->Value(ih.mt_1_2);
-     dc->Value(ih.mt_1_3);
-     dc->Value(ih.mt_2_1);
-     dc->Value(ih.mt_2_2);
-     dc->Value(ih.mt_2_3);
-     dc->Value(ih.mt_3_1);
-     dc->Value(ih.mt_3_2);
-     dc->Value(ih.mt_3_3);
-     dc->Value(ih.rfilter_cutoff);
-     dc->Value(ih.rfilter_resolution);
-     dc->Value(ih.rfilter_code);
-     dc->Value(ih.rfilter_order);
-     dc->Value(ih.zfilter_cutoff);
-     dc->Value(ih.zfilter_resolution);
-     dc->Value(ih.zfilter_code);
-     dc->Value(ih.zfilter_order);
-     dc->Value(ih.mt_1_4);
-     dc->Value(ih.mt_2_4);
-     dc->Value(ih.mt_3_4);
-     dc->Value(ih.scatter_type);
-     dc->Value(ih.recon_type);
-     dc->Value(ih.recon_views);
-     for (i=0; i < 87; i++) dc->Value(ih.fill_cti[i]);
-     for (i=0; i < 48; i++) dc->Value(ih.fill_user[i]);
+     dc->Value(image_subheader_.data_type);
+     dc->Value(image_subheader_.num_dimensions);
+     dc->Value(image_subheader_.x_dimension);
+     dc->Value(image_subheader_.y_dimension);
+     dc->Value(image_subheader_.z_dimension);
+     dc->Value(image_subheader_.x_offset);
+     dc->Value(image_subheader_.y_offset);
+     dc->Value(image_subheader_.z_offset);
+     dc->Value(image_subheader_.recon_zoom);
+     dc->Value(image_subheader_.scale_factor);
+     dc->Value(image_subheader_.image_min);
+     dc->Value(image_subheader_.image_max);
+     dc->Value(image_subheader_.x_pixel_size);
+     dc->Value(image_subheader_.y_pixel_size);
+     dc->Value(image_subheader_.z_pixel_size);
+     dc->Value(image_subheader_.frame_duration);
+     dc->Value(image_subheader_.frame_start_time);
+     dc->Value(image_subheader_.filter_code);
+     dc->Value(image_subheader_.x_resolution);
+     dc->Value(image_subheader_.y_resolution);
+     dc->Value(image_subheader_.z_resolution);
+     dc->Value(image_subheader_.num_r_elements);
+     dc->Value(image_subheader_.num_angles);
+     dc->Value(image_subheader_.z_rotation_angle);
+     dc->Value(image_subheader_.decay_corr_fctr);
+     dc->Value(image_subheader_.processing_code);
+     dc->Value(image_subheader_.gate_duration);
+     dc->Value(image_subheader_.r_wave_offset);
+     dc->Value(image_subheader_.num_accepted_beats);
+     dc->Value(image_subheader_.filter_cutoff_frequency);
+     dc->Value(image_subheader_.filter_resolution);
+     dc->Value(image_subheader_.filter_ramp_slope);
+     dc->Value(image_subheader_.filter_order);
+     dc->Value(image_subheader_.filter_scatter_fraction);
+     dc->Value(image_subheader_.filter_scatter_slope);
+     dc->Value(40, image_subheader_.annotation);
+     dc->Value(image_subheader_.mt_1_1);
+     dc->Value(image_subheader_.mt_1_2);
+     dc->Value(image_subheader_.mt_1_3);
+     dc->Value(image_subheader_.mt_2_1);
+     dc->Value(image_subheader_.mt_2_2);
+     dc->Value(image_subheader_.mt_2_3);
+     dc->Value(image_subheader_.mt_3_1);
+     dc->Value(image_subheader_.mt_3_2);
+     dc->Value(image_subheader_.mt_3_3);
+     dc->Value(image_subheader_.rfilter_cutoff);
+     dc->Value(image_subheader_.rfilter_resolution);
+     dc->Value(image_subheader_.rfilter_code);
+     dc->Value(image_subheader_.rfilter_order);
+     dc->Value(image_subheader_.zfilter_cutoff);
+     dc->Value(image_subheader_.zfilter_resolution);
+     dc->Value(image_subheader_.zfilter_code);
+     dc->Value(image_subheader_.zfilter_order);
+     dc->Value(image_subheader_.mt_1_4);
+     dc->Value(image_subheader_.mt_2_4);
+     dc->Value(image_subheader_.mt_3_4);
+     dc->Value(image_subheader_.scatter_type);
+     dc->Value(image_subheader_.recon_type);
+     dc->Value(image_subheader_.recon_views);
+     for (i=0; i < 87; i++) dc->Value(image_subheader_.fill_cti[i]);
+     for (i=0; i < 48; i++) dc->Value(image_subheader_.fill_user[i]);
      dc->SaveBuffer(file);                                      // store header
      delete dc;
      dc=NULL;
@@ -514,9 +488,9 @@ void ECAT7_IMAGE::SaveHeader(std::ofstream * const file) const
  */
 /*---------------------------------------------------------------------------*/
 void ECAT7_IMAGE::ScaleMatrix(const float factor)
- { utils_ScaleMatrix(data, datatype, (unsigned long int)ih.x_dimension*
-                                     (unsigned long int)ih.y_dimension*
-                                     (unsigned long int)ih.z_dimension,
+ { utils_ScaleMatrix(data, datatype, (unsigned long int)image_subheader_.x_dimension*
+                                     (unsigned long int)image_subheader_.y_dimension*
+                                     (unsigned long int)image_subheader_.z_dimension,
                      factor);
  }
 
@@ -528,5 +502,17 @@ void ECAT7_IMAGE::ScaleMatrix(const float factor)
  */
 /*---------------------------------------------------------------------------*/
 unsigned short int ECAT7_IMAGE::Width() const
- { return(ih.x_dimension);
+ { return(image_subheader_.x_dimension);
  }
+
+// Read data_type as short int from file, return as scoped enum
+
+ecat_matrix::MatrixDataType ECAT7_IMAGE::get_data_type(void) {
+  return static_cast<ecat_matrix::MatrixDataType>(image_subheader_.data_type);
+}
+
+// Write scoped enum to file as short int
+
+void ECAT7_IMAGE::set_data_type(ecat_matrix::MatrixDataType t_data_type) {
+  image_subheader_.data_type = static_cast<signed short int>(t_data_type);
+}

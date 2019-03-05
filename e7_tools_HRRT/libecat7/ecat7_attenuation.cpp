@@ -214,37 +214,38 @@ void ECAT7_ATTENUATION::PrintHeader(std::list <std::string> * const sl, const un
    std::string s;
 
    sl->push_back("******* Attenuation-Matrix-Header ("+toString(num, 2)+                 ") ********");
-   s=" data_type:                   "+toString(attenuation_subheader_.data_type)+" (";
-    switch (attenuation_subheader_.data_type)
-     { case E7_DATA_TYPE_UnknownMatDataType:
-        s+="UnknownMatDataType";
-        break;
-       case E7_DATA_TYPE_ByteData:
-        s+="ByteData";
-        break;
-       case E7_DATA_TYPE_VAX_Ix2:
-        s+="VAX_Ix2";
-        break;
-       case E7_DATA_TYPE_VAX_Ix4:
-        s+="VAX_Ix4";
-        break;
-       case E7_DATA_TYPE_VAX_Rx4:
-        s+="VAX_Rx4";
-        break;
-       case E7_DATA_TYPE_IeeeFloat:
-        s+="IeeeFloat";
-        break;
-       case E7_DATA_TYPE_SunShort:
-        s+="SunShort";
-        break;
-       case E7_DATA_TYPE_SunLong:
-        s+="SunLong";
-        break;
-       default:
-        s+="unknown";
-        break;
-     }
-   sl->push_back(s+")");
+   // s=" data_type:                   "+toString(attenuation_subheader_.data_type)+" (";
+   //  switch (attenuation_subheader_.data_type)
+   //   { case E7_DATA_TYPE_UnknownMatDataType:
+   //      s+="UnknownMatDataType";
+   //      break;
+   //     case E7_DATA_TYPE_ByteData:
+   //      s+="ByteData";
+   //      break;
+   //     case E7_DATA_TYPE_VAX_Ix2:
+   //      s+="VAX_Ix2";
+   //      break;
+   //     case E7_DATA_TYPE_VAX_Ix4:
+   //      s+="VAX_Ix4";
+   //      break;
+   //     case E7_DATA_TYPE_VAX_Rx4:
+   //      s+="VAX_Rx4";
+   //      break;
+   //     case E7_DATA_TYPE_IeeeFloat:
+   //      s+="IeeeFloat";
+   //      break;
+   //     case E7_DATA_TYPE_SunShort:
+   //      s+="SunShort";
+   //      break;
+   //     case E7_DATA_TYPE_SunLong:
+   //      s+="SunLong";
+   //      break;
+   //     default:
+   //      s+="unknown";
+   //      break;
+   //   }
+   // sl->push_back(s+")");
+     sl->push_back(print_header_data_type(attenuation_subheader_.data_type));
    sl->push_back(" Number of Dimensions:        "+toString(attenuation_subheader_.num_dimensions));
    s=" Attenuation-type:            "+toString(attenuation_subheader_.attenuation_type)+" (";
    switch (attenuation_subheader_.attenuation_type)
@@ -443,6 +444,6 @@ ecat_matrix::MatrixDataType ECAT7_ATTENUATION::get_data_type(void) {
 
 // Write scoped enum to file as short int
 
-void set_data_type(ecat_matrix::MatrixDataType t_data_type) {
+void ECAT7_ATTENUATION::set_data_type(ecat_matrix::MatrixDataType t_data_type) {
   attenuation_subheader_.data_type = static_cast<signed short int>(t_data_type);
 }

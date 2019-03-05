@@ -177,7 +177,7 @@ int analyze_open(ecat_matrix::MatrixFile *mptr) {
   sprintf(mh->magic_number, "%d", (int)(sizeof(struct dsr)));
   mh->sw_version = 70;
   mh->file_type = ecat_matrix::DataSetType::InterfileImage;
-  mptr->analyze_hdr = (char*)calloc(1, sizeof(struct dsr));
+  mptr->analyze_hdr = (char*)calloc(1, sizeof(struct dsr));  // ahc presence of this also indicates analyze file read.  Why not use file_format?
   memcpy(mptr->analyze_hdr, &hdr, sizeof(hdr));
   // mptr->interfile_header = (char**)calloc(END_OF_KEYS, sizeof(char*));
   mptr->interfile_header = (char**)calloc(interfile::used_keys.size(), sizeof(char*));

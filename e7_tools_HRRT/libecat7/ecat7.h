@@ -143,7 +143,9 @@ public:
   signed long int Dir_plane(const unsigned short int) const;
   signed long int Dir_data(const unsigned short int) const;
 
-  void Image_data_type(const signed short int, const unsigned short int) const;                             // change values in Image header
+  // void Image_data_type(const signed short int, const unsigned short int) const;                             // change values in Image header
+  void               Image_data_type(ecat_matrix::MatrixDataType t_data_type, int t_matrix_index) const;
+
   void Image_num_dimensions(const signed short int, const unsigned short int) const;
   void Image_x_dim(const signed short int, const unsigned short int) const;
   void Image_y_dim(const signed short int, const unsigned short int) const;
@@ -205,7 +207,9 @@ public:
   void Image_fill_cti(const signed short int, const unsigned short int, const unsigned short int) const;
   void Image_fill_user(const signed short int, const unsigned short int, const unsigned short int) const;
 
-  signed short int Image_data_type(const unsigned short int) const;                          // request values from Image header
+  // signed short int Image_data_type(const unsigned short int) const;                          // request values from Image header
+  ecat_matrix::MatrixDataType Image_data_type(int t_matrix_index) const;
+
   signed short int Image_num_dimensions(const unsigned short int) const;
   signed short int Image_x_dim(const unsigned short int) const;
   signed short int Image_y_dim(const unsigned short int) const;

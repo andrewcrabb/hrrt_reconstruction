@@ -63,69 +63,67 @@ std::vector <InterfileItem> used_keys = {
   {Key::VERSION_OF_KEYS     , "version of keys"},
   {Key::IMAGE_MODALITY      , "image modality"},
   // Main Header
-  {Key::ORIGINAL_INSTITUTION, "original institution"},
-  {Key::ORIGINATING_SYSTEM  , "originating system"},
-  {Key::NAME_OF_DATA_FILE   , "name of data file"},
-  {Key::DATA_STARTING_BLOCK , "data starting block"},
-  {Key::DATA_OFFSET_IN_BYTES, "data offset in bytes"},
-  {Key::PATIENT_NAME        , "patient name"},
-  {Key::PATIENT_ID          , "patient id"},
-  {Key::PATIENT_DOB         , "patient dob"},
-  {Key::PATIENT_SEX         , "patient sex"},
-  {Key::STUDY_ID            , "study id"},
-  {Key::EXAM_TYPE           , "exam type"},
-  {Key::DATA_COMPRESSION    , "data compression"},
-  {Key::DATA_ENCODE         , "data encode"},
-  {Key::DISPLAY_RANGE       , "display range"},
-  {Key::IMAGE_EXTREMA       , "image extrema"},
-  {Key::ATLAS_ORIGIN_1      , "atlas origin [1]"},
-  {Key::ATLAS_ORIGIN_2      , "atlas origin [2]"},
-  {Key::ATLAS_ORIGIN_3      , "atlas origin [3]"},
-  {Key::TYPE_OF_DATA        , "type of data"},
-  {Key::TOTAL_NUMBER_OF_IMAGES, "total number of images"},
-  {Key::STUDY_DATE, "study date"},
-  {Key::STUDY_TIME, "study time"},
-  {Key::IMAGEDATA_BYTE_ORDER, "imagedata byte order"},
-  {Key::NUMBER_OF_WINDOWS, "number of energy windows"},
+  {Key::ORIGINAL_INSTITUTION     , "original institution"},
+  {Key::ORIGINATING_SYSTEM       , "originating system"},
+  {Key::NAME_OF_DATA_FILE        , "name of data file"},
+  {Key::DATA_STARTING_BLOCK      , "data starting block"},
+  {Key::DATA_OFFSET_IN_BYTES     , "data offset in bytes"},
+  {Key::PATIENT_NAME             , "patient name"},
+  {Key::PATIENT_ID               , "patient id"},
+  {Key::PATIENT_DOB              , "patient dob"},
+  {Key::PATIENT_SEX              , "patient sex"},
+  {Key::STUDY_ID                 , "study id"},
+  {Key::EXAM_TYPE                , "exam type"},
+  {Key::DATA_COMPRESSION         , "data compression"},
+  {Key::DATA_ENCODE              , "data encode"},
+  {Key::DISPLAY_RANGE            , "display range"},
+  {Key::IMAGE_EXTREMA            , "image extrema"},
+  {Key::ATLAS_ORIGIN_1           , "atlas origin [1]"},
+  {Key::ATLAS_ORIGIN_2           , "atlas origin [2]"},
+  {Key::ATLAS_ORIGIN_3           , "atlas origin [3]"},
+  {Key::TYPE_OF_DATA             , "type of data"},
+  {Key::TOTAL_NUMBER_OF_IMAGES   , "total number of images"},
+  {Key::STUDY_DATE               , "study date"},
+  {Key::STUDY_TIME               , "study time"},
+  {Key::IMAGEDATA_BYTE_ORDER     , "imagedata byte order"},
+  {Key::NUMBER_OF_WINDOWS        , "number of energy windows"},
   // static tomographic images
-  {Key::NUMBER_OF_IMAGES, "number of images/energy window"},
-  {Key::PROCESS_STATUS, "process status"},
-  {Key::NUMBER_OF_DIMENSIONS, "number of dimensions"},
-  {Key::MATRIX_SIZE_1, "matrix size [1]"},
-  {Key::MATRIX_SIZE_2, "matrix size [2]"},
-  {Key::MATRIX_SIZE_3, "matrix size [3]"},
-  {Key::NUMBER_FORMAT, "number format"},
+  {Key::NUMBER_OF_IMAGES         , "number of images/energy window"},
+  {Key::PROCESS_STATUS           , "process status"},
+  {Key::NUMBER_OF_DIMENSIONS     , "number of dimensions"},
+  {Key::MATRIX_SIZE_1            , "matrix size [1]"},
+  {Key::MATRIX_SIZE_2            , "matrix size [2]"},
+  {Key::MATRIX_SIZE_3            , "matrix size [3]"},
+  {Key::NUMBER_FORMAT            , "number format"},
   {Key::NUMBER_OF_BYTES_PER_PIXEL, "number of bytes per pixel"},
-  {Key::MAXIMUM_PIXEL_COUNT, "maximum pixel count"},
-  {Key::MATRIX_INITIAL_ELEMENT_1, "matrix initial element [1]"},
-  {Key::MATRIX_INITIAL_ELEMENT_2, "matrix initial element [2]"},
-  {Key::MATRIX_INITIAL_ELEMENT_3, "matrix initial element [3]"},
-  {Key::SCALE_FACTOR_1, "scaling factor (mm/pixel) [1]"},
-  {Key::SCALE_FACTOR_2, "scaling factor (mm/pixel) [2]"},
-  {Key::SCALE_FACTOR_3, "scaling factor (mm/pixel) [3]"},
+  {Key::MAXIMUM_PIXEL_COUNT      , "maximum pixel count"},
+  {Key::MATRIX_INITIAL_ELEMENT_1 , "matrix initial element [1]"},
+  {Key::MATRIX_INITIAL_ELEMENT_2 , "matrix initial element [2]"},
+  {Key::MATRIX_INITIAL_ELEMENT_3 , "matrix initial element [3]"},
+  {Key::SCALE_FACTOR_1           , "scaling factor (mm/pixel) [1]"},
+  {Key::SCALE_FACTOR_2           , "scaling factor (mm/pixel) [2]"},
+  {Key::SCALE_FACTOR_3           , "scaling factor (mm/pixel) [3]"},
   // ECAT 8 Image Interfile
-  {Key::SCALE_FACTOR_1, "scale factor (mm/pixel) [1]"},
-  {Key::SCALE_FACTOR_2, "scale factor (mm/pixel) [2]"},
-  {Key::SCALE_FACTOR_3, "scale factor (mm/pixel) [3]"},
+  {Key::SCALE_FACTOR_1           , "scale factor (mm/pixel) [1]"},
+  {Key::SCALE_FACTOR_2           , "scale factor (mm/pixel) [2]"},
+  {Key::SCALE_FACTOR_3           , "scale factor (mm/pixel) [3]"},
   // ECAT 8 Sinogram Interfile
-  {Key::SCALE_FACTOR_2, "scale factor [2]"},
-  {Key::IMAGE_DURATION, "image duration"},
-  {Key::IMAGE_START_TIME, "image start time"},
-  {Key::IMAGE_NUMBER, "image number"},
-  {Key::LABEL, "label"},
-  // not standard keys added by Sibomana@topo.ucl.ac.be : it is expressed as scale units; e.g 10e-6 counts/second
-  {Key::QUANTIFICATION_UNITS, "quantification units"},
-  // scale_factor and units label
-  {Key::REAL_EXTREMA, "real extrema"},
-  {Key::INTERPOLABILITY, "interpolability"},
-  {Key::TRANSFORMER, "transformer"},
-  {Key::COLORTAB, "colortab"},
+  {Key::SCALE_FACTOR_2           , "scale factor [2]"},
+  {Key::IMAGE_DURATION           , "image duration"},
+  {Key::IMAGE_START_TIME         , "image start time"},
+  {Key::IMAGE_NUMBER             , "image number"},
+  {Key::LABEL                    , "label"},
+  {Key::QUANTIFICATION_UNITS     , "quantification units"},  // not standard keys added by Sibomana : scale units; e.g 10e-6 counts/second
+  {Key::REAL_EXTREMA             , "real extrema"},  // scale_factor and units label
+  {Key::INTERPOLABILITY          , "interpolability"},
+  {Key::TRANSFORMER              , "transformer"},
+  {Key::COLORTAB                 , "colortab"},
   // Sinograms header support
-  {Key::NUM_Z_ELEMENTS, "number of z elements"},
-  {Key::STORAGE_ORDER, "storage order"},
+  {Key::NUM_Z_ELEMENTS           , "number of z elements"},
+  {Key::STORAGE_ORDER            , "storage order"},
   {Key::IMAGE_RELATIVE_START_TIME, "image relative start time"},
-  {Key::TOTAL_PROMPTS, "total Prompts"},
-  {Key::TOTAL_RANDOMS, "total Randoms"},
+  {Key::TOTAL_PROMPTS            , "total Prompts"},
+  {Key::TOTAL_RANDOMS            , "total Randoms"},
   // {Key::END_OF_INTERFILE, "end of interfile"},
   // {Key::END_OF_KEYS, 0}
 };
@@ -213,35 +211,6 @@ static int _elem_size(ecat_matrix::MatrixDataType data_type){
   // }
 }
 
-static void find_data_extrema(ecat_matrix::MatrixData *data){
-  int npixels = data->xdim * data->ydim * data->zdim;
-  switch (data->data_type) {
-  case ecat_matrix::MatrixDataType::ByteData :
-  case ecat_matrix::MatrixDataType::Color_8 :
-    data->data_max = ecat_matrix::find_bmax((unsigned char *)data->data_ptr, npixels);
-    data->data_min = ecat_matrix::find_bmin((unsigned char *)data->data_ptr, npixels);
-    break;
-  default :
-  case ecat_matrix::MatrixDataType::SunShort:
-  // case ecat_matrix::MatrixDataType::VAX_Ix2:
-  //   data->data_max = ecat_matrix::find_smax((short*)data->data_ptr, npixels);
-  //   data->data_min = ecat_matrix::find_smin((short*)data->data_ptr, npixels);
-  //   break;
-  case ecat_matrix::MatrixDataType::SunLong:
-    data->data_max = (float)ecat_matrix::find_imax((int*)data->data_ptr, npixels);
-    data->data_min = (float)ecat_matrix::find_imin((int*)data->data_ptr, npixels);
-    break;
-  case ecat_matrix::MatrixDataType::IeeeFloat:
-    data->data_max = ecat_matrix::find_fmax((float*)data->data_ptr, npixels);
-    data->data_min = ecat_matrix::find_fmin((float*)data->data_ptr, npixels);
-    break;
-  case ecat_matrix::MatrixDataType::Color_24 :  /* get min and max brightness */
-    data->data_max = ecat_matrix::find_bmax((unsigned char *)data->data_ptr, 3 * npixels);
-    data->data_min = ecat_matrix::find_bmin((unsigned char *)data->data_ptr, 3 * npixels);
-  }
-  data->data_max *=  data->scale_factor;
-  data->data_min *=  data->scale_factor;
-}
 
   void flip_x(void * line, ecat_matrix::MatrixDataType data_type, int xdim) {
     static void * _line = NULL;
@@ -268,15 +237,15 @@ static void find_data_extrema(ecat_matrix::MatrixData *data){
     }
     default :
     case ecat_matrix::MatrixDataType::SunShort:
-    // case ecat_matrix::MatrixDataType::VAX_Ix2:  {
-    //   short *s_p0, *s_p1;
-    //   s_p0 = (short*)line;
-    //   // s_p1 = (short*)(_line + (xdim - 1) * elem_size);
-    //   s_p1 = static_cast<short *>(_line) + (xdim - 1) * elem_size;
-    //   for (x = 0; x < xdim; x++) *s_p1-- = *s_p0++;
-    //   memcpy(line, _line, xdim * elem_size);
-    //   break;
-    // }
+    case ecat_matrix::MatrixDataType::VAX_Ix2:  {
+      short *s_p0, *s_p1;
+      s_p0 = (short*)line;
+      // s_p1 = (short*)(_line + (xdim - 1) * elem_size);
+      s_p1 = static_cast<short *>(_line) + (xdim - 1) * elem_size;
+      for (x = 0; x < xdim; x++) *s_p1-- = *s_p0++;
+      memcpy(line, _line, xdim * elem_size);
+      break;
+    }
     case ecat_matrix::MatrixDataType::SunLong:  {
       int *i_p0, *i_p1;
       i_p0 = (int*)line;
@@ -661,18 +630,15 @@ int get_block_singles(ecat_matrix::MatrixFile *mptr, float **pextended_uncor_sin
 }
 
 int interfile_open(ecat_matrix::MatrixFile *mptr) {
-  InterfileItem* item;
   FILE *fp;
   ecat_matrix::Main_header *mh;
   ecat_matrix::MatrixData mdata;
-  ecat_matrix::MatDir matdir;
   time_t now, t;
   struct tm tm;
   char *p, dup[80], data_dir[FILENAME_MAX], data_file[FILENAME_MAX];
   char *year, *month, *day, *hour, *minute, *second;
   /* char *block_singles = NULL; */
-  int this_year;
-  int i, elem_size = 2, data_size;
+  int elem_size = 2, data_size;
   float scale_factor;
   int end_of_interfile = 0;
   int nmats, nblks, *blk_offsets;
@@ -680,15 +646,15 @@ int interfile_open(ecat_matrix::MatrixFile *mptr) {
 
   memset(&mdata, 0, sizeof(ecat_matrix::MatrixData));
   now = time(0);
-  this_year = 1900 + (localtime(&now))->tm_year;
-  if ((fp = fopen(mptr->fname, R_MODE)) == NULL) return ecat_matrix::ECATX_ERROR;
+  if ((fp = fopen(mptr->fname, R_MODE)) == NULL) 
+    return ecat_matrix::ECATX_ERROR;
   mh = mptr->mhptr;
   strcpy(mh->data_units, "none");
   // mh->calibration_units = 2; /* Processed */
   mh->calibration_units = ecat_matrix::CalibrationStatus::Processed;
   mh->calibration_factor = 1.0f;
   mh->calibration_units_label = 0;
-  strcpy(mh->magic_number, magicNumber);
+  strcpy(mh->magic_number, magicNumber.c_str());
   mh->sw_version = 70;
   // mptr->interfile_header = (char**)calloc(END_OF_KEYS, sizeof(char*));
   mptr->interfile_header = (char**)calloc(used_keys.size(), sizeof(char*));
@@ -696,15 +662,17 @@ int interfile_open(ecat_matrix::MatrixFile *mptr) {
     return ecat_matrix::ECATX_ERROR;
   mh->num_frames = mh->num_gates = mh->num_bed_pos = 1;
   mh->plane_separation = 1;
+
+  InterfileItem* item;
   while (!end_of_interfile && (item = get_next_item(fp)) != NULL) {
-    if (item->value == NULL) 
+    if (item->value.empty()) 
       continue;
-    mptr->interfile_header[item->key] = item->value;
+    mptr->interfile_header[to_underlying(item->key)] = item->value.c_str();
     switch (item->key) {
-    case ORIGINATING_SYSTEM:
+    case Key::ORIGINATING_SYSTEM:
       mh->system_type = atoi(item->value);
       break;
-    case QUANTIFICATION_UNITS:
+    case Key::QUANTIFICATION_UNITS:
       mh->calibration_units_label = 0;  /* for multiple keys */
       if (sscanf(item->value, "%g %s", &scale_factor, mh->data_units) == 2) {
         auto it = std::find(customDisplayUnits.begin(), customDisplayUnits.end(), mh->data_units);
@@ -717,25 +685,26 @@ int interfile_open(ecat_matrix::MatrixFile *mptr) {
         //     mh->calibration_units_label = i;
       }
       break;
-    case EXAM_TYPE:
+    case Key::EXAM_TYPE:
       strncpy(mh->radiopharmaceutical, item->value, sizeof(mh->facility_name));
       mh->radiopharmaceutical[sizeof(mh->facility_name) - 1] = 0;
       break;
-    case ORIGINAL_INSTITUTION:
+    case Key::ORIGINAL_INSTITUTION:
       strncpy(mh->facility_name, item->value, sizeof(mh->facility_name));
       mh->facility_name[sizeof(mh->facility_name) - 1] = '\0';
       break;
-    case PATIENT_NAME:
+    case Key::PATIENT_NAME:
       strncpy(mh->patient_name, item->value, sizeof(mh->patient_name));
       mh->patient_name[sizeof(mh->patient_name) - 1] = '\0';
       break;
-    case PATIENT_ID:
+    case Key::PATIENT_ID:
       strncpy(mh->patient_id, item->value, sizeof(mh->patient_id));
       mh->patient_id[sizeof(mh->patient_id) - 1] = '\0';
       break;
-    case PATIENT_DOB:
+    case Key::PATIENT_DOB:
       strcpy(dup, item->value);
       if ( (year = strtok(dup, ":")) == NULL) break;
+      int this_year = 1900 + (localtime(&now))->tm_year;
       mh->patient_age = (float)(this_year - atoi(year));
       if ( (month = strtok(NULL, ":")) == NULL) break;
       if ( (day = strtok(NULL, ":")) == NULL) break;
@@ -745,13 +714,13 @@ int interfile_open(ecat_matrix::MatrixFile *mptr) {
       tm.tm_mday = atoi(day);
       mh->patient_birth_date = (int)mktime(&tm);
       break;
-    case PATIENT_SEX:
+    case Key::PATIENT_SEX:
       mh->patient_sex[0] = item->value[0];
       break;
-    case STUDY_ID:
+    case Key::STUDY_ID:
       strncpy(mh->study_name, item->value, 12);
       mh->study_name[11] = '\0';
-    case STUDY_DATE:
+    case Key::STUDY_DATE:
       strcpy(dup, item->value);
       if ( (year = strtok(dup, ":")) == NULL) break;
       if ( (month = strtok(NULL, ":")) == NULL) break;
@@ -763,7 +732,7 @@ int interfile_open(ecat_matrix::MatrixFile *mptr) {
       mh->scan_start_time = (int)mktime(&tm);
       break;
 
-    case STUDY_TIME:
+    case Key::STUDY_TIME:
       strcpy(dup, item->value);
       if ( (hour = strtok(dup, ":")) == NULL) break;
       if ( (minute = strtok(NULL, ":")) == NULL) break;
@@ -775,14 +744,14 @@ int interfile_open(ecat_matrix::MatrixFile *mptr) {
       tm.tm_sec = atoi(second);
       mh->scan_start_time = (int)mktime(&tm);
       break;
-    case NUMBER_OF_IMAGES :
-    case MATRIX_SIZE_3 :
+    case Key::NUMBER_OF_IMAGES :
+    case Key::MATRIX_SIZE_3 :
       mh->num_planes = atoi(item->value);
       break;
-    case SCALE_FACTOR_3:
+    case Key::SCALE_FACTOR_3:
       mh->plane_separation = (float)atof(item->value) / 10.f; /* mm to cm */
       break;
-    case NUMBER_OF_BYTES_PER_PIXEL:
+    case Key::NUMBER_OF_BYTES_PER_PIXEL:
       elem_size = atoi(item->value);
       break;
     // case END_OF_INTERFILE:
@@ -835,7 +804,8 @@ int interfile_open(ecat_matrix::MatrixFile *mptr) {
   data_size = mdata.xdim * mdata.ydim * mdata.zdim * elem_size;
   nblks = (data_size + ecat_matrix::MatBLKSIZE - 1) / ecat_matrix::MatBLKSIZE;
   mptr->dirlist = (ecat_matrix::MatDirList *) calloc(1, sizeof(ecat_matrix::MatDirList)) ;
-  for (i = 0; i < nmats; i++) {
+  ecat_matrix::MatDir matdir;
+  for (int i = 0; i < nmats; i++) {
     matdir.matnum = ecat_matrix::mat_numcod(i + 1, 1, 1, 0, 0);
     matdir.strtblk = blk_offsets[i];
     matdir.endblk = matdir.strtblk + nblks;
@@ -1036,14 +1006,12 @@ int interfile_read(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
       data->scale_factor *= 2;
     }
   }
-  find_data_extrema(data);    /*don't trust in header extrema*/
+  // find_data_extrema(data);    /*don't trust in header extrema*/
+  data->find_data_extrema();
   return ecat_matrix::ECATX_OK;
 }
 
-ecat_matrix::MatrixData*
-interfile_read_slice(FILE *fptr, char **ifh, ecat_matrix::MatrixData *volume,
-                     int slice, int u_flag)
-{
+ecat_matrix::MatrixData* interfile_read_slice(FILE *fptr, char **ifh, ecat_matrix::MatrixData *volume, int slice, int u_flag) {
   void * line;
   int i, npixels, file_pos, data_size, nblks, elem_size = 2;
   int  y, data_offset = 0;
@@ -1052,12 +1020,12 @@ interfile_read_slice(FILE *fptr, char **ifh, ecat_matrix::MatrixData *volume,
   /* short *sp=NULL; */
   ecat_matrix::MatrixData *data;
 
-  if (ifh && ifh[to_underlying(Key::MATRIX_INITIAL_ELEMENT_3] &&
-      *ifh[to_underlying(Key::MATRIX_INITIAL_ELEMENT_3] == 'i') z_flip = 1;
-  if (ifh && ifh[to_underlying(Key::MATRIX_INITIAL_ELEMENT_2] &&
-      *ifh[to_underlying(Key::MATRIX_INITIAL_ELEMENT_2] == 'p') y_flip = 1;
-  if (ifh && ifh[to_underlying(Key::MATRIX_INITIAL_ELEMENT_1] &&
-      *ifh[to_underlying(Key::MATRIX_INITIAL_ELEMENT_1] == 'r') x_flip = 1;
+  if (ifh && ifh[to_underlying(Key::MATRIX_INITIAL_ELEMENT_3] && *ifh[to_underlying(Key::MATRIX_INITIAL_ELEMENT_3] == 'i')
+    z_flip = 1;
+  if (ifh && ifh[to_underlying(Key::MATRIX_INITIAL_ELEMENT_2] && *ifh[to_underlying(Key::MATRIX_INITIAL_ELEMENT_2] == 'p')
+    y_flip = 1;
+  if (ifh && ifh[to_underlying(Key::MATRIX_INITIAL_ELEMENT_1] && *ifh[to_underlying(Key::MATRIX_INITIAL_ELEMENT_1] == 'r')
+    x_flip = 1;
   if (ifh && ifh[to_underlying(Key::DATA_OFFSET_IN_BYTES])
     if (sscanf(ifh[to_underlying(Key::DATA_OFFSET_IN_BYTES], "%d", &data_offset) != 1)
       data_offset = 0;
@@ -1103,7 +1071,8 @@ interfile_read_slice(FILE *fptr, char **ifh, ecat_matrix::MatrixData *volume,
     for (i = 0; i < npixels; i++) *sp++ = (*up++) / 2;
     data->scale_factor *= 2;
   }
-  find_data_extrema(data);   /*don't trust in header extrema*/
+  // find_data_extrema(data);   /*don't trust in header extrema*/
+  data->find_data_extrema();
   return data;
 }
 
@@ -1218,7 +1187,8 @@ ecat_matrix::MatrixData *interfile_read_scan(ecat_matrix::MatrixFile *mptr, int 
       error_flag++;
   }
   byte_order(data->data_ptr, elem_size, nblks, ifh[to_underlying(Key::IMAGEDATA_BYTE_ORDER)]);
-  find_data_extrema(data);   /*don't trust in header extrema*/
+  // find_data_extrema(data);   /*don't trust in header extrema*/
+  data->find_data_extrema();
   return data;
 }
 

@@ -16,8 +16,7 @@
 
 class ECAT7_NORM: public ECAT7_MATRIX{
 public:
-  /*! header of norm matrix (512 byte) */
-  typedef struct {
+  typedef struct {  /*! header of norm matrix (512 byte) */
     signed short int data_type,    /*!< datatype of dataset */
            num_dimensions;  /*! maximum ring difference */
     unsigned short int num_r_elements,  /*! number of sinogram planes */
@@ -29,33 +28,30 @@ public:
           norm_max,  /*! maximum value for the normalization data */
           fov_source_width,  /*! minimum value for the normalization data */
           norm_quality_factor;     /*!< norm quality factor */
-    /*! not defined */
     signed short int norm_quality_factor_code,
            storage_order,/*!< view or volume mode */
            span,                        /*!< span */
-           /*! number of planes per sinogram axis */
-           z_elements[64],
+           z_elements[64],           /*! number of planes per sinogram axis */
            fill_cti[123], /*!< CPS reserved space */
            fill_user[50];/*!< user reserved space */
   } tnorm_subheader;
 private:
   tnorm_subheader nh;                           /*!< header of norm matrix */
 protected:
-  // request data type from matrix header
-  unsigned short int DataTypeOrig() const;
+  unsigned short int DataTypeOrig() const;  // request data type from matrix header
   unsigned short int Depth() const;                       // depth of dataset
   unsigned short int Height() const;                     // height of dataset
   unsigned short int Width() const;                       // width of dataset
 public:
   ECAT7_NORM();                                          // initialize object
   ECAT7_NORM& operator = (const ECAT7_NORM &);                // '='-operator
-  // request pointer to header structure
-  ECAT7_NORM::tnorm_subheader *HeaderPtr();
-  // load data part of matrix
-  void *LoadData(std::ifstream * const, const unsigned long int);
+  ECAT7_NORM::tnorm_subheader *HeaderPtr();  // request pointer to header structure
+  void *LoadData(std::ifstream * const, const unsigned long int);  // load data part of matrix
   void LoadHeader(std::ifstream * const);            // load header of matrix
-  // print header information into string list
-  void PrintHeader(std::list <std::string> * const,
-                   const unsigned short int) const;
+  void PrintHeader(std::list <std::string> * const,                   const unsigned short int) const;  // print header information into string list
   void SaveHeader(std::ofstream * const) const;// store header part of matrix
+
+  // ahc this must be implemented in every class derived from ECAT7_MATRIX
+  ecat_matrix::MatrixDataType get_data_type(void);               // Read data_type as short int from file, return as scoped enum
+  void set_data_type(ecat_matrix::MatrixDataType t_data_type);   // Write scoped enum to file as short int
 };

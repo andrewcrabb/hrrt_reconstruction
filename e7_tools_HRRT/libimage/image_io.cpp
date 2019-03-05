@@ -30,7 +30,7 @@
 #include "e7_tools_const.h"
 #include "e7_common.h"
 #include "ecat7.h"
-#include "ecat7_image.h"
+#include "ecat7_image.hpp"
 #include "fastmath.h"
 #include "gm.h"
 #include "logging.h"

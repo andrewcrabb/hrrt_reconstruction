@@ -165,37 +165,38 @@ void ECAT7_NORM::PrintHeader(std::list <std::string> * const sl,
 
    sl->push_back("************** Norm-Matrix ("+toString(num, 2)+
                  ") **************");
-   s=" data_type:                      "+toString(nh.data_type)+" (";
-   switch (nh.data_type)
-    { case E7_DATA_TYPE_UnknownMatDataType:
-       s+="UnknownMatDataType";
-       break;
-      case E7_DATA_TYPE_ByteData:
-       s+="ByteData";
-       break;
-      case E7_DATA_TYPE_VAX_Ix2:
-       s+="VAX_Ix2";
-       break;
-      case E7_DATA_TYPE_VAX_Ix4:
-       s+="VAX_Ix4";
-       break;
-      case E7_DATA_TYPE_VAX_Rx4:
-       s+="VAX_Rx4";
-       break;
-      case E7_DATA_TYPE_IeeeFloat:
-       s+="IeeeFloat";
-       break;
-      case E7_DATA_TYPE_SunShort:
-       s+="SunShort";
-       break;
-      case E7_DATA_TYPE_SunLong:
-       s+="SunLong";
-       break;
-      default:
-       s+="unknown";
-       break;
-    }
-   sl->push_back(s+")");
+   // s=" data_type:                      "+toString(nh.data_type)+" (";
+   // switch (nh.data_type)
+   //  { case E7_DATA_TYPE_UnknownMatDataType:
+   //     s+="UnknownMatDataType";
+   //     break;
+   //    case E7_DATA_TYPE_ByteData:
+   //     s+="ByteData";
+   //     break;
+   //    case E7_DATA_TYPE_VAX_Ix2:
+   //     s+="VAX_Ix2";
+   //     break;
+   //    case E7_DATA_TYPE_VAX_Ix4:
+   //     s+="VAX_Ix4";
+   //     break;
+   //    case E7_DATA_TYPE_VAX_Rx4:
+   //     s+="VAX_Rx4";
+   //     break;
+   //    case E7_DATA_TYPE_IeeeFloat:
+   //     s+="IeeeFloat";
+   //     break;
+   //    case E7_DATA_TYPE_SunShort:
+   //     s+="SunShort";
+   //     break;
+   //    case E7_DATA_TYPE_SunLong:
+   //     s+="SunLong";
+   //     break;
+   //    default:
+   //     s+="unknown";
+   //     break;
+   //  }
+   // sl->push_back(s+")");
+     sl->push_back(print_header_data_type(nh.data_type));
    sl->push_back(" num_dimensions:                 " + toString(nh.num_dimensions));
    sl->push_back(" num_r_elements:                 " + toString(nh.num_r_elements));
    sl->push_back(" num_angles:                     " + toString(nh.num_angles));

@@ -68,96 +68,8 @@ constexpr int MAX_BED_POS    = 32;
 constexpr int ECATX_ERROR    = -1;
 constexpr int ECATX_OK       = 0;
 
-
-enum class DataSetType {
-  NoData,
-  Sinogram,
-  PetImage,
-  AttenCor,
-  Normalization,
-  PolarMap,
-  ByteVolume,
-  PetVolume,
-  ByteProjection,
-  PetProjection,
-  ByteImage,
-  Short3dSinogram,
-  Byte3dSinogram,
-  Norm3d,
-  Float3dSinogram,
-  InterfileImage,
-  NumDataSetTypes
-};
-
-struct CodeName {
-  std::string code;  // "s"
-  std::string name;  // "Sinogram"
-};
-
-// Combines former enum DataSetType, char *datasettype, char *dstypecode
-
-static std::map<DataSetType, CodeName> data_set_types_ = {
-  {DataSetType::NoData         , {"u" , "Unknown"}},
-  {DataSetType::Sinogram       , {"s" , "Sinogram"}},
-  {DataSetType::PetImage       , {"i" , "Image-16"}},
-  {DataSetType::AttenCor       , {"a" , "Attenuation Correction"}},
-  {DataSetType::Normalization  , {"n" , "Normalization"}},
-  {DataSetType::PolarMap       , {"pm", "Polar Map"}},
-  {DataSetType::ByteVolume     , {"v8", "Volume-8 byte"}},
-  {DataSetType::PetVolume      , {"v" , "Volume-16 pet"}},
-  {DataSetType::ByteProjection , {"p8", "Projection-8 byte"}},
-  {DataSetType::PetProjection  , {"p" , "Projection-16 pet"}},
-  {DataSetType::ByteImage      , {"i8", "Image-8 byte"}},
-  {DataSetType::Short3dSinogram, {"S" , "3D Sinogram-16 short"}},
-  {DataSetType::Byte3dSinogram , {"S8", "3D Sinogram-8 byte"}},
-  {DataSetType::Norm3d         , {"N" , "3D Normalization"}},
-  {DataSetType::Float3dSinogram, {"FS", "Float3dSinogram"}},
-  {DataSetType::InterfileImage , {"I" , "Interfile"}}  // NB the code was missing in the original source code array.
-};
-
-enum class MatrixDataType {
-  UnknownMatDataType,
-  ByteData,
-  VAX_Ix2,  // Can't comment these out as existing code assigns raw ints to this variable.
-  VAX_Ix4,  // Can't comment these out as existing code assigns raw ints to this variable.
-  VAX_Rx4,  // Can't comment these out as existing code assigns raw ints to this variable.
-  IeeeFloat,
-  SunShort,
-  SunLong,
-  UShort_BE,
-  UShort_LE,
-  Color_24,
-  Color_8,
-  BitData,
-  NumMatrixDataTypes,
- MAT_SUB_HEADER = 255  // operation to sub-header only
-};
-
 // constexpr int MAT_SUB_HEADER = 255;  // operation to sub-header only
 // constexpr MatrixDataType MAT_SUB_HEADER = 255;  // operation to sub-header only
-
-struct MatrixDataProperty {
-  std::string name;
-  int length;
-};
-
-// Combines former MatrixDataType, 
-
-static std::map<MatrixDataType, MatrixDataProperty> matrix_data_types_ = {
-  {MatrixDataType::UnknownMatDataType, {"UnknownMatDataType" , 0}},
-  {MatrixDataType::ByteData          , {"ByteData"           , 1}},
-  {MatrixDataType::VAX_Ix2           , {"VAX_Ix2"            , 2}},
-  {MatrixDataType::VAX_Ix4           , {"VAX_Ix4,"           , 4}},
-  {MatrixDataType::VAX_Rx4           , {"VAX_Rx4"            , 4}},
-  {MatrixDataType::IeeeFloat         , {"IeeeFloat"          , 4}},
-  {MatrixDataType::SunShort          , {"SunShort"           , 2}},  // big endian
-  {MatrixDataType::SunLong           , {"SunLong"            , 4}},  // big endian
-  {MatrixDataType::UShort_BE         , {"UShort_BE"          , 2}},
-  {MatrixDataType::UShort_LE         , {"UShort_LE"          , 2}},
-  {MatrixDataType::Color_24          , {"Color_24"           , 3}},
-  {MatrixDataType::Color_8           , {"Color_8"            , 1}},
-  {MatrixDataType::BitData           , {"BitData"            , 1}}
-};
 
 // Combines former enum CalibrationStatus, char *calstatus[], char *ecfunits[]
 
@@ -370,20 +282,6 @@ std::map<ProcessingCode, std::string> applied_proc_ = {
   {ProcessingCode::FILLMEIN2  , "SSRB",},
   {ProcessingCode::FILLMEIN3  , "Seg0",},
   {ProcessingCode::FILLMEIN4  , "Randoms Smoothing"}
-};
-
-// ecat 6.4 compatibility definitions
-// matrix data types
-
-enum class MatrixDataType_64 {
-  GENERIC,
-  BYTE_TYPE,
-  VAX_I2,  // Can't comment these out as existing code assigns raw ints to this variable.
-  VAX_I4,  // Can't comment these out as existing code assigns raw ints to this variable.
-  VAX_R4,  // Can't comment these out as existing code assigns raw ints to this variable.
-  SUN_R4,
-  SUN_I2,
-  SUN_I4
 };
 
 // matrix file types
@@ -751,40 +649,13 @@ enum class FileFormat {
 };
 
 struct MatrixFile {
-  char    *fname ;  /* file path */
+  char        *fname ;  /* file path */
   Main_header *mhptr ;  /* pointer to main header */
   MatDirList  *dirlist ;  /* directory */
-  FILE    *fptr ;   /* file ptr for I/O calls */
-  FileFormat file_format;
-  char **interfile_header;   // TODO reimplement as vector<interfile::Key, std::filesystem::path> - see analyze.cpp:200
-  void *analyze_hdr;
-};
-
-struct MatrixData {
-  int   matnum ;  /* matrix number */
-  MatrixFile  *matfile ;  /* pointer to parent */
-  DataSetType mat_type ;  /* type of matrix? */
-  MatrixDataType  data_type ; /* type of data */
-  // void *   shptr ;    pointer to sub-header
-  // void *   data_ptr ;  /* pointer to data */
-  void *shptr ;   /* pointer to sub-header */
-  void *data_ptr ;  /* pointer to data */
-  int   data_size ; /* size of data in bytes */
-  int   xdim;   /* dimensions of data */
-  int   ydim;   /* y dimension */
-  int   zdim;   /* for volumes */
-  float   scale_factor ;  /* valid if data is int? */
-  float   intercept;      /* valid if data is USHORT_LE or USHORT_BE */
-  float   pixel_size; /* xdim data spacing (cm) */
-  float   y_size;   /* ydim data spacing (cm) */
-  float   z_size;   /* zdim data spacing (cm) */
-  float   data_min; /* min value of data */
-  float   data_max; /* max value of data */
-  float       x_origin;       /* x origin of data */
-  float       y_origin;       /* y origin of data */
-  float       z_origin;       /* z origin of data */
-  void *dicom_header;     /* DICOM header is stored after matrix data */
-  int dicom_header_size;
+  FILE        *fptr ;   /* file ptr for I/O calls */
+  FileFormat  file_format;
+  char        **interfile_header;   // TODO reimplement as vector<interfile::Key, std::string> - see analyze.cpp:200
+  void        *analyze_hdr;
 };
 
 // high level user functions

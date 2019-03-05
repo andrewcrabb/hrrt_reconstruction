@@ -16,6 +16,7 @@
 #define BOOST_NO_CXX11_SCOPED_ENUMS
 #include <boost/filesystem.hpp>
 #undef BOOST_NO_CXX11_SCOPED_ENUMS
+#include "hrrt_util.hpp"
 
 using std::string;
 
@@ -76,7 +77,7 @@ public:
 	CHeaderError ReadChar  (string const &key, string &val)  const;
 	CHeaderError ReadTime  (string const &key, boost::posix_time::ptime &time) const;
 	CHeaderError ReadDate  (string const &key, boost::posix_time::ptime &date) const;
-	CHeaderError ReadDateTime (string const &t_tag, string const &t_format, boost::posix_time::ptime &t_pt) const;
+	CHeaderError ReadDateTime (string const &t_tag, hrrt_util::DateFormat t_format, boost::posix_time::ptime &t_pt) const;
 
 	CHeaderError WriteChar   (string const &key, string                  const & val);
 	CHeaderError WritePath   (string const &key, boost::filesystem::path const & val);
@@ -159,11 +160,6 @@ public:
 	static Tag const VALID_DATE;
 	static Tag const VALID_TIME;
 
-	// Class methods
-	static bool parse_interfile_datetime(const std::string &datestr, const std::string &format, boost::posix_time::ptime &pt);
-	static bool parse_interfile_time(const std::string &timestr, boost::posix_time::ptime &pt);
-	static bool parse_interfile_date(const std::string &datestr, boost::posix_time::ptime &pt);
-
 protected:
 	CHeaderError ReadFile();
 	CHeaderError InsertTag(string buffer);
@@ -175,7 +171,7 @@ protected:
 
 	// CHeaderError WriteDateTime(string const &t_tag, string const &t_format, boost::posix_time::ptime const &t_pt);
 
-	CHeaderError StringToPTime(string const &t_time, string const &t_format, boost::posix_time::ptime &t_datetime);
+	CHeaderError StringToPTime(string const &t_time, hrrt_util::DateFormat t_format, boost::posix_time::ptime &t_datetime);
 	CHeaderError PTimeToString(boost::posix_time::ptime const &t_time, string const &t_format, string &t_datetime);
 	CHeaderError ValidDate(boost::posix_time::ptime const &t_datetime);
 	CHeaderError WriteDateTime(string const &t_tag, string const &t_format, string                   const &t_datetime);

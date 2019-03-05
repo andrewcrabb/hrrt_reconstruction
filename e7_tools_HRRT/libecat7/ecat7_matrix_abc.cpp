@@ -299,12 +299,9 @@ unsigned long int ECAT7_MATRIX::NumberOfRecords() const
     Print header information into string list. Must be overloaded in derived classes.
  */
 /*---------------------------------------------------------------------------*/
-void ECAT7_MATRIX::PrintHeader(std::list <std::string> * const,
-                               const unsigned short int) const
- {                        // this method has to be redefined in derived classes
-   throw Exception(REC_INVALID_ECAT7_MATRIXTYPE,
-                   "The requested operation is not defined for this ECAT7 "
-                   "matrix type.");
+void ECAT7_MATRIX::PrintHeader(std::list <std::string> * const,                               const unsigned short int) const {
+                        // this method has to be redefined in derived classes
+   throw Exception(REC_INVALID_ECAT7_MATRIXTYPE,  "The requested operation is not defined for this ECAT7 matrix type.");
  }
 
 /*---------------------------------------------------------------------------*/
