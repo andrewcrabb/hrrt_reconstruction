@@ -16,8 +16,8 @@ namespace bt = boost::posix_time;
 
 int test_date(const string &str) {
 	bt::ptime t0;
-	bool ret = hrrt_util::parse_interfile_date(str, t0);
-	cout << "parse_interfile_date(" << str << ") returned " << ret << ": " << t0 << endl;
+	bool ret = hrrt_util::ParseInterfileDate(str, t0);
+	cout << "ParseInterfileDate(" << str << ") returned " << ret << ": " << t0 << endl;
 	return 0;
 }
 
@@ -26,7 +26,7 @@ int test_time (const string &str) {
 	boost::io::ios_all_saver ias( cout );
 	bt::time_facet* facet(new bt::time_facet("%H%M%S"));
 	std::cout.imbue(std::locale(std::cout.getloc(), facet));
-	hrrt_util::parse_interfile_time(str, pt);
+	hrrt_util::ParseInterfileTime(str, pt);
 	cout << "test_time(" << str << "): " << pt << endl;
 	return 0;
 }
@@ -40,7 +40,7 @@ int test_time (const string &str) {
 // 		sregex reg = sregex::compile(CHeader::DOSE_ASSAY_DATE + "\\s+:=\\s+(?P<value>.+)$");
 // 		if (regex_match(str, match, reg)) {
 // 			bt::ptime t;
-// 			hrrt_util::parse_interfile_time(match["key"], t);
+// 			hrrt_util::ParseInterfileTime(match["key"], t);
 // 		}
 // 	}
 // }
@@ -57,8 +57,8 @@ int main() {
 	}
 
 	bt::ptime t0, t1;
-	hrrt_util::parse_interfile_time("10:30:00", t0);
-	hrrt_util::parse_interfile_time("10:35:00", t1);
+	hrrt_util::ParseInterfileTime("10:30:00", t0);
+	hrrt_util::ParseInterfileTime("10:35:00", t1);
 	bt::time_duration diff = t1 - t0;
 	cout << "diff: " << diff.total_seconds() << endl;
 

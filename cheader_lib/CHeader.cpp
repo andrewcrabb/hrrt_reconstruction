@@ -354,7 +354,7 @@ template <typename T>CHeaderError CHeader::convertString(string &str, T &val) co
  * @return     0 on success, else 1
  */
 CHeaderError CHeader::ReadDate(std::string const &t_tag, bt::ptime &t_date) const {
-  return (ReadDateTime(t_tag, hrrt_util::DateFormat::ecat_date, t_date) == CHeaderError::OK) ? CHeaderError::OK : CHeaderError::NOT_A_DATE;
+  return (ReadDateTime(t_tag, DateTime::Format::ecat_date, t_date) == CHeaderError::OK) ? CHeaderError::OK : CHeaderError::NOT_A_DATE;
 }
 
 /**
@@ -364,7 +364,7 @@ CHeaderError CHeader::ReadDate(std::string const &t_tag, bt::ptime &t_date) cons
  * @return     0 on success, else 1
  */
 CHeaderError CHeader::ReadTime(std::string const &t_tag, bt::ptime &t_time) const {
-  return (ReadDateTime(t_tag, hrrt_util::DateFormat::ecat_time, t_time) == CHeaderError::OK) ? CHeaderError::OK : CHeaderError::NOT_A_TIME;
+  return (ReadDateTime(t_tag, DateTime::Format::ecat_time, t_time) == CHeaderError::OK) ? CHeaderError::OK : CHeaderError::NOT_A_TIME;
 }
 
 /**
@@ -373,12 +373,12 @@ CHeaderError CHeader::ReadTime(std::string const &t_tag, bt::ptime &t_time) cons
  * @param t_pt
  * @return CHeaderError 
  */
-CHeaderError CHeader::ReadDateTime(string const &t_tag, hrrt_util::DateFormat t_format, bt::ptime &t_pt) const {
+CHeaderError CHeader::ReadDateTime(string const &t_tag, DateTime::Format t_format, bt::ptime &t_pt) const {
   string value;
   CHeaderError ret = CHeaderError::OK;
   if ((ret = ReadChar(t_tag, value)) == CHeaderError::OK) {
     LOG_DEBUG("t_tag {} value {}", t_tag, value);
-    ret = parse_interfile_datetime(value, t_format, t_pt) ? CHeaderError::ERROR : CHeaderError::OK;
+    ret = ParseInterfileDatetime(value, t_format, t_pt) ? CHeaderError::ERROR : CHeaderError::OK;
   }
   return ret;
 }

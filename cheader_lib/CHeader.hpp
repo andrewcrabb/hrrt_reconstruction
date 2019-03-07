@@ -50,7 +50,7 @@ static std::map<CHeaderError, string> CHdrErrorString = {
 	{CHeaderError::NOT_A_LONG         , "Not a long"},
 	{CHeaderError::NOT_A_FLOAT        , "Not a float"},
 	{CHeaderError::NOT_A_DOUBLE       , "Not a double"},
-	{CHeaderError::NOT_A_TIME         , "Not a date"},
+	{CHeaderError::NOT_A_DATE         , "Not a date"},
 	{CHeaderError::NOT_A_TIME         , "Not a time"},
 	{CHeaderError::INVALID_DATE       , "Invalid date"},
 	{CHeaderError::BAD_LEXICAL_CAST   , "Bad lexical cast"},
@@ -77,7 +77,7 @@ public:
 	CHeaderError ReadChar  (string const &key, string &val)  const;
 	CHeaderError ReadTime  (string const &key, boost::posix_time::ptime &time) const;
 	CHeaderError ReadDate  (string const &key, boost::posix_time::ptime &date) const;
-	CHeaderError ReadDateTime (string const &t_tag, hrrt_util::DateFormat t_format, boost::posix_time::ptime &t_pt) const;
+	CHeaderError ReadDateTime (string const &t_tag, DateTime::Format t_format, boost::posix_time::ptime &t_pt) const;
 
 	CHeaderError WriteChar   (string const &key, string                  const & val);
 	CHeaderError WritePath   (string const &key, boost::filesystem::path const & val);
@@ -171,9 +171,6 @@ protected:
 
 	// CHeaderError WriteDateTime(string const &t_tag, string const &t_format, boost::posix_time::ptime const &t_pt);
 
-	CHeaderError StringToPTime(string const &t_time, hrrt_util::DateFormat t_format, boost::posix_time::ptime &t_datetime);
-	CHeaderError PTimeToString(boost::posix_time::ptime const &t_time, string const &t_format, string &t_datetime);
-	CHeaderError ValidDate(boost::posix_time::ptime const &t_datetime);
 	CHeaderError WriteDateTime(string const &t_tag, string const &t_format, string                   const &t_datetime);
 	CHeaderError WriteDateTime(string const &t_tag, string const &t_format, boost::posix_time::ptime const &t_datetime);
 

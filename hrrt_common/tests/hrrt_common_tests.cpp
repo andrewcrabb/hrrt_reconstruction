@@ -16,9 +16,9 @@ using std::string;
 
 int test_date(const string &str) {
   bt::ptime t0;
-  bool ret = hrrt_util::parse_interfile_date(str, t0);
-  // cout << "parse_interfile_date(" << str << ") returned " << ret << ": " << t0 << endl;
-  LOG_TRACE("parse_interfile_date({}) returned {}: {}", str, ret, t0);
+  bool ret = hrrt_util::ParseInterfileDate(str, t0);
+  // cout << "ParseInterfileDate(" << str << ") returned " << ret << ": " << t0 << endl;
+  LOG_TRACE("ParseInterfileDate({}) returned {}: {}", str, ret, t0);
   return 0;
 }
 
@@ -27,7 +27,7 @@ int test_time (const string &str) {
   boost::io::ios_all_saver ias( std::cout );
   bt::time_facet* facet(new bt::time_facet("%H%M%S"));
   std::cout.imbue(std::locale(std::cout.getloc(), facet));
-  hrrt_util::parse_interfile_time(str, pt);
+  hrrt_util::ParseInterfileTime(str, pt);
   // cout << "test_time(" << str << "): " << pt << endl;
   LOG_TRACE("test_time({}): {}", str, pt);
   return 0;
@@ -56,8 +56,8 @@ TEST_CASE("Initialization", "[classic]") {
     }
 
     bt::ptime t0, t1;
-    hrrt_util::parse_interfile_time("10:30:00", t0);
-    hrrt_util::parse_interfile_time("10:35:00", t1);
+    hrrt_util::ParseInterfileTime("10:30:00", t0);
+    hrrt_util::ParseInterfileTime("10:35:00", t1);
     bt::time_duration diff = t1 - t0;
     std::cout << "diff: " << diff.total_seconds() << std::endl;
 
