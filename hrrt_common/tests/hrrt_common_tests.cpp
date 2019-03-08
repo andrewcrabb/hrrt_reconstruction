@@ -5,6 +5,7 @@
 
 #include "my_spdlog.hpp"
 #include "hrrt_util.hpp"
+#include "date_time.hpp"
 #include "boost/date_time/gregorian/gregorian.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "catch.hpp"
@@ -14,23 +15,21 @@ namespace bt = boost::posix_time;
 
 using std::string;
 
-int test_date(const string &str) {
-  bt::ptime t0;
-  bool ret = hrrt_util::ParseInterfileDate(str, t0);
-  // cout << "ParseInterfileDate(" << str << ") returned " << ret << ": " << t0 << endl;
-  LOG_TRACE("ParseInterfileDate({}) returned {}: {}", str, ret, t0);
-  return 0;
-}
+int TestDateTime(DateTime::TestData const &t_test_data) {
+  std::unique_ptr<DateTime> date_time = DateTime::Create(t_test_data.date_time_str, t_test_data.format);
+  if (!date_time)
+    return 1;
+  bool is_valid = date_time->IsValid();
+  bt::ptime test_posix_time = date_time->get_date_time();
+  bg::date test_date = test_posix_time.date();
+  is_valid &= (test_date.year()  == t_test_data.year );
+  is_valid &= (test_date.month() == t_test_data.month);
+  is_valid &= (test_date.day()   == t_test_data.day  );
+  is_valid &= (test_posix_time.time_of_day().hours()   == t_test_data.hour  );
+  is_valid &= (test_posix_time.time_of_day().minutes() == t_test_data.minute);
+  is_valid &= (test_posix_time.time_of_day().seconds() == t_test_data.second);
 
-int test_time (const string &str) {
-  bt::ptime pt;
-  boost::io::ios_all_saver ias( std::cout );
-  bt::time_facet* facet(new bt::time_facet("%H%M%S"));
-  std::cout.imbue(std::locale(std::cout.getloc(), facet));
-  hrrt_util::ParseInterfileTime(str, pt);
-  // cout << "test_time(" << str << "): " << pt << endl;
-  LOG_TRACE("test_time({}): {}", str, pt);
-  return 0;
+  return is_valid ? 0 : 1;
 }
 
 TEST_CASE("Initialization", "[classic]") {
@@ -45,21 +44,12 @@ TEST_CASE("Initialization", "[classic]") {
   }
 
   SECTION("Dates and times") {
-    std::vector<string> dates = {"18:09:2017"};
-    for (auto &date : dates) {
-      int ret = test_date(date);
-      REQUIRE(ret == 0);
+    for (DateTime::TestData test_data : DateTime::test_data_) {
+      int ret = TestDateTime(test_data);
+      int expected = test_data.valid ? 0 : 1;
+      LOG_TRACE("Testing {} with format {}, expected {}", test_data.date_time_str, DateTime::FormatString(test_data.format), expected);
+      REQUIRE(ret == expected);
     }
-    std::vector<string> times = {"10:30:00", "10:35:00"};
-    for (auto &time : times) {
-      test_time(time);
-    }
-
-    bt::ptime t0, t1;
-    hrrt_util::ParseInterfileTime("10:30:00", t0);
-    hrrt_util::ParseInterfileTime("10:35:00", t1);
-    bt::time_duration diff = t1 - t0;
-    std::cout << "diff: " << diff.total_seconds() << std::endl;
 
   }
 }

@@ -1,10 +1,5 @@
-// CHeader.h: interface for the CHeader class.
-//
-//////////////////////////////////////////////////////////////////////
-/*
-   Modification history:
-          24-JUL-2009: Use const char for keywords
-*/
+// CHeader.hpp: interface for the CHeader class.
+
 #pragma once
 
 #include <stdio.h>
@@ -12,11 +7,12 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include "boost/date_time/posix_time/posix_time.hpp"
+// #include "boost/date_time/posix_time/posix_time.hpp"
 #define BOOST_NO_CXX11_SCOPED_ENUMS
 #include <boost/filesystem.hpp>
 #undef BOOST_NO_CXX11_SCOPED_ENUMS
 #include "hrrt_util.hpp"
+#include "date_time.hpp"
 
 using std::string;
 
@@ -75,9 +71,9 @@ public:
 	CHeaderError ReadLong  (string const &key, long   &val) const;
 	CHeaderError ReadInt   (string const &key, int    &val) const;
 	CHeaderError ReadChar  (string const &key, string &val)  const;
-	CHeaderError ReadTime  (string const &key, boost::posix_time::ptime &time) const;
-	CHeaderError ReadDate  (string const &key, boost::posix_time::ptime &date) const;
-	CHeaderError ReadDateTime (string const &t_tag, DateTime::Format t_format, boost::posix_time::ptime &t_pt) const;
+	CHeaderError ReadTime  (string const &key, std::unique_ptr<DateTime> &t_date_time) const;
+	CHeaderError ReadDate  (string const &key, std::unique_ptr<DateTime> &t_date_time) const;
+	CHeaderError ReadDateTime (string const &t_tag, DateTime::Format t_format, std::unique_ptr<DateTime> &t_date_time) const;
 
 	CHeaderError WriteChar   (string const &key, string                  const & val);
 	CHeaderError WritePath   (string const &key, boost::filesystem::path const & val);
@@ -86,10 +82,10 @@ public:
 	CHeaderError WriteInt    (string const &key, int     val);
 	CHeaderError WriteLong   (string const &key, int64_t val);
 
-	CHeaderError WriteDate   (string const &t_tag, string                   const &t_datetime);
-	CHeaderError WriteDate   (string const &t_tag, boost::posix_time::ptime const &t_datetime);
-	CHeaderError WriteTime   (string const &t_tag, string                   const &t_datetime);
-	CHeaderError WriteTime   (string const &t_tag, boost::posix_time::ptime const &t_datetime);
+	CHeaderError WriteDate(string const &t_tag, string const &t_date_time_str);
+	CHeaderError WriteDate(string const &t_tag, std::unique_ptr<DateTime> t_date_time);
+	CHeaderError WriteTime(string const &t_tag, string const &t_date_time_str);
+	CHeaderError WriteTime(string const &t_tag, std::unique_ptr<DateTime> t_date_time);
 
 	CHeaderError CloseFile();
 	CHeaderError GetFileName(string &filename) const;
@@ -171,8 +167,8 @@ protected:
 
 	// CHeaderError WriteDateTime(string const &t_tag, string const &t_format, boost::posix_time::ptime const &t_pt);
 
-	CHeaderError WriteDateTime(string const &t_tag, string const &t_format, string                   const &t_datetime);
-	CHeaderError WriteDateTime(string const &t_tag, string const &t_format, boost::posix_time::ptime const &t_datetime);
+	CHeaderError WriteDateTime(string const &t_tag, DateTime::Format t_format, string const &t_date_time_str);
+	CHeaderError WriteDateTime(string const &t_tag, DateTime::Format t_format, std::unique_ptr<DateTime> &t_date_time);
 
 	// bool SortData(char*HdrLine, char *tag, char* Data);
 	string m_FileName_;

@@ -5,18 +5,43 @@
 //   Factory constructor method
 
 #include "date_time.hpp"
+#include "my_spdlog.hpp"
+#include "hrrt_util.hpp"
 
 namespace bt = boost::posix_time;
+// namespace df = DateTime::Format;
+
+const std::map<DateTime::Format, std::string> DateTime::formats_ = {
+    {Format::ecat_date    , "%d:%m:%Y"},          // !study date (dd:mm:yryr) := 18:09:2017
+    {Format::ecat_time    , "%H:%M:%S"},          // !study time (hh:mm:ss) := 15:26:00
+    {Format::ecat_datetime, "%d:%m:%Y %H:%M:%S"}  //
+  };
+
+const std::vector<DateTime::TestData> DateTime::test_data_ = {
+  // Valid datetime-format combinations
+    {"18:09:2017"           , DateTime::Format::ecat_date    , true , 2017, 9, 18, 0 , 0 , 0},
+    {"18:09:2017 15:26:00"  , DateTime::Format::ecat_datetime, true , 2017, 9, 18, 15, 26, 0},
+    // Invalid date-times or formats
+    {"09:18:2017"           , DateTime::Format::ecat_datetime, false, 2017, 9, 18, 0 , 0 , 0},
+    {"09:18:2017 15:26:00"  , DateTime::Format::ecat_datetime, false, 2017, 9, 18, 15, 26, 0}
+  };
 
 // Factory method to create and initialize a DateTime
 // Returns nullptr on failure.
 
-static std::unique_ptr<DateTime> DateTime::Create(std::string const &t_datetime_str, DateTime::Format t_format) {
-  std::unique_ptr<DateTime> date_time = std::make_unique<DateTime>();
+std::unique_ptr<DateTime> DateTime::Create(std::string const &t_datetime_str, DateTime::Format t_format) {
+  // std::unique_ptr<DateTime> date_time = std::make_unique<DateTime>();
+  std::unique_ptr<DateTime> date_time(new DateTime());
   date_time->ParseDateTimeString(t_datetime_str, t_format);
-  return date_time.IsValid() ? date_time : nullptr;
+  // return  ? date_time : std::unique_ptr<DateTime>(nullptr);
+  if (!date_time->IsValid())
+    return nullptr;
+  return date_time;
 }
 
+std::string DateTime::FormatString(Format t_format) {
+  return DateTime::formats_.at(t_format);
+}
 
 /**
  * @brief      Parse DateTime-compatible date-time string into Boost ptime member
@@ -27,7 +52,7 @@ static std::unique_ptr<DateTime> DateTime::Create(std::string const &t_datetime_
  * @return     void
  */
 void DateTime::ParseDateTimeString(std::string const &t_datetime_str, DateTime::Format t_format) {
-  std::string format_string = date_formats_[t_format];
+  std::string format_string = formats_.at(t_format);
   bt::time_input_facet *facet = new bt::time_input_facet(format_string);
   const std::locale loc(std::locale::classic(), facet);
   LOG_DEBUG("t_datetime_str {} format_string {}", t_datetime_str, format_string);
@@ -47,12 +72,12 @@ void DateTime::ParseDateTimeString(std::string const &t_datetime_str, DateTime::
 
 std::string DateTime::ToString(DateTime::Format t_format) const {
   bt::time_facet *time_facet = new bt::time_facet();
-  time_facet->format(t_format.c_str());
+  time_facet->format(formats_.at(t_format).c_str());
   std::ostringstream oss;
   oss.imbue(std::locale(oss.getloc(), time_facet));
-  oss << t_ptime;
+  oss << date_time_;
   std::string datetime = oss.str();
-  LOG_TRACE("ptime {} format {} returning {}", bt::to_iso_string(t_ptime), t_format, datetime);
+  LOG_TRACE("ptime {} format {} returning {}", bt::to_iso_string(date_time_), formats_.at(t_format), datetime);
   return datetime;
 }
 
@@ -66,9 +91,13 @@ bool DateTime::ValidDateRange(void) const {
   bt::ptime low_time( boost::gregorian::date(1900,01,01), bt::time_duration( 0,0,0));
   bt::ptime high_time(boost::gregorian::date(2099,12,31), bt::time_duration(24,0,0));
 
-  bool ret = ((t_datetime > low_time) && (t_datetime < high_time));
-  LOG_DEBUG("datetime {} returning {}", ToString(), hrrt_util::BoolToString(ret));
+  bool ret = ((date_time_ > low_time) && (date_time_ < high_time));
+  LOG_DEBUG("datetime {} returning {}", ToString(Format::ecat_datetime), hrrt_util::BoolToString(ret));
   return ret;
+}
+
+boost::posix_time::ptime DateTime::get_date_time(void) const {
+  return date_time_;
 }
 
 // ------------- Methods below here are from the first implementation and can be re-implemented or deleted ---------------------

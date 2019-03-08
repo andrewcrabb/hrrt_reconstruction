@@ -2,7 +2,8 @@
 # set (GCC_COMPILE_FLAGS "-std=c++11")
 # set (GCC_COMPILE_FLAGS "-std=c++14")
 add_library (hrrt_common hrrt_util.cpp)
-target_include_directories (hrrt_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/cheader_lib )
+# target_include_directories (hrrt_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/cheader_lib )
+target_include_directories (hrrt_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 include_directories (hrrt_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 find_package(Boost REQUIRED)
 
@@ -14,11 +15,14 @@ target_include_directories (math_matrix PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMA
 add_library (my_spdlog my_spdlog.cpp)
 target_link_libraries(my_spdlog hrrt_common)
 
-add_executable(test_util test_util.cpp)
-# link_directories(${PROJECT_SOURCE_DIR}/cheader_lib)
-# target_link_libraries(test_util hrrt_common fmt boost_system boost_filesystem boost_date_time cheader)
-target_link_libraries(test_util  cheader boost_system boost_date_time boost_filesystem my_spdlog)
-target_include_directories (test_util PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/lmhistogram_mp)
+add_library(date_time date_time.cpp)
+
+# add_executable(test_util test_util.cpp)
+# # link_directories(${PROJECT_SOURCE_DIR}/cheader_lib)
+# # target_link_libraries(test_util hrrt_common fmt boost_system boost_filesystem boost_date_time cheader)
+# # target_link_libraries(test_util  cheader boost_system boost_date_time boost_filesystem my_spdlog)
+# target_link_libraries(test_util  boost_system boost_date_time boost_filesystem my_spdlog)
+# target_include_directories (test_util PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/lmhistogram_mp)
 
 install(TARGETS hrrt_common
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -34,7 +38,7 @@ install(TARGETS hrrt_common
 set(TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/hrrt_common_tests.cpp)
 add_executable(hrrt_common_tests ${TEST_SOURCES})
 target_include_directories (hrrt_common_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(hrrt_common_tests LINK_PUBLIC Catch hrrt_common my_spdlog fmt boost_system boost_filesystem boost_date_time)
+target_link_libraries(hrrt_common_tests LINK_PUBLIC Catch hrrt_common my_spdlog date_time fmt boost_system boost_filesystem boost_date_time)
 
 enable_testing()
 add_test(NAME TestingHrrtCommon COMMAND hrrt_common_tests)

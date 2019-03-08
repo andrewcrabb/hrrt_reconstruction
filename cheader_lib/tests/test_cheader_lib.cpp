@@ -13,6 +13,7 @@
 #include "spdlog/sinks/basic_file_sink.h"
 #include "my_spdlog.hpp"
 #include "hrrt_util.hpp"
+#include "date_time.hpp"
 
 namespace bf = boost::filesystem;
 
@@ -94,19 +95,20 @@ int test_read_tags(CHeader *chdr) {
     REQUIRE(chdr->ReadDouble(CHeader::VALID_DOUBLE.key, d) == CHeaderError::OK);
     REQUIRE(d == Approx(std::stod(CHeader::VALID_DOUBLE.value)));
 
-    boost::posix_time::ptime the_time;
-    boost::posix_time::ptime valid_time;
-    LOG_TRACE("Should find time tag {} in {}", CHeader::VALID_TIME.sayit(), infile);
-    REQUIRE(chdr->ReadTime(CHeader::VALID_TIME.key, the_time) == CHeaderError::OK);
-    REQUIRE_FALSE(hrrt_util::ParseInterfileTime(CHeader::VALID_TIME.value, valid_time));
-    REQUIRE(the_time == valid_time);
-
-    boost::posix_time::ptime the_date;
-    boost::posix_time::ptime valid_date;
+    // boost::posix_time::ptime the_date;
+    // boost::posix_time::ptime valid_date;
+    std::unique_ptr<DateTime> date_time;
     LOG_TRACE("Should find date tag {}", CHeader::VALID_DATE.sayit());
-    REQUIRE(chdr->ReadDate(CHeader::VALID_DATE.key, the_date) == CHeaderError::OK);
-    REQUIRE_FALSE(hrrt_util::ParseInterfileDate(CHeader::VALID_DATE.value, valid_date));
-    REQUIRE(the_date == valid_date);
+    REQUIRE(chdr->ReadDate(CHeader::VALID_DATE.key, date_time) == CHeaderError::OK);
+    // REQUIRE_FALSE(hrrt_util::ParseInterfileDate(CHeader::VALID_DATE.value, valid_date));
+    // REQUIRE(the_date == valid_date);
+
+    // boost::posix_time::ptime the_time;
+    // boost::posix_time::ptime valid_time;
+    LOG_TRACE("Should find time tag {} in {}", CHeader::VALID_TIME.sayit(), infile);
+    REQUIRE(chdr->ReadTime(CHeader::VALID_TIME.key, date_time) == CHeaderError::OK);
+    // REQUIRE_FALSE(hrrt_util::ParseInterfileTime(CHeader::VALID_TIME.value, valid_time));
+    REQUIRE(the_time == valid_time);
 
     return 0;
 }
@@ -203,7 +205,8 @@ TEST_CASE("Initialization", "[classic]") {
     float f;
     double d;
     long l;
-    boost::posix_time::ptime t;
+    // boost::posix_time::ptime t;
+    std::unique_ptr<DateTime> t;
 
     chdr->OpenFile(datafile);
     LOG_TRACE("Test: Should not find an int in a good char tag");

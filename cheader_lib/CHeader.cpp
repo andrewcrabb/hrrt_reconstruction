@@ -353,8 +353,8 @@ template <typename T>CHeaderError CHeader::convertString(string &str, T &val) co
  * @param      time  Date stored in the tag
  * @return     0 on success, else 1
  */
-CHeaderError CHeader::ReadDate(std::string const &t_tag, bt::ptime &t_date) const {
-  return (ReadDateTime(t_tag, DateTime::Format::ecat_date, t_date) == CHeaderError::OK) ? CHeaderError::OK : CHeaderError::NOT_A_DATE;
+CHeaderError CHeader::ReadDate(std::string const &t_tag, std::unique_ptr<DateTime> &t_date_time) const {
+  return (ReadDateTime(t_tag, DateTime::Format::ecat_date, t_date_time) == CHeaderError::OK) ? CHeaderError::OK : CHeaderError::NOT_A_DATE;
 }
 
 /**
@@ -363,8 +363,8 @@ CHeaderError CHeader::ReadDate(std::string const &t_tag, bt::ptime &t_date) cons
  * @param      time  Time stored in the tag
  * @return     0 on success, else 1
  */
-CHeaderError CHeader::ReadTime(std::string const &t_tag, bt::ptime &t_time) const {
-  return (ReadDateTime(t_tag, DateTime::Format::ecat_time, t_time) == CHeaderError::OK) ? CHeaderError::OK : CHeaderError::NOT_A_TIME;
+CHeaderError CHeader::ReadTime(std::string const &t_tag, std::unique_ptr<DateTime> &t_date_time) const {
+  return (ReadDateTime(t_tag, DateTime::Format::ecat_time, t_date_time) == CHeaderError::OK) ? CHeaderError::OK : CHeaderError::NOT_A_TIME;
 }
 
 /**
@@ -373,64 +373,53 @@ CHeaderError CHeader::ReadTime(std::string const &t_tag, bt::ptime &t_time) cons
  * @param t_pt
  * @return CHeaderError 
  */
-CHeaderError CHeader::ReadDateTime(string const &t_tag, DateTime::Format t_format, bt::ptime &t_pt) const {
+CHeaderError CHeader::ReadDateTime(string const &t_tag, DateTime::Format t_format, std::unique_ptr<DateTime> &t_date_time) const {
   string value;
   CHeaderError ret = CHeaderError::OK;
   if ((ret = ReadChar(t_tag, value)) == CHeaderError::OK) {
     LOG_DEBUG("t_tag {} value {}", t_tag, value);
-    ret = ParseInterfileDatetime(value, t_format, t_pt) ? CHeaderError::ERROR : CHeaderError::OK;
+    // ret = ParseInterfileDatetime(value, t_format, t_pt) ? CHeaderError::ERROR : CHeaderError::OK;
+    t_date_time = DateTime::Create(value, t_format);
+    ret = t_date_time ? ret : CHeaderError::ERROR;
   }
   return ret;
 }
 
-CHeaderError CHeader::WriteDateTime(string const &t_tag, string const &t_format, string const &t_datetime) {
-  bt::ptime ptime;
-  CHeaderError ret;
+CHeaderError CHeader::WriteDateTime(string const &t_tag, DateTime::Format t_format, string const &t_date_time_str) {
+  CHeaderError ret = CHeaderError::ERROR;
 
-  if ((ret = StringToPTime(t_datetime, t_format, ptime)) == CHeaderError::OK) {
-    ret = WriteDateTime(t_tag, t_format, ptime);
-  }
+ std::unique_ptr<DateTime> date_time = DateTime::Create(t_date_time_str, t_format);
+ if (date_time)
+   ret = WriteDateTime(t_tag, t_format, date_time);
   return ret;
 }
 
 // Write a date or time to given tag in given format.
 // Note that date is checked: All times should have a valid date.
 
-CHeaderError CHeader::WriteDateTime(string const &t_tag, string const &t_format, bt::ptime const &t_datetime) {
-  std::string datetime_str;
-  CHeaderError ret;
-
-  if ((ret = ValidDate(t_datetime)) == CHeaderError::OK) {
-    if ((ret = PTimeToString(t_datetime, t_format, datetime_str)) == CHeaderError::OK) {
-      ret = WriteChar(t_tag, datetime_str);
-    }
-  }
-
-  return ret;
-}
-
-CHeaderError CHeader::WriteDate(string const &t_tag, string const &t_datetime) {
-  return WriteDateTime(t_tag, ECAT_DATE_FORMAT, t_datetime);
-}
-
-CHeaderError CHeader::WriteDate(string const &t_tag, bt::ptime const &t_datetime) {
-  return WriteDateTime(t_tag, ECAT_DATE_FORMAT, t_datetime);
-}
-
-// Extra step since t_datetime is a datetime but we want time only written.
-
-CHeaderError CHeader::WriteTime(string const &t_tag, string const &t_datetime) {
-  CHeaderError ret;
-  bt::ptime ptime;
-
-  if ((ret = StringToPTime(t_datetime, ECAT_DATETIME_FORMAT, ptime)) == CHeaderError::OK) {
-    ret = WriteDateTime(t_tag, ECAT_TIME_FORMAT, ptime);
+CHeaderError CHeader::WriteDateTime(string const &t_tag, DateTime::Format t_format, std::unique_ptr<DateTime> &t_date_time) {
+  CHeaderError ret = CHeaderError::ERROR;
+  if (t_date_time->IsValid()) {
+    std::string date_time_str = t_date_time->ToString(t_format);
+    ret = WriteChar(t_tag, date_time_str);
   }
   return ret;
 }
 
-CHeaderError CHeader::WriteTime(string const &t_tag, bt::ptime const &t_datetime) {
-  return WriteDateTime(t_tag, ECAT_TIME_FORMAT, t_datetime);
+CHeaderError CHeader::WriteDate(string const &t_tag, string const &t_date_time_str) {
+  return WriteDateTime(t_tag, DateTime::Format::ecat_date, t_date_time_str);
+}
+
+CHeaderError CHeader::WriteDate(string const &t_tag, std::unique_ptr<DateTime> t_date_time) {
+  return WriteDateTime(t_tag, DateTime::Format::ecat_date, t_date_time);
+}
+
+CHeaderError CHeader::WriteTime(string const &t_tag, string const &t_date_time_str) {
+  return WriteDateTime(t_tag, DateTime::Format::ecat_time, t_date_time_str);
+}
+
+CHeaderError CHeader::WriteTime(string const &t_tag, std::unique_ptr<DateTime> t_date_time) {
+  return WriteDateTime(t_tag, DateTime::Format::ecat_time, t_date_time);
 }
 
 // Open file, read given value, close file.

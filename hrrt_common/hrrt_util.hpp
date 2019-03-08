@@ -22,4 +22,5 @@ extern int run_system_command( char *prog, char *args, FILE *log_fp );
 extern  bool file_exists (const std::string& name);
 std::string time_string(void);
 std::istream& safeGetline(std::istream& is, std::string& t);
+std::string const BoolToString(bool b);
 }

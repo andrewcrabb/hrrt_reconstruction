@@ -15,11 +15,20 @@ public:
     ecat_datetime  // 18:09:2017 15:26:00
   };
 
-  static std::map<Format, std::string> formats_ = {
-    {Format::ecat_date    , "%d:%m:%Y"},          // !study date (dd:mm:yryr) := 18:09:2017
-    {Format::ecat_time    , "%H:%M:%S"},          // !study time (hh:mm:ss) := 15:26:00
-    {Format::ecat_datetime, "%d:%m:%Y %H:%M:%S"}  //
+  struct TestData {
+    std::string date_time_str;
+    Format format;
+    bool valid;
+    int year;
+    int month;
+    int day;
+    int hour;
+    int minute;
+    int second;
   };
+
+static const std::map<Format, std::string> formats_;
+static const std::vector<TestData> test_data_;
 
   // enum class ErrorCode {
   //   OK,
@@ -37,12 +46,13 @@ public:
   // https://abseil.io/tips/42
   // Factory method: creates and returns a DateTime. Returns null on failure.
   static std::unique_ptr<DateTime> Create(std::string const &t_datetime_str, Format t_format);
+  static std::string FormatString(Format t_format);
 
   void ParseDateTimeString(std::string const &t_datetime_str, Format t_format);
   std::string ToString(Format t_format) const;
+  boost::posix_time::ptime get_date_time(void) const;
   bool IsValid(void) const;
   bool ValidDateRange(void) const;
-
 
   // static ErrorCode ParseInterfileDatetime(const std::string &datestr, DateFormat t_format, boost::posix_time::ptime &pt);
   // static ErrorCode ParseInterfileTime(const std::string &timestr, boost::posix_time::ptime &pt);
@@ -53,7 +63,7 @@ public:
 
 private:
   // Clients must call Create() and can't invoke the constructor directly.
-  DateTime();
+  DateTime() {};
 
   boost::posix_time::ptime date_time_;
 
