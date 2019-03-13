@@ -3,9 +3,13 @@
 // Class and methods to handle dates and times
 // Stored internally as a Boost Posix time, interface mostly uses strings.
 
+#pragma once
+
 #include <boost/date_time.hpp>
+#include <boost/xpressive/xpressive.hpp>
 
 namespace bt = boost::posix_time;
+namespace bx = boost::xpressive;
 
 class DateTime {
 public:
@@ -13,6 +17,13 @@ public:
     ecat_date,     // 18:09:2017
     ecat_time,     // 15:26:00
     ecat_datetime  // 18:09:2017 15:26:00
+  };
+
+  // Precompile patterns for checking date strings.
+  // Necessary since parsing '30:12:2009 15:50:00' with '%H:%M:%S' gives '1400-Jan-02 06:12:20' instead of error.
+  struct FormatElement {
+    std::string              format_string;   // '%H:%M:%S'
+    boost::xpressive::sregex format_pattern;  // '^\d{1,2}:\d{1,2}:\d{1,2}$'
   };
 
   struct TestData {
@@ -27,7 +38,8 @@ public:
     int second;
   };
 
-static const std::map<Format, std::string> formats_;
+// static const std::map<Format, std::string> formats_;
+static const std::map<Format, FormatElement> formats_;
 static const std::vector<TestData> test_data_;
 
   // enum class ErrorCode {
@@ -47,12 +59,14 @@ static const std::vector<TestData> test_data_;
   // Factory method: creates and returns a DateTime. Returns null on failure.
   static std::unique_ptr<DateTime> Create(std::string const &t_datetime_str, Format t_format);
   static std::string FormatString(Format t_format);
+  static bx::sregex FormatPattern(Format t_format);
 
   void ParseDateTimeString(std::string const &t_datetime_str, Format t_format);
   std::string ToString(Format t_format) const;
   boost::posix_time::ptime get_date_time(void) const;
   bool IsValid(void) const;
   bool ValidDateRange(void) const;
+  bool operator==(DateTime const &other) const;
 
   // static ErrorCode ParseInterfileDatetime(const std::string &datestr, DateFormat t_format, boost::posix_time::ptime &pt);
   // static ErrorCode ParseInterfileTime(const std::string &timestr, boost::posix_time::ptime &pt);

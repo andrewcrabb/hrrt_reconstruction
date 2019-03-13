@@ -2,7 +2,7 @@ find_package(Boost REQUIRED)
 
 add_library (cheader CHeader.cpp)
 target_include_directories (cheader PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries (cheader LINK_PUBLIC hrrt_common fmt my_spdlog)
+target_link_libraries (cheader LINK_PUBLIC hrrt_common fmt my_spdlog date_time)
 target_link_libraries(cheader PRIVATE fmt-header-only)
 
 # Make test executable
@@ -12,7 +12,7 @@ target_link_libraries(cheader PRIVATE fmt-header-only)
 set(TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_cheader_lib.cpp)
 add_executable(cheader_tests ${TEST_SOURCES})
 target_include_directories (cheader_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(cheader_tests LINK_PUBLIC Catch hrrt_common cheader fmt boost_system boost_filesystem boost_date_time)
+target_link_libraries(cheader_tests LINK_PUBLIC Catch my_spdlog hrrt_common cheader fmt boost_system boost_filesystem boost_date_time)
 
 enable_testing()
 add_test(NAME CHeaderTest COMMAND cheader_tests)

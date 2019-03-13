@@ -38,7 +38,7 @@ install(TARGETS hrrt_common
 set(TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/hrrt_common_tests.cpp)
 add_executable(hrrt_common_tests ${TEST_SOURCES})
 target_include_directories (hrrt_common_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(hrrt_common_tests LINK_PUBLIC Catch hrrt_common my_spdlog date_time fmt boost_system boost_filesystem boost_date_time)
+target_link_libraries(hrrt_common_tests LINK_PUBLIC Catch my_spdlog hrrt_common date_time fmt boost_system boost_filesystem boost_date_time)
 
 enable_testing()
 add_test(NAME TestingHrrtCommon COMMAND hrrt_common_tests)

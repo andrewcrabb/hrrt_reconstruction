@@ -8,9 +8,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #undef BOOST_NO_CXX11_SCOPED_ENUMS
-#include "spdlog/spdlog.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
-#include "spdlog/sinks/basic_file_sink.h"
+// #include "spdlog/spdlog.h"
+// #include "spdlog/sinks/stdout_color_sinks.h"
+// #include "spdlog/sinks/basic_file_sink.h"
 #include "my_spdlog.hpp"
 #include "hrrt_util.hpp"
 #include "date_time.hpp"
@@ -30,47 +30,62 @@ bf::path temp_file;
 // string const VALID_INT_TAG    = CHeader::IMAGE_DURATION;
 // int const VALID_INT_VAL       = 5400;
 
-void init_logging(void) {
-  auto logger = spdlog::get("CHeader");
-  if (logger)
-    return;
 
-  spdlog::set_level(spdlog::level::info); // Set global log level to info
-  if (g_logfile.length() == 0) {
-    g_logfile = fmt::format("catch_{}.log", hrrt_util::time_string());
+// void init_logging_OLD(void) {
+//   auto logger = spdlog::get("CHeader");
+//   if (logger)
+//     return;
+
+//   spdlog::set_level(spdlog::level::info); // Set global log level to info
+//   if (g_logfile.length() == 0) {
+//     g_logfile = fmt::format("catch_{}.log", hrrt_util::time_string());
+//   }
+
+//   std::vector<spdlog::sink_ptr> sinks;
+//   auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+//   console_sink->set_level(spdlog::level::info);
+//   console_sink->set_pattern("[CHeader] [%^%l%$] %v");
+//   sinks.push_back(console_sink);
+
+//   auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(g_logfile, true);
+//   file_sink->set_level(spdlog::level::info);
+//   sinks.push_back(file_sink);
+
+//   auto multi_logger = std::make_shared<spdlog::logger>("CHeader", begin(sinks), end(sinks));
+//   if (std::getenv("LOG_DEBUG")) {
+//     multi_logger->set_level(spdlog::level::debug);
+//     file_sink->set_level(spdlog::level::debug);
+//     console_sink->set_level(spdlog::level::debug);
+//   }
+//   if (std::getenv("LOG_TRACE")) {
+//     multi_logger->set_level(spdlog::level::trace);
+//     file_sink->set_level(spdlog::level::trace);
+//     console_sink->set_level(spdlog::level::trace);
+//   }
+//   spdlog::register_logger(multi_logger);
+
+//   // Initialize valid temp file.
+//   temp_file = boost::filesystem::temp_directory_path();
+//   bf::path tpath = boost::filesystem::unique_path("cheader_test-%%%%");
+//   temp_file /= tpath;
+// }
+
+TEST_CASE("Initialization", "[classic]") {
+  my_spdlog::init_logging("test_cheader_lib");
+
+  SECTION("Empty CHeader") {
+    std::string str;
+    LOG_ERROR("Test of error: {} ", 1);
+    LOG_INFO("Test of info");
+    LOG_DEBUG("Test of debug");
+    LOG_TRACE("Test of trace");
   }
-
-  std::vector<spdlog::sink_ptr> sinks;
-  auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-  console_sink->set_level(spdlog::level::info);
-  console_sink->set_pattern("[CHeader] [%^%l%$] %v");
-  sinks.push_back(console_sink);
-
-  auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(g_logfile, true);
-  file_sink->set_level(spdlog::level::info);
-  sinks.push_back(file_sink);
-
-  auto multi_logger = std::make_shared<spdlog::logger>("CHeader", begin(sinks), end(sinks));
-  if (std::getenv("LOG_DEBUG")) {
-    multi_logger->set_level(spdlog::level::debug);
-    file_sink->set_level(spdlog::level::debug);
-    console_sink->set_level(spdlog::level::debug);
-  }
-  if (std::getenv("LOG_TRACE")) {
-    multi_logger->set_level(spdlog::level::trace);
-    file_sink->set_level(spdlog::level::trace);
-    console_sink->set_level(spdlog::level::trace);
-  }
-  spdlog::register_logger(multi_logger);
-
-  // Initialize valid temp file.
-  temp_file = boost::filesystem::temp_directory_path();
-  bf::path tpath = boost::filesystem::unique_path("cheader_test-%%%%");
-  temp_file /= tpath;
 }
 
+
 int test_read_tags(CHeader *chdr) {
-    auto logger = spdlog::get("CHeader");
+    // auto logger = spdlog::get("CHeader");
+    my_spdlog::init_logging("test_cheader_lib");
     std::string infile;
 
     chdr->GetFileName(infile);
@@ -103,12 +118,14 @@ int test_read_tags(CHeader *chdr) {
     // REQUIRE_FALSE(hrrt_util::ParseInterfileDate(CHeader::VALID_DATE.value, valid_date));
     // REQUIRE(the_date == valid_date);
 
-    // boost::posix_time::ptime the_time;
     // boost::posix_time::ptime valid_time;
     LOG_TRACE("Should find time tag {} in {}", CHeader::VALID_TIME.sayit(), infile);
     REQUIRE(chdr->ReadTime(CHeader::VALID_TIME.key, date_time) == CHeaderError::OK);
+    // boost::posix_time::ptime read_time = date_time->get_date_time();
+    std::unique_ptr<DateTime> valid_time = DateTime::Create(CHeader::VALID_TIME.value, DateTime::Format::ecat_time);
+    REQUIRE(*date_time == *valid_time);
     // REQUIRE_FALSE(hrrt_util::ParseInterfileTime(CHeader::VALID_TIME.value, valid_time));
-    REQUIRE(the_time == valid_time);
+    // REQUIRE(the_time == valid_time);
 
     return 0;
 }
@@ -120,9 +137,12 @@ bool not_ok_or_notfound(CHeaderError val) {
   return ret;
 }
 
-TEST_CASE("Initialization", "[classic]") {
-  init_logging();
-  auto logger = spdlog::get("CHeader");
+TEST_CASE("CHeader", "[classic]") {
+    my_spdlog::init_logging("test_cheader_lib");
+  // Initialize valid temp file.
+  temp_file = boost::filesystem::temp_directory_path();
+  bf::path tpath = boost::filesystem::unique_path("cheader_test-%%%%");
+  temp_file /= tpath;
 
   SECTION("Empty CHeader") {
     std::string str;
@@ -130,6 +150,7 @@ TEST_CASE("Initialization", "[classic]") {
     LOG_ERROR("Test of error: {} ", 1);
     LOG_INFO("Test of info");
     LOG_DEBUG("Test of debug");
+    LOG_TRACE("Test of trace");
 
     LOG_INFO("datafile: {}", datafile.string());
     LOG_INFO("temp_file: {}", temp_file.string());
@@ -161,8 +182,7 @@ TEST_CASE("Initialization", "[classic]") {
   }
 
   SECTION("Open CHeader") {
-    init_logging();
-    auto logger = spdlog::get("CHeader");
+    my_spdlog::init_logging("test_cheader_lib");
     CHeader *chdr = new CHeader;
     CHeaderError ret;
     std::string str;
@@ -197,8 +217,8 @@ TEST_CASE("Initialization", "[classic]") {
   }
 
   SECTION("Invalid tags") {
-    init_logging();
-    auto logger = spdlog::get("CHeader");
+    my_spdlog::init_logging("test_cheader_lib");
+    // auto logger = spdlog::get("CHeader");
     CHeader *chdr = new CHeader;
     std::string s;
     int i;
@@ -223,9 +243,8 @@ TEST_CASE("Initialization", "[classic]") {
     REQUIRE(chdr->ReadTime(CHeader::VALID_CHAR.key, t)   == CHeaderError::NOT_A_TIME);
   }
 
-
   SECTION("Write CHeader") {
-    init_logging();
+    my_spdlog::init_logging("test_cheader_lib");
     auto logger = spdlog::get("CHeader");
     bf::path bad_path("/no/such/file");
 
@@ -247,7 +266,7 @@ TEST_CASE("Initialization", "[classic]") {
   }
 
   SECTION("Create CHeader") {
-    init_logging();
+    my_spdlog::init_logging("test_cheader_lib");
     auto logger = spdlog::get("CHeader");
 
     CHeader *chdr = new CHeader;    
@@ -264,10 +283,11 @@ TEST_CASE("Initialization", "[classic]") {
     std::string datetime_string = fmt::format("{} {}", CHeader::VALID_DATE.value, CHeader::VALID_TIME.value);
     LOG_TRACE("Writing date tag {} from {}", CHeader::VALID_DATE.key, CHeader::VALID_DATE.value);
     REQUIRE(chdr->WriteDate(CHeader::VALID_DATE.key, CHeader::VALID_DATE.value)                  == CHeaderError::TAG_APPENDED);
-    LOG_TRACE("Writing time tag {} from {}", CHeader::VALID_TIME.key, datetime_string);
-    REQUIRE(chdr->WriteTime(CHeader::VALID_TIME.key, datetime_string)                  == CHeaderError::TAG_APPENDED);
+    // LOG_TRACE("Writing time tag {} from {}", CHeader::VALID_TIME.key, datetime_string);
+    LOG_TRACE("Writing time tag {} from {}", CHeader::VALID_TIME.key, CHeader::VALID_TIME.value);
+    REQUIRE(chdr->WriteTime(CHeader::VALID_TIME.key, CHeader::VALID_TIME.value)                  == CHeaderError::TAG_APPENDED);
 
-    LOG_TRACE("Write to temp_file {}", temp_file.string());
+    LOG_TRACE("Creating temp_file {}", temp_file.string());
     CHeaderError ret = chdr->WriteFile(temp_file);
     REQUIRE(ret == CHeaderError::OK);
     delete(chdr);

@@ -104,8 +104,8 @@ Tag const CHeader::VALID_CHAR(CHeader::ORIGINATING_SYSTEM, "HRRT");
 Tag const CHeader::VALID_DOUBLE(CHeader::BRANCHING_FACTOR, "0.0");
 Tag const CHeader::VALID_FLOAT(CHeader::ISOTOPE_HALFLIFE , "100.0");
 Tag const CHeader::VALID_INT(CHeader::IMAGE_DURATION     , "5400");
-Tag const CHeader::VALID_DATE(CHeader::STUDY_DATE        , "03:12:2009");  // DD:MM:YYYY
-Tag const CHeader::VALID_TIME(CHeader::STUDY_TIME        , "12:03:00");    // HH:MM:SS
+Tag const CHeader::VALID_DATE(CHeader::STUDY_DATE        , "30:12:2009");  // DD:MM:YYYY
+Tag const CHeader::VALID_TIME(CHeader::STUDY_TIME        , "15:50:00");    // HH:MM:SS
 
 string Tag::sayit(void) const {
   string str = fmt::format("'{}' with value '{}'", key, value);
@@ -377,9 +377,10 @@ CHeaderError CHeader::ReadDateTime(string const &t_tag, DateTime::Format t_forma
   string value;
   CHeaderError ret = CHeaderError::OK;
   if ((ret = ReadChar(t_tag, value)) == CHeaderError::OK) {
-    LOG_DEBUG("t_tag {} value {}", t_tag, value);
     // ret = ParseInterfileDatetime(value, t_format, t_pt) ? CHeaderError::ERROR : CHeaderError::OK;
     t_date_time = DateTime::Create(value, t_format);
+    std::string date_time_str = (t_date_time) ? t_date_time->ToString(t_format) : "Not a DateTime";
+    LOG_DEBUG("t_tag {} value {} format {} t_date_time {}", t_tag, value, DateTime::FormatString(t_format), date_time_str);
     ret = t_date_time ? ret : CHeaderError::ERROR;
   }
   return ret;

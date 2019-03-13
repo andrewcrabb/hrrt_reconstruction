@@ -1,9 +1,9 @@
 !INTERFILE
 !originating system := HRRT
-!name of data file := HAL-2009.12.03.12.02.59_EM.l64
-!study date (dd:mm:yryr) := 03:12:2009
-!study time (hh:mm:ss) := 12:03:00
-!study time (hh:mm:ss.sss) := 12:03:00.003
+!name of data file := HAL-2009.12.30.15.50.00_EM.l64
+!study date (dd:mm:yryr) := 30:12:2009
+!study time (hh:mm:ss) := 15:50:00
+!study time (hh:mm:ss.sss) := 15:50:00.003
 !PET data type := emission
 data format := listmode
 axial compression := 0

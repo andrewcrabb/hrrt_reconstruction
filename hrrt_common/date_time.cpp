@@ -9,12 +9,20 @@
 #include "hrrt_util.hpp"
 
 namespace bt = boost::posix_time;
+namespace bx = boost::xpressive;
+
 // namespace df = DateTime::Format;
 
-const std::map<DateTime::Format, std::string> DateTime::formats_ = {
-    {Format::ecat_date    , "%d:%m:%Y"},          // !study date (dd:mm:yryr) := 18:09:2017
-    {Format::ecat_time    , "%H:%M:%S"},          // !study time (hh:mm:ss) := 15:26:00
-    {Format::ecat_datetime, "%d:%m:%Y %H:%M:%S"}  //
+// const std::map<DateTime::Format, std::string> DateTime::formats_ = {
+//     {Format::ecat_date    , "%d:%m:%Y"},          // !study date (dd:mm:yryr) := 18:09:2017
+//     {Format::ecat_time    , "%H:%M:%S"},          // !study time (hh:mm:ss) := 15:26:00
+//     {Format::ecat_datetime, "%d:%m:%Y %H:%M:%S"}  //
+//   };
+
+const std::map<DateTime::Format, DateTime::FormatElement> DateTime::formats_ = {
+    {Format::ecat_date    , {"%d:%m:%Y"         , bx::sregex::compile("^\\d{2}:\\d{2}:\\d{4}$")                     }},  // !study date (dd:mm:yryr) := 18:09:2017
+    {Format::ecat_time    , {"%H:%M:%S"         , bx::sregex::compile("^\\d{2}:\\d{2}:\\d{2}$")                     }},  // !study time (hh:mm:ss) := 15:26:00
+    {Format::ecat_datetime, {"%d:%m:%Y %H:%M:%S", bx::sregex::compile("^\\d{2}:\\d{2}:\\d{4} \\d{2}:\\d{2}:\\d{2}") }}
   };
 
 const std::vector<DateTime::TestData> DateTime::test_data_ = {
@@ -25,6 +33,12 @@ const std::vector<DateTime::TestData> DateTime::test_data_ = {
     {"09:18:2017"           , DateTime::Format::ecat_datetime, false, 2017, 9, 18, 0 , 0 , 0},
     {"09:18:2017 15:26:00"  , DateTime::Format::ecat_datetime, false, 2017, 9, 18, 15, 26, 0}
   };
+
+bool DateTime::operator==(DateTime const &other) const {
+  bool ret = (date_time_ == other.get_date_time());
+  LOG_DEBUG("this {} other {}: returning {}", bt::to_simple_string(date_time_), bt::to_simple_string(other.get_date_time()), hrrt_util::BoolToString(ret));
+  return ret;
+}
 
 // Factory method to create and initialize a DateTime
 // Returns nullptr on failure.
@@ -40,7 +54,11 @@ std::unique_ptr<DateTime> DateTime::Create(std::string const &t_datetime_str, Da
 }
 
 std::string DateTime::FormatString(Format t_format) {
-  return DateTime::formats_.at(t_format);
+  return DateTime::formats_.at(t_format).format_string;
+}
+
+bx::sregex DateTime::FormatPattern(Format t_format) {
+  return DateTime::formats_.at(t_format).format_pattern;
 }
 
 /**
@@ -52,16 +70,25 @@ std::string DateTime::FormatString(Format t_format) {
  * @return     void
  */
 void DateTime::ParseDateTimeString(std::string const &t_datetime_str, DateTime::Format t_format) {
-  std::string format_string = formats_.at(t_format);
+  // Ensure that t_datetime_str exactly matches t_format
+  bx::smatch match;
+  if (!bx::regex_match(t_datetime_str, match, DateTime::formats_.at(t_format).format_pattern)) {
+    LOG_ERROR("datetime_string {} does not match {}", t_datetime_str, DateTime::formats_.at(t_format).format_string);
+    return;
+  }
+
+  std::string format_string = formats_.at(t_format).format_string;
   bt::time_input_facet *facet = new bt::time_input_facet(format_string);
   const std::locale loc(std::locale::classic(), facet);
-  LOG_DEBUG("t_datetime_str {} format_string {}", t_datetime_str, format_string);
   std::istringstream iss(t_datetime_str);
   iss.imbue(loc);
   // bt::ptime posix_time;
   iss >> date_time_;
-  if (date_time_.is_not_a_date_time())
-    LOG_ERROR("Not a date_time: datestr {}, format {}", t_datetime_str, DateTime::formats_.at(t_format));
+  if (date_time_.is_not_a_date_time()) {
+    LOG_ERROR("Not a date_time: datestr {}, format {}", t_datetime_str, DateTime::formats_.at(t_format).format_string);
+  } else {
+    LOG_DEBUG("t_datetime_str {} format_string {} gives {}", t_datetime_str, format_string, bt::to_simple_string(date_time_));
+  }
   // DateTime:: ret = t_pt.is_not_a_date_time();
   // std::string timestr("FILLMEIN");
   return;
@@ -72,12 +99,12 @@ void DateTime::ParseDateTimeString(std::string const &t_datetime_str, DateTime::
 
 std::string DateTime::ToString(DateTime::Format t_format) const {
   bt::time_facet *time_facet = new bt::time_facet();
-  time_facet->format(formats_.at(t_format).c_str());
+  time_facet->format(formats_.at(t_format).format_string.c_str());
   std::ostringstream oss;
   oss.imbue(std::locale(oss.getloc(), time_facet));
   oss << date_time_;
   std::string datetime = oss.str();
-  LOG_TRACE("ptime {} format {} returning {}", bt::to_iso_string(date_time_), formats_.at(t_format), datetime);
+  LOG_TRACE("ptime {} format {} returning {}", bt::to_iso_string(date_time_), formats_.at(t_format).format_string, datetime);
   return datetime;
 }
 
