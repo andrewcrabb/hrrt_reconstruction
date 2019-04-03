@@ -193,21 +193,23 @@ void GetSystemInformation() {
 // };
 
 template <typename T> Extrema<T> find_extrema(T *t_values, int t_num_values) {
-  T min = t_values[0];
-  T max = t_values[0];
+  auto minmax = std::minmax_element(t_values, t_values + t_num_values);
+  Extrema<T> ret {*minmax.first, *minmax.second};
 
-  for (int i = 0; i < t_num_values; i++) {
-    T test_val = t_values[i];
-    if (test_val < min)
-      min = test_val;
-    if (test_val > max)
-      max = test_val;
-  }
-  Extrema<T> ret{min, max};
+  // T min = t_values[0];
+  // T max = t_values[0];
+
+  // for (int i = 0; i < t_num_values; i++) {
+  //   T test_val = t_values[i];
+  //   if (test_val < min)
+  //     min = test_val;
+  //   if (test_val > max)
+  //     max = test_val;
+  // }
   return ret;
 }
 
-// Required for symbols to be present in the library file.  Otherwise, won't link.
+// Required for symbols to be present in the library file.  Otherwise, won't link. Key term 'explicit instantiation'
 // https://stackoverflow.com/questions/1022623/c-shared-library-with-templates-undefined-symbols-error
 template Extrema<short> find_extrema(short *t_values, int t_num_values);
 template Extrema<int>   find_extrema(int   *t_values, int t_num_values);
@@ -215,23 +217,26 @@ template Extrema<float> find_extrema(float *t_values, int t_num_values);
 template Extrema<char>  find_extrema(char  *t_values, int t_num_values);
 
 // Test that find_extrema gives the correct values for the templated type
+// Use std::vector functions to test legacy array-based members.
+// If I say 'const &t_data', on the 'extrema =' statement I get:
+// "error: conversion from ‘hrrt_util::Extrema<const short int>’ to non-scalar type ‘const hrrt_util::Extrema<short int>’ requested"
 // Return true on success else false
 
-template <typename T> bool test_find_extrema(ExtremaTestData<T> const &t_data) {
-  Extrema<T> extrema = find_extrema(t_data.data, t_data.length);
-  bool ret = (t_data.min == extrema.min);
-  ret     *= (t_data.max == extrema.max);
+template <typename T> bool test_find_extrema(std::vector<T>  &t_data) {
+  const Extrema<T> extrema = find_extrema(&t_data[0], t_data.size());
+  const auto minmax = std::minmax_element(std::begin(t_data), std::end(t_data));
+  bool ret = (*minmax.first  == extrema.min);
+  ret     *= (*minmax.second == extrema.max);
   return ret;
 }
 
-template <short> bool test_find_extrema(ExtremaTestData<short> const &t_data);
-template <int>   bool test_find_extrema(ExtremaTestData<int>   const &t_data);
-
+template bool test_find_extrema<short>(std::vector<short>  &t_data);
+template bool test_find_extrema<int>(std::vector<int>  &t_data);
+template bool test_find_extrema<float>(std::vector<float>  &t_data);
 // template <float> bool test_find_extrema(ExtremaTestData<float> const &t_data);  
 // error: ‘float’ is not a valid type for a template non-type parameter
 // https://stackoverflow.com/questions/2183087/why-cant-i-use-float-value-as-a-template-parameter
-
-template <char>  bool test_find_extrema(ExtremaTestData<char>  const &t_data);
+template bool test_find_extrema<char>(std::vector<char>   &t_data);
 
 // https://stackoverflow.com/questions/29383/converting-bool-to-text-in-c
 

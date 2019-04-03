@@ -79,15 +79,18 @@ TEST_CASE("Extrema", "[classic]") {
   my_spdlog::init_logging("hrrt_common_tests");
 
   SECTION("find_extrema") {
-    short int dint_arr[]  {3, 1, 4, 1, 5, 9};
-    // int       int_arr[]   {3, 1, 4, 1, 5, 9};
-    // float     float_arr[] {3.0, 1.0, 4.0, 1.0, 5.0, 9.0};
-    // char      char_arr[]  {'t', 'h', 'r', 'e', 'e'};
+    std::vector<short> shorts {3, 1, 4, 1, 5, 9};
+    std::vector<int> ints  {3, 1, 4, 1, 5, 9};
+    std::vector<float> floats {3.0, 1.0, 4.0, 1.0, 5.0, 9.0};
+    std::vector<char> chars  {'t', 'h', 'r', 'e', 'e'};
 
-    hrrt_util::ExtremaTestData<short int> short_data{dint_arr, 6, 1, 9};
+    // hrrt_util::ExtremaTestData<short int> short_data{&shorts[0], shorts.size(), 1, 9};
     // hrrt_util::Extrema<short int> short_extrema = hrrt_util::find_extrema<short int>(short_data.data, short_data.length);
     // REQUIRE(short_extrema.min == short_data.min);
     // REQUIRE(short_extrema.max == short_data.max);
-    REQUIRE(hrrt_util::test_find_extrema(short_data));
+    REQUIRE(hrrt_util::test_find_extrema(shorts));
+    REQUIRE(hrrt_util::test_find_extrema(ints));
+    REQUIRE(hrrt_util::test_find_extrema(floats));
+    REQUIRE(hrrt_util::test_find_extrema(chars));
   }
 }

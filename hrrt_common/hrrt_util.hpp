@@ -16,15 +16,16 @@ template <typename T> struct Extrema {
   T max;
 };
 
-template <typename T> struct ExtremaTestData {
-	T *data;
-	int length;
-	T min;
-	T max;
-};
+// template <typename T> struct ExtremaTestData {
+// 	T *data;
+// 	int length;
+// 	T min;
+// 	T max;
+// };
 
+// Compatibility function handling T* - intend to migrate to std::vector<T>
 template <typename T> Extrema<T> find_extrema(T *t_values, int t_num_values);
-template <typename T> bool test_find_extrema(ExtremaTestData<T> const &t_data);
+template <typename T> bool test_find_extrema(std::vector<T>  &t_data);
 
 extern int nthreads_;
 
