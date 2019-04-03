@@ -130,10 +130,10 @@ int interfile_write_volume(ecat_matrix::MatrixFile* mptr, char *image_name ,char
 char *is_interfile(const char*);
 int interfile_open(ecat_matrix::MatrixFile*);
 ecat_matrix::MatrixData *interfile_read_slice(FILE*, char** ifh, ecat_matrix::MatrixData*, int slice,	int u_flag);
-int interfile_read(ecat_matrix::MatrixFile *mptr,int matnum, ecat_matrix::MatrixData  *data, ecat_matrix::MatrixDataType_64 dtype);
+int interfile_read(ecat_matrix::MatrixFile *mptr,int matnum, ecat_matrix::MatrixData  *data, MatrixData::DataType_64 dtype);
 ecat_matrix::MatrixData *interfile_read_scan(ecat_matrix::MatrixFile *mptr,int matnum, int dtype, int segment);
 int free_interfile_header(char** ifh);
-void flip_x(void *line, ecat_matrix::MatrixDataType data_type, int xdim);
-void flip_y(void *plane, ecat_matrix::MatrixDataType data_type, int xdim, int ydim);
+void flip_x(void *line, MatrixData::DataType data_type, int xdim);
+void flip_y(void *plane, MatrixData::DataType data_type, int xdim, int ydim);
 
 }  // namespace interfile

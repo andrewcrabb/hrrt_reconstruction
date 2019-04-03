@@ -69,6 +69,11 @@ int write_binary_file(T *t_data, int t_num_elems, bf::path const &outpath, std::
   return 0;
 }
 
+// Required for symbols to be present in the library file.  Otherwise, won't link.
+// https://stackoverflow.com/questions/1022623/c-shared-library-with-templates-undefined-symbols-error
+
+template int write_binary_file<float>(float *t_data, int t_num_elems, boost::filesystem::path const &outpath, std::string const &msg);
+
 bool file_exists (const std::string& name) {
   bool ret = false;
   std::ifstream f(name.c_str());
@@ -168,13 +173,6 @@ std::istream& safeGetline(std::istream& is, std::string& t)
     }
 }
 
-// Required for symbols to be present in the library file.  Otherwise, won't link.
-// https://stackoverflow.com/questions/1022623/c-shared-library-with-templates-undefined-symbols-error
-
-// template <typename T> int write_binary_file(T *t_data, int t_num_elems, boost::filesystem::path const &outpath, std::string const &msg);
-// template <float *> int write_binary_file(float *t_data, int t_num_elems, boost::filesystem::path const &outpath, std::string const &msg);
-template int write_binary_file<float>(float *t_data, int t_num_elems, boost::filesystem::path const &outpath, std::string const &msg);
-
 void GetSystemInformation() {
   struct sysinfo sinfo;
   LOG_INFO(" Hardware information: ");  
@@ -187,11 +185,12 @@ void GetSystemInformation() {
 }
 
 // Replacement for matrix_extra:: find_bmax, find_bmin, find_smax, find_smin, find_imax, find_imin, find_fmin, find_fmax
+// Perform max and min simultaneously since more efficient (same loop) and often required together.
 
-template <typename T> struct Extrema {
-  T min;
-  T max;
-};
+// template <typename T> struct Extrema {
+//   T min;
+//   T max;
+// };
 
 template <typename T> Extrema<T> find_extrema(T *t_values, int t_num_values) {
   T min = t_values[0];
@@ -207,6 +206,32 @@ template <typename T> Extrema<T> find_extrema(T *t_values, int t_num_values) {
   Extrema<T> ret{min, max};
   return ret;
 }
+
+// Required for symbols to be present in the library file.  Otherwise, won't link.
+// https://stackoverflow.com/questions/1022623/c-shared-library-with-templates-undefined-symbols-error
+template Extrema<short> find_extrema(short *t_values, int t_num_values);
+template Extrema<int>   find_extrema(int   *t_values, int t_num_values);
+template Extrema<float> find_extrema(float *t_values, int t_num_values);
+template Extrema<char>  find_extrema(char  *t_values, int t_num_values);
+
+// Test that find_extrema gives the correct values for the templated type
+// Return true on success else false
+
+template <typename T> bool test_find_extrema(ExtremaTestData<T> const &t_data) {
+  Extrema<T> extrema = find_extrema(t_data.data, t_data.length);
+  bool ret = (t_data.min == extrema.min);
+  ret     *= (t_data.max == extrema.max);
+  return ret;
+}
+
+template <short> bool test_find_extrema(ExtremaTestData<short> const &t_data);
+template <int>   bool test_find_extrema(ExtremaTestData<int>   const &t_data);
+
+// template <float> bool test_find_extrema(ExtremaTestData<float> const &t_data);  
+// error: ‘float’ is not a valid type for a template non-type parameter
+// https://stackoverflow.com/questions/2183087/why-cant-i-use-float-value-as-a-template-parameter
+
+template <char>  bool test_find_extrema(ExtremaTestData<char>  const &t_data);
 
 // https://stackoverflow.com/questions/29383/converting-bool-to-text-in-c
 

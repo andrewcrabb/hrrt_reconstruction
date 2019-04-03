@@ -20,24 +20,34 @@ namespace bx = boost::xpressive;
 //   };
 
 const std::map<DateTime::Format, DateTime::FormatElement> DateTime::formats_ = {
-    {Format::ecat_date    , {"%d:%m:%Y"         , bx::sregex::compile("^\\d{2}:\\d{2}:\\d{4}$")                     }},  // !study date (dd:mm:yryr) := 18:09:2017
-    {Format::ecat_time    , {"%H:%M:%S"         , bx::sregex::compile("^\\d{2}:\\d{2}:\\d{2}$")                     }},  // !study time (hh:mm:ss) := 15:26:00
-    {Format::ecat_datetime, {"%d:%m:%Y %H:%M:%S", bx::sregex::compile("^\\d{2}:\\d{2}:\\d{4} \\d{2}:\\d{2}:\\d{2}") }}
+    {Format::ecat_date       , {"%d:%m:%Y"         , bx::sregex::compile("^\\d{2}:\\d{2}:\\d{4}$")                     }},  // !study date (dd:mm:yryr) := 18:09:2017
+    {Format::ecat_time       , {"%H:%M:%S"         , bx::sregex::compile("^\\d{2}:\\d{2}:\\d{2}$")                     }},  // !study time (hh:mm:ss) := 15:26:00
+    {Format::ecat_datetime   , {"%d:%m:%Y %H:%M:%S", bx::sregex::compile("^\\d{2}:\\d{2}:\\d{4} \\d{2}:\\d{2}:\\d{2}") }},
+    {Format::compact_datetime, {"%Y%m%d_%H%M%S"    , bx::sregex::compile("^\\d{8}_\\d{6}") }}
   };
 
 const std::vector<DateTime::TestData> DateTime::test_data_ = {
   // Valid datetime-format combinations
-    {"18:09:2017"           , DateTime::Format::ecat_date    , true , 2017, 9, 18, 0 , 0 , 0},
-    {"18:09:2017 15:26:00"  , DateTime::Format::ecat_datetime, true , 2017, 9, 18, 15, 26, 0},
+    {"18:09:2017"           , DateTime::Format::ecat_date       , true , 2017, 9, 18, 0 , 0 , 0},
+    {"18:09:2017 15:26:00"  , DateTime::Format::ecat_datetime   , true , 2017, 9, 18, 15, 26, 0},
+    {"20170918_152600"      , DateTime::Format::compact_datetime, true , 2017, 9, 18, 15, 26, 0},
     // Invalid date-times or formats
-    {"09:18:2017"           , DateTime::Format::ecat_datetime, false, 2017, 9, 18, 0 , 0 , 0},
-    {"09:18:2017 15:26:00"  , DateTime::Format::ecat_datetime, false, 2017, 9, 18, 15, 26, 0}
+    {"09:18:2017"           , DateTime::Format::ecat_datetime   , false, 2017, 9, 18, 0 , 0 , 0},
+    {"09:18:2017 15:26:00"  , DateTime::Format::ecat_datetime   , false, 2017, 9, 18, 15, 26, 0}
   };
 
 bool DateTime::operator==(DateTime const &other) const {
   bool ret = (date_time_ == other.get_date_time());
   LOG_DEBUG("this {} other {}: returning {}", bt::to_simple_string(date_time_), bt::to_simple_string(other.get_date_time()), hrrt_util::BoolToString(ret));
   return ret;
+}
+
+int DateTime::operator-(DateTime const &other) const {
+  bt::time_duration durat = (date_time_ - other.get_date_time());
+  // int secs = bt::time_duration::total_seconds(durat);
+  int secs = durat.total_seconds();
+  LOG_DEBUG("this {} other {}: returning {}", bt::to_simple_string(date_time_), bt::to_simple_string(other.get_date_time()), secs);
+  return secs;
 }
 
 // Factory method to create and initialize a DateTime

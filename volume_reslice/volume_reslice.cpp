@@ -116,7 +116,7 @@ ecat_matrix::MatrixData *volume_resize(Volume *volume, int xydim, int nplanes) {
   cdata->xdim = cdata->ydim = xydim;
   cdata->zdim = nplanes;
   cdata->data_size = cdata->xdim*cdata->ydim*cdata->zdim;
-  if (cdata->data_type == ecat_matrix::MatrixDataType::IeeeFloat) 
+  if (cdata->data_type == MatrixData::DataType::IeeeFloat) 
     cdata->data_size *= sizeof(float);
   else 
     cdata->data_size *= sizeof(float);
@@ -418,7 +418,7 @@ int main(int argc, char **argv) {
     proto = (ecat_matrix::Main_header*)calloc(1, ecat_matrix::MatBLKSIZE);
     memcpy(proto, mptr->mhptr, sizeof(ecat_matrix::Main_header));
     proto->sw_version = V7;
-    proto->file_type = ecat_matrix::DataSetType::PetVolume;
+    proto->file_type = MatrixData::DataSetType::PetVolume;
     proto->num_planes = num_planes;
     proto->plane_separation = dz/10;  // mm -> cm
     mptr1 = matrix_create(out_file, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, proto);

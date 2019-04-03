@@ -736,14 +736,13 @@ static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_fram
 // Move this to Header.cpp and remove Boost dependency from this translation unit.
 
 static int get_dose_delay(CHeader const &hdr, int &t) {
-  bt::ptime assay_time, study_time;
+  // bt::ptime assay_time, study_time;
+  std::unique_ptr<DateTime> assay_time, study_time;
   int ret = 1;
 
   if (hdr.ReadTime(CHeader::DOSE_ASSAY_TIME, assay_time) == CHeaderError::OK ) {
     if (hdr.ReadTime(CHeader::STUDY_TIME, study_time)  == CHeaderError::OK ) {
-      bt::time_duration diff = study_time - assay_time;
-      t = diff.total_seconds();
-      ret = 0;
+      ret = *study_time - *assay_time;
     }
   }
   return ret;

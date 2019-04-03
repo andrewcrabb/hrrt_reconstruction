@@ -50,7 +50,7 @@ static int write_image(ecat_matrix::MatrixFile *fp, int frame, ecat_matrix::Imag
     matrix->pixel_size = imh->x_pixel_size;
     matrix->y_size = imh->y_pixel_size;
     matrix->z_size = imh->z_pixel_size;
-    imh->data_type = matrix->data_type = ecat_matrix::MatrixDataType::SunShort;
+    imh->data_type = matrix->data_type = MatrixData::DataType::SunShort;
     matrix->data_max = imh->image_max*matrix->scale_factor;
     matrix->data_min = imh->image_min*matrix->scale_factor;
     matrix->data_size = matrix->xdim*matrix->ydim*matrix->zdim*sizeof(short);
@@ -206,7 +206,7 @@ int write_ecat_image(float ***image, char * filename, int frame,
   imh.num_r_elements = 256;    /* number of bins in cor. sinogramm */
   imh.num_angles = 288;  /* number of angles in corrected sinogram */
   imh.scatter_type = 2;  
-  imh.data_type = ecat_matrix::MatrixDataType::SunShort;                                  /* Sun short */
+  imh.data_type = MatrixData::DataType::SunShort;                                  /* Sun short */
   imh.num_dimensions = 3;
   imh.x_dimension = info->nx;
   imh.y_dimension = info->ny;

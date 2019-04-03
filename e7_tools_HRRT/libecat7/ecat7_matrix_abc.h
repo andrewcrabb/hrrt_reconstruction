@@ -28,7 +28,7 @@ public:
   ECAT7_MATRIX();               // initialize object
   virtual ~ECAT7_MATRIX();         // destroy object
   virtual ECAT7_MATRIX& operator = (const ECAT7_MATRIX &);    // '='-operator
-  virtual void Byte2Float();    // convert dataset from ecat_matrix::MatrixDataType::ByteData to ecat_matrix::MatrixDataType::IeeeFloat
+  virtual void Byte2Float();    // convert dataset from MatrixData::DataType::ByteData to MatrixData::DataType::IeeeFloat
   void DataDeleted();            // remove data part
   unsigned long int DataSize() const;  // request size of data part
   unsigned short int DataType() const;      // request data type of data part
@@ -41,10 +41,10 @@ public:
   virtual void PrintHeader(std::list <std::string> * const, const unsigned short int) const;          // print header information into string list
   virtual void SaveData(std::ofstream * const) const;                          // store data part of matrix
   virtual void SaveHeader(std::ofstream * const) const;                        // store header part of matrix
-  virtual void Short2Float();   // convert dataset from ecat_matrix::MatrixDataType::SunShort to ecat_matrix::MatrixDataType::IeeeFloat
+  virtual void Short2Float();   // convert dataset from MatrixData::DataType::SunShort to MatrixData::DataType::IeeeFloat
 
   // ahc these methods allow the file-stored data type to differ from those used in memory.
-  // ie data_type is a short int in file, but a ecat_matrix::MatrixDataType in memory
-  virtual ecat_matrix::MatrixDataType get_data_type(void);               // Read data_type as short int from file, return as scoped enum
-  virtual void set_data_type(ecat_matrix::MatrixDataType t_data_type);   // Write scoped enum to file as short int
+  // ie data_type is a short int in file, but a MatrixData::DataType in memory
+  virtual MatrixData::DataType get_data_type(void);               // Read data_type as short int from file, return as scoped enum
+  virtual void set_data_type(MatrixData::DataType t_data_type);   // Write scoped enum to file as short int
 };

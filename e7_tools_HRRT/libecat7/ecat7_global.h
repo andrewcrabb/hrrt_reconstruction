@@ -26,7 +26,7 @@ const std::string ECAT7_NORM2_EXTENSION = ".n";     // norm file extension
 const unsigned long int E7_RECLEN = 512;
 
 // data types in file
-// ahc This duplicates ecat_matrix::MatrixDataType
+// ahc This duplicates MatrixData::DataType
 const int E7_DATA_TYPE_UnknownMatDataType = 0;        // unknown data type
 const int E7_DATA_TYPE_ByteData          = 1;                 // byte data
 const int E7_DATA_TYPE_VAX_Ix2           = 2;   // 2 byte VAX integer data

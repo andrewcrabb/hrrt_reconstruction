@@ -101,7 +101,7 @@ ecat_matrix::MatrixData* IsotropicSlicer<T>::create_slice(T *dptr, int sx, int s
   else
   {
     slice->data_ptr = (void *)calloc(sx*sy, sizeof(T));
-    slice->data_type = ecat_matrix::MatrixDataType::ByteData;
+    slice->data_type = MatrixData::DataType::ByteData;
   }
   slice->xdim = sx;
   slice->ydim = sy;
@@ -122,7 +122,7 @@ ecat_matrix::MatrixData* IsotropicSlicer<T>::create_comp_slice(float *dptr, int 
 {
   ecat_matrix::MatrixData* slice = (ecat_matrix::MatrixData*)calloc(1,sizeof(ecat_matrix::MatrixData));
   slice->zdim = 1;
-  slice->data_type = ecat_matrix::MatrixDataType::IeeeFloat;
+  slice->data_type = MatrixData::DataType::IeeeFloat;
   slice->data_ptr = (void *)dptr;
   slice->xdim = sx;
   slice->ydim = sy;
@@ -524,7 +524,7 @@ ecat_matrix::MatrixData* IsotropicSlicer<T>::y_projection(float y0, float y1, in
   int sx = volume->xdim, sy = volume->ydim, sz = volume->zdim;
   float dx = volume->pixel_size, dz = volume->z_size;
   
-  if (!data || volume->data_type == ecat_matrix::MatrixDataType::Color_8 || volume->data_type==Color_24)
+  if (!data || volume->data_type == MatrixData::DataType::Color_8 || volume->data_type==Color_24)
     return create_comp_slice(dest,sx,sz,dx,dz,y1-y0);
   int npixels = sx*sz;
   dest = (float*)calloc(npixels,sizeof(float));
@@ -603,7 +603,7 @@ ecat_matrix::MatrixData* IsotropicSlicer<T>::average(float z0, float thickness,
 
   int xdim = (int)(0.5+volume->xdim*dx/pixel_size);
   int ydim = (int)(0.5+volume->ydim*dy/pixel_size);
-  if (!data || volume->data_type == ecat_matrix::MatrixDataType::Color_8 || volume->data_type==Color_24)
+  if (!data || volume->data_type == MatrixData::DataType::Color_8 || volume->data_type==Color_24)
     return create_comp_slice(dest,xdim,ydim,pixel_size,pixel_size,thickness);
   int b = round(max((float)0,z0-half_width));
   int t = round(min((float)volume->zdim-1,z0+half_width));

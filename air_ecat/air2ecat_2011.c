@@ -25,16 +25,16 @@ static ecat_matrix::MatrixData* air2matrix(AIR_Pixels ***pixels, struct AIR_Key_
   ecat_matrix::Image_subheader *imh=NULL;
   AIR_Pixels *image_data;
   int elem_size=2;
-  ecat_matrix::MatrixDataType data_type = ecat_matrix::MatrixDataType::SunShort;	/* default */
+  MatrixData::DataType data_type = MatrixData::DataType::SunShort;	/* default */
   int i, nvoxels, nblks;
   float a,v;
 
   if (stats->bits == 8) {
-    data_type = ecat_matrix::MatrixDataType::ByteData; 
+    data_type = MatrixData::DataType::ByteData; 
     elem_size = 1;
   }  else if (stats->bits == 1) {
 	/* BitData not yet implemented */
-    data_type = ecat_matrix::MatrixDataType::ByteData; 
+    data_type = MatrixData::DataType::ByteData; 
     elem_size = 1;
   } 
   nvoxels = stats->x_dim*stats->y_dim*stats->z_dim;
@@ -50,10 +50,10 @@ static ecat_matrix::MatrixData* air2matrix(AIR_Pixels ***pixels, struct AIR_Key_
     imh->image_max = (int)(matrix->data_max/matrix->scale_factor);
   }
   matrix->shptr = (void *)imh;
-  if (matrix->data_type == ecat_matrix::MatrixDataType::VAX_Ix2)      /* old integer 2 image format */
-    imh->data_type = matrix->data_type = ecat_matrix::MatrixDataType::SunShort;
-  if (matrix->data_type == ecat_matrix::MatrixDataType::IeeeFloat)      /* Interfile float input */
-    imh->data_type = matrix->data_type = ecat_matrix::MatrixDataType::SunShort;
+  if (matrix->data_type == MatrixData::DataType::VAX_Ix2)      /* old integer 2 image format */
+    imh->data_type = matrix->data_type = MatrixData::DataType::SunShort;
+  if (matrix->data_type == MatrixData::DataType::IeeeFloat)      /* Interfile float input */
+    imh->data_type = matrix->data_type = MatrixData::DataType::SunShort;
   if (matrix->data_type != data_type) {
     LOG_ERROR("air2matrix : incompatible data types");
     free_matrix_data(matrix);
@@ -72,14 +72,14 @@ static ecat_matrix::MatrixData* air2matrix(AIR_Pixels ***pixels, struct AIR_Key_
   /* fill matrix data */
   image_data = pixels[0][0];
   switch(data_type) {
-  case ecat_matrix::MatrixDataType::ByteData :
-  case ecat_matrix::MatrixDataType::BitData :
+  case MatrixData::DataType::ByteData :
+  case MatrixData::DataType::BitData :
     a = 255.0f / AIR_CONFIG_MAX_POSS_VALUE;
     unsigned char *bdata = (unsigned char *)matrix->data_ptr;
     for (i=0; i<nvoxels; i++)
       *bdata++ = (int)(0.5+a*(*image_data++));
     break;
-  case ecat_matrix::MatrixDataType::SunShort:
+  case MatrixData::DataType::SunShort:
     short *sdata = (short*)matrix->data_ptr;
     for (i=0; i<nvoxels; i++, sdata++) {
       v = *image_data++;
@@ -118,7 +118,7 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
       return 0;
     }
   }
-  orig = matrix_read(file,i_matnum,ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
+  orig = matrix_read(file,i_matnum,MatrixData::DataType::MAT_SUB_HEADER);
   if (orig != NULL && orig->zdim == 1) {
     /* slice mode */
     ecat_matrix::MatVal val;
@@ -130,7 +130,7 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
     LOG_ERROR("error reading matrix {}", orig_specs);
     return 0;
   }
-  if (orig->data_type == ecat_matrix::MatrixDataType::IeeeFloat) {
+  if (orig->data_type == MatrixData::DataType::IeeeFloat) {
     // load matrix and convert to short
     free_matrix_data(orig);
     orig = matrix_read(file,i_matnum, GENERIC);
@@ -220,7 +220,7 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats, const char *specs
     return 0;
   }
   // else  write ECAT format
-  mh.file_type = ecat_matrix::DataSetType::PetVolume;
+  mh.file_type = MatrixData::DataSetType::PetVolume;
   mh.num_planes = matrix->zdim;
   mh.plane_separation = matrix->z_size;
   if ((file=matrix_create(fname,ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, &mh)) == NULL) {
@@ -259,7 +259,7 @@ float ecat_AIR_open_header(const char *mat_spec, struct AIR_Fptrs *fp, struct AI
     }
   }
   if (fp->errcode == 0)    {
-      if ((hdr = matrix_read(file,matnum,ecat_matrix::MatrixDataType::MAT_SUB_HEADER)) == NULL) {
+      if ((hdr = matrix_read(file,matnum,MatrixData::DataType::MAT_SUB_HEADER)) == NULL) {
         LOG_ERROR( "{} : error opening matrix", mat_spec); 
         fp->errcode = 1;
         return 0.0f;
@@ -311,7 +311,7 @@ AIR_Error ecat_AIR_load_probr(const char *specs, const AIR_Boolean decompressabl
     }
   }
   if (file != NULL) {
-    if ((hdr = matrix_read(file,matnum,ecat_matrix::MatrixDataType::MAT_SUB_HEADER))==NULL) error++;
+    if ((hdr = matrix_read(file,matnum,MatrixData::DataType::MAT_SUB_HEADER))==NULL) error++;
     else free_matrix_data(hdr);
   } else matrix_close(file);
   return error;

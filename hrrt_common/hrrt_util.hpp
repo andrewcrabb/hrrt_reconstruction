@@ -9,6 +9,23 @@
 
 namespace hrrt_util {
 
+// Replacement for matrix_extra:: find_bmax, find_bmin, find_smax, find_smin, find_imax, find_imin, find_fmin, find_fmax
+
+template <typename T> struct Extrema {
+  T min;
+  T max;
+};
+
+template <typename T> struct ExtremaTestData {
+	T *data;
+	int length;
+	T min;
+	T max;
+};
+
+template <typename T> Extrema<T> find_extrema(T *t_values, int t_num_values);
+template <typename T> bool test_find_extrema(ExtremaTestData<T> const &t_data);
+
 extern int nthreads_;
 
 void swaw( short *from, short *to, int length);

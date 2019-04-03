@@ -438,12 +438,12 @@ unsigned short int ECAT7_ATTENUATION::Width() const
 
 // Read data_type as short int from file, return as scoped enum
 
-ecat_matrix::MatrixDataType ECAT7_ATTENUATION::get_data_type(void) {
-  return static_cast<ecat_matrix::MatrixDataType>(attenuation_subheader_.data_type);
+MatrixData::DataType ECAT7_ATTENUATION::get_data_type(void) {
+  return static_cast<MatrixData::DataType>(attenuation_subheader_.data_type);
 }
 
 // Write scoped enum to file as short int
 
-void ECAT7_ATTENUATION::set_data_type(ecat_matrix::MatrixDataType t_data_type) {
+void ECAT7_ATTENUATION::set_data_type(MatrixData::DataType t_data_type) {
   attenuation_subheader_.data_type = static_cast<signed short int>(t_data_type);
 }

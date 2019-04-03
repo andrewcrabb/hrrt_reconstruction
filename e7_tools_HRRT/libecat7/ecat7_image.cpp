@@ -507,12 +507,12 @@ unsigned short int ECAT7_IMAGE::Width() const
 
 // Read data_type as short int from file, return as scoped enum
 
-ecat_matrix::MatrixDataType ECAT7_IMAGE::get_data_type(void) {
-  return static_cast<ecat_matrix::MatrixDataType>(image_subheader_.data_type);
+MatrixData::DataType ECAT7_IMAGE::get_data_type(void) {
+  return static_cast<MatrixData::DataType>(image_subheader_.data_type);
 }
 
 // Write scoped enum to file as short int
 
-void ECAT7_IMAGE::set_data_type(ecat_matrix::MatrixDataType t_data_type) {
+void ECAT7_IMAGE::set_data_type(MatrixData::DataType t_data_type) {
   image_subheader_.data_type = static_cast<signed short int>(t_data_type);
 }

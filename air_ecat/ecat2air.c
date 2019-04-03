@@ -38,9 +38,9 @@ static MatrixExtrema *matrix_extrema = NULL;
 //  static void * _line=NULL;
 //  static int line_size = 0;
 //  int x=0;
-//  int elem_size = (data_type==ecat_matrix::MatrixDataType::ByteData)? 1 : 2;
+//  int elem_size = (data_type==MatrixData::DataType::ByteData)? 1 : 2;
 
-//   if (data_type == ecat_matrix::MatrixDataType::IeeeFloat) elem_size = 4;
+//   if (data_type == MatrixData::DataType::IeeeFloat) elem_size = 4;
 //  if (line_size == 0) {
 //    line_size = xdim*elem_size;
 //    _line = (void *)malloc(line_size);
@@ -49,7 +49,7 @@ static MatrixExtrema *matrix_extrema = NULL;
 //    _line = (void *)realloc(_line, line_size);
 //  }
 //  switch(data_type) {
-//    case ecat_matrix::MatrixDataType::ByteData :
+//    case MatrixData::DataType::ByteData :
 //    {
 //      unsigned char  *b_p0, *b_p1;
 //      b_p0 = (unsigned char *)line;
@@ -76,10 +76,10 @@ static MatrixExtrema *matrix_extrema = NULL;
 //  static void * _plane=NULL;
 //  static int plane_size = 0;
 //  void *p0, *p1;
-//  int elem_size = (data_type==ecat_matrix::MatrixDataType::ByteData)? 1 : 2;
+//  int elem_size = (data_type==MatrixData::DataType::ByteData)? 1 : 2;
 //  int y=0;
 
-//   if (data_type == ecat_matrix::MatrixDataType::IeeeFloat) elem_size = 4;
+//   if (data_type == MatrixData::DataType::IeeeFloat) elem_size = 4;
 //  if (plane_size == 0) {
 //    plane_size = xdim*ydim*elem_size;
 //    _plane = (void *)malloc(plane_size);
@@ -101,9 +101,9 @@ void  matrix_flip(ecat_matrix::MatrixData *data, int x_flip, int y_flip, int z_f
 {
   int y = 0, z = 0;
   void *plane_out = NULL;
-  // int elem_size = (data->data_type==ecat_matrix::MatrixDataType::ByteData)? 1 : 2;
-  // if (data->data_type == ecat_matrix::MatrixDataType::IeeeFloat) elem_size = 4;
-  int elem_size = ecat_matrix::matrix_data_types_.at(data->data_type).length;
+  // int elem_size = (data->data_type==MatrixData::DataType::ByteData)? 1 : 2;
+  // if (data->data_type == MatrixData::DataType::IeeeFloat) elem_size = 4;
+  int elem_size = MatrixData::data_types_.at(data->data_type).length;
   int npixels = data->xdim * data->ydim;
   void *plane_in = data->data_ptr;
   if (z_flip) {
@@ -147,10 +147,10 @@ static AIR_Pixels ***matrix2air(ecat_matrix::MatrixData* matrix, struct AIR_Key_
     return 0;
   }
   switch (matrix->data_type) {
-  case ecat_matrix::MatrixDataType::BitData:
+  case MatrixData::DataType::BitData:
     stats->bits = 1;
     break;
-  case ecat_matrix::MatrixDataType::ByteData:
+  case MatrixData::DataType::ByteData:
     stats->bits = 8;
     break;
   default:
@@ -198,8 +198,8 @@ static AIR_Pixels ***matrix2air(ecat_matrix::MatrixData* matrix, struct AIR_Key_
   b = -a * v0;
 
   switch (matrix->data_type) {
-  case ecat_matrix::MatrixDataType::BitData:
-  case ecat_matrix::MatrixDataType::ByteData:
+  case MatrixData::DataType::BitData:
+  case MatrixData::DataType::ByteData:
     bdata = (unsigned char *)matrix->data_ptr;
     for (i = 0; i < nvoxels; i++) {
       v = *bdata++;
@@ -207,7 +207,7 @@ static AIR_Pixels ***matrix2air(ecat_matrix::MatrixData* matrix, struct AIR_Key_
       *image_data++ = (int)(f + 0.5);
     }
     break;
-  case ecat_matrix::MatrixDataType::IeeeFloat:
+  case MatrixData::DataType::IeeeFloat:
     fdata = (float*)matrix->data_ptr;
     // compute foat to short scale factor
     if (fabs(matrix->data_max) > fabs(matrix->data_min)) {
@@ -329,7 +329,7 @@ int ecat_AIR_map_value(const char *specs, int value, int *error)
   while (extrema && strcmp(extrema->specs,specs)!=0)
     extrema = extrema->next;
   if (extrema) {
-    if (extrema->data_type != ecat_matrix::MatrixDataType::ByteData)
+    if (extrema->data_type != MatrixData::DataType::ByteData)
       return (int)(value+32767);
     v0 = extrema->data_min;
     v1 = extrema->data_max;

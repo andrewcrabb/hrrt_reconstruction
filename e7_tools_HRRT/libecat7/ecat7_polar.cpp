@@ -307,12 +307,12 @@ void ECAT7_POLAR::SaveHeader(std::ofstream * const file) const
 
 // Read data_type as short int from file, return as scoped enum
 
-ecat_matrix::MatrixDataType ECAT7_POLAR::get_data_type(void) {
-  return static_cast<ecat_matrix::MatrixDataType>(polar_subheader_.data_type);
+MatrixData::DataType ECAT7_POLAR::get_data_type(void) {
+  return static_cast<MatrixData::DataType>(polar_subheader_.data_type);
 }
 
 // Write scoped enum to file as short int
 
-void ECAT7_POLAR::set_data_type(ecat_matrix::MatrixDataType t_data_type) {
+void ECAT7_POLAR::set_data_type(MatrixData::DataType t_data_type) {
   polar_subheader_.data_type = static_cast<signed short int>(t_data_type);
 }

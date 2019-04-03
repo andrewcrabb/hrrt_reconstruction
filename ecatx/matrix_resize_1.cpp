@@ -37,13 +37,13 @@ int  matrix_resize(ecat_matrix::MatrixData *mat, float pixel_size, int interp_fl
 //	if (mat->data_type == ColorData)  interpolate = 0;
   switch (mat->data_type)
   {
-  case ecat_matrix::MatrixDataType::ByteData:
+  case MatrixData::DataType::ByteData:
 //  case ColorData:
 		return matrix_resize_1(mat, pixel_size, interpolate);
-  case ecat_matrix::MatrixDataType::SunShort:
-	case ecat_matrix::MatrixDataType::VAX_Ix2:
+  case MatrixData::DataType::SunShort:
+	case MatrixData::DataType::VAX_Ix2:
     return matrix_resize_2(mat, pixel_size, interpolate);
-  case ecat_matrix::MatrixDataType::IeeeFloat:
+  case MatrixData::DataType::IeeeFloat:
     return matrix_resize_4(mat, pixel_size, interpolate);
   }
   return 0;

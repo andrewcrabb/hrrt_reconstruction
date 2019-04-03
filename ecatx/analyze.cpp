@@ -176,7 +176,7 @@ int analyze_open(ecat_matrix::MatrixFile *mptr) {
   mh = mptr->mhptr;
   sprintf(mh->magic_number, "%d", (int)(sizeof(struct dsr)));
   mh->sw_version = 70;
-  mh->file_type = ecat_matrix::DataSetType::InterfileImage;
+  mh->file_type = MatrixData::DataSetType::InterfileImage;
   mptr->analyze_hdr = (char*)calloc(1, sizeof(struct dsr));  // ahc presence of this also indicates analyze file read.  Why not use file_format?
   memcpy(mptr->analyze_hdr, &hdr, sizeof(hdr));
   // mptr->interfile_header = (char**)calloc(END_OF_KEYS, sizeof(char*));
@@ -278,7 +278,7 @@ int analyze_open(ecat_matrix::MatrixFile *mptr) {
   return 1;
 }
 
-int analyze_read(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixData *t_mdata, ecat_matrix::MatrixDataType dtype) {
+int analyze_read(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixData *t_mdata, MatrixData::DataType dtype) {
   ecat_matrix::MatVal matval;
 
   mat_numdoc(matnum, &matval);
@@ -297,8 +297,8 @@ int analyze_read(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixD
   imagesub->x_dimension = t_mdata->xdim = hdim->dim[1];
   imagesub->y_dimension = t_mdata->ydim = hdim->dim[2];
   imagesub->z_dimension = t_mdata->zdim = hdim->dim[3];
-  imagesub->data_type = t_mdata->data_type = ecat_matrix::MatrixDataType::SunShort;
-  if (dtype == ecat_matrix::MatrixDataType::MAT_SUB_HEADER)
+  imagesub->data_type = t_mdata->data_type = MatrixData::DataType::SunShort;
+  if (dtype == MatrixData::DataType::MAT_SUB_HEADER)
     return ecat_matrix::ECATX_OK;
 
   int  data_offset = 0;

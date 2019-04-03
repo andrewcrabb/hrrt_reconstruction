@@ -67,7 +67,7 @@ void SWAW (short *from, short *to, int length) {
 // 	return *(float*)(&ret);
 // }
 
-int file_data_to_host(char *dptr, int nblks, ecat_matrix::MatrixDataType dtype) {
+int file_data_to_host(char *dptr, int nblks, MatrixData::DataType dtype) {
 	int i, j;
 	char *tmp = new char[512];
 
@@ -77,23 +77,23 @@ int file_data_to_host(char *dptr, int nblks, ecat_matrix::MatrixDataType dtype) 
 	// 	return ecat_matrix::ECATX_ERROR;
 	switch(dtype)
 	{
-	case ecat_matrix::MatrixDataType::ByteData:
+	case MatrixData::DataType::ByteData:
 		break;
-	case ecat_matrix::MatrixDataType::VAX_Ix2:
+	case MatrixData::DataType::VAX_Ix2:
 		if (ntohs(1) == 1) 
 			for (i=0, j=0; i<nblks; i++, j+=512) {
 				swab( dptr+j, tmp, 512);
 				memcpy(dptr+j, tmp, 512);
 			}
 		break;
-	case ecat_matrix::MatrixDataType::VAX_Ix4:
+	case MatrixData::DataType::VAX_Ix4:
 		if (ntohs(1) == 1)
 			for (i=0, j=0; i<nblks; i++, j+=512) {
 				swab(dptr+j, tmp, 512);
 				hrrt_util::swaw((short*)tmp, (short*)(dptr+j), 256);
 			}
 		break;
-	// case ecat_matrix::MatrixDataType::VAX_Rx4:
+	// case MatrixData::DataType::VAX_Rx4:
 	//  	if (ntohs(1) == 1) 
 	// 		 for (i=0, j=0; i<nblks; i++, j+=512) {
 	// 			swab( dptr+j, tmp, 512);
@@ -104,15 +104,15 @@ int file_data_to_host(char *dptr, int nblks, ecat_matrix::MatrixDataType dtype) 
 	// 	for (i=0; i<nblks*128; i++)
 	// 		((float *)dptr)[i] = vaxftohf( (unsigned short *)dptr, i*2) ;
 	// 	break;
-	case ecat_matrix::MatrixDataType::SunShort:
+	case MatrixData::DataType::SunShort:
 		if (ntohs(1) != 1)
 			for (i=0, j=0; i<nblks; i++, j+=512) {
 				swab(dptr+j, tmp, 512);
 				memcpy(dptr+j, tmp, 512);
 			}
 		break;
-	case ecat_matrix::MatrixDataType::SunLong:
-	case ecat_matrix::MatrixDataType::IeeeFloat:
+	case MatrixData::DataType::SunLong:
+	case MatrixData::DataType::IeeeFloat:
 		if (ntohs(1) != 1) 
 			for (i=0, j=0; i<nblks; i++, j+=512) {
 				swab(dptr+j, tmp, 512);
@@ -132,7 +132,7 @@ int file_data_to_host(char *dptr, int nblks, ecat_matrix::MatrixDataType dtype) 
 	return ecat_matrix::ECATX_OK;
 }
 
-int read_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, ecat_matrix::MatrixDataType dtype) {
+int read_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, MatrixData::DataType dtype) {
 	int  err;
 
 	err = ecat_matrix::mat_rblk( fptr, strtblk, dptr, nblks);
@@ -141,7 +141,7 @@ int read_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, ecat_matrix
 	return file_data_to_host(dptr,nblks,dtype);
 }
 
-int write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, ecat_matrix::MatrixDataType dtype) {
+int write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, MatrixData::DataType dtype) {
 	int error_flag = 0;
 	int i, j;
 	char *bufr1 = new char[512];
@@ -150,10 +150,10 @@ int write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, ecat_matri
 	ecat_matrix::matrix_errno = ecat_matrix::MatrixError::OK;
 	ecat_matrix::matrix_errtxt.clear();
 	switch( dtype)	{
-	case ecat_matrix::MatrixDataType::ByteData:
+	case MatrixData::DataType::ByteData:
 		if ( ecat_matrix::mat_wblk( fptr, strtblk, dptr, nblks) < 0) error_flag++;
 		break;
-	case ecat_matrix::MatrixDataType::VAX_Ix2: 
+	case MatrixData::DataType::VAX_Ix2: 
 	default:	/* something else...treat as Vax I*2 */
 		if (ntohs(1) == 1) {
 			for (i=0, j=0; i<nblks && !error_flag; i++, j += 512) {
@@ -163,12 +163,12 @@ int write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, ecat_matri
 			}
 		} else if ( ecat_matrix::mat_wblk( fptr, strtblk, dptr, nblks) < 0) error_flag++;
 		break;
-	case ecat_matrix::MatrixDataType::VAX_Ix4:
-	case ecat_matrix::MatrixDataType::VAX_Rx4:
+	case MatrixData::DataType::VAX_Ix4:
+	case MatrixData::DataType::VAX_Rx4:
         LOG_EXIT("unsupported format");
         break;
-    case ecat_matrix::MatrixDataType::IeeeFloat:
-	case ecat_matrix::MatrixDataType::SunLong:
+    case MatrixData::DataType::IeeeFloat:
+	case MatrixData::DataType::SunLong:
 		if (ntohs(1) != 1) {
 			for (i=0, j=0; i<nblks && !error_flag; i++, j += 512) {
 				swab( dptr+j, bufr1, 512);
@@ -177,7 +177,7 @@ int write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, ecat_matri
 			}
 		} else if ( ecat_matrix::mat_wblk( fptr, strtblk, dptr, nblks) < 0) error_flag++;
 		break;
-	case ecat_matrix::MatrixDataType::SunShort:
+	case MatrixData::DataType::SunShort:
 		if (ntohs(1) != 1) {
 			for (i=0, j=0; i<nblks && !error_flag; i++, j += 512) {
 				swab( dptr+j, bufr1, 512);

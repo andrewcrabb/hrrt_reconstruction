@@ -123,7 +123,7 @@ int  main(int argc, char **argv)
     matspec(air_16.r_file, reslice_file, &matnum);
     if ((mptr=matrix_open(reslice_file,ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE)) != NULL)
     {
-      if ((matrix=matrix_read( mptr, matnum, ecat_matrix::MatrixDataType::MAT_SUB_HEADER)) != NULL)
+      if ((matrix=matrix_read( mptr, matnum, MatrixData::DataType::MAT_SUB_HEADER)) != NULL)
       {
         imh = (ecat_matrix::Image_subheader*)matrix->shptr;
         frame_start_time = imh->frame_start_time/1000;

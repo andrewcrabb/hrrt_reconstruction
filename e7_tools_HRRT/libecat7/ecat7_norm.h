@@ -52,6 +52,6 @@ public:
   void SaveHeader(std::ofstream * const) const;// store header part of matrix
 
   // ahc this must be implemented in every class derived from ECAT7_MATRIX
-  ecat_matrix::MatrixDataType get_data_type(void);               // Read data_type as short int from file, return as scoped enum
-  void set_data_type(ecat_matrix::MatrixDataType t_data_type);   // Write scoped enum to file as short int
+  MatrixData::DataType get_data_type(void);               // Read data_type as short int from file, return as scoped enum
+  void set_data_type(MatrixData::DataType t_data_type);   // Write scoped enum to file as short int
 };

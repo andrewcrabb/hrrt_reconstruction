@@ -29,7 +29,7 @@ ecat_matrix::MatrixData *matrix;
   LOG_INFO("Matrix := {},{},{},{},{}", mat.frame, mat.plane, mat.gate, mat.data, mat.bed);
   nvoxels = matrix->xdim*matrix->ydim*matrix->zdim ;
   switch(matrix->data_type) {
-  case ecat_matrix::MatrixDataType::ByteData:
+  case MatrixData::DataType::ByteData:
     b_data = (unsigned char *)matrix->data_ptr;
     for (i=0, z=1; z<=matrix->zdim; z++)  {
       for (y=1; y<=matrix->ydim; y++) {
@@ -42,7 +42,7 @@ ecat_matrix::MatrixData *matrix;
       }
     }
     break;
-  case ecat_matrix::MatrixDataType::IeeeFloat :
+  case MatrixData::DataType::IeeeFloat :
     f_data = (float*)matrix->data_ptr;
     for (i=0; i<nvoxels; i++) total += *f_data++;
     for (i=0, z=1; z<=matrix->zdim; z++)  {
@@ -91,7 +91,7 @@ ecat_matrix::MatrixData *matrix;
   }
   LOG_INFO("{}\n{}\n{}\n{}\n",line1, line2, line3, line4);
   LOG_INFO("center of mass (x,y,z) mm := {},{},{}\n",mx-1,my-1,mz-1);
-	if (mh->sw_version > 72 && mh->file_type == ecat_matrix::DataSetType::PetVolume) 
+	if (mh->sw_version > 72 && mh->file_type == MatrixData::DataSetType::PetVolume) 
   { // print data rates
 		imh = (ecat_matrix::Image_subheader*)matrix->shptr;
 		if (imh->singles_rate>MIN_SINGLE_RATE && imh->singles_rate < MAX_SINGLE_RATE)

@@ -66,7 +66,7 @@ static ecat_matrix::MatrixData *matrix_read_v2(ecat_matrix::MatrixFile *file, in
 	matrix->scale_factor *= slope;
 	imh->scale_factor = matrix->scale_factor;
 	b = (int)(intercept/slope);
-	if (b != 0 && matrix->data_type!=ecat_matrix::MatrixDataType::ByteData)
+	if (b != 0 && matrix->data_type!=MatrixData::DataType::ByteData)
 	{
 		npixels = matrix->xdim*matrix->ydim;
 		data = (short*)matrix->data_ptr;
@@ -118,22 +118,22 @@ ecat_matrix::MatrixData *matrix_read_slice(ecat_matrix::MatrixFile *mptr, ecat_m
 	group = abs(segment);
 
 	switch(volume->mat_type) {
-	case ecat_matrix::DataSetType::PetImage:
+	case MatrixData::DataSetType::PetImage:
 		free_matrix_data(data);
 		mat_numdoc(volume->matnum, &val);
 		return matrix_read_v2(mptr,
 			ecat_matrix::mat_numcod(val.frame,slice+1,val.gate,val.data,val.bed),
 			volume->mat_type);
-	case ecat_matrix::DataSetType::Sinogram:
+	case MatrixData::DataSetType::Sinogram:
 		free_matrix_data(data);
 		mat_numdoc(volume->matnum, &val);
 		return matrix_read(mptr,
 			ecat_matrix::mat_numcod(val.frame,slice+1,val.gate,val.data,val.bed),
 			volume->mat_type);
-	case ecat_matrix::DataSetType::Short3dSinogram :
-	case ecat_matrix::DataSetType::Float3dSinogram :
+	case MatrixData::DataSetType::Short3dSinogram :
+	case MatrixData::DataSetType::Float3dSinogram :
 		scan3Dsub = (ecat_matrix::Scan3D_subheader*)volume->shptr;
-		if (scan3Dsub->data_type == ecat_matrix::MatrixDataType::SunShort) {
+		if (scan3Dsub->data_type == MatrixData::DataType::SunShort) {
 			data_size = npixels*sizeof(short);
 			line_size = data->xdim*sizeof(short);
 		} else {
@@ -190,7 +190,7 @@ ecat_matrix::MatrixData *matrix_read_slice(ecat_matrix::MatrixFile *mptr, ecat_m
 
 		}
 		scansub = (ecat_matrix::Scan_subheader*)calloc(sizeof(ecat_matrix::Scan_subheader),1);
-		if (scan3Dsub->data_type == ecat_matrix::MatrixDataType::SunShort) {
+		if (scan3Dsub->data_type == MatrixData::DataType::SunShort) {
       scansub->scan_max = find_smax((short*)data->data_ptr, npixels);
 			data->data_max = scansub->scan_max;
     }
@@ -205,7 +205,7 @@ ecat_matrix::MatrixData *matrix_read_slice(ecat_matrix::MatrixFile *mptr, ecat_m
 		scansub->x_resolution = scan3Dsub->x_resolution;
 		free(line);
 		return data;
-	case ecat_matrix::DataSetType::AttenCor:
+	case MatrixData::DataSetType::AttenCor:
 		attnsub = (ecat_matrix::Attn_subheader*)volume->shptr;
 		num_projs = attnsub->num_r_elements;
 		num_views =  attnsub->num_angles;
@@ -244,7 +244,7 @@ ecat_matrix::MatrixData *matrix_read_slice(ecat_matrix::MatrixFile *mptr, ecat_m
 					free_matrix_data(data);
 					return NULL;
 				}
-				file_data_to_host(line,nblks,ecat_matrix::MatrixDataType::IeeeFloat);
+				file_data_to_host(line,nblks,MatrixData::DataType::IeeeFloat);
 				memcpy(fdata+view*num_projs,line,line_size);
 				file_pos += line_size*z_elements;
 			}
@@ -256,19 +256,19 @@ ecat_matrix::MatrixData *matrix_read_slice(ecat_matrix::MatrixFile *mptr, ecat_m
 				free_matrix_data(data);
 				return NULL;
 			}	
-			file_data_to_host((char*)fdata,nblks,ecat_matrix::MatrixDataType::IeeeFloat);
+			file_data_to_host((char*)fdata,nblks,MatrixData::DataType::IeeeFloat);
 		}
 		data->xdim = num_projs;
 		data->ydim = num_views;
 		data->zdim = 1;
 		data->data_max = find_fmax(fdata,num_projs*num_views);
 		return data;
-	case ecat_matrix::DataSetType::ByteVolume:
-	case ecat_matrix::DataSetType::PetVolume:
-	case ecat_matrix::DataSetType::ByteProjection:
-	case ecat_matrix::DataSetType::PetProjection:
+	case MatrixData::DataSetType::ByteVolume:
+	case MatrixData::DataSetType::PetVolume:
+	case MatrixData::DataSetType::ByteProjection:
+	case MatrixData::DataSetType::PetProjection:
 		file_pos = matdir.strtblk*ecat_matrix::MatBLKSIZE;
-		if (data->data_type == ecat_matrix::MatrixDataType::ByteData) data_size = npixels;
+		if (data->data_type == MatrixData::DataType::ByteData) data_size = npixels;
 		else data_size = npixels*sizeof(short);
 		file_pos += slice*data_size;
 		nblks = (data_size+(ecat_matrix::MatBLKSIZE-1))/ecat_matrix::MatBLKSIZE;
@@ -288,7 +288,7 @@ ecat_matrix::MatrixData *matrix_read_slice(ecat_matrix::MatrixFile *mptr, ecat_m
 		memcpy(imagesub,volume->shptr,sizeof(ecat_matrix::Image_subheader));
 		imagesub->z_dimension = 1;
 		data->shptr = (void *)imagesub;
-		if (data->data_type==ecat_matrix::MatrixDataType::ByteData)
+		if (data->data_type==MatrixData::DataType::ByteData)
 			imagesub->image_max = find_bmax((unsigned char *)data->data_ptr,npixels);
 		else imagesub->image_max = find_smax((short*)data->data_ptr,npixels);
 		data->data_max = imagesub->image_max * data->scale_factor;
@@ -322,8 +322,8 @@ ecat_matrix::MatrixData *matrix_read_view(ecat_matrix::MatrixFile *mptr, ecat_ma
 	}
 
 	switch(t_volume->mat_type) {
-	case ecat_matrix::DataSetType::Short3dSinogram :
-	case ecat_matrix::DataSetType::Float3dSinogram :
+	case MatrixData::DataSetType::Short3dSinogram :
+	case MatrixData::DataSetType::Float3dSinogram :
 		scan3Dsub = (ecat_matrix::Scan3D_subheader*)t_volume->shptr;
 		file_pos = (matdir.strtblk+1)*ecat_matrix::MatBLKSIZE;
 		z_elements = scan3Dsub->num_z_elements;
@@ -332,7 +332,7 @@ ecat_matrix::MatrixData *matrix_read_view(ecat_matrix::MatrixFile *mptr, ecat_ma
 		storage_order = scan3Dsub->storage_order;
 		break;
 
-	case ecat_matrix::DataSetType::AttenCor:
+	case MatrixData::DataSetType::AttenCor:
 		attnsub = (ecat_matrix::Attn_subheader*)t_volume->shptr;
 		num_projs = attnsub->num_r_elements;
 		num_views =  attnsub->num_angles;
@@ -358,7 +358,7 @@ ecat_matrix::MatrixData *matrix_read_view(ecat_matrix::MatrixFile *mptr, ecat_ma
 	memcpy(data,t_volume,sizeof(ecat_matrix::MatrixData));
 	data->shptr = NULL;
 
-	if (data->data_type == ecat_matrix::MatrixDataType::SunShort)
+	if (data->data_type == MatrixData::DataType::SunShort)
 		line_size = num_projs*sizeof(short);
 	else line_size = num_projs*sizeof(float);
 	plane_size = line_size*num_views;
@@ -401,7 +401,7 @@ ecat_matrix::MatrixData *matrix_read_view(ecat_matrix::MatrixFile *mptr, ecat_ma
 	data->xdim = num_projs;
 	data->ydim = num_planes;
 	data->zdim = 1;
-	if (data->data_type == ecat_matrix::MatrixDataType::SunShort)
+	if (data->data_type == MatrixData::DataType::SunShort)
 		data->data_max = find_smax((short*)data->data_ptr,view_size/2);
 	else data->data_max = find_fmax((float*)data->data_ptr, view_size/4);
 	free(line);

@@ -67,7 +67,7 @@ float t1, t2;
 
 	nvoxels = volume->xdim * volume->ydim * volume->zdim;
 	f0 = volume->scale_factor;
-	if (volume->data_type == ecat_matrix::MatrixDataType::ByteData) {
+	if (volume->data_type == MatrixData::DataType::ByteData) {
 		unsigned char  *bdata = (unsigned char *)volume->data_ptr;
 		f1 = t2/255.0;
 		for (i=0; i<nvoxels; i++) {
@@ -251,7 +251,7 @@ int main (int argc, char **argv) {
 	num_slices = matrix->zdim;
 	pixel_size = 0.001*((int)(matrix->pixel_size*1000+0.5));	/* keep 3 decimal */
 	plane_separation = matrix->z_size;
-	if ( matrix->data_type != ecat_matrix::MatrixDataType::SunShort && matrix->data_type != ecat_matrix::MatrixDataType::VAX_Ix2)  {
+	if ( matrix->data_type != MatrixData::DataType::SunShort && matrix->data_type != MatrixData::DataType::VAX_Ix2)  {
 		LOG_EXIT( "only integer 2 images are currently supported");
 	}
 	if (verbose) {

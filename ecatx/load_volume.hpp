@@ -92,12 +92,12 @@ static int load_slices(ecat_matrix::MatrixFile *matrix_file, ecat_matrix::Matrix
   nvoxels = npixels*volume->zdim;
   imh = (ecat_matrix::Image_subheader*)volume->shptr;
   switch (volume->data_type) {
-  case ecat_matrix::MatrixDataType::ByteData : 
+  case MatrixData::DataType::ByteData : 
     volume->data_ptr = (void *)calloc(nvoxels,sizeof(unsigned char ));
     b_vp = (unsigned char *)volume->data_ptr;
     break;
-  case ecat_matrix::MatrixDataType::VAX_Ix2:
-  case ecat_matrix::MatrixDataType::SunShort:
+  case MatrixData::DataType::VAX_Ix2:
+  case MatrixData::DataType::SunShort:
   default:
     volume->data_ptr = (void *)calloc(nvoxels,sizeof(short));
     vp = (short*)volume->data_ptr;
@@ -111,7 +111,7 @@ static int load_slices(ecat_matrix::MatrixFile *matrix_file, ecat_matrix::Matrix
     for (i=0; i<nslices; i++)      {
       s1 = matrix_read( matrix_file, slice[i].matnum, UnknownMatDataType);
       switch (volume->data_type) {
-      case ecat_matrix::MatrixDataType::ByteData : 
+      case MatrixData::DataType::ByteData : 
         b_p1 = (unsigned char *) s1->data_ptr;
         w1 = s1->scale_factor/scalef;
         for (k=0; k<npixels; k++, b_vp++ ) {
@@ -121,8 +121,8 @@ static int load_slices(ecat_matrix::MatrixFile *matrix_file, ecat_matrix::Matrix
           else *b_vp = (unsigned char )(ival);
         }
         break;
-      case ecat_matrix::MatrixDataType::VAX_Ix2:
-      case ecat_matrix::MatrixDataType::SunShort:
+      case MatrixData::DataType::VAX_Ix2:
+      case MatrixData::DataType::SunShort:
       default:
         p1 = (short int*) s1->data_ptr;
         w1 = s1->scale_factor/scalef;
@@ -165,7 +165,7 @@ static int load_slices(ecat_matrix::MatrixFile *matrix_file, ecat_matrix::Matrix
     w1 = w1*s1->scale_factor;
     w2 = w2*s2->scale_factor;
     switch (volume->data_type) {
-    case ecat_matrix::MatrixDataType::ByteData : 
+    case MatrixData::DataType::ByteData : 
        b_p1 = (unsigned char *)s1->data_ptr;
        b_p2 = (unsigned char *)s2->data_ptr;
       for (k=0; k<npixels; k++, b_vp++) {
@@ -176,8 +176,8 @@ static int load_slices(ecat_matrix::MatrixFile *matrix_file, ecat_matrix::Matrix
         else *b_vp = (unsigned char )(ival);
       }
       break;
-    case ecat_matrix::MatrixDataType::VAX_Ix2:
-    case ecat_matrix::MatrixDataType::SunShort:
+    case MatrixData::DataType::VAX_Ix2:
+    case MatrixData::DataType::SunShort:
     default:
       p1 = (short int*) s1->data_ptr;
       p2 = (short int*) s2->data_ptr;
@@ -226,7 +226,7 @@ Tslice *slice, int interp)
             /* set position to center */
   npixels = volume->xdim*volume->ydim;
   nvoxels = npixels*sz;
-  if (volume->data_type == ecat_matrix::MatrixDataType::ByteData) 
+  if (volume->data_type == MatrixData::DataType::ByteData) 
     volume->data_ptr = (void *)calloc(nvoxels,1);
   else 
     volume->data_ptr = (void *)calloc(nvoxels,sizeof(short));
@@ -235,7 +235,7 @@ Tslice *slice, int interp)
     return 0;
   }
   switch(v_slices->data_type) {
-  case ecat_matrix::MatrixDataType::ByteData:
+  case MatrixData::DataType::ByteData:
     b_vp = (unsigned char *)volume->data_ptr;
     j = 1;
     b1_data = (unsigned char *)v_slices->data_ptr;
@@ -270,7 +270,7 @@ Tslice *slice, int interp)
     }
     break;
 
-  case ecat_matrix::MatrixDataType::IeeeFloat:
+  case MatrixData::DataType::IeeeFloat:
     volume->data_max = v_slices->data_max;
     volume->scale_factor = scalef = v_slices->data_max/32768;
     vp = (short*)volume->data_ptr;
@@ -361,7 +361,7 @@ int interp)
   volume = (ecat_matrix::MatrixData*)calloc(1,sizeof(ecat_matrix::MatrixData));
   mh = matrix_file->mhptr;
   volume->mat_type = (DataSetType)mh->file_type;
-  if (volume->mat_type != ecat_matrix::DataSetType::Short3dSinogram) 
+  if (volume->mat_type != MatrixData::DataSetType::Short3dSinogram) 
     imh = (ecat_matrix::Image_subheader*)calloc(1,sizeof(ecat_matrix::Image_subheader));
   memset(bed_pos,0,MAX_BED_POS*sizeof(float));
 
@@ -380,7 +380,7 @@ int interp)
     plane = matval.plane;
     bed = matval.bed;
     if (matval.frame != frame) continue;
-    mat = matrix_read( matrix_file, matnum, ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
+    mat = matrix_read( matrix_file, matnum, MatrixData::DataType::MAT_SUB_HEADER);
     if (mat == NULL)
      LOG_EXIT(matrix_file->fname);
     memcpy(volume, mat, sizeof(ecat_matrix::MatrixData));
@@ -399,7 +399,7 @@ int interp)
   }
   volume->data_max = maxval;
   if (volume->data_max > 0) {
-    if (volume->data_type == ecat_matrix::MatrixDataType::ByteData) 
+    if (volume->data_type == MatrixData::DataType::ByteData) 
       volume->scale_factor = maxval / 256;
     else 
       volume->scale_factor = maxval / 32768;
@@ -436,7 +436,7 @@ int interp)
     imh->z_dimension = volume->zdim;
     imh->y_pixel_size = volume->y_size;
     imh->z_pixel_size = volume->z_size;
-    if (volume->data_type == ecat_matrix::MatrixDataType::ByteData) {
+    if (volume->data_type == MatrixData::DataType::ByteData) {
       imh->image_min = find_bmin((unsigned char *)volume->data_ptr,nvoxels);
       imh->image_max = find_bmax((unsigned char *)volume->data_ptr,nvoxels);
     } else {
@@ -447,7 +447,7 @@ int interp)
     volume->data_max = imh->image_max * volume->scale_factor;
   }
   volume->data_size = nvoxels;
-  if (volume->data_type != ecat_matrix::MatrixDataType::ByteData) volume->data_size *= sizeof(short);
+  if (volume->data_type != MatrixData::DataType::ByteData) volume->data_size *= sizeof(short);
   volume->matnum = slice[0].matnum;
   return volume;
 }

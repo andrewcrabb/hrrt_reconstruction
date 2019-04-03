@@ -4,10 +4,12 @@
 //   ecat_matrix::MatrixDataType     MatrixData::DataType
 //   ecat_matrix::MatrixDataType_64  MatrixData::DataType_64
 //   ecat_matrix::matrix_data_types_ MatrixData::data_types_
-//   ecat_matrix::DataSetType        MatrixData::DataSetType
+//   ecat_matrix::MatrixDataSetType  MatrixData::DataSetType
 //   ecat_matrix::data_set_types_    MatrixData::data_set_types_
 
 #pragma once
+
+#include <map>
 
 // predeclare classes rather than include ecat_matrix.hpp
 struct MatrixFile;

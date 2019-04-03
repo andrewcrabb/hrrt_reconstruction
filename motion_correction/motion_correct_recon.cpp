@@ -535,7 +535,7 @@ if (*ext == 'v') {
   frame_info.resize(num_frames);
   node = mf->dirlist->first;
   for (frame=0; frame<num_frames && node!=NULL; frame++) {
-    if ((matdata = matrix_read(mf, node->matnum, ecat_matrix::MatrixDataType::MAT_SUB_HEADER)) == NULL) {
+    if ((matdata = matrix_read(mf, node->matnum, MatrixData::DataType::MAT_SUB_HEADER)) == NULL) {
       LOG_INFO("Error reading frame %d header\n", frame);
       return 1;
     }

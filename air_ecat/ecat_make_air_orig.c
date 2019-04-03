@@ -95,7 +95,7 @@ main(int argc, char **argv)
 	if (mptr==NULL) LOG_EXIT("can't open %s\n",argv[0],air1.s_file);
 	if (ret == 0)	/* no matrix specified, use first */
 			matnum = mptr->dirlist->first->matnum;
-	matrix = matrix_read(mptr,matnum,ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
+	matrix = matrix_read(mptr,matnum,MatrixData::DataType::MAT_SUB_HEADER);
 	if (matrix == NULL) LOG_EXIT("can't read image header\n",argv[0]);
 	sprintf(air1.comment,"make_air -t %g,%g,%g,%g,%g,%g",rz,rx,ry,tx,ty,tz);
 	if (convention==1) {
@@ -119,7 +119,7 @@ main(int argc, char **argv)
 	if (mptr==NULL) LOG_EXIT("can't open %s\n",argv[0],air1.r_file);
 	if (ret == 0)	/* no matrix specified, use first */
 			matnum = mptr->dirlist->first->matnum;
-	matrix = matrix_read(mptr,matnum,ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
+	matrix = matrix_read(mptr,matnum,MatrixData::DataType::MAT_SUB_HEADER);
 	if (matrix == NULL) LOG_EXIT("can't read image header\n",argv[0]);
 	if (matrix->zdim == 1)					/* volume stored slice per matrix */
 		matrix->zdim = mptr->mhptr->num_planes;

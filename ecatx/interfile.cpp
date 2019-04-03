@@ -190,20 +190,20 @@ static void clean_eol(char *line){
   line[len - 1] = ' ';
 }
 
-static int _elem_size(ecat_matrix::MatrixDataType data_type){
-  return ecat_matrix::matrix_data_types_.at(data_type).length;
+static int _elem_size(MatrixData::DataType data_type){
+  return MatrixData::data_types_.at(data_type).length;
   // switch (data_type) {
-  // case ecat_matrix::MatrixDataType::ByteData :
-  // case ecat_matrix::MatrixDataType::Color_8 :
+  // case MatrixData::DataType::ByteData :
+  // case MatrixData::DataType::Color_8 :
   //   return 1;
-  // case ecat_matrix::MatrixDataType::Color_24 :
+  // case MatrixData::DataType::Color_24 :
   //   return 3;
-  // case ecat_matrix::MatrixDataType::SunShort:
-  // case ecat_matrix::MatrixDataType::VAX_Ix2:
+  // case MatrixData::DataType::SunShort:
+  // case MatrixData::DataType::VAX_Ix2:
   //   return 2;
-  // case ecat_matrix::MatrixDataType::SunLong:
+  // case MatrixData::DataType::SunLong:
   //   return 4;
-  // case ecat_matrix::MatrixDataType::IeeeFloat:
+  // case MatrixData::DataType::IeeeFloat:
   //   return 4;
   // default:
   //   LOG_ERROR( "unkown data type, assume short int");
@@ -212,7 +212,7 @@ static int _elem_size(ecat_matrix::MatrixDataType data_type){
 }
 
 
-  void flip_x(void * line, ecat_matrix::MatrixDataType data_type, int xdim) {
+  void flip_x(void * line, MatrixData::DataType data_type, int xdim) {
     static void * _line = NULL;
     static int line_size = 0;
     int x = 0;
@@ -226,8 +226,8 @@ static int _elem_size(ecat_matrix::MatrixDataType data_type){
       _line = (void *)realloc(_line, line_size);
     }
     switch (data_type) {
-    case ecat_matrix::MatrixDataType::Color_8 :
-    case ecat_matrix::MatrixDataType::ByteData :  {
+    case MatrixData::DataType::Color_8 :
+    case MatrixData::DataType::ByteData :  {
       unsigned char  *b_p0, *b_p1;
       b_p0 = (unsigned char *)line;
       b_p1 = (unsigned char *)_line + xdim - 1;
@@ -236,8 +236,8 @@ static int _elem_size(ecat_matrix::MatrixDataType data_type){
       break;
     }
     default :
-    case ecat_matrix::MatrixDataType::SunShort:
-    case ecat_matrix::MatrixDataType::VAX_Ix2:  {
+    case MatrixData::DataType::SunShort:
+    case MatrixData::DataType::VAX_Ix2:  {
       short *s_p0, *s_p1;
       s_p0 = (short*)line;
       // s_p1 = (short*)(_line + (xdim - 1) * elem_size);
@@ -246,7 +246,7 @@ static int _elem_size(ecat_matrix::MatrixDataType data_type){
       memcpy(line, _line, xdim * elem_size);
       break;
     }
-    case ecat_matrix::MatrixDataType::SunLong:  {
+    case MatrixData::DataType::SunLong:  {
       int *i_p0, *i_p1;
       i_p0 = (int*)line;
       i_p1 = static_cast<int *>(_line) + (xdim - 1) * elem_size;
@@ -254,7 +254,7 @@ static int _elem_size(ecat_matrix::MatrixDataType data_type){
       memcpy(line, _line, xdim * elem_size);
       break;
     }
-    case ecat_matrix::MatrixDataType::IeeeFloat:  {
+    case MatrixData::DataType::IeeeFloat:  {
       float *f_p0, *f_p1;
       f_p0 = (float*)line;
       f_p1 = static_cast<float*>(_line) + (xdim - 1) * elem_size;
@@ -262,7 +262,7 @@ static int _elem_size(ecat_matrix::MatrixDataType data_type){
       memcpy(line, _line, xdim * elem_size);
       break;
     }
-    case ecat_matrix::MatrixDataType::Color_24:  {
+    case MatrixData::DataType::Color_24:  {
       unsigned char  *p0, *p1;
       p0 = (unsigned char *)line;
       p1 = static_cast<unsigned char *>(_line) + (xdim - 1) * elem_size;
@@ -278,7 +278,7 @@ static int _elem_size(ecat_matrix::MatrixDataType data_type){
     }
   }
 
-  void flip_y(void * plane, ecat_matrix::MatrixDataType data_type, int xdim, int ydim)
+  void flip_y(void * plane, MatrixData::DataType data_type, int xdim, int ydim)
 {
   static void * _plane = NULL;
   static int plane_size = 0;
@@ -523,25 +523,25 @@ int unmap_interfile_header(char **ifh, ecat_matrix::MatrixData *mdata) {
       ecat_matrix::matrix_errno = ecat_matrix::MatrixError::INVALID_DATA_TYPE;
       return ecat_matrix::ECATX_ERROR;
     }
-    mdata->data_type = ecat_matrix::MatrixDataType::IeeeFloat;
+    mdata->data_type = MatrixData::DataType::IeeeFloat;
   } else if (ifh[to_underlying(Key::NUMBER_FORMAT)] && strstr(ifh[to_underlying(Key::NUMBER_FORMAT)], "rgb")) {
     if (elem_size != 3) {
       ecat_matrix::matrix_errno = ecat_matrix::MatrixError::INVALID_DATA_TYPE;
       return ecat_matrix::ECATX_ERROR;
     }
-    mdata->data_type = ecat_matrix::MatrixDataType::Color_24;
+    mdata->data_type = MatrixData::DataType::Color_24;
   } else {  /* integer data type */
     if (elem_size != 1 && elem_size != 2 && elem_size != 4) {
       ecat_matrix::matrix_errno = ecat_matrix::MatrixError::INVALID_DATA_TYPE;
       return ecat_matrix::ECATX_ERROR;
     }
-    if (elem_size == 1) mdata->data_type = ecat_matrix::MatrixDataType::ByteData;
+    if (elem_size == 1) mdata->data_type = MatrixData::DataType::ByteData;
     if (big_endian) {
-      if (elem_size == 2) mdata->data_type = ecat_matrix::MatrixDataType::SunShort;
-      if (elem_size == 4) mdata->data_type = ecat_matrix::MatrixDataType::SunLong;
+      if (elem_size == 2) mdata->data_type = MatrixData::DataType::SunShort;
+      if (elem_size == 4) mdata->data_type = MatrixData::DataType::SunLong;
     } else {
-      if (elem_size == 2) mdata->data_type = ecat_matrix::MatrixDataType::VAX_Ix2;
-      if (elem_size == 4) mdata->data_type = ecat_matrix::MatrixDataType::VAX_Ix4;
+      if (elem_size == 2) mdata->data_type = MatrixData::DataType::VAX_Ix2;
+      if (elem_size == 4) mdata->data_type = MatrixData::DataType::VAX_Ix4;
     }
   }
   if (ifh[to_underlying(Key::MATRIX_SIZE_1)] == NULL ||
@@ -767,12 +767,12 @@ int interfile_open(ecat_matrix::MatrixFile *mptr) {
   }
   if (mptr->interfile_header[NUM_Z_ELEMENTS] != NULL) {
     switch (elem_size) {
-    case 1 : mptr->mhptr->file_type = ecat_matrix::DataSetType::Byte3dSinogram; break;
-    case 2 : mptr->mhptr->file_type = ecat_matrix::DataSetType::Short3dSinogram; break;
-    case 4 : mptr->mhptr->file_type = ecat_matrix::DataSetType::Float3dSinogram; break;
+    case 1 : mptr->mhptr->file_type = MatrixData::DataSetType::Byte3dSinogram; break;
+    case 2 : mptr->mhptr->file_type = MatrixData::DataSetType::Short3dSinogram; break;
+    case 4 : mptr->mhptr->file_type = MatrixData::DataSetType::Float3dSinogram; break;
     }
   } else {
-    mh->file_type = ecat_matrix::DataSetType::PetVolume;
+    mh->file_type = MatrixData::DataSetType::PetVolume;
   }
 
   if (mptr->interfile_header[to_underlying(Key::NAME_OF_DATA_FILE)] != NULL) {
@@ -814,7 +814,7 @@ int interfile_open(ecat_matrix::MatrixFile *mptr) {
   return ecat_matrix::ECATX_OK;
 }
 
-int interfile_read(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixData *data, ecat_matrix::MatrixDataType_64 dtype) {
+int interfile_read(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixData *data, MatrixData::DataType_64 dtype) {
   int y, z;
   size_t i, npixels, nvoxels;
   int tmp, nblks, elem_size = 2, data_offset = 0;
@@ -848,9 +848,9 @@ int interfile_read(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
   sscanf(ifh[to_underlying(Key::NUMBER_OF_BYTES_PER_PIXEL)], "%d", &elem_size); /* tested in interfile_open */
 
   switch (mptr->mhptr->file_type) {
-  case ecat_matrix::DataSetType::Byte3dSinogram:
-  case ecat_matrix::DataSetType::Short3dSinogram:
-  case ecat_matrix::DataSetType::Float3dSinogram:
+  case MatrixData::DataSetType::Byte3dSinogram:
+  case MatrixData::DataSetType::Short3dSinogram:
+  case MatrixData::DataSetType::Float3dSinogram:
     ecat_matrix::Scan3D_subheader *scan3Dsub = (ecat_matrix::Scan3D_subheader*)data->shptr;
     memset(scan3Dsub, 0, sizeof(ecat_matrix::Scan3D_subheader));
     scan3Dsub->num_dimensions = 3;
@@ -920,7 +920,7 @@ int interfile_read(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
     data->z_origin = f  * data->z_size;
   }
 
-  if (dtype == ecat_matrix::MatrixDataType::MAT_SUB_HEADER)
+  if (dtype == MatrixData::DataType::MAT_SUB_HEADER)
     return ecat_matrix::ECATX_OK;
 
   /* compute extrema */
@@ -1134,11 +1134,11 @@ ecat_matrix::MatrixData *interfile_read_scan(ecat_matrix::MatrixFile *mptr, int 
     }
   } else return NULL;
 
-  if (interfile_read(mptr, matnum, data, ecat_matrix::MatrixDataType::MAT_SUB_HEADER) != ecat_matrix::ECATX_OK) {
+  if (interfile_read(mptr, matnum, data, MatrixData::DataType::MAT_SUB_HEADER) != ecat_matrix::ECATX_OK) {
     free_matrix_data(data);
     return NULL;
   }
-  if (dtype == ecat_matrix::MatrixDataType::MAT_SUB_HEADER) 
+  if (dtype == MatrixData::DataType::MAT_SUB_HEADER) 
     return data;
   group = abs(segment);
   file_pos = matdir.strtblk * ecat_matrix::MatBLKSIZE;

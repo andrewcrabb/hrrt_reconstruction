@@ -162,24 +162,24 @@ int main(int argc, char **argv) {
     float *image = NULL;
     float scalef = volume->scale_factor;
     switch(volume->data_type) {
-    case ecat_matrix::MatrixDataType::SunShort:
-    case ecat_matrix::MatrixDataType::VAX_Ix2:
+    case MatrixData::DataType::SunShort:
+    case MatrixData::DataType::VAX_Ix2:
       image = (float*)calloc(nvoxels, sizeof(float));
       for (i=0; i<nvoxels; i++)
         image[i] = sdata[i]*scalef;
       break;
-    case ecat_matrix::MatrixDataType::ByteData:
+    case MatrixData::DataType::ByteData:
       image = (float*)calloc(nvoxels, sizeof(float));
       for (i=0; i<nvoxels; i++)
         image[i] = bdata[i]*scalef;
       break;
-    case ecat_matrix::MatrixDataType::UShort_BE:
-    case ecat_matrix::MatrixDataType::UShort_LE:
+    case MatrixData::DataType::UShort_BE:
+    case MatrixData::DataType::UShort_LE:
       image = (float*)calloc(nvoxels, sizeof(float));
       for (i=0; i<nvoxels; i++)
         image[i] = udata[i]*scalef;
       break;
-    case ecat_matrix::MatrixDataType::IeeeFloat:
+    case MatrixData::DataType::IeeeFloat:
       image = (float*)volume->data_ptr;
       break;
     default:
@@ -187,7 +187,7 @@ int main(int argc, char **argv) {
         in_fname, volume->data_type);
     }
     
-    if (volume->data_type != ecat_matrix::MatrixDataType::IeeeFloat) {
+    if (volume->data_type != MatrixData::DataType::IeeeFloat) {
       free(volume->data_ptr);
       volume->data_ptr = NULL;
     }
@@ -253,7 +253,7 @@ int main(int argc, char **argv) {
 	  char **interfile_hdr = in->interfile_header;
     if (in->analyze_hdr==NULL && interfile_hdr!=NULL) {
      // Interfile format: use float
-      volume->data_type = ecat_matrix::MatrixDataType::IeeeFloat;
+      volume->data_type = MatrixData::DataType::IeeeFloat;
     } else {   // ECAT format: convert to Short
       ecat_matrix::Image_subheader* imh = (ecat_matrix::Image_subheader*)volume->shptr;
          // update z dimension in case it changed
@@ -261,7 +261,7 @@ int main(int argc, char **argv) {
       imh->z_pixel_size = volume->z_size;
       in->mhptr->num_planes = volume->zdim;
 
-      volume->data_type = ecat_matrix::MatrixDataType::SunShort;
+      volume->data_type = MatrixData::DataType::SunShort;
       imh->data_type = volume->data_type;
       float fmin = find_fmin(image, nvoxels);
       float fmax = find_fmax(image, nvoxels);
@@ -300,7 +300,7 @@ int main(int argc, char **argv) {
 			  strcpy(data_file, out_fname);
 			  FILE *fp = fopen(out_fname,"wb");
 			  if (fp==NULL) LOG_EXIT("Error creating %s\n", out_fname);
-			  int data_size = volume->data_type == ecat_matrix::MatrixDataType::IeeeFloat? 
+			  int data_size = volume->data_type == MatrixData::DataType::IeeeFloat? 
 				  nvoxels*sizeof(float) : nvoxels*sizeof(short);
 			  if (fwrite(image,data_size,1,fp) != 1)
 				  LOG_EXIT("Error writing %s\n", out_fname);
@@ -340,7 +340,7 @@ int main(int argc, char **argv) {
 			  }
 			  fprintf(fp,";gaussian 3D post-smoothing := %g mm\n",
 				  gauss_fwhm_xy);
-			  if (volume->data_type != ecat_matrix::MatrixDataType::IeeeFloat)
+			  if (volume->data_type != MatrixData::DataType::IeeeFloat)
 				  fprintf(fp,";%%quantification units := %g mm\n", 
 				  volume->scale_factor);
 			  fclose(in_hdr);
@@ -354,7 +354,7 @@ int main(int argc, char **argv) {
 		  memcpy(&proto, in->mhptr, sizeof(ecat_matrix::Main_header));
       if (in->analyze_hdr)
       {
-        proto.file_type = ecat_matrix::DataSetType::PetVolume;
+        proto.file_type = MatrixData::DataSetType::PetVolume;
       }
       if (multi_frame_movie_mode)  proto.calibration_factor = 1.0f;
       if (frame==0) 

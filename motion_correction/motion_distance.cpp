@@ -72,7 +72,7 @@ static void matrix_float(ecat_matrix::MatrixData *matrix)
 	short *sdata;
   int i, np = matrix->xdim*matrix->ydim*matrix->zdim;
 
-	matrix->data_type = ecat_matrix::MatrixDataType::IeeeFloat;
+	matrix->data_type = MatrixData::DataType::IeeeFloat;
 	fdata = (float*)calloc(np,sizeof(float));
 	sdata = (short*)matrix->data_ptr;
 	scalef = matrix->scale_factor;
@@ -169,7 +169,7 @@ void  main(int argc, char **argv)
     matspec(air_16.r_file, reslice_file, &matnum);
     if ((mptr=matrix_open(reslice_file,ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE)) != NULL)
     {
-      if ((matrix=matrix_read( mptr, matnum, ecat_matrix::MatrixDataType::MAT_SUB_HEADER)) != NULL)
+      if ((matrix=matrix_read( mptr, matnum, MatrixData::DataType::MAT_SUB_HEADER)) != NULL)
       {
         imh = (ecat_matrix::Image_subheader*)matrix->shptr;
         frame_start_time = imh->frame_start_time/1000;
@@ -278,7 +278,7 @@ void  main(int argc, char **argv)
       matrix->data_max, MAX_MU_VALUE);
     exit(1);
   }
-  if (matrix->data_type != ecat_matrix::MatrixDataType::IeeeFloat) matrix_float(matrix);
+  if (matrix->data_type != MatrixData::DataType::IeeeFloat) matrix_float(matrix);
   float *fdata = (float*)matrix->data_ptr;
   int nvoxels = matrix->xdim*matrix->xdim*matrix->zdim;
   //short *dmap = (short*)calloc(nvoxels, sizeof(short));

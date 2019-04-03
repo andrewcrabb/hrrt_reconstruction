@@ -50,7 +50,7 @@ static int write_image(ecat_matrix::MatrixFile *fp, int frame, ecat_matrix::Imag
   matrix->pixel_size = imh->x_pixel_size;
   matrix->y_size = imh->y_pixel_size;
   matrix->z_size = imh->z_pixel_size;
-  imh->data_type = matrix->data_type = ecat_matrix::MatrixDataType::SunShort;
+  imh->data_type = matrix->data_type = MatrixData::DataType::SunShort;
   matrix->data_max = imh->image_max*matrix->scale_factor;
   matrix->data_min = imh->image_min*matrix->scale_factor;
   matrix->data_size = matrix->xdim*matrix->ydim*matrix->zdim*sizeof(short);

@@ -34,7 +34,7 @@ public:
 
   void AppendMatrix(const unsigned short int) const;  // append matrix to ECAT7 file
   void AppendMatrix(const unsigned short int, const std::string);
-  void Byte2Float(const unsigned short int) const;                // convert dataset from ecat_matrix::MatrixDataType::ByteData to ecat_matrix::MatrixDataType::IeeeFloat
+  void Byte2Float(const unsigned short int) const;                // convert dataset from MatrixData::DataType::ByteData to MatrixData::DataType::IeeeFloat
   void CreateAttnMatrices(const unsigned short int);                               // create Attenuation matrices
   void CreateDirectoryStruct();         // create directory
   void CreateImageMatrices(const unsigned short int);// create Image matrices
@@ -56,7 +56,7 @@ public:
   ECAT7_MAINHEADER *MainHeader() const;                       // change values in Attenuation header
   ECAT7_MATRIX *Matrix(const unsigned short int) const;                            // update subheader in ECAT7 file
   void *getecat_matrix::MatrixData(const unsigned short int) const;                          // update main header in ECAT7 file
-  void getecat_matrix::MatrixData(void * const, const unsigned short int, const unsigned short int) const;               // convert dataset from ecat_matrix::MatrixDataType::SunShort to ecat_matrix::MatrixDataType::IeeeFloat
+  void getecat_matrix::MatrixData(void * const, const unsigned short int, const unsigned short int) const;               // convert dataset from MatrixData::DataType::SunShort to MatrixData::DataType::IeeeFloat
   unsigned short int NumberOfMatrices() const;  // request number of matrices
   void PrintHeader(std::list <std::string> * const) const;       // store main header and empty directory as ECAT7 file
   void SaveFile(const std::string);                 // print header information into string list
@@ -68,7 +68,7 @@ public:
                           // request pointer to matrix object
 
   // void               Attn_data_type(const signed short int, const unsigned short int) const;
-  void               Attn_data_type(ecat_matrix::MatrixDataType t_data_type, int t_matrix_index) const;
+  void               Attn_data_type(MatrixData::DataType t_data_type, int t_matrix_index) const;
 
   void               Attn_num_dimensions(const signed short int, const unsigned short int) const;
   void               Attn_attenuation_type(const signed short int, const unsigned short int) const;
@@ -100,7 +100,7 @@ public:
   void               Attn_fill_user(const signed short int, const unsigned short int, unsigned short int) const;
 
   // signed short int   Attn_data_type(const unsigned short int) const;                    // request values from Attenuation header
-  ecat_matrix::MatrixDataType Attn_data_type(int t_matrix_index) const;
+  MatrixData::DataType Attn_data_type(int t_matrix_index) const;
 
   signed short int   Attn_num_dimensions(const unsigned short int) const;
   signed short int   Attn_attenuation_type(const unsigned short int) const;
@@ -144,7 +144,7 @@ public:
   signed long int Dir_data(const unsigned short int) const;
 
   // void Image_data_type(const signed short int, const unsigned short int) const;                             // change values in Image header
-  void               Image_data_type(ecat_matrix::MatrixDataType t_data_type, int t_matrix_index) const;
+  void               Image_data_type(MatrixData::DataType t_data_type, int t_matrix_index) const;
 
   void Image_num_dimensions(const signed short int, const unsigned short int) const;
   void Image_x_dim(const signed short int, const unsigned short int) const;
@@ -208,7 +208,7 @@ public:
   void Image_fill_user(const signed short int, const unsigned short int, const unsigned short int) const;
 
   // signed short int Image_data_type(const unsigned short int) const;                          // request values from Image header
-  ecat_matrix::MatrixDataType Image_data_type(int t_matrix_index) const;
+  MatrixData::DataType Image_data_type(int t_matrix_index) const;
 
   signed short int Image_num_dimensions(const unsigned short int) const;
   signed short int Image_x_dim(const unsigned short int) const;

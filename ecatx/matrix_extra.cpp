@@ -120,12 +120,12 @@ bool is_acs(char *fname) {
     return(FALSE) ;
 }
 
-int matrix_convert_data(ecat_matrix::MatrixData *matrix, ecat_matrix::MatrixDataType dtype) {
+int matrix_convert_data(ecat_matrix::MatrixData *matrix, MatrixData::DataType dtype) {
   float minval,maxval;
   float *fdata, scalef;
   short *sdata, smax=32766;  /* not 32767 to avoid rounding problems */
   int i, nvoxels, nblks;
-  if (matrix->data_type != ecat_matrix::MatrixDataType::IeeeFloat || dtype != ecat_matrix::MatrixDataType::SunShort)
+  if (matrix->data_type != MatrixData::DataType::IeeeFloat || dtype != MatrixData::DataType::SunShort)
     return ecat_matrix::ECATX_OK ;	/* dummy for now */
   
   fdata = (float*)matrix->data_ptr;
@@ -134,7 +134,7 @@ int matrix_convert_data(ecat_matrix::MatrixData *matrix, ecat_matrix::MatrixData
   if ((sdata=(short*)calloc(nblks, ecat_matrix::MatBLKSIZE)) == NULL)
     return 0;
   matrix->data_size = nvoxels*sizeof(short);
-  matrix->data_type = ecat_matrix::MatrixDataType::SunShort;
+  matrix->data_type = MatrixData::DataType::SunShort;
   scalef = matrix->scale_factor;
   minval = maxval = fdata[0];
   for (i=1; i<nvoxels; i++)    {
@@ -172,8 +172,8 @@ static int matrix_write_slice(ecat_matrix::MatrixFile *mptr, int matnum, ecat_ma
   int	ret;
 
   switch(mptr->mhptr->file_type) {
-  case ecat_matrix::DataSetType::PetImage :
-    if (data->data_type ==  ecat_matrix::MatrixDataType::ByteData) {
+  case MatrixData::DataSetType::PetImage :
+    if (data->data_type ==  MatrixData::DataType::ByteData) {
       /*				fprintf(stderr,"Only short data type supported in V6\n");*/
       // g_matrix_error = ecat_matrix::MatrixError::INVALID_DATA_TYPE ;
       LOG_ERROR(ecat_matrix::matrix_errors_.at(ecat_matrix::MatrixError::INVALID_DATA_TYPE));
@@ -202,7 +202,7 @@ static int matrix_write_slice(ecat_matrix::MatrixFile *mptr, int matnum, ecat_ma
       return(ecat_matrix::ECATX_ERROR) ;
     }
     slice->data_size = nblks*ecat_matrix::MatBLKSIZE;
-    if (data->data_type ==  ecat_matrix::MatrixDataType::ByteData) {
+    if (data->data_type ==  MatrixData::DataType::ByteData) {
       bdata = (unsigned char *)(data->data_ptr+(plane-1)*npixels);
       imh->image_min = find_bmin(bdata,npixels);
       imh->image_max = find_bmax(bdata,npixels);
@@ -218,9 +218,9 @@ static int matrix_write_slice(ecat_matrix::MatrixFile *mptr, int matnum, ecat_ma
     ret = matrix_write(mptr, s_matnum,slice);
     free_matrix_data(slice);
     return( ret );
-  case ecat_matrix::DataSetType::PetVolume :
-  case ecat_matrix::DataSetType::ByteVolume :
-  case ecat_matrix::DataSetType::InterfileImage:
+  case MatrixData::DataSetType::PetVolume :
+  case MatrixData::DataSetType::ByteVolume :
+  case MatrixData::DataSetType::InterfileImage:
     /*			fprintf(stderr,
                 "matrix_slice_write : ecat_matrix::Main_header file_type should be PetImage\n");
     */
@@ -305,7 +305,7 @@ static int matrix_write_slice(ecat_matrix::MatrixFile *mptr, int matnum, ecat_ma
 //   return fmax;
 // }
 
-int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixData *data, ecat_matrix::MatrixDataType dtype) {
+int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixData *data, MatrixData::DataType dtype) {
   ecat_matrix::MatDir matdir;
   int	 nblks, data_size ;
   ecat_matrix::Scan3D_subheader *scan3Dsub ;
@@ -332,14 +332,14 @@ int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
 	}
   nblks = matdir.endblk - matdir.strtblk ;
   data_size = data->data_size = 512*nblks;
-  if (dtype != ecat_matrix::MatrixDataType::MAT_SUB_HEADER) {
+  if (dtype != MatrixData::DataType::MAT_SUB_HEADER) {
 	  data->data_ptr = (void *) calloc(1, data_size) ;
 	  if (data->data_ptr == NULL) {
           return(ecat_matrix::ECATX_ERROR) ;
         }
 	} 
   switch(mptr->mhptr->file_type) {
-    case ecat_matrix::DataSetType::Sinogram :
+    case MatrixData::DataSetType::Sinogram :
       ecat_matrix::Scan_subheader *scansub (ecat_matrix::Scan_subheader *) data->shptr ;
       mat_read_scan_subheader(mptr->fptr, mptr->mhptr, matdir.strtblk,                              scansub) ;
       data->data_type = scansub->data_type ;
@@ -349,12 +349,12 @@ int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
       data->scale_factor = scansub->scale_factor ;
       data->pixel_size = scansub->x_resolution;
       data->data_max = scansub->scan_max * scansub->scale_factor ;
-      if (dtype == ecat_matrix::MatrixDataType::MAT_SUB_HEADER) 
+      if (dtype == MatrixData::DataType::MAT_SUB_HEADER) 
         break;
       read_matrix_data(mptr->fptr, matdir.strtblk+1, nblks,                       data->data_ptr, scansub->data_type) ;
       break ;
-    case ecat_matrix::DataSetType::Short3dSinogram :
-    case ecat_matrix::DataSetType::Float3dSinogram :
+    case MatrixData::DataSetType::Short3dSinogram :
+    case MatrixData::DataSetType::Float3dSinogram :
       ecat_matrix::Scan3D_subheader *scan3Dsub = (ecat_matrix::Scan3D_subheader *) data->shptr ;
       mat_read_Scan3D_subheader(mptr->fptr, mptr->mhptr, matdir.strtblk,                                scan3Dsub) ;
       data->data_type = scan3Dsub->data_type ;
@@ -366,11 +366,11 @@ int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
       sx = data->xdim = scan3Dsub->num_r_elements ;
       sz = data->ydim = scan3Dsub->num_angles ;
       sy = data->zdim = scan3Dsub->num_z_elements[0] ;
-      if (dtype == ecat_matrix::MatrixDataType::MAT_SUB_HEADER)
+      if (dtype == MatrixData::DataType::MAT_SUB_HEADER)
         break;
 
       read_matrix_data(mptr->fptr, matdir.strtblk+2, nblks-1,                       data->data_ptr, scan3Dsub->data_type) ;
-      if (scan3Dsub->data_type == ecat_matrix::MatrixDataType::SunShort) {
+      if (scan3Dsub->data_type == MatrixData::DataType::SunShort) {
         scan3Dsub->scan_max = find_smax((short*)data->data_ptr, sx * sy * sz);
         scan3Dsub->scan_min = find_smin((short*)data->data_ptr, sx * sy * sz);
         data->data_max = scan3Dsub->scan_max * scan3Dsub->scale_factor;
@@ -380,17 +380,17 @@ int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
         data->data_min = find_fmin((float*)data->data_ptr, sx * sy * sz);
       }
       break ;
-    case ecat_matrix::DataSetType::ByteVolume :
-    case ecat_matrix::DataSetType::PetImage :
-    case ecat_matrix::DataSetType::PetVolume :
-    case ecat_matrix::DataSetType::InterfileImage:
+    case MatrixData::DataSetType::ByteVolume :
+    case MatrixData::DataSetType::PetImage :
+    case MatrixData::DataSetType::PetVolume :
+    case MatrixData::DataSetType::InterfileImage:
         ecat_matrix::Image_subheader *imagesub = (ecat_matrix::Image_subheader *) data->shptr ;
       mat_read_image_subheader(mptr->fptr,mptr->mhptr,matdir.strtblk, imagesub);
       data->data_type = imagesub->data_type ;
       sx = data->xdim = imagesub->x_dimension ;
       sy = data->ydim = imagesub->y_dimension ;
       data->scale_factor = imagesub->scale_factor ;
-      if (data->data_type==ecat_matrix::MatrixDataType::ByteData || data->data_type==ecat_matrix::MatrixDataType::Color_8)
+      if (data->data_type==MatrixData::DataType::ByteData || data->data_type==MatrixData::DataType::Color_8)
         elem_size =1 ;
       else 
         elem_size = 2;
@@ -404,13 +404,13 @@ int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
         sz = data->zdim = imagesub->z_dimension = data_size/(sx*sy*elem_size);
       /* fix inconsistent file types */
       if (data->zdim > 1) {
-        if (data->data_type == ecat_matrix::MatrixDataType::ByteData) {
-          data->mat_type = ecat_matrix::DataSetType::ByteVolume;
+        if (data->data_type == MatrixData::DataType::ByteData) {
+          data->mat_type = MatrixData::DataSetType::ByteVolume;
         } else {
-          data->mat_type = ecat_matrix::DataSetType::PetVolume;
+          data->mat_type = MatrixData::DataSetType::PetVolume;
         }
       } else {
-        data->mat_type = ecat_matrix::DataSetType::PetImage;
+        data->mat_type = MatrixData::DataSetType::PetImage;
       }
 
       data->pixel_size = imagesub->x_pixel_size;
@@ -427,10 +427,10 @@ int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
       data->z_origin = imagesub->z_offset;
       data->y_origin = imagesub->y_offset;
       data->x_origin = imagesub->x_offset;
-      if (dtype == ecat_matrix::MatrixDataType::MAT_SUB_HEADER) 
+      if (dtype == MatrixData::DataType::MAT_SUB_HEADER) 
         break;
       read_matrix_data(mptr->fptr, matdir.strtblk+1, nblks, data->data_ptr, imagesub->data_type) ;
-      if (imagesub->data_type == ecat_matrix::MatrixDataType::ByteData) {
+      if (imagesub->data_type == MatrixData::DataType::ByteData) {
         imagesub->image_max = find_bmax((unsigned char *)data->data_ptr, sx * sy * sz);
         imagesub->image_min = find_bmin((unsigned char *)data->data_ptr, sx * sy * sz);
       } else {
@@ -440,7 +440,7 @@ int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
       data->data_max = imagesub->image_max * imagesub->scale_factor;
       data->data_min = imagesub->image_min * imagesub->scale_factor;
       break ;
-    case ecat_matrix::DataSetType::AttenCor :
+    case MatrixData::DataSetType::AttenCor :
         ecat_matrix::Attn_subheader *attnsub = (ecat_matrix::Attn_subheader *) data->shptr ;
       mat_read_attn_subheader(mptr->fptr,mptr->mhptr,matdir.strtblk,attnsub);
       data->data_type = attnsub->data_type ;
@@ -449,13 +449,13 @@ int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
       sy = data->zdim = attnsub->z_elements[0] ;
       data->scale_factor = attnsub->scale_factor;
       data->pixel_size = attnsub->x_resolution;
-      if (dtype == ecat_matrix::MatrixDataType::MAT_SUB_HEADER)
+      if (dtype == MatrixData::DataType::MAT_SUB_HEADER)
         break;
       read_matrix_data(mptr->fptr, matdir.strtblk+1, nblks,
                        data->data_ptr, attnsub->data_type);
       data->data_max = find_fmax((float*)data->data_ptr, sx * sy * sz);
       break ;
-    case ecat_matrix::DataSetType::Normalization :
+    case MatrixData::DataSetType::Normalization :
         ecat_matrix::Norm_subheader *normsub = (ecat_matrix::Norm_subheader *) data->shptr ;
       mat_read_norm_subheader(mptr->fptr,mptr->mhptr,matdir.strtblk,normsub);
       data->data_type = normsub->data_type ;
@@ -463,14 +463,14 @@ int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
       data->ydim = normsub->num_angles ;
       data->zdim = normsub->num_z_elements ;
       data->scale_factor = normsub->scale_factor ;
-      if (dtype == ecat_matrix::MatrixDataType::MAT_SUB_HEADER)
+      if (dtype == MatrixData::DataType::MAT_SUB_HEADER)
         break;
       read_matrix_data(mptr->fptr, matdir.strtblk+1, nblks,
                        data->data_ptr, normsub->data_type) ;
       data->data_max = data->scale_factor * 
         find_fmax((float*)data->data_ptr, data->xdim * data->ydim);
       break ;
-    case ecat_matrix::DataSetType::Norm3d :
+    case MatrixData::DataSetType::Norm3d :
       ecat_matrix::Norm3D_subheader *norm3d = (ecat_matrix::Norm3D_subheader *) data->shptr ;
       mat_read_norm3d_subheader(mptr->fptr,mptr->mhptr,matdir.strtblk,norm3d);
       data->data_type = norm3d->data_type ;
@@ -478,7 +478,7 @@ int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
       data->ydim = norm3d->crystals_per_ring;	/* 784 */
       data->zdim = norm3d->num_crystal_rings;	/* 24 */
       data->scale_factor = 1.0;
-      if (dtype == ecat_matrix::MatrixDataType::MAT_SUB_HEADER)
+      if (dtype == MatrixData::DataType::MAT_SUB_HEADER)
         break;
       /*
 		336*(1+7) + 24*784
@@ -534,15 +534,15 @@ int matrix_write(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixD
 	}
 
   switch(mptr->mhptr->file_type) {
-    case ecat_matrix::DataSetType::Float3dSinogram :
-    case ecat_matrix::DataSetType::Short3dSinogram :
+    case MatrixData::DataSetType::Float3dSinogram :
+    case MatrixData::DataSetType::Short3dSinogram :
       scan3Dsub = (ecat_matrix::Scan3D_subheader*) data->shptr;
       if (mat_write_Scan3D_subheader(mptr->fptr, mptr->mhptr, matdir.strtblk, scan3Dsub) == ecat_matrix::ECATX_ERROR) 
         return ecat_matrix::ECATX_ERROR;
       if (write_matrix_data(mptr->fptr, matdir.strtblk+2, nblks, data->data_ptr, scan3Dsub->data_type) == ecat_matrix::ECATX_ERROR) 
         return ecat_matrix::ECATX_ERROR;
       break;
-    case ecat_matrix::DataSetType::Sinogram :
+    case MatrixData::DataSetType::Sinogram :
       scansub = (ecat_matrix::Scan_subheader *) data->shptr ;
       if (mat_write_scan_subheader(mptr->fptr,mptr->mhptr, matdir.strtblk, scansub) == ecat_matrix::ECATX_ERROR )
         return( ecat_matrix::ECATX_ERROR );
@@ -550,10 +550,10 @@ int matrix_write(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixD
       if (status == ecat_matrix::ECATX_ERROR )
         return( ecat_matrix::ECATX_ERROR );
       break ;
-    case ecat_matrix::DataSetType::ByteVolume :
-    case ecat_matrix::DataSetType::PetImage :
-    case ecat_matrix::DataSetType::PetVolume :
-    case ecat_matrix::DataSetType::InterfileImage:
+    case MatrixData::DataSetType::ByteVolume :
+    case MatrixData::DataSetType::PetImage :
+    case MatrixData::DataSetType::PetVolume :
+    case MatrixData::DataSetType::InterfileImage:
       imagesub = (ecat_matrix::Image_subheader *) data->shptr ;
       if (imagesub == NULL) {
         imagesub = (ecat_matrix::Image_subheader *) calloc(1, ecat_matrix::MatBLKSIZE);
@@ -577,7 +577,7 @@ int matrix_write(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixD
       if (status == ecat_matrix::ECATX_ERROR ) 
         return( ecat_matrix::ECATX_ERROR );
       break ;
-    case ecat_matrix::DataSetType::AttenCor :
+    case MatrixData::DataSetType::AttenCor :
       attnsub = (ecat_matrix::Attn_subheader *) data->shptr ;
       if (mat_write_attn_subheader(mptr->fptr,mptr->mhptr, matdir.strtblk, attnsub) == ecat_matrix::ECATX_ERROR )
         return( ecat_matrix::ECATX_ERROR );
@@ -585,7 +585,7 @@ int matrix_write(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixD
       if (status == ecat_matrix::ECATX_ERROR ) 
         return( ecat_matrix::ECATX_ERROR );
       break ;
-    case ecat_matrix::DataSetType::Normalization :
+    case MatrixData::DataSetType::Normalization :
       normsub = (ecat_matrix::Norm_subheader *) data->shptr ;
       if (mat_write_norm_subheader(mptr->fptr,mptr->mhptr, matdir.strtblk, normsub) == ecat_matrix::ECATX_ERROR )
         return( ecat_matrix::ECATX_ERROR );
@@ -742,7 +742,7 @@ int convert_float_scan( ecat_matrix::MatrixData *scan, float *fdata) {
   return ecat_matrix::ECATX_OK;
 }
 
-ecat_matrix::MatrixData * matrix_read_scan(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixDataType dtype, int segment) {
+ecat_matrix::MatrixData * matrix_read_scan(ecat_matrix::MatrixFile *mptr, int matnum, MatrixData::DataType dtype, int segment) {
   int i, nblks, plane_size;
   int sx, sy, sz;
   ecat_matrix::MatrixData *data;
@@ -776,8 +776,8 @@ ecat_matrix::MatrixData * matrix_read_scan(ecat_matrix::MatrixFile *mptr, int ma
   nblks = matdir.endblk - matdir.strtblk;
   group=abs(segment);
   switch(mptr->mhptr->file_type) {
-  case ecat_matrix::DataSetType::Float3dSinogram :
-  case ecat_matrix::DataSetType::Short3dSinogram :
+  case MatrixData::DataSetType::Float3dSinogram :
+  case MatrixData::DataSetType::Short3dSinogram :
     scan3Dsub = (ecat_matrix::Scan3D_subheader *)data->shptr;
     status = mat_read_Scan3D_subheader(mptr->fptr, mptr->mhptr,
                                        matdir.strtblk, scan3Dsub);
@@ -805,9 +805,9 @@ ecat_matrix::MatrixData * matrix_read_scan(ecat_matrix::MatrixFile *mptr, int ma
       sz = data->zdim = z_elements;
       plane_size = sx*sy*sizeof(short);
     }
-    if (mptr->mhptr->file_type == ecat_matrix::DataSetType::Float3dSinogram) plane_size *= 2;
+    if (mptr->mhptr->file_type == MatrixData::DataSetType::Float3dSinogram) plane_size *= 2;
     data->data_max = scan3Dsub->scan_max * scan3Dsub->scale_factor;
-    if (dtype == ecat_matrix::MatrixDataType::MAT_SUB_HEADER)
+    if (dtype == MatrixData::DataType::MAT_SUB_HEADER)
       break;
     for (i=0; i<group; i++)
       file_pos += scan3Dsub->num_z_elements[i]*plane_size;
@@ -826,7 +826,7 @@ ecat_matrix::MatrixData * matrix_read_scan(ecat_matrix::MatrixFile *mptr, int ma
       free_matrix_data(data);
       return NULL;
     }
-    if (mptr->mhptr->file_type == ecat_matrix::DataSetType::Short3dSinogram) {
+    if (mptr->mhptr->file_type == MatrixData::DataSetType::Short3dSinogram) {
       scan3Dsub->scan_max = find_smax((short*)data->data_ptr, sx * sy * sz);
       scan3Dsub->scan_min = find_smin((short*)data->data_ptr, sx * sy * sz);
       data->data_max = scan3Dsub->scan_max * scan3Dsub->scale_factor;
@@ -837,7 +837,7 @@ ecat_matrix::MatrixData * matrix_read_scan(ecat_matrix::MatrixFile *mptr, int ma
       data->data_min = find_fmin((float*)data->data_ptr, sx * sy * sz);
     }
     break;
-  case ecat_matrix::DataSetType::AttenCor :
+  case MatrixData::DataSetType::AttenCor :
     attnsub = (ecat_matrix::Attn_subheader *) data->shptr;
     if (mat_read_attn_subheader(mptr->fptr, mptr->mhptr, matdir.strtblk,
                                 attnsub) == ecat_matrix::ECATX_ERROR) {
@@ -863,13 +863,13 @@ ecat_matrix::MatrixData * matrix_read_scan(ecat_matrix::MatrixFile *mptr, int ma
       sz = data->zdim = z_elements;
     }
     data->data_max = attnsub->attenuation_max;
-    if (dtype == ecat_matrix::MatrixDataType::MAT_SUB_HEADER)
+    if (dtype == MatrixData::DataType::MAT_SUB_HEADER)
       break;
     plane_size = sx*attnsub->num_angles*sizeof(float);
     for (i=0; i<group; i++)
       file_pos += attnsub->z_elements[i]*plane_size;
     if (segment < 0) file_pos += z_elements*plane_size;
-    if (dtype == ecat_matrix::MatrixDataType::MAT_SUB_HEADER)
+    if (dtype == MatrixData::DataType::MAT_SUB_HEADER)
       break;
     data->data_size = z_elements*plane_size;
     nblks = (data->data_size+511)/512;
@@ -1105,7 +1105,7 @@ ecat_matrix::MatrixFile *matrix_open(const char* fname, ecat_matrix::MatrixFileA
     if the matrix type doesn't match the requested type, that's
     an error. Specify matrix type NoData to open any type.
   */
-  if (mtype != ecat_matrix::DataSetType::NoData && mptr->mhptr->file_type!= ecat_matrix::DataSetType::NoData)
+  if (mtype != MatrixData::DataSetType::NoData && mptr->mhptr->file_type!= MatrixData::DataSetType::NoData)
     if (mtype != mptr->mhptr->file_type) {
       // g_matrix_error = ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH ;
       LOG_ERROR(ecat_matrix::matrix_errors_.at(ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH));
@@ -1212,7 +1212,7 @@ int matrix_close(ecat_matrix::MatrixFile *mptr) {
   return status;
 }
 
-ecat_matrix::MatrixData *matrix_read(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::MatrixDataType dtype) {
+ecat_matrix::MatrixData *matrix_read(ecat_matrix::MatrixFile *mptr, int matnum, MatrixData::DataType dtype) {
   ecat_matrix::MatrixData     *data;
 
   // g_matrix_error = ecat_matrix::ECATX_OK;
@@ -1245,8 +1245,8 @@ ecat_matrix::MatrixData *matrix_read(ecat_matrix::MatrixFile *mptr, int matnum, 
     free_matrix_data(data);
     data = NULL;
   } else if (data->data_ptr != NULL) {
-    if (data->mat_type == ecat_matrix::DataSetType::PetVolume && data->data_type == ecat_matrix::MatrixDataType::IeeeFloat)
-      matrix_convert_data(data, ecat_matrix::MatrixDataType::SunShort);
+    if (data->mat_type == MatrixData::DataSetType::PetVolume && data->data_type == MatrixData::DataType::IeeeFloat)
+      matrix_convert_data(data, MatrixData::DataType::SunShort);
     if (dtype != NoData && data->data_type != dtype)
       matrix_convert_data(data, dtype);
   }

@@ -63,14 +63,14 @@ main( argc, argv)
 	file1 = matrix_open( fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
 	if (!file1)
 	  LOG_EXIT( "Can't open file '{}'", fname);
-	image1 = matrix_read(file1,matnuma,ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
+	image1 = matrix_read(file1,matnuma,MatrixData::DataType::MAT_SUB_HEADER);
 	if (!image1) LOG_EXIT( "Image '{}' not found\n", argv[1]);
 	switch(file1->mhptr->file_type) {
-	case ecat_matrix::DataSetType::InterfileImage :
-	case ecat_matrix::DataSetType::PetImage :
-	case ecat_matrix::DataSetType::PetVolume :
-	case ecat_matrix::DataSetType::ByteImage :
-	case ecat_matrix::DataSetType::ByteVolume :
+	case MatrixData::DataSetType::InterfileImage :
+	case MatrixData::DataSetType::PetImage :
+	case MatrixData::DataSetType::PetVolume :
+	case MatrixData::DataSetType::ByteImage :
+	case MatrixData::DataSetType::ByteVolume :
 		break;
 	default :
 		LOG_EXIT("input is not a Image nor Volume\n");
@@ -83,7 +83,7 @@ main( argc, argv)
 			LOG_EXIT("Can't open file '{}'", fname);
 	}
 	if (file2) {
-		image2 = matrix_read(file2,matnumb,ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
+		image2 = matrix_read(file2,matnumb,MatrixData::DataType::MAT_SUB_HEADER);
 		if (!image2) LOG_EXIT( "image '{}' not found", argv[2]);
 		if (image1->xdim != image2->xdim || image1->ydim != image2->ydim ||
 			image1->zdim != image2->zdim)
@@ -96,7 +96,7 @@ main( argc, argv)
 	if (!matspec( argv[3], fname, &matnumc)) matnumc = ecat_matrix::mat_numcod(1,1,1,0,0);
 	mh3 = (ecat_matrix::Main_header*)calloc(1, sizeof(ecat_matrix::Main_header));
 	memcpy(mh3, file1->mhptr, sizeof(ecat_matrix::Main_header));
-	mh3->file_type = ecat_matrix::DataSetType::PetVolume;
+	mh3->file_type = MatrixData::DataSetType::PetVolume;
 	file3 = matrix_create( fname, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, mh3);
 	if (!file3) 
 		LOG_EXIT( "Can't open file '{}'", fname);
@@ -125,7 +125,7 @@ main( argc, argv)
 	}
 	for (plane=0; plane< image1->zdim; plane++) {
 		slice1 = matrix_read_slice(file1,image1,plane,segment);
-		if (slice1->data_type==ecat_matrix::MatrixDataType::SunShort || slice1->data_type==ecat_matrix::MatrixDataType::VAX_Ix2) {
+		if (slice1->data_type==MatrixData::DataType::SunShort || slice1->data_type==MatrixData::DataType::VAX_Ix2) {
 			sdata = (short*)slice1->data_ptr;
 			for (i=0; i<npixels; i++)
 	  			imagea[i] = slice1->scale_factor*sdata[i];
@@ -138,7 +138,7 @@ main( argc, argv)
 
 		if (file2) {
 			slice2 = matrix_read_slice(file2,image2,plane,segment);
-			if (slice2->data_type==ecat_matrix::MatrixDataType::SunShort || slice2->data_type==ecat_matrix::MatrixDataType::VAX_Ix2) {
+			if (slice2->data_type==MatrixData::DataType::SunShort || slice2->data_type==MatrixData::DataType::VAX_Ix2) {
 				sdata = (short*)slice2->data_ptr;
 				for (i=0; i<npixels; i++)
 	  				imageb[i] = slice2->scale_factor*sdata[i];
@@ -219,12 +219,12 @@ main( argc, argv)
 	  if (imagec[i]<minval) minval = imagec[i];
 	}
 
-	if (image1->data_type!=ecat_matrix::MatrixDataType::ByteData || image2->data_type!=ecat_matrix::MatrixDataType::ByteData || minval<0)
+	if (image1->data_type!=MatrixData::DataType::ByteData || image2->data_type!=MatrixData::DataType::ByteData || minval<0)
 	{
 		image3->shptr = (void *)imh;
 		nblks = (nvoxels*sizeof(short)+511)/512;
 		image3->data_size = nblks*512;
-		image3->data_type = imh->data_type = ecat_matrix::MatrixDataType::SunShort;
+		image3->data_type = imh->data_type = MatrixData::DataType::SunShort;
 		if (fabs(minval) < fabsf(maxval)) scalef = fabsf(maxval)/32767.0f;
 		else scalef = fabsf(minval)/32767.0f;
 		sdata = (short*)imagec;				/* reuse huge float array */
@@ -232,7 +232,7 @@ main( argc, argv)
 	  		sdata[i] = (short)(0.5f+imagec[i]/scalef);
 	} else {
 		image3->shptr = (void *)imh;
-		image3->data_type = imh->data_type = ecat_matrix::MatrixDataType::ByteData;
+		image3->data_type = imh->data_type = MatrixData::DataType::ByteData;
 		nblks = (nvoxels*sizeof(unsigned char )+511)/512;
 		image3->data_size = nblks*512;
 		scalef = fabsf(maxval)/255;

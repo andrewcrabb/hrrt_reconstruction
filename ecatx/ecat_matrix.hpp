@@ -45,6 +45,8 @@
 #include <string>
 #include <map>
 
+#include "matrix_data.hpp"
+
 // #define R_MODE "rb"
 // #define RW_MODE "rb+"
 // #define W_MODE "wb+"
@@ -69,7 +71,7 @@ constexpr int ECATX_ERROR    = -1;
 constexpr int ECATX_OK       = 0;
 
 // constexpr int MAT_SUB_HEADER = 255;  // operation to sub-header only
-// constexpr MatrixDataType MAT_SUB_HEADER = 255;  // operation to sub-header only
+// constexpr MatrixData::DataType MAT_SUB_HEADER = 255;  // operation to sub-header only
 
 // Combines former enum CalibrationStatus, char *calstatus[], char *ecfunits[]
 
@@ -92,10 +94,14 @@ static std::map<CalibrationStatus, CalibrationStruct> calibration_status_ = {
 };
 
 enum class ScanType {
-  UndefScan, BlankScan,
-  TransmissionScan, StaticEmission,
-  DynamicEmission, GatedEmission,
-  TransRectilinear, EmissionRectilinear,
+  UndefScan, 
+  BlankScan,
+  TransmissionScan, 
+  StaticEmission,
+  DynamicEmission, 
+  GatedEmission,
+  TransRectilinear, 
+  EmissionRectilinear,
   NumScanTypes
 };
 
@@ -374,7 +380,7 @@ struct Main_header {
   short sw_version;
   short system_type;
   // short file_type;
-  DataSetType file_type;   // ahc this indexes into data_set_types_
+  MatrixData::DataSetType file_type;   // ahc this indexes into data_set_types_
   char serial_number[10];
   short align_0;            /* 4 byte alignment purpose */
   unsigned int scan_start_time;
@@ -436,7 +442,7 @@ struct Main_header {
 };
 
 struct Scan_subheader {
-  MatrixDataType data_type;
+  MatrixData::DataType data_type;
   short num_dimensions;
   short num_r_elements;
   short num_angles;
@@ -470,7 +476,7 @@ struct Scan_subheader {
 };
 
 struct Scan3D_subheader {
-  MatrixDataType data_type;
+  MatrixData::DataType data_type;
   short num_dimensions;
   short num_r_elements;
   short num_angles;
@@ -505,7 +511,7 @@ struct Scan3D_subheader {
 };
 
 struct Image_subheader {
-  MatrixDataType data_type;
+  MatrixData::DataType data_type;
   short num_dimensions;
   short x_dimension;
   short y_dimension;
@@ -575,7 +581,7 @@ struct Image_subheader {
 };
 
 struct Norm_subheader {
-  MatrixDataType data_type;
+  MatrixData::DataType data_type;
   short num_dimensions;
   short num_r_elements;
   short num_angles;
@@ -594,7 +600,7 @@ struct Norm_subheader {
 };
 
 struct Norm3D_subheader {
-  MatrixDataType data_type;
+  MatrixData::DataType data_type;
   short num_r_elements;
   short num_transaxial_crystals;
   short num_crystal_rings;
@@ -613,7 +619,7 @@ struct Norm3D_subheader {
 };
 
 struct Attn_subheader {
-  MatrixDataType data_type;
+  MatrixData::DataType data_type;
   short num_dimensions;
   short attenuation_type;    // Currently const int in ecat7_global, make it a namespaced scoped enum
   short num_r_elements;
@@ -676,9 +682,9 @@ char* is_analyze(const char* );
 MatrixFile* matrix_create(const char*, MatrixFileAccessMode const mode , Main_header*);
 MatrixFile* matrix_open(const char*, MatrixFileAccessMode mode, MatrixFileType_64);
 int analyze_open(MatrixFile *mptr);
-int analyze_read(MatrixFile *mptr, int matnum, MatrixData  *data, MatrixDataType dtype);
+int analyze_read(MatrixFile *mptr, int matnum, MatrixData  *data, MatrixData::DataType dtype);
 // MatrixData *matrix_read(MatrixFile*, int matnum, int type);
-MatrixData *matrix_read(MatrixFile*, int matnum, MatrixDataType type);
+MatrixData *matrix_read(MatrixFile*, int matnum, MatrixData::DataType type);
 MatrixData* matrix_read_slice(MatrixFile*, MatrixData* volume, int slice_num, int segment);
 MatrixData* matrix_read_view(MatrixFile*, MatrixData* volume, int view, int segment);
 void set_matrix_no_error();
@@ -691,12 +697,12 @@ int matrix_close(MatrixFile*);
 int matrix_find(MatrixFile*, int matnum, MatDir*);
 MatrixData *load_volume7(MatrixFile *matrix_file, int frame, int gate, int data, int bedstart, int bedend);
 int save_volume7( MatrixFile *mfile, Image_subheader *shptr, float *data_ptr, int frame, int gate, int data, int bed );
-int read_host_data(MatrixFile *mptr, int matnum, MatrixData *data, MatrixDataType dtype);
+int read_host_data(MatrixFile *mptr, int matnum, MatrixData *data, MatrixData::DataType dtype);
 int write_host_data(MatrixFile *mptr, int matnum, const MatrixData *data);
 int mh_update(MatrixFile *file);
 int convert_float_scan( MatrixData *scan, float *fdata);
-int matrix_convert_data(MatrixData *matrix, MatrixDataType dtype);
-MatrixData *matrix_read_scan(MatrixFile *mptr, int matnum, MatrixDataType dtype, int segment);
+int matrix_convert_data(MatrixData *matrix, MatrixData::DataType dtype);
+MatrixData *matrix_read_scan(MatrixFile *mptr, int matnum, MatrixData::DataType dtype, int segment);
 
  // low level functions prototypes, don't use
 

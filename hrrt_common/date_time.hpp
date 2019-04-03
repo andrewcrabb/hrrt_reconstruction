@@ -16,7 +16,8 @@ public:
   enum class Format {
     ecat_date,     // 18:09:2017
     ecat_time,     // 15:26:00
-    ecat_datetime  // 18:09:2017 15:26:00
+    ecat_datetime, // 18:09:2017 15:26:00
+    compact_datetime // 20170918_152600
   };
 
   // Precompile patterns for checking date strings.
@@ -67,6 +68,7 @@ static const std::vector<TestData> test_data_;
   bool IsValid(void) const;
   bool ValidDateRange(void) const;
   bool operator==(DateTime const &other) const;
+  int  operator-(DateTime const &other) const;
 
   // static ErrorCode ParseInterfileDatetime(const std::string &datestr, DateFormat t_format, boost::posix_time::ptime &pt);
   // static ErrorCode ParseInterfileTime(const std::string &timestr, boost::posix_time::ptime &pt);

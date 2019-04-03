@@ -285,7 +285,7 @@ int mat_read_main_header(FILE *fptr, Main_header *header) {
 }
 
 int mat_read_matrix_data(FILE *fptr, Main_header *mhptr, int blk, int nblks, short *bufr) {
-  return read_matrix_data(fptr, blk, nblks, (char *) bufr, ecat_matrix::MatrixDataType::SunShort);
+  return read_matrix_data(fptr, blk, nblks, (char *) bufr, MatrixData::DataType::SunShort);
 }
 
 int unmap_scan_header(char *buf, Scan_subheader *header) {

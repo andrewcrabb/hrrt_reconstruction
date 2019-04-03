@@ -503,10 +503,10 @@ static int ecat2DICOM(ecat_matrix::MatrixData *matrix, char *out_dir, const char
   }
   data_size = matrix->xdim * matrix->ydim;
   switch (matrix->data_type) {
-  case ecat_matrix::MatrixDataType::ByteData :
+  case MatrixData::DataType::ByteData :
     break;
-  case ecat_matrix::MatrixDataType::SunShort :
-  case ecat_matrix::MatrixDataType::VAX_Ix2 :
+  case MatrixData::DataType::SunShort :
+  case MatrixData::DataType::VAX_Ix2 :
     data_size *= 2;
     break;
   default :
@@ -525,7 +525,7 @@ static int ecat2DICOM(ecat_matrix::MatrixData *matrix, char *out_dir, const char
     LOG_EXIT("no DICOM header found\n");
   header_size--;
   fwrite(header, 1, header_size, fp);
-  if (ntohs(1) == 1 && matrix->data_type != ecat_matrix::MatrixDataType::ByteData)  {
+  if (ntohs(1) == 1 && matrix->data_type != MatrixData::DataType::ByteData)  {
     buf = (void *)malloc(data_size);
     swab(matrix->data_ptr, buf, data_size);
     fwrite(matrix->data_ptr, data_size, 1, fp);
@@ -619,10 +619,10 @@ void main(int argc, char **argv) {
   if (mptr == NULL)  {
     LOG_EXIT(in_fname);
   }
-  ecat_matrix::DataSetType ftype = mptr->mhptr->file_type;
+  MatrixData::DataSetType ftype = mptr->mhptr->file_type;
   LOG_INFO("ftype is {}", ftype);
-  if (ftype != ecat_matrix::DataSetType::PetImage && ftype != ecat_matrix::DataSetType::PetVolume) {
-    LOG_EXIT("{} : is not a ecat_matrix::DataSetType::PetImage file", in_fname);
+  if (ftype != MatrixData::DataSetType::PetImage && ftype != MatrixData::DataSetType::PetVolume) {
+    LOG_EXIT("{} : is not a MatrixData::DataSetType::PetImage file", in_fname);
   }
 
   if (matnum != 0) {

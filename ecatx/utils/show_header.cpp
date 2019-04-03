@@ -40,31 +40,31 @@ int main( int argc, char **argv ) {
     show_main_header( mptr->mhptr);
     exit(0);
   }
-  ecat_matrix::MatrixData *matrix = matrix_read( mptr, matnum, ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
+  ecat_matrix::MatrixData *matrix = matrix_read( mptr, matnum, MatrixData::DataType::MAT_SUB_HEADER);
   if (!matrix)
     LOG_EXIT( "{}    : matrix not found", argv[0]);
   switch ( mptr->mhptr->file_type) {
-  case ecat_matrix::DataSetType::Sinogram    :
+  case MatrixData::DataSetType::Sinogram    :
     show_scan_subheader( matrix->shptr);
     break;
-  case ecat_matrix::DataSetType::Short3dSinogram :
-  case ecat_matrix::DataSetType::Float3dSinogram :
+  case MatrixData::DataSetType::Short3dSinogram :
+  case MatrixData::DataSetType::Float3dSinogram :
     show_Scan3D_subheader( matrix->shptr);
     break;
-  case ecat_matrix::DataSetType::PetImage  :
-  case ecat_matrix::DataSetType::PetVolume :
-  case ecat_matrix::DataSetType::ByteImage :
-  case ecat_matrix::DataSetType::ByteVolume :
-  case ecat_matrix::DataSetType::InterfileImage:
+  case MatrixData::DataSetType::PetImage  :
+  case MatrixData::DataSetType::PetVolume :
+  case MatrixData::DataSetType::ByteImage :
+  case MatrixData::DataSetType::ByteVolume :
+  case MatrixData::DataSetType::InterfileImage:
     show_image_subheader( matrix);
     break;
-  case ecat_matrix::DataSetType::AttenCor    :
+  case MatrixData::DataSetType::AttenCor    :
     show_attn_subheader( matrix->shptr);
     break;
-  case ecat_matrix::DataSetType::Normalization :
+  case MatrixData::DataSetType::Normalization :
     show_norm_subheader( matrix->shptr);
     break;
-  case ecat_matrix::DataSetType::Norm3d :
+  case MatrixData::DataSetType::Norm3d :
     show_norm3d_subheader( matrix->shptr);
     break;
   default    :
@@ -94,7 +94,7 @@ void show_main_header( ecat_matrix::Main_header *mh ) {
   printf("Software Version            : %d\n", mh->sw_version);
   printf("System type                 : %d\n", mh->system_type);
 
-  ecat_matrix::DataSetType file_type = mh->file_type;
+  MatrixData::DataSetType file_type = mh->file_type;
   printf("File type                   : %d (%s)\n", file_type, ecat_matrix::data_set_types_.at(file_type));
   printf("Node Id                     : %-10s\n", mh->serial_number);
   printf("Scan TOD                    : %s\n", ctime(&t));
@@ -188,7 +188,7 @@ void show_scan_subheader( ecat_matrix::Scan_subheader *sh ) {
   int i, j;
 
   printf("Scan Matrix Sub-header\n");
-  printf("Data type                   : %d(%s)\n", sh->data_type, ecat_matrix::matrix_data_types_.at(sh->data_type) );
+  printf("Data type                   : %d(%s)\n", sh->data_type, MatrixData::data_types_.at(sh->data_type) );
   printf("Dimension_1 (ring elements) : %d\n", sh->num_r_elements);
   printf("Dimension_2 (angles)        : %d\n", sh->num_angles);
   printf("corrections_applied         : %d", sh->corrections_applied);
@@ -228,7 +228,7 @@ void show_scan_subheader( ecat_matrix::Scan_subheader *sh ) {
 
 void show_Scan3D_subheader( ecat_matrix::Scan3D_subheader *sh ) {
   printf("Scan Matrix Sub-header\n");
-  printf("Data type                   : %d(%s)\n", sh->data_type, ecat_matrix::matrix_data_types_.at(sh->data_type).c_str());
+  printf("Data type                   : %d(%s)\n", sh->data_type, MatrixData::data_types_.at(sh->data_type).c_str());
   printf("Num_dimensions              : %d\n", sh->num_dimensions);
   printf("Dimension_1(num_r_elements) : %d\n", sh->num_r_elements);
   printf("Dimension_2 (num_angles)    : %d\n", sh->num_angles);
@@ -287,7 +287,7 @@ void show_image_subheader( ecat_matrix::MatrixData *matrix ) {
   y0 = (int)(0.5 + matrix->y_origin / matrix->y_size);
   z0 = (int)(0.5 + matrix->z_origin / matrix->z_size);
   printf("Image Matrix Sub-header\n");
-  printf("Data type                   : %d(%s)\n",         ih->data_type, ecat_matrix::matrix_data_types_.at(ih->data_type).c_str());
+  printf("Data type                   : %d(%s)\n",         ih->data_type, MatrixData::data_types_.at(ih->data_type).c_str());
   printf("Num_dimensions              : %d\n", ih->num_dimensions);
   printf("Dimension_1                 : %d\n", ih->x_dimension);
   printf("Dimension_2                 : %d\n", ih->y_dimension);
@@ -374,7 +374,7 @@ void day_time( char *str, int day, int month, int year, int hour, int minute, in
 
 void show_attn_subheader( ecat_matrix::Attn_subheader *ah ) {
   printf("Attenuation Matrix Sub-header\n");
-  printf("Data type                   : %d(%s)\n",         ah->data_type, ecat_matrix::matrix_data_types_.at(ah->data_type).c_str());
+  printf("Data type                   : %d(%s)\n",         ah->data_type, MatrixData::data_types_.at(ah->data_type).c_str());
   printf("Attenuation_type            : %d\n", ah->attenuation_type);
   printf("storage order               : %d ( %s )\n", ah->storage_order,         storage_order(ah->storage_order));
   printf("Dimension_1                 : %d\n", ah->num_r_elements);
@@ -403,7 +403,7 @@ void show_attn_subheader( ecat_matrix::Attn_subheader *ah ) {
 
 void show_norm_subheader( ecat_matrix::Norm_subheader *nh ) {
   printf("Normalization Matrix Sub-header\n");
-  printf("Data type                   : %d(%s)\n", nh->data_type, ecat_matrix::matrix_data_types_.at(nh->data_type).c_str());
+  printf("Data type                   : %d(%s)\n", nh->data_type, MatrixData::data_types_.at(nh->data_type).c_str());
   printf("Num_dimensions              : %d\n", nh->num_dimensions);
   printf("Dimension_1(num_r_elements) : %d\n", nh->num_r_elements);
   printf("Dimension_2 (num_angles)    : %d\n", nh->num_angles);
@@ -424,7 +424,7 @@ void show_norm_subheader( ecat_matrix::Norm_subheader *nh ) {
 
 void show_norm3d_subheader( ecat_matrix::Norm3D_subheader *nh ) {
   printf("Normalization Matrix Sub-header\n");
-  printf("Data type                   : %d(%s)\n",         nh->data_type, ecat_matrix::matrix_data_types_.at(nh->data_type).c_str());
+  printf("Data type                   : %d(%s)\n",         nh->data_type, MatrixData::data_types_.at(nh->data_type).c_str());
   printf("number of radial elements   : %d\n", nh->num_r_elements);
   printf("number of transaxial crystals  : %d\n", nh->num_transaxial_crystals);
   printf("number of crystal rings        : %d\n", nh->num_crystal_rings);

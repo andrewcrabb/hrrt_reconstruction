@@ -159,7 +159,7 @@ static ecat_matrix::MatrixData *rgb_split_data(ecat_matrix::MatrixData *src , in
     memcpy(dest,src,sizeof(ecat_matrix::MatrixData));
     dest->data_ptr = (void *)calloc(1, nvoxels);
 	memcpy(dest->data_ptr, src->data_ptr + segment*nvoxels, nvoxels);
-    dest->data_type = ecat_matrix::MatrixDataType::ByteData;
+    dest->data_type = MatrixData::DataType::ByteData;
 	return dest;
 }
 
@@ -187,15 +187,15 @@ int  matrix_resize(ecat_matrix::MatrixData *mat, float pixel_size, int interp_fl
 					int align)
 {
 	int interpolate = interp_flag;
-	if (mat->data_type == ecat_matrix::MatrixDataType::Color_8) interpolate = 0;
+	if (mat->data_type == MatrixData::DataType::Color_8) interpolate = 0;
     switch(mat->data_type)
 	{
-	case ecat_matrix::MatrixDataType::ByteData:
-	case ecat_matrix::MatrixDataType::Color_8:
+	case MatrixData::DataType::ByteData:
+	case MatrixData::DataType::Color_8:
 		return matrix_resize_((unsigned char *)mat->data_ptr, mat, pixel_size,
 			interpolate, align);
-	case ecat_matrix::MatrixDataType::SunShort:
-	case ecat_matrix::MatrixDataType::VAX_Ix2:
+	case MatrixData::DataType::SunShort:
+	case MatrixData::DataType::VAX_Ix2:
 		return matrix_resize_((short*)mat->data_ptr, mat, pixel_size,
 			interpolate, align);
 	case Color_24:
@@ -215,7 +215,7 @@ int  matrix_resize(ecat_matrix::MatrixData *mat, float pixel_size, int interp_fl
 			free_matrix_data(blue_slice);
 			return 1;
 		}
-	case ecat_matrix::MatrixDataType::IeeeFloat:
+	case MatrixData::DataType::IeeeFloat:
 		return matrix_resize_((float*)mat->data_ptr, mat, pixel_size,
 			interpolate, align);
 	default:

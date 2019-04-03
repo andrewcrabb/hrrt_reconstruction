@@ -47,11 +47,11 @@ static int copy_scan(ecat_matrix::MatrixFile *mptr1, int matnum, ecat_matrix::Ma
     o_matdir.endblk =  blkno + nblks - 1 ;
     insert_mdir(&o_matdir, mptr2->dirlist) ;
   }
-  matrix = matrix_read(mptr1,matnum,ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
+  matrix = matrix_read(mptr1,matnum,MatrixData::DataType::MAT_SUB_HEADER);
   blk = (void *)malloc(MatBLKSIZE);
   switch (mptr1->mhptr->file_type) {
-  case ecat_matrix::DataSetType::Float3dSinogram :
-  case ecat_matrix::DataSetType::Short3dSinogram :
+  case MatrixData::DataSetType::Float3dSinogram :
+  case MatrixData::DataSetType::Short3dSinogram :
     sh = (ecat_matrix::Scan3D_subheader*)matrix->shptr;
     o_sh = (ecat_matrix::Scan3D_subheader*)calloc(2,MatBLKSIZE);
     memcpy(o_sh,sh,sizeof(ecat_matrix::Scan3D_subheader));
@@ -67,7 +67,7 @@ static int copy_scan(ecat_matrix::MatrixFile *mptr1, int matnum, ecat_matrix::Ma
     nblks -= 2;
     file_pos = (o_matdir.strtblk+1)*MatBLKSIZE;
     break;
-  case ecat_matrix::DataSetType::AttenCor :
+  case MatrixData::DataSetType::AttenCor :
     ah = (ecat_matrix::Attn_subheader*)matrix->shptr;
     o_ah = (ecat_matrix::Attn_subheader*)calloc(1,MatBLKSIZE);
     memcpy(o_ah,ah,sizeof(ecat_matrix::Attn_subheader));
@@ -223,18 +223,18 @@ int main( argc, argv)
   memcpy(&proto,mptr1->mhptr,sizeof(ecat_matrix::Main_header));
   proto.sw_version = version;
   if (version < V7) {
-    if (proto.file_type != ecat_matrix::DataSetType::PetImage && proto.file_type != ecat_matrix::DataSetType::ByteVolume &&
-    proto.file_type != ecat_matrix::DataSetType::PetVolume && proto.file_type != ecat_matrix::DataSetType::ByteImage &&
+    if (proto.file_type != MatrixData::DataSetType::PetImage && proto.file_type != MatrixData::DataSetType::ByteVolume &&
+    proto.file_type != MatrixData::DataSetType::PetVolume && proto.file_type != MatrixData::DataSetType::ByteImage &&
     proto.file_type != InterfileImage)
       LOG_EXIT ("version 6 : only images are supported");
-    proto.file_type = ecat_matrix::DataSetType::PetImage;
+    proto.file_type = MatrixData::DataSetType::PetImage;
   } else {
     if (proto.file_type == InterfileImage) {
-      matrix = matrix_read( mptr1, matnums[0], ecat_matrix::MatrixDataType::MAT_SUB_HEADER);
-      if (matrix->data_type == ecat_matrix::DataSetType::ByteData) 
-        proto.file_type = ecat_matrix::DataSetType::ByteVolume;
+      matrix = matrix_read( mptr1, matnums[0], MatrixData::DataType::MAT_SUB_HEADER);
+      if (matrix->data_type == MatrixData::DataSetType::ByteData) 
+        proto.file_type = MatrixData::DataSetType::ByteVolume;
       else 
-        proto.file_type = ecat_matrix::DataSetType::PetVolume;
+        proto.file_type = MatrixData::DataSetType::PetVolume;
       free_matrix_data(matrix);
     }
   }

@@ -456,12 +456,12 @@ unsigned short int ECAT7_SCAN::Width() const
 
 // Read data_type as short int from file, return as scoped enum
 
-ecat_matrix::MatrixDataType ECAT7_SCAN::get_data_type(void) {
-  return static_cast<ecat_matrix::MatrixDataType>(scan_subheader_.data_type);
+MatrixData::DataType ECAT7_SCAN::get_data_type(void) {
+  return static_cast<MatrixData::DataType>(scan_subheader_.data_type);
 }
 
 // Write scoped enum to file as short int
 
-void ECAT7_SCAN::set_data_type(ecat_matrix::MatrixDataType t_data_type) {
+void ECAT7_SCAN::set_data_type(MatrixData::DataType t_data_type) {
   scan_subheader_.data_type = static_cast<signed short int>(t_data_type);
 }
