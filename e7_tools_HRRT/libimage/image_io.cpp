@@ -1311,7 +1311,7 @@ void ImageIO::saveECAT7(const std::string filename,
                         const unsigned short int bed,
                         const unsigned short int loglevel)
  { signed short int *simage=NULL;
-   float *fptr=NULL;
+   float *float_ptr=NULL;
    Wholebody *wb=NULL;
 
    try
@@ -1419,14 +1419,14 @@ void ImageIO::saveECAT7(const std::string filename,
                            ZSamples(), bedpos[bed], feet_first, bed_moves_in,
                            loglevel+1);
                 MemCtrl::mc()->put(data_idx[bed]);
-                fptr=wb->getWholebody(&depth);
+                float_ptr=wb->getWholebody(&depth);
                        // convert image data from float to signed short integer
-                simage=Float2Short(fptr, (unsigned long int)XYSamples()*
+                simage=Float2Short(float_ptr, (unsigned long int)XYSamples()*
                                          (unsigned long int)XYSamples()*
                                          (unsigned long int)depth, &min_value,
                                    &max_value, &factor);
-                delete[] fptr;
-                fptr=NULL;
+                delete[] float_ptr;
+                float_ptr=NULL;
                 delete wb;
                 wb=NULL;
                 if ((feet_first == bed_moves_in) != GM::gm()->isPETCT())
@@ -1556,7 +1556,7 @@ void ImageIO::saveECAT7(const std::string filename,
    }
    catch (...)
     { if (simage != NULL) delete[] simage;
-      if (fptr != NULL) delete[] fptr;
+      if (float_ptr != NULL) delete[] float_ptr;
       if (wb != NULL) delete wb;
       throw;
     }
@@ -1679,7 +1679,7 @@ void ImageIO::saveInterfile(const std::string filename,
                             const unsigned short int bed,
                             const unsigned short int loglevel)
  { signed short int *simage=NULL;
-   float *fptr=NULL;
+   float *float_ptr=NULL;
    Wholebody *wb=NULL;
    RawIO <float> *rio=NULL;
    Interfile::tdataset ds;
@@ -1866,11 +1866,11 @@ void ImageIO::saveInterfile(const std::string filename,
                 fbedpos=inf->Sub_start_horizontal_bed_position(&unit)-
                         flip_offset;
                                                     // load existing image data
-                fptr=new float[datasize];
+                float_ptr=new float[datasize];
                 rio=new RawIO <float>(filename_noext+
                                       Interfile::INTERFILE_IDATA_EXTENSION,
                                       false, false);
-                rio->read(fptr, datasize);
+                rio->read(float_ptr, datasize);
                 delete rio;
                 rio=NULL;
                                                    // calculate wholebody image
@@ -1885,11 +1885,11 @@ void ImageIO::saveInterfile(const std::string filename,
                                         "planes", loglevel+1)->
                  arg(inf->Sub_start_horizontal_bed_position(&unit))->
                  arg(topos)->arg(inf->Sub_matrix_size(2));
-                wb=new Wholebody(fptr, inf->Sub_matrix_size(0),
+                wb=new Wholebody(float_ptr, inf->Sub_matrix_size(0),
                                  inf->Sub_matrix_size(1),
                                  inf->Sub_matrix_size(2),
                                  inf->Sub_scale_factor(2, &unit), fbedpos);
-                fptr=NULL;
+                float_ptr=NULL;
                 if (!feet_first) topos=bedpos[bed]-(float)ZSamples()*DeltaZ();
                  else topos=bedpos[bed]-(float)ZSamples()*DeltaZ();
                 Logging::flog()->logMsg("add bed at pos #1mm to #2mm, #3 "
@@ -1899,7 +1899,7 @@ void ImageIO::saveInterfile(const std::string filename,
                            ZSamples(), bedpos[bed], feet_first, bed_moves_in,
                            loglevel+1);
                 MemCtrl::mc()->put(data_idx[bed]);
-                fptr=wb->getWholebody(&depth);
+                float_ptr=wb->getWholebody(&depth);
                 delete wb;
                 wb=NULL;
                 if (!bed_moves_in)
@@ -1925,11 +1925,11 @@ void ImageIO::saveInterfile(const std::string filename,
                 rio=new RawIO <float>(filename_noext+
                                       Interfile::INTERFILE_IDATA_EXTENSION,
                                       true, false);
-                rio->write(fptr, datasize);
+                rio->write(float_ptr, datasize);
                 delete rio;
                 rio=NULL;
-                delete[] fptr;
-                fptr=NULL;
+                delete[] float_ptr;
+                float_ptr=NULL;
                 return;
               }
                                                      // create multi-frame file
@@ -2127,7 +2127,7 @@ void ImageIO::saveInterfile(const std::string filename,
    }
    catch (...)
     { if (simage != NULL) delete[] simage;
-      if (fptr != NULL) delete[] fptr;
+      if (float_ptr != NULL) delete[] float_ptr;
       if (wb != NULL) delete wb;
       if (rio != NULL) delete rio;
       if (ds.headerfile != NULL) delete ds.headerfile;

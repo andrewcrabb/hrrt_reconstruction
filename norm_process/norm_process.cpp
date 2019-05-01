@@ -207,17 +207,17 @@ float dwell_elem(int mp, int ax, int bx) {
 
 static short *mp_read(const char *diamond_file) {
   int i = 0, count = 0;
-  FILE *fptr = NULL;
+  FILE *infile_ptr = NULL;
   signed char *c_data = (signed char*)calloc(MP_SIZE, 1);
   short *mp_data = (short*)calloc(MP_SIZE, sizeof(short));
   if (c_data == NULL || mp_data == NULL) {
     LOG_EXIT("memory allocation");
   }
 
-  if ((fptr = fopen( diamond_file, "rb")) != NULL) {
+  if ((infile_ptr = fopen( diamond_file, "rb")) != NULL) {
     //    printf("Reading %s", diamond_file);
     // read first part
-    count = fread(c_data, sizeof(char), MP_SIZE, fptr);
+    count = fread(c_data, sizeof(char), MP_SIZE, infile_ptr);
     if (count != MP_SIZE) {
       LOG_EXIT("Error reading {}", diamond_file);
     }
@@ -225,7 +225,7 @@ static short *mp_read(const char *diamond_file) {
       mp_data[i] = c_data[i] + mp_data_offset;
     int nbuffers = 1;
     //read extensions
-    while ((count = fread(c_data, sizeof(char), MP_SIZE, fptr)) > 0)  {
+    while ((count = fread(c_data, sizeof(char), MP_SIZE, infile_ptr)) > 0)  {
       for (i = 0; i < count; i++)
         mp_data[i] += c_data[i] + mp_data_offset;
       nbuffers++;
@@ -250,12 +250,12 @@ static short *mp_read(const char *diamond_file) {
 
 static short *mp_reads(const char *diamond_file) {
   int i = 0, count = 0;
-  FILE *fptr = NULL;
+  FILE *infile_ptr = NULL;
   short *mp_data = (short*)calloc(MP_SIZE, sizeof(short));
-  if ((fptr = fopen( diamond_file, "rb")) != NULL) {
+  if ((infile_ptr = fopen( diamond_file, "rb")) != NULL) {
     //    printf("Reading %s", diamond_file);
     // read first part
-    count = fread(mp_data, sizeof(short), MP_SIZE, fptr);
+    count = fread(mp_data, sizeof(short), MP_SIZE, infile_ptr);
     if (count != MP_SIZE) {
       LOG_EXIT("Error reading diamond_file {}", diamond_file);
     }
@@ -954,8 +954,6 @@ void fix_back_layer_ce()
 
 int main(int argc, char **argv) {
   int nrings = NYCRYS;
-  FILE *fptr = NULL;
-  // , *log_fp = NULL;
   char *lm_file = NULL, *ce_file = NULL, *fs_file = NULL;
   char *geom_fname = NULL;
   char norm_file[_MAX_PATH], base_name[_MAX_PATH];
@@ -1224,8 +1222,9 @@ int main(int argc, char **argv) {
   }
 
   //Read solid angle Sino
+  FILE *read_fptr;
   if (omega_file != NULL) {
-    if ((fptr = fopen(omega_file, "rb")) == NULL) {
+    if ((read_fptr = fopen(omega_file, "rb")) == NULL) {
       LOG_ERROR(omega_file);
       exit(1);
     }
@@ -1233,7 +1232,7 @@ int main(int argc, char **argv) {
       LOG_ERROR("memory allocation failed");
       exit(1);
     }
-    if ((fread(omega_sino, sizeof(float), npixels, fptr)) != npixels) {
+    if ((fread(omega_sino, sizeof(float), npixels, read_fptr)) != npixels) {
       LOG_ERROR("Error reading {}", omega_file);
       exit(1);
     }
@@ -1306,12 +1305,12 @@ int main(int argc, char **argv) {
     if (cheader.OpenFile(fname) != -1) cheader.CloseFile();
 
     LOG_INFO( "Reading Crystal efficiencies file {}", ce_file);
-    if ((fptr = fopen( ce_file, "rb")) == NULL) {
+    if ((FILE *infile_ptr = fopen( ce_file, "rb")) == NULL) {
       LOG_ERROR( "Can't open crystal efficiencies file {}", ce_file);
       exit(1);
     }
-    int n = fread( ce, sizeof(float), NUM_CRYSTALS, fptr);
-    fclose( fptr);
+    int n = fread( ce, sizeof(float), NUM_CRYSTALS, infile_ptr);
+    fclose( infile_ptr);
     if ( n != NUM_CRYSTALS ) {
       LOG_ERROR( "Only read {} of {} values from efficiencies file {}", n, NUM_CRYSTALS, ce_file);
       exit(1);
@@ -1331,9 +1330,9 @@ int main(int argc, char **argv) {
 
     sprintf(base_name, "%s%s%s", drive, dir, fname);
     sprintf(fname, "%s.fs", base_name);
-    if ((fptr = fopen(fname, "wb+")) != NULL) {
-      fwrite(fsum, NUM_CRYSTALS, sizeof(float), fptr);
-      fclose(fptr);
+    if ((FILE *outfile_ptr = fopen(fname, "wb+")) != NULL) {
+      fwrite(fsum, NUM_CRYSTALS, sizeof(float), outfile_ptr);
+      fclose(outfile_ptr);
     } else {
       LOG_ERROR( "Can't create crystal efficiencies output file {}", fname);
     }
@@ -1354,9 +1353,9 @@ int main(int argc, char **argv) {
     if (!cal_sen(fsum, ce, log_fp))
       exit(1);
     sprintf(fname, "%s.ce", base_name);
-    if ((fptr = fopen(fname, "wb+")) != NULL) {
-      fwrite(ce, NUM_CRYSTALS, sizeof(float), fptr);
-      fclose(fptr);
+    if ((FILE *outfile_ptr = fopen(fname, "wb+")) != NULL) {
+      fwrite(ce, NUM_CRYSTALS, sizeof(float), outfile_ptr);
+      fclose(outfile_ptr);
     } else {
       LOG_ERROR( "Can't create crystal efficiencies output file {}", fname);
     }
@@ -1531,14 +1530,13 @@ int main(int argc, char **argv) {
 
   StartTimer("Disk Write");
 
-  FILE *fptr = fopen(norm_file, "wb");
-  if (!fptr) {
+  FILE *write_fptr = fopen(norm_file, "wb");
+  if (!write_fptr) {
     LOG_ERROR( "Can't create normalization output file '%s'", fname);
     exit(1);
   } else {
     int num_sinos = 0;
-    // first and last 2 planes in segment 0 are all 0, set the diamonds to 1
-    // using a central plane
+    // first and last 2 planes in segment 0 are all 0, set the diamonds to 1 using a central plane
     plane = 0;
     for (int segnum = 0; segnum < nsegs; segnum++) {
       LOG_INFO( " writing segment {}: nplanes={}", segnum, seg_planes[segnum]);
@@ -1546,13 +1544,13 @@ int main(int argc, char **argv) {
       for (int segplane = 0; segplane < seg_planes[segnum]; segplane++, plane++) {
         for (int i = 0; i < npixels; i++) 
           tmp_sino[i] = norm_data2[i][plane];
-        if ((int n = fwrite(tmp_sino, sizeof(float), npixels, fptr)) != npixels) {
+        if ((int n = fwrite(tmp_sino, sizeof(float), npixels, write_fptr)) != npixels) {
           LOG_ERROR( "Write to disk error for '{}' segment {} plane {}", norm_file, segnum, plane + 1);
         }
       }
     }
 
-    fclose( fptr);
+    fclose( write_fptr);
     free(norm_data);
     free(norm_data2);
     free(tmp_sino);

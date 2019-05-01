@@ -11,7 +11,7 @@ static char sccsid[]="(#)matcopy.c 1.4 7/10/92 Copyright 1990 CTI Pet Systems, I
 #include <unistd.h>
 #include "ecat_matrix.hpp"
 #include "my_spdlog.hpp"
-extern ecat_matrix::MatrixData *matrix_read_scan();
+extern ecat_matrix::MatrixData *ecat_matrix::read_scan();
 
 static void usage();
 static int copy_scan(ecat_matrix::MatrixFile *mptr1, int matnum, ecat_matrix::MatrixFile *mptr2, int o_matnum, int storage_order);

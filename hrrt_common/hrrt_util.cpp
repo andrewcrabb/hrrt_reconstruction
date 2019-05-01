@@ -195,26 +195,16 @@ void GetSystemInformation() {
 template <typename T> Extrema<T> find_extrema(T *t_values, int t_num_values) {
   auto minmax = std::minmax_element(t_values, t_values + t_num_values);
   Extrema<T> ret {*minmax.first, *minmax.second};
-
-  // T min = t_values[0];
-  // T max = t_values[0];
-
-  // for (int i = 0; i < t_num_values; i++) {
-  //   T test_val = t_values[i];
-  //   if (test_val < min)
-  //     min = test_val;
-  //   if (test_val > max)
-  //     max = test_val;
-  // }
   return ret;
 }
 
 // Required for symbols to be present in the library file.  Otherwise, won't link. Key term 'explicit instantiation'
 // https://stackoverflow.com/questions/1022623/c-shared-library-with-templates-undefined-symbols-error
-template Extrema<short> find_extrema(short *t_values, int t_num_values);
-template Extrema<int>   find_extrema(int   *t_values, int t_num_values);
-template Extrema<float> find_extrema(float *t_values, int t_num_values);
-template Extrema<char>  find_extrema(char  *t_values, int t_num_values);
+template Extrema<short>          find_extrema(short          *t_values, int t_num_values);
+template Extrema<int>            find_extrema(int            *t_values, int t_num_values);
+template Extrema<float>          find_extrema(float          *t_values, int t_num_values);
+template Extrema<char>           find_extrema(char           *t_values, int t_num_values);
+template Extrema<unsigned char>  find_extrema(unsigned char  *t_values, int t_num_values);
 
 // Test that find_extrema gives the correct values for the templated type
 // Use std::vector functions to test legacy array-based members.

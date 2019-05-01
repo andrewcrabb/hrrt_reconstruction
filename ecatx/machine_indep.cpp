@@ -132,16 +132,16 @@ int file_data_to_host(char *dptr, int nblks, MatrixData::DataType dtype) {
 	return ecat_matrix::ECATX_OK;
 }
 
-int read_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, MatrixData::DataType dtype) {
+int read_matrix_data(FILE *t_fptr, int strtblk, int nblks, char *dptr, MatrixData::DataType dtype) {
 	int  err;
 
-	err = ecat_matrix::mat_rblk( fptr, strtblk, dptr, nblks);
+	err = ecat_matrix::mat_rblk( t_fptr, strtblk, dptr, nblks);
 	if (err) 
 		return -1;
 	return file_data_to_host(dptr,nblks,dtype);
 }
 
-int write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, MatrixData::DataType dtype) {
+int write_matrix_data(FILE *t_fptr, int strtblk, int nblks, char *dptr, MatrixData::DataType dtype) {
 	int error_flag = 0;
 	int i, j;
 	char *bufr1 = new char[512];
@@ -151,7 +151,7 @@ int write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, MatrixData
 	ecat_matrix::matrix_errtxt.clear();
 	switch( dtype)	{
 	case MatrixData::DataType::ByteData:
-		if ( ecat_matrix::mat_wblk( fptr, strtblk, dptr, nblks) < 0) error_flag++;
+		if ( ecat_matrix::mat_wblk( t_fptr, strtblk, dptr, nblks) < 0) error_flag++;
 		break;
 	case MatrixData::DataType::VAX_Ix2: 
 	default:	/* something else...treat as Vax I*2 */
@@ -159,9 +159,9 @@ int write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, MatrixData
 			for (i=0, j=0; i<nblks && !error_flag; i++, j += 512) {
 				swab( dptr+j, bufr1, 512);
 				memcpy(bufr2, bufr1, 512);
-				if ( ecat_matrix::mat_wblk( fptr, strtblk+i, bufr2, 1) < 0) error_flag++;
+				if ( ecat_matrix::mat_wblk( t_fptr, strtblk+i, bufr2, 1) < 0) error_flag++;
 			}
-		} else if ( ecat_matrix::mat_wblk( fptr, strtblk, dptr, nblks) < 0) error_flag++;
+		} else if ( ecat_matrix::mat_wblk( t_fptr, strtblk, dptr, nblks) < 0) error_flag++;
 		break;
 	case MatrixData::DataType::VAX_Ix4:
 	case MatrixData::DataType::VAX_Rx4:
@@ -173,18 +173,18 @@ int write_matrix_data(FILE *fptr, int strtblk, int nblks, char *dptr, MatrixData
 			for (i=0, j=0; i<nblks && !error_flag; i++, j += 512) {
 				swab( dptr+j, bufr1, 512);
 				hrrt_util::swaw( (short*)bufr1, (short*)bufr2, 256);
-				if ( ecat_matrix::mat_wblk( fptr, strtblk+i, bufr2, 1) < 0) error_flag++;
+				if ( ecat_matrix::mat_wblk( t_fptr, strtblk+i, bufr2, 1) < 0) error_flag++;
 			}
-		} else if ( ecat_matrix::mat_wblk( fptr, strtblk, dptr, nblks) < 0) error_flag++;
+		} else if ( ecat_matrix::mat_wblk( t_fptr, strtblk, dptr, nblks) < 0) error_flag++;
 		break;
 	case MatrixData::DataType::SunShort:
 		if (ntohs(1) != 1) {
 			for (i=0, j=0; i<nblks && !error_flag; i++, j += 512) {
 				swab( dptr+j, bufr1, 512);
 				memcpy(bufr2, bufr1, 512);
-				if ( ecat_matrix::mat_wblk( fptr, strtblk+i, bufr2, 1) < 0) error_flag++;
+				if ( ecat_matrix::mat_wblk( t_fptr, strtblk+i, bufr2, 1) < 0) error_flag++;
 			}
-		} else if ( ecat_matrix::mat_wblk( fptr, strtblk, dptr, nblks) < 0) error_flag++;
+		} else if ( ecat_matrix::mat_wblk( t_fptr, strtblk, dptr, nblks) < 0) error_flag++;
 		break;
 	}
 	delete[] bufr1;

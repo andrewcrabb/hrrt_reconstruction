@@ -203,16 +203,23 @@ static int matrix_write_slice(ecat_matrix::MatrixFile *mptr, int matnum, ecat_ma
     }
     slice->data_size = nblks*ecat_matrix::MatBLKSIZE;
     if (data->data_type ==  MatrixData::DataType::ByteData) {
-      bdata = (unsigned char *)(data->data_ptr+(plane-1)*npixels);
-      imh->image_min = find_bmin(bdata,npixels);
-      imh->image_max = find_bmax(bdata,npixels);
-      sdata = (short*)slice->data_ptr;
-      for (i=0; i<npixels; i++)  sdata[i] = bdata[i];
+      bdata = (unsigned char *)(data->data_ptr + (plane - 1) * npixels);
+      // imh->image_min = find_bmin(bdata,npixels);
+      // imh->image_max = find_bmax(bdata,npixels);
+      hrrt_util::Extrema<unsigned char> extrema = hrrt_util::find_extrema<unsigned char>(bdata, npixels);
+      imh->image_min = extrema.min;
+      imh->image_max = extrema.max;
+      sdata = (short *)slice->data_ptr;
+      for (i=0; i<npixels; i++)  
+        sdata[i] = bdata[i];
     } else {
-      sdata = (short*)(data->data_ptr+(plane-1)*npixels*2);
-      imh->image_min = find_smin(sdata,npixels);
-      imh->image_max = find_smax(sdata,npixels);
-      memcpy(slice->data_ptr, sdata,npixels*2);
+      sdata = (short *)(data->data_ptr + (plane - 1) * npixels * 2);
+      // imh->image_min = find_smin(sdata,npixels);
+      // imh->image_max = find_smax(sdata,npixels);
+      hrrt_util::Extrema<short> extrema = hrrt_util::find_extrema<short>(bdata, npixels);
+      imh->image_min = extrema.min;
+      imh->image_max = extrema.max;
+      memcpy(slice->data_ptr, sdata, npixels * 2);
     }
     s_matnum = ecat_matrix::mat_numcod(val.frame,plane,val.gate,val.data,val.bed);
     ret = matrix_write(mptr, s_matnum,slice);
@@ -321,7 +328,7 @@ int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
   if (mptr->analyze_hdr)  /* read interfile */
     return analyze_read(mptr, matnum, data, dtype);
 
-  if (mptr->interfile_header)  /* read interfile */
+  if (!mptr->interfile_header.empty())  /* read interfile */
     return interfile_read(mptr, matnum, data, dtype);
 
   if (matrix_find(mptr,matnum,&matdir) == ecat_matrix::ECATX_ERROR) {
@@ -430,12 +437,19 @@ int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
       if (dtype == MatrixData::DataType::MAT_SUB_HEADER) 
         break;
       read_matrix_data(mptr->fptr, matdir.strtblk+1, nblks, data->data_ptr, imagesub->data_type) ;
+      int npix = sx * sy * sz;
       if (imagesub->data_type == MatrixData::DataType::ByteData) {
-        imagesub->image_max = find_bmax((unsigned char *)data->data_ptr, sx * sy * sz);
-        imagesub->image_min = find_bmin((unsigned char *)data->data_ptr, sx * sy * sz);
+        // imagesub->image_max = find_bmax((unsigned char *)data->data_ptr, sx * sy * sz);
+        // imagesub->image_min = find_bmin((unsigned char *)data->data_ptr, sx * sy * sz);
+      hrrt_util::Extrema<unsigned char> extrema = hrrt_util::find_extrema<unsigned char>(static_cast<unsigned char *>(data->data_ptr), npix);
+      imagesub->image_min = extrema.min;
+      imagesub->image_max = extrema.max;
       } else {
-        imagesub->image_max = find_smax((short*)data->data_ptr, sx * sy * sz);
-        imagesub->image_min = find_smin((short*)data->data_ptr, sx * sy * sz);
+        // imagesub->image_max = find_smax((short*)data->data_ptr, sx * sy * sz);
+        // imagesub->image_min = find_smin((short*)data->data_ptr, sx * sy * sz);
+      hrrt_util::Extrema<short> extrema = hrrt_util::find_extrema<short>(static_cast<short *>(data->data_ptr), npix);
+      imagesub->image_min = extrema.min;
+      imagesub->image_max = extrema.max;
       }
       data->data_max = imagesub->image_max * imagesub->scale_factor;
       data->data_min = imagesub->image_min * imagesub->scale_factor;
@@ -451,9 +465,11 @@ int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
       data->pixel_size = attnsub->x_resolution;
       if (dtype == MatrixData::DataType::MAT_SUB_HEADER)
         break;
-      read_matrix_data(mptr->fptr, matdir.strtblk+1, nblks,
-                       data->data_ptr, attnsub->data_type);
-      data->data_max = find_fmax((float*)data->data_ptr, sx * sy * sz);
+      read_matrix_data(mptr->fptr, matdir.strtblk+1, nblks, data->data_ptr, attnsub->data_type);
+      // data->data_max = find_fmax((float*)data->data_ptr, sx * sy * sz);
+      hrrt_util::Extrema<float> extrema = hrrt_util::find_extrema<float>(static_cast<float *>(data->data_ptr), sx * sy * sz);
+      data->data_max = extrema.max;
+
       break ;
     case MatrixData::DataSetType::Normalization :
         ecat_matrix::Norm_subheader *normsub = (ecat_matrix::Norm_subheader *) data->shptr ;
@@ -465,10 +481,11 @@ int read_host_data(ecat_matrix::MatrixFile *mptr, int matnum, ecat_matrix::Matri
       data->scale_factor = normsub->scale_factor ;
       if (dtype == MatrixData::DataType::MAT_SUB_HEADER)
         break;
-      read_matrix_data(mptr->fptr, matdir.strtblk+1, nblks,
-                       data->data_ptr, normsub->data_type) ;
-      data->data_max = data->scale_factor * 
-        find_fmax((float*)data->data_ptr, data->xdim * data->ydim);
+      read_matrix_data(mptr->fptr, matdir.strtblk+1, nblks, data->data_ptr, normsub->data_type) ;
+      // data->data_max = data->scale_factor * find_fmax((float*)data->data_ptr, data->xdim * data->ydim);
+      hrrt_util::Extrema<float> extrema = hrrt_util::find_extrema<float>(static_cast<float *>(data->data_ptr), data->xdim * data->ydim);
+      data->data_max = data->scale_factor * extrema.max;
+
       break ;
     case MatrixData::DataSetType::Norm3d :
       ecat_matrix::Norm3D_subheader *norm3d = (ecat_matrix::Norm3D_subheader *) data->shptr ;
@@ -742,7 +759,7 @@ int convert_float_scan( ecat_matrix::MatrixData *scan, float *fdata) {
   return ecat_matrix::ECATX_OK;
 }
 
-ecat_matrix::MatrixData * matrix_read_scan(ecat_matrix::MatrixFile *mptr, int matnum, MatrixData::DataType dtype, int segment) {
+ecat_matrix::MatrixData *ecat_matrix::read_scan(ecat_matrix::MatrixFile *mptr, int matnum, MatrixData::DataType dtype, int segment) {
   int i, nblks, plane_size;
   int sx, sy, sz;
   ecat_matrix::MatrixData *data;
@@ -755,7 +772,7 @@ ecat_matrix::MatrixData * matrix_read_scan(ecat_matrix::MatrixFile *mptr, int ma
 
   /* Scan3D and Atten storage:
      storage_order = 0 : (((projs x z_elements)) x num_angles) x Ringdiffs
-     storage_order != 0 : (((projs x num_angles)) x z_elements)) x Ringdiffs
+nnnn     storage_order != 0 : (((projs x num_angles)) x z_elements)) x Ringdiffs
     
   */
 
@@ -827,14 +844,22 @@ ecat_matrix::MatrixData * matrix_read_scan(ecat_matrix::MatrixFile *mptr, int ma
       return NULL;
     }
     if (mptr->mhptr->file_type == MatrixData::DataSetType::Short3dSinogram) {
-      scan3Dsub->scan_max = find_smax((short*)data->data_ptr, sx * sy * sz);
-      scan3Dsub->scan_min = find_smin((short*)data->data_ptr, sx * sy * sz);
+      // scan3Dsub->scan_max = find_smax((short*)data->data_ptr, sx * sy * sz);
+      // scan3Dsub->scan_min = find_smin((short*)data->data_ptr, sx * sy * sz);
+
+      hrrt_util::Extrema<short> extrema = hrrt_util::find_extrema<short>(static_cast<short *>(data->data_ptr), sx * sy * sz);
+      scan3Dsub->scan_max = extrema.min;
+      scan3Dsub->scan_max = extrema.max;
+
       data->data_max = scan3Dsub->scan_max * scan3Dsub->scale_factor;
       data->data_min = scan3Dsub->scan_min * scan3Dsub->scale_factor;
 
     } else {
-      data->data_max = find_fmax((float*)data->data_ptr, sx * sy * sz);
-      data->data_min = find_fmin((float*)data->data_ptr, sx * sy * sz);
+      // data->data_max = find_fmax((float*)data->data_ptr, sx * sy * sz);
+      // data->data_min = find_fmin((float*)data->data_ptr, sx * sy * sz);
+      hrrt_util::Extrema<float> extrema = hrrt_util::find_extrema<float>(static_cast<float *>(data->data_ptr), sx * sy * sz);
+      data->data_min = extrema.min;
+      data->data_max = extrema.max;
     }
     break;
   case MatrixData::DataSetType::AttenCor :
@@ -886,7 +911,9 @@ ecat_matrix::MatrixData * matrix_read_scan(ecat_matrix::MatrixFile *mptr, int ma
       free_matrix_data(data);
       return NULL;
     }
-    data->data_max = find_fmax((float*)data->data_ptr, sx * sy * sz);
+    // data->data_max = find_fmax((float*)data->data_ptr, sx * sy * sz);
+      hrrt_util::Extrema<float> extrema = hrrt_util::find_extrema<float>(static_cast<float *>(data->data_ptr), sx * sy * sz);
+      data->data_max = extrema.max;
     break;
   default:
     // g_matrix_error = ecat_matrix::MatrixError::FILE_TYPE_NOT_MATCH;
@@ -896,9 +923,8 @@ ecat_matrix::MatrixData * matrix_read_scan(ecat_matrix::MatrixFile *mptr, int ma
   }
   return data;
 }
-int 
-mh_update(ecat_matrix::MatrixFile *file)
-{
+
+int mh_update(ecat_matrix::MatrixFile *file) {
   ecat_matrix::MatDirNode     *node;
   ecat_matrix::MatVal   val;
   int            *frames, *planes, *gates, *beds;
@@ -967,19 +993,17 @@ mh_update(ecat_matrix::MatrixFile *file)
   return ecat_matrix::ECATX_OK;
 }
 
-MatDirBlk *
-mat_rdirblk(ecat_matrix::MatrixFile *file, int blknum)
-{
+MatDirBlk *mat_rdirblk(ecat_matrix::MatrixFile *t_infile, int blknum) {
   MatDirBlk      *matdirblk;
   int             i, j, err, ndirs;
   int             dirbufr[ecat_matrix::MatBLKSIZE / 4];
-  FILE           *fptr = file->fptr;
+  // FILE           *fptr = t_infile->fptr;
 
   set_matrix_no_error();
   matdirblk = (MatDirBlk *) malloc(ecat_matrix::MatBLKSIZE);
   if (matdirblk == NULL)
     return (NULL);
-  err = read_matrix_data(fptr, blknum, 1, (char *) dirbufr, SunLong);
+  err = read_matrix_data(t_infile->fptr, blknum, 1, (char *) dirbufr, SunLong);
   if (err == ecat_matrix::ECATX_ERROR) {
     free(matdirblk);
     return (NULL);
@@ -1135,7 +1159,7 @@ ecat_matrix::MatrixFile *matrix_open(const char* fname, ecat_matrix::MatrixFileA
 
 ecat_matrix::MatrixFile *matrix_create(const char *fname, MatrixFileAccessMode const fmode, ecat_matrix::Main_header * proto_mhptr) {
   ecat_matrix::MatrixFile     *mptr = NULL;
-  FILE           *fptr, *mat_create();
+  FILE           *outfile_ptr, *mat_create();
 
   set_matrix_no_error();
   switch (fmode) {
@@ -1147,20 +1171,20 @@ ecat_matrix::MatrixFile *matrix_create(const char *fname, MatrixFileAccessMode c
   case ecat_matrix::MatrixFileAccessMode::CREATE:
   case ecat_matrix::MatrixFileAccessMode::CREATE_NEW_FILE:
     set_matrix_no_error();
-    fptr = mat_create(fname, proto_mhptr);
-    if (!fptr) 
+    outfile_ptr = mat_create(fname, proto_mhptr);
+    if (!outfile_ptr) 
       return( NULL );
 
     mptr = (ecat_matrix::MatrixFile *) calloc(1, sizeof(ecat_matrix::MatrixFile));
     if (!mptr) {
-      fclose( fptr );
+      fclose( outfile_ptr );
       return( NULL );
     }
-    mptr->fptr = fptr;
+    mptr->fptr = outfile_ptr;
     mptr->fname = (char *) malloc(strlen(fname) + 1);
     if (!mptr->fname) {
       free( mptr );
-      fclose( fptr );
+      fclose( outfile_ptr );
       return( NULL );
     }
     strcpy(mptr->fname, fname);
@@ -1168,7 +1192,7 @@ ecat_matrix::MatrixFile *matrix_create(const char *fname, MatrixFileAccessMode c
     if (!mptr->mhptr) {
       free( mptr->fname );
       free( mptr );
-      fclose( fptr );
+      fclose( outfile_ptr );
       return( NULL );
     }
 
@@ -1178,7 +1202,7 @@ ecat_matrix::MatrixFile *matrix_create(const char *fname, MatrixFileAccessMode c
       free( mptr->fname );
       free( mptr->mhptr );
       free( mptr );
-      fclose( fptr );
+      fclose( outfile_ptr );
       return( NULL );
     }
     break;
@@ -1251,4 +1275,69 @@ ecat_matrix::MatrixData *matrix_read(ecat_matrix::MatrixFile *mptr, int matnum, 
       matrix_convert_data(data, dtype);
   }
   return (data);
+}
+
+// ahc this used to be in analyze.cpp
+
+int analyze_read(ecat_matrix::MatrixFile *mptr, int matnum, MatrixData *t_mdata, MatrixData::DataType dtype) {
+  ecat_matrix::MatVal matval;
+
+  mat_numdoc(matnum, &matval);
+  t_mdata->matnum = matnum;
+  t_mdata->pixel_size = t_mdata->y_size = t_mdata->z_size = 1.0;
+  t_mdata->scale_factor = 1.0;
+
+  struct image_dimension *hdim = &(((struct dsr *)mptr->analyze_hdr)->dime);
+  ecat_matrix::Image_subheader *imagesub = (ecat_matrix::Image_subheader*)t_mdata->shptr;
+  memset(imagesub, 0, sizeof(ecat_matrix::Image_subheader));
+  imagesub->num_dimensions = 3;
+  imagesub->x_pixel_size = t_mdata->pixel_size   = hdim->pixdim[1] * 0.1f;
+  imagesub->y_pixel_size = t_mdata->y_size       = hdim->pixdim[2] * 0.1f;
+  imagesub->z_pixel_size = t_mdata->z_size       = hdim->pixdim[3] * 0.1f;
+  imagesub->scale_factor = t_mdata->scale_factor = (hdim->funused1 > 0.0) ? hdim->funused1 : 1.0f;
+  imagesub->x_dimension  = t_mdata->xdim         = hdim->dim[1];
+  imagesub->y_dimension  = t_mdata->ydim         = hdim->dim[2];
+  imagesub->z_dimension  = t_mdata->zdim         = hdim->dim[3];
+  imagesub->data_type = t_mdata->data_type = MatrixData::DataType::SunShort;
+  if (dtype == MatrixData::DataType::MAT_SUB_HEADER)
+    return ecat_matrix::ECATX_OK;
+
+  int  data_offset = 0;
+  int elem_size = 2;
+  size_t npixels = t_mdata->xdim * t_mdata->ydim;
+  size_t nvoxels = npixels * t_mdata->zdim;
+  t_mdata->data_size = nvoxels * elem_size;
+  int nblks = (t_mdata->data_size + ecat_matrix::MatBLKSIZE - 1) / ecat_matrix::MatBLKSIZE;
+  t_mdata->data_ptr = (void *) calloc(nblks, ecat_matrix::MatBLKSIZE);
+  if (matval.frame > 1) 
+    data_offset = (matval.frame - 1) * t_mdata->data_size;
+  if (data_offset > 0) {
+    if (fseek(mptr->fptr, data_offset, SEEK_SET) != 0)
+      LOG_EXIT("Error skeeping to offset {}", data_offset);
+  }
+  int z_flip = 1, y_flip = 1, x_flip = 1;
+  void *plane, *line;
+  for (int z = 0; z < t_mdata->zdim; z++) {
+    if (z_flip)
+      plane = static_cast<uint8_t *>(t_mdata->data_ptr) + (t_mdata->zdim - z - 1) * elem_size * npixels;
+    else
+      plane = static_cast<uint8_t *>(t_mdata->data_ptr) + z * elem_size * npixels;
+    if (fread(plane, elem_size, npixels, mptr->fptr) < npixels) {
+      free(t_mdata->data_ptr);
+      t_mdata->data_ptr = NULL;
+      ecat_matrix::matrix_errno = ecat_matrix::MatrixError::READ_ERROR;
+      return ecat_matrix::ECATX_ERROR;
+    }
+    if (y_flip)
+      interfile::flip_y(plane, t_mdata->data_type, t_mdata->xdim, t_mdata->ydim);
+    if (x_flip) {
+      for (int y = 0; y < t_mdata->ydim; y++) {
+        // line = plane + y * t_mdata->xdim * elem_size;
+        line = static_cast<uint8_t *>(plane) + y * t_mdata->xdim * elem_size;
+        interfile::flip_x(line, t_mdata->data_type, t_mdata->xdim);
+      }
+    }
+  }
+// find_data_extrema(t_mdata);    /*don't trust in header extrema*/
+  return ecat_matrix::ECATX_OK;
 }

@@ -2231,7 +2231,7 @@ void SinogramIO::save(const std::string filename,
                   mnr, loglevel);
     return;
   }
-  float *fptr = NULL;
+  float *float_ptr = NULL;
 
   try
   { unsigned short int axis;
@@ -2408,16 +2408,16 @@ void SinogramIO::save(const std::string filename,
     if (data[0].size() > 0)                   // transfer data in ECAT7 object
     { float *fp;
 
-      fptr = new float[size()];
-      fp = fptr;
+      float_ptr = new float[size()];
+      fp = float_ptr;
       for (axis = 0; axis < axes(); axis++)
       { memcpy(fp, MemCtrl::mc()->getFloatRO(data[0][axis], loglevel),
                axis_size[axis]*sizeof(float));
         MemCtrl::mc()->put(data[0][axis]);
         fp += axis_size[axis];
       }
-      e7->getecat_matrix::MatrixData(fptr, E7_DATATYPE_FLOAT, mnr);
-      fptr = NULL;
+      e7->getecat_matrix::MatrixData(float_ptr, E7_DATATYPE_FLOAT, mnr);
+      float_ptr = NULL;
     }
     // store in view mode ?
     switch (e7->Main_file_type())
@@ -2442,7 +2442,7 @@ void SinogramIO::save(const std::string filename,
     e7->DeleteData(mnr);
   }
   catch (...)
-  { if (fptr != NULL) delete[] fptr;
+  { if (float_ptr != NULL) delete[] float_ptr;
     throw;
   }
 }

@@ -488,7 +488,6 @@ Volume::Volume(ecat_matrix::MatrixFile* matfile, int matnum, int segment) {
   try { load(matfile,matnum, segment); }
   catch(...) { throw; }
 }
-//extern "C" ecat_matrix::MatrixData *matrix_read_scan(ecat_matrix::MatrixFile*, int, int, int);
 
 int Volume::matnum(ecat_matrix::MatrixFile* matfile,int frame)
 {
@@ -659,7 +658,7 @@ int Volume::load(ecat_matrix::MatrixFile* matfile,int matnum, int segment) {
   if (main_header.file_type == Short3dSinogram || 
     main_header.file_type == Float3dSinogram ||
     main_header.file_type == AttenCor)
-    new_data = matrix_read_scan(matfile,matnum,GENERIC,segment);
+    new_data = ecat_matrix::read_scan(matfile,matnum,GENERIC,segment);
   else if (new_header->data_type == Color_24) {
     if (!color_converter) color_converter = new ColorConverter();
     new_data = color_converter->load(matfile, new_header);

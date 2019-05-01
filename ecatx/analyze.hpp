@@ -14,6 +14,8 @@
 
 #pragma once
 
+class Analyze {
+
 struct header_key    {                                      /* off + size*/
   int sizeof_hdr;                   /* 0 + 4     */
   char data_type[10];               /* 4 + 10    */
@@ -33,13 +35,7 @@ struct image_dimension    {                                   /* off + size*/
   short int bitpix;                     /* 32 + 2    */
   short int dim_un0;                      /* 34 + 2    */
   float pixdim[8];                        /* 36 + 32   */
-  /*
-    pixdim[] specifies the voxel dimensions:
-    pixdim[1] - voxel width
-    pixdim[2] - voxel height
-    pixdim[3] - interslice distance
-      ..etc
-  */
+  // pixdim[]: voxel dimensions: [1] width [2] height [3] interslice 
   float vox_offset;                     /* 68 + 4    */
   float funused1;                         /* 72 + 4    */
   float funused2;                       /* 76 + 4    */
@@ -70,36 +66,57 @@ struct data_history    {                                      /* off + size*/
   int smax, smin;                   /* 192 + 8   */
 };                          /* total=200 */
 
-struct dsr    {                                     /* off + size*/
+struct dsr {                        /* off + size*/
   struct header_key hk;             /* 0 + 40    */
   struct image_dimension dime;      /* 40 + 108  */
   struct data_history hist;         /* 148 + 200 */
 };                          /* total=348 */
 
-/* Acceptable values for hdr.dime.datatype */
+// Acceptable values for hdr.dime.datatype
+// These used to have DT_ prefix
 
-#define DT_NONE       0
-#define DT_UNKNOWN      0
-#define DT_BINARY     1
-#define DT_UNSIGNED_CHAR    2
-#define DT_SIGNED_SHORT     4
-#define DT_SIGNED_INT     8
-#define DT_FLOAT      16
-#define DT_COMPLEX      32
-#define DT_DOUBLE     64
-#define DT_RGB        128
-#define DT_ALL        255
+  enum class DataKey {
+    NONE          =   0,
+    UNKNOWN       =   0,
+    BINARY        =   1,
+    UNSIGNED_CHAR =   2,
+    SIGNED_SHORT  =   4,
+    SIGNED_INT    =   8,
+    FLOAT         =  16,
+    COMPLEX       =  32,
+    DOUBLE        =  64,
+    RGB           = 128,
+    ALL           = 255
+  };
 
-typedef struct  {
-  float real;
-  float imag;
-} COMPLEX;
+  struct DataType {
+    int bytes_per_pixel;
+    std::string description;
+  };
 
-/*
- * analyze_orientation added on 09-sep-1996 as requested
- * by Thomas Nichols (nichols@pet.upmc.edu) to distinguish
- * spm and AIR generated files.
- */
+// xxx prefixes are the ones not mentioned in code
 
-extern "C" int analyze_orientation;   /*  0: Neurology convention (spm),
-                    1: Radiology convention (AIR) */
+  static std::map<DataKey, DataType> data_types_ = {
+    {DataKey::NONE         , {0, "xxxnone"}},
+    {DataKey::UNKNOWN      , {0, "xxxunknown"}},
+    {DataKey::BINARY       , {0, "xxxbinary"}},
+    {DataKey::UNSIGNED_CHAR, {1, "unsigned integer"}},
+    {DataKey::SIGNED_SHORT , {2, "signed short"}},
+    {DataKey::SIGNED_INT   , {4, "signed integer"}},
+    {DataKey::FLOAT        , {4, "float"}},
+    {DataKey::COMPLEX      , {0, "xxxcomplex"}},
+    {DataKey::DOUBLE       , {0, "xxxdouble"}},
+    {DataKey::RGB          , {0, "xxxrgb"}},
+    {DataKey::ALL          , {0, "xxxall"}},
+  };
+
+  typedef struct  {
+    float real;
+    float imag;
+  } COMPLEX;
+
+// ---------- Members ----------
+
+struct dsr header_;
+int analyze_orientation;   /*  0: Neurology convention (spm), 1: Radiology convention (AIR) */
+}  // class Analyze

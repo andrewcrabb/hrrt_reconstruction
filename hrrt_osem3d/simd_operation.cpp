@@ -79,17 +79,17 @@ void setnegative2zero(float ***largeprj)
 {
 	int v,yr2,xr;
 	__m128 *ptr,coef1;
-	float *fptr;
+	float *float_ptr;
 	coef1=_mm_set_ps(0.0,0.0,0.0,0.0);
 	for(v=0;v<views/2;v++){
 		for(yr2=0;yr2<segmentsize*2;yr2++){
 			ptr=(__m128 *) largeprj[v][yr2];
-			fptr=largeprj[v][yr2];
+			float_ptr=largeprj[v][yr2];
 			for(xr=0;xr<xr_pixels/4;xr++){
 				ptr[xr]=_mm_max_ps(ptr[xr],coef1);
 			}
 			for(xr=0;xr<xr_pixels;xr++){
-				if(fptr[xr]<0) printf("error setnegative2zero\n");
+				if(float_ptr[xr]<0) printf("error setnegative2zero\n");
 			}
 		}
 	}

@@ -45,6 +45,7 @@
 #include <string>
 #include <map>
 
+#include "matrix_file.hpp"
 #include "matrix_data.hpp"
 
 // #define R_MODE "rb"
@@ -654,29 +655,20 @@ enum class FileFormat {
   ECAT6, ECAT7, Interfile
 };
 
-struct MatrixFile {
-  char        *fname ;  /* file path */
-  Main_header *mhptr ;  /* pointer to main header */
-  MatDirList  *dirlist ;  /* directory */
-  FILE        *fptr ;   /* file ptr for I/O calls */
-  FileFormat  file_format;
-  char        **interfile_header;   // TODO reimplement as vector<interfile::Key, std::string> - see analyze.cpp:200
-  void        *analyze_hdr;
-};
 
 // high level user functions
 
 void SWAB(void *from, void *to, int len);
 void SWAW(short *from, short *to, int len);
-// ahc replace all u_char with unsigned char
-unsigned char find_bmin(const unsigned char*, int size);
-unsigned char find_bmax(const unsigned char*, int size);
-short find_smin(const short*, int size);
-short find_smax(const short*, int size);
-int find_imin(const int*, int size);
-int find_imax(const int*, int size);
-float find_fmin(const float*, int size);
-float find_fmax(const float*, int size);
+// ahc replace all with find_extrema
+// unsigned char find_bmin(const unsigned char*, int size);
+// unsigned char find_bmax(const unsigned char*, int size);
+// short find_smin(const short*, int size);
+// short find_smax(const short*, int size);
+// int find_imin(const int*, int size);
+// int find_imax(const int*, int size);
+// float find_fmin(const float*, int size);
+// float find_fmax(const float*, int size);
 int matspec(const char* specs, char* fname , int* matnum);
 char* is_analyze(const char* );
 MatrixFile* matrix_create(const char*, MatrixFileAccessMode const mode , Main_header*);
@@ -702,7 +694,8 @@ int write_host_data(MatrixFile *mptr, int matnum, const MatrixData *data);
 int mh_update(MatrixFile *file);
 int convert_float_scan( MatrixData *scan, float *fdata);
 int matrix_convert_data(MatrixData *matrix, MatrixData::DataType dtype);
-MatrixData *matrix_read_scan(MatrixFile *mptr, int matnum, MatrixData::DataType dtype, int segment);
+
+MatrixData *read_scan(MatrixFile *mptr, int matnum, MatrixData::DataType dtype, int segment);
 
  // low level functions prototypes, don't use
 

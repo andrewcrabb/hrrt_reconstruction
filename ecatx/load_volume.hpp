@@ -341,9 +341,7 @@ Tslice *slice, int interp)
   return 1;
 }
 
-static ecat_matrix::MatrixData *load_volume(ecat_matrix::MatrixFile *matrix_file,int frame, int cubic,
-int interp)
-{
+static ecat_matrix::MatrixData *load_volume(ecat_matrix::MatrixFile *matrix_file,int frame, int cubic, int interp) {
   int i=0, ret=0;
   ecat_matrix::MatrixData *mat;
   int matnum;
@@ -427,22 +425,31 @@ int interp)
   volume->y_size = volume->pixel_size;
   if (cubic) volume->z_size = volume->pixel_size;
   else volume->z_size = zsep;
-  volume->x_origin = 0.5*volume->xdim*volume->pixel_size;
-  volume->y_origin = 0.5*volume->ydim*volume->y_size;
-  volume->z_origin = 0.5*volume->zdim*volume->z_size;
-  nvoxels = volume->xdim*volume->ydim*volume->zdim;
+  volume->x_origin = 0.5 * volume->xdim * volume->pixel_size;
+  volume->y_origin = 0.5 * volume->ydim * volume->y_size;
+  volume->z_origin = 0.5 * volume->zdim * volume->z_size;
+  nvoxels = volume->xdim * volume->ydim * volume->zdim;
   if (imh) {
     imh->num_dimensions = 3;
     imh->z_dimension = volume->zdim;
     imh->y_pixel_size = volume->y_size;
     imh->z_pixel_size = volume->z_size;
+    // hrrt_util::Extrema<unsigned char> extrema;
     if (volume->data_type == MatrixData::DataType::ByteData) {
-      imh->image_min = find_bmin((unsigned char *)volume->data_ptr,nvoxels);
-      imh->image_max = find_bmax((unsigned char *)volume->data_ptr,nvoxels);
+      // imh->image_min = find_bmin((unsigned char *)volume->data_ptr,nvoxels);
+      // imh->image_max = find_bmax((unsigned char *)volume->data_ptr,nvoxels);
+      hrrt_util::Extrema<unsigned char> extrema = hrrt_util::find_extrema<unsigned char>(static_cast<unsigned char *>(volume->data_ptr), nvoxels);
+      imh->image_min = extrema.min;
+      imh->image_max = extrema.max;
     } else {
-      imh->image_min = find_smin((short*)volume->data_ptr,nvoxels);
-      imh->image_max = find_smax((short*)volume->data_ptr,nvoxels);
+      // imh->image_min = find_smin((short*)volume->data_ptr,nvoxels);
+      // imh->image_max = find_smax((short*)volume->data_ptr,nvoxels);
+      hrrt_util::Extrema<short> extrema = hrrt_util::find_extrema<short>(static_cast<short *>(volume->data_ptr), nvoxels);
+      imh->image_min = extrema.min;
+      imh->image_max = extrema.max;
     }
+    // imh->image_min = extrema.min;
+    // imh->image_max = extrema.max;
     volume->data_min = imh->image_min * volume->scale_factor;
     volume->data_max = imh->image_max * volume->scale_factor;
   }

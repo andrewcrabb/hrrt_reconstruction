@@ -316,13 +316,13 @@ int read_crystal_singles_file(float *csings) {
 // TODO reimplement this as shared_ptr and ifstream.  Though other routines call gen_delays with a FILE*
 
 int read_coincidence_sinogram_file(int *t_coincidence_sinogram, FILE *t_coincidence_file_ptr) {
-  FILE *fptr;
+  FILE *infile_ptr;
   if (t_coincidence_file_ptr == NULL)
-    fptr = fopen(g_coincidence_histogram_file.c_str(), "rb");
+    infile_ptr = fopen(g_coincidence_histogram_file.c_str(), "rb");
   else
-    fptr = t_coincidence_file_ptr;
+    infile_ptr = t_coincidence_file_ptr;
 
-  if (!fptr) {
+  if (!infile_ptr) {
     if (t_coincidence_file_ptr) {
       LOG_ERROR("Can't open supplied sinogram FILE");
     } else {
@@ -333,9 +333,9 @@ int read_coincidence_sinogram_file(int *t_coincidence_sinogram, FILE *t_coincide
   // std::vector<int> coincidence_sinogram(GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * 2); // prompt followed by delayed
   // if (!coincidence_sinogram)
   //   LOG_INFO("calloc failure for coincidence_sinogram array\n");
-  int n = (int)fread(t_coincidence_sinogram, sizeof(int), GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * 2, fptr);
-  if (fptr != t_coincidence_file_ptr)
-    fclose(fptr);
+  int n = (int)fread(t_coincidence_sinogram, sizeof(int), GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * 2, infile_ptr);
+  if (infile_ptr != t_coincidence_file_ptr)
+    fclose(infile_ptr);
   if (n != 2 * GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS)  {
     LOG_ERROR("Not enough data in coinsfile '{}' (only {} of {})", g_coincidence_histogram_file, n, GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS * 2);
     return (1);
@@ -356,7 +356,6 @@ int gen_delays(int is_inline,
               )
 {
   struct timeval t0, t1, t2, t3;
-  // FILE *fptr;
   // char *rebinner_lut_file_ptr = NULL;   // TODO Take this out once all moved to bf
   // bf::path rebinner_lut_file;
   // char *csingles_file = NULL;

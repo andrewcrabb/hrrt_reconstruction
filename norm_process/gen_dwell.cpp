@@ -138,8 +138,8 @@ void main(int argc, char ** argv) {
   //-------------------------------------------------------
 // file write
 	float *dtmp  = (float *) calloc( npixels, sizeof(float));		
-  FILE *fptr=fopen(out_file, "wb");
-	if (!fptr) {
+  FILE *outfile_ptr=fopen(out_file, "wb");
+	if (!outfile_ptr) {
 		printf("Can't create output file '%s'\n", out_file);
     exit(1);
 	}
@@ -150,7 +150,7 @@ void main(int argc, char ** argv) {
       if (dtmp[n]>0) 
         dtmp[n] = 5.0f/dtmp[n];
     }
-    fwrite( dtmp, sizeof(float), npixels, fptr);
+    fwrite( dtmp, sizeof(float), npixels, outfile_ptr);
   }
-  fclose(fptr);
+  fclose(outfile_ptr);
 }

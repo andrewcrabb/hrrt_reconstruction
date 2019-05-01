@@ -1,6 +1,7 @@
 // matrix_data.hpp
 // Content taken from monolithic ecat_matrix.hpp
 // Global changes: 
+//   ecat_matrix::MatrixData         MatrixData
 //   ecat_matrix::MatrixDataType     MatrixData::DataType
 //   ecat_matrix::MatrixDataType_64  MatrixData::DataType_64
 //   ecat_matrix::matrix_data_types_ MatrixData::data_types_
@@ -60,21 +61,24 @@ enum class DataType_64 {
 // Combines former MatrixDataType,
 
   // static std::map<MatrixDataType, MatrixDataProperty> matrix_data_types_ = {
-  static std::map<DataType, DataProperty> data_types_ = {
-    {DataType::UnknownMatDataType, {"UnknownMatDataType" , 0}},
-    {DataType::ByteData          , {"ByteData"           , 1}},
-    {DataType::VAX_Ix2           , {"VAX_Ix2"            , 2}},
-    {DataType::VAX_Ix4           , {"VAX_Ix4,"           , 4}},
-    {DataType::VAX_Rx4           , {"VAX_Rx4"            , 4}},
-    {DataType::IeeeFloat         , {"IeeeFloat"          , 4}},
-    {DataType::SunShort          , {"SunShort"           , 2}},  // big endian
-    {DataType::SunLong           , {"SunLong"            , 4}},  // big endian
-    {DataType::UShort_BE         , {"UShort_BE"          , 2}},
-    {DataType::UShort_LE         , {"UShort_LE"          , 2}},
-    {DataType::Color_24          , {"Color_24"           , 3}},
-    {DataType::Color_8           , {"Color_8"            , 1}},
-    {DataType::BitData           , {"BitData"            , 1}}
-  };
+
+  // Can't initialize static nonliteral types in header.
+  static std::map<DataType, DataProperty> data_types_;
+  // static constexpr std::map<DataType, DataProperty> data_types_ = {
+  //   {DataType::UnknownMatDataType, {"UnknownMatDataType" , 0}},
+  //   {DataType::ByteData          , {"ByteData"           , 1}},
+  //   {DataType::VAX_Ix2           , {"VAX_Ix2"            , 2}},
+  //   {DataType::VAX_Ix4           , {"VAX_Ix4,"           , 4}},
+  //   {DataType::VAX_Rx4           , {"VAX_Rx4"            , 4}},
+  //   {DataType::IeeeFloat         , {"IeeeFloat"          , 4}},
+  //   {DataType::SunShort          , {"SunShort"           , 2}},  // big endian
+  //   {DataType::SunLong           , {"SunLong"            , 4}},  // big endian
+  //   {DataType::UShort_BE         , {"UShort_BE"          , 2}},
+  //   {DataType::UShort_LE         , {"UShort_LE"          , 2}},
+  //   {DataType::Color_24          , {"Color_24"           , 3}},
+  //   {DataType::Color_8           , {"Color_8"            , 1}},
+  //   {DataType::BitData           , {"BitData"            , 1}}
+  // };
 
 enum class DataSetType {
   NoData,
@@ -103,7 +107,7 @@ struct CodeName {
 
 // Combines former enum DataSetType, char *datasettype, char *dstypecode
 
-static std::map<DataSetType, CodeName> data_set_types_ = {
+std::map<DataSetType, CodeName> data_set_types_ = {
   {DataSetType::NoData         , {"u" , "Unknown"}},
   {DataSetType::Sinogram       , {"s" , "Sinogram"}},
   {DataSetType::PetImage       , {"i" , "Image-16"}},
@@ -127,7 +131,7 @@ static std::map<DataSetType, CodeName> data_set_types_ = {
   int   matnum ;  /* matrix number */
   MatrixFile  *matfile ;  /* pointer to parent */
   DataSetType mat_type ;  /* type of matrix? */
-  MatrixDataType  data_type ; /* type of data */
+  DataType  data_type ; /* type of data */
   // void *   shptr ;    pointer to sub-header
   // void *   data_ptr ;  /* pointer to data */
   void *shptr ;   /* pointer to sub-header */
@@ -150,6 +154,8 @@ static std::map<DataSetType, CodeName> data_set_types_ = {
   int dicom_header_size;
 
   // Methods
+  ~MatrixData(void);
   void find_data_extrema(void);
   int num_pixels(void);
+  int init_data_ptr(int num_bytes);
 };
