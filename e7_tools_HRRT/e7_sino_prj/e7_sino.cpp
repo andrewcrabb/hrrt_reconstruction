@@ -19,23 +19,13 @@
 #include <string>
 #include <cstdlib>
 #include <limits>
-#if defined(__linux__) || defined(__SOLARIS__)
-#include <new>
-#endif
-#ifdef WIN32
-#include <new.h>
-#endif
 #include "convert.h"
 #include "dift.h"
 #include "e7_common.h"
 #include "exception.h"
 #include "gm.h"
 #include "hwinfo.h" 
-#ifdef SUPPORT_NEW_SCATTER_CODE
-#if defined(__linux__) || defined(WIN32) || defined(__SOLARIS__)
 #include "idl_interface.h"
-#endif
-#endif
 #include "image_conversion.h"
 #include "logging.h"
 #include "mem_ctrl.h"
@@ -98,19 +88,9 @@ void calculateSinogram(Parser::tparam * const v)
 
    try
    { unsigned short int num_log_cpus, i, number_of_matrices, mat_offset;
-     std::string str, mu;
+     std::string str, mu('mu');
      std::vector <unsigned short int> matrices;
 
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-     char c[2];
-
-     c[1]=0;
-     c[0]=(char)181;
-     mu=std::string(c);
-#endif
-#ifdef WIN32
-     mu='u';
-#endif
      num_log_cpus=logicalCPUs();
                                               // init geometry (for flat files)
      if (GM::gm()->initialized())
@@ -591,20 +571,7 @@ void calculateSinogram(Parser::tparam * const v)
  */
 /*---------------------------------------------------------------------------*/
 bool validate(Parser::tparam * const v)
- { std::string mu;
-   bool ret=true;
-   {
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-     char c[2];
-
-     c[1]=0;
-     c[0]=(char)181;
-     mu=std::string(c);
-#endif
-#ifdef WIN32
-     mu='u';
-#endif
-   }
+ { std::string mu('mu');
    if (v->emission_filename.empty())
     { std::cerr << "The name of the emission input file needs to be specified."
                    "\n";
@@ -977,22 +944,14 @@ int main(int argc, char **argv)
  { Parser *cpar=NULL;
    StopWatch sw;
 
-#if __linux__
-        if ( getenv( "GMINI" ) == NULL )
-        {
+        if ( getenv( "GMINI" ) == NULL )  {
                 printf( "Environment variable 'GMINI' not set\n" ) ;
                 exit( EXIT_FAILURE ) ;
         }
-#endif
+
 
    try
    {                                         // set handler for "out of memory"
-#ifdef WIN32
-     _set_new_handler(OutOfMemory);
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-     std::set_new_handler(OutOfMemory);
-#endif
                                               // initialize command line parser
      cpar=new Parser("e7_sino",
                      "calculate fully corrected 2d or 3d sinogram or\n        "
@@ -1052,11 +1011,10 @@ int main(int argc, char **argv)
          break;
       }
               // check for IDL runtime license (used for new scatter code only)
-#ifdef SUPPORT_NEW_SCATTER_CODE
-#if defined(__linux__) || defined(WIN32) || defined(__SOLARIS__)
-     if (cpar->params()->new_scatter_code) IDL_Interface::idl();
-#endif
-#endif
+      // ahc this used to be optional.
+     if (cpar->params()->new_scatter_code) 
+      IDL_Interface::idl();
+
      printHWInfo(0);                        // print information about hardware
      Logging::flog()->logCmdLine(argc, argv);             // print command line
                                                 // initialize memory controller
@@ -1089,11 +1047,8 @@ int main(int argc, char **argv)
      delete cpar;                                              // delete parser
      cpar=NULL;
      MemCtrl::mc()->printPattern(0);              // save memory access pattern
-#ifdef SUPPORT_NEW_SCATTER_CODE
-#if defined(__linux__) || defined(WIN32) || defined(__SOLARIS__)
+     // ahc this used to be optional.
      IDL_Interface::IDL_close();                                  // unload IDL
-#endif
-#endif
      Logging::close();                                         // close logging
      Progress::close();                               // close progress handler
      MemCtrl::deleteMemoryController();              // close memory controller

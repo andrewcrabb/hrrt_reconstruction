@@ -8,8 +8,7 @@
     \date 2005/01/25 added Doxygen style comments
  */
 
-#ifndef _DIFT_H
-#define _DIFT_H
+#pragma once
 
 #include <vector>
 #include "fft.h"
@@ -101,5 +100,3 @@ class DIFT
     float *reconstruct(float *, unsigned short int, const unsigned short int,
                        float * const, const unsigned short int);
  };
-
-#endif

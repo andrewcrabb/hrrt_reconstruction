@@ -4,11 +4,7 @@ Modification History
     \author Peter M. Bloomfield - HRRT users community (peter.bloomfield@camhpet.ca)
     \date 2009/08/28 Port to Linux (peter.bloomfield@camhpet.ca)
 */
-#if defined(__linux__) && defined(__INTEL_COMPILER)
-#include <mathimf.h>
-#else
 #include <cmath>
-#endif
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
@@ -16,9 +12,6 @@ Modification History
 #include "Projected_Image_3D.h"
 #include "e7_tools_const.h"
 #include "exception.h"
-#ifdef WIN32
-#include "global_tmpl.h"
-#endif
 #include <string.h>
 /*****************************************************************************
                               Methods of

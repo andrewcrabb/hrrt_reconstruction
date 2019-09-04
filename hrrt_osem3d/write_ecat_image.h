@@ -10,8 +10,7 @@
 Copyright (C) CPS Innovations 2002-2003-2004 All Rights Reserved.
 -------------------------------------------------------------------*/
 
-#ifndef write_ecat_image_h
-#define write_ecat_image_h
+# pragma once
 
 #include	<stdlib.h>
 #include "write_image_header.h"
@@ -19,5 +18,3 @@ Copyright (C) CPS Innovations 2002-2003-2004 All Rights Reserved.
 extern int write_ecat_image(float ***image, char * filename, int frame,
                             ImageHeaderInfo *info, int psf_flag,
                             const char *sw_version, const char *sw_build_id);
-
-#endif

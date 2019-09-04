@@ -37,9 +37,6 @@
 #include "mem_ctrl.h"
 #include "vecmath.h"
 
-#ifdef WIN32
-#undef max
-#endif
 
 /*- methods -----------------------------------------------------------------*/
 

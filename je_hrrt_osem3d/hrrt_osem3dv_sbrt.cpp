@@ -19,17 +19,10 @@
 
 /* Modifications history:
    08-MAY-2008: Bug fix for low resolution mode (M. Sibomana)
-   12-MAY-2009: Add const to char arg in crash1(), crash2(), crash3()
    - 02-JUL-2009: Add dual logging to console and file
 */
 #include "compile.h"
 
-#ifdef IS_WIN32
-#include <windows.h>
-#include <process.h>
-#include <xmmintrin.h>
-#include <emmintrin.h>
-#else
 #define _REENTRANT
 #define _POSIX_SOURCE
 #define _P __P
@@ -40,7 +33,6 @@
 #define _alloca alloca
 #include <stdarg.h>
 #define _MAX_PATH 256
-#endif
 #include "mm_malloc.h"
 #include <time.h>
 
@@ -172,60 +164,6 @@ void calculatevieworder(int **vieworder,int subsets,int th_pixels,int sviews) {
 char log_file[_MAX_PATH];
 unsigned int log_mode = LOG_TO_CONSOLE;
 
-void LogMessage( const char *fmt, ... )
-{
-  //variable argument list
-  int nc = 0;	va_list args;
-  char printout[_MAX_PATH];
-	
-  //log entry
-  FILE *log_fp=NULL; 
-  time_t ltime;
-  char LogEntry[_MAX_PATH];
-
-  //format the incoming string + args
-  va_start(args, fmt);
-  nc = vsprintf(printout, fmt, args);
-  va_end(args);
-
-  //prepend the time
-  time(&ltime);
-  struct tm *ptm = localtime(&ltime);
-  sprintf(LogEntry,"%02d:%02d:%02d", ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
-  LogEntry[8] = '\t';	strcpy(&LogEntry[9],printout);
-
-  //make the log entry
-  if (log_file != NULL) log_fp = fopen(log_file,"a+");
-  if(log_fp != NULL) {
-    fprintf(log_fp,"%s",LogEntry);
-    fclose(log_fp);
-  }
-  if (log_mode&LOG_TO_CONSOLE) fprintf(stdout,"%s",LogEntry);
-}
-
-
-/*******************************************************************************************************/
-int crash1(const char *fmt)
-{
-  //	fprintf(stderr, fmt);
-  LogMessage( fmt);
-  exit(1);
-}
-
-int crash2(const char *fmt, char *a0)
-{
-  //	fprintf(stderr, fmt, a0);
-  LogMessage(fmt, a0);
-  exit(1);
-}
-
-int crash3(const char *fmt, int a0)
-{
-  //	fprintf(stderr, fmt, a0);
-  LogMessage(fmt, a0);
-  exit(1);
-}
-
 /*
  * calculate range of planes of each group.
  *
@@ -305,9 +243,9 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
   /* nprojs and nviews are specified from command line  */
   if (nprojs != 0) {
     if (nprojs != radial_pixels) {
-      if (verbose & 0x0001) fprintf(stdout,"  Radial resampling from %d to %d pixels, i.e. from %.5f mm to ",radial_pixels, nprojs, sino_sampling);
+      LOG_DEBUG("  Radial resampling from %d to %d pixels, i.e. from %.5f mm to ",radial_pixels, nprojs, sino_sampling);
       sino_sampling *= (float) radial_pixels / (float) nprojs;
-      if (verbose & 0x0001) fprintf(stdout, " %.5f mm\n", sino_sampling);
+      LOG_DEBUG( " %.5f mm\n", sino_sampling);
     }
     radial_pixels = nprojs;
   }
@@ -329,21 +267,20 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
   x_off = x_pixels / 2;
   y_off = y_pixels / 2;
   z_off = z_pixels / 2;
-  if (verbose & 0x0001) fprintf(stdout, "  Image offsets: x_off=%d, y_off=%d, z_off=%d\n",x_off, y_off, z_off);
+  LOG_DEBUG( "  Image offsets: x_off=%d, y_off=%d, z_off=%d\n",x_off, y_off, z_off);
 
   /* x_size, y_size, z_size */
   x_size = (sino_sampling * radial_pixels) / (zoomlocal * x_pixels);
   y_size = x_size;
   z_size = ring_spacing / 2.0f;
-  if (verbose & 0x0001)
-    fprintf(stdout, "  at zoom = %f, pixel_size is %f zoom=%f newzoom=%f mm\n", zoomlocal,x_size,zoom,newzoom);
+  LOG_DEBUG("  at zoom = {}, pixel_size is {} zoom= {} newzoom= {} mm", zoomlocal,x_size,zoom,newzoom);
   imagesize  = z_pixels * x_pixels  * y_pixels;
 
   /************************************/
   /* osem_parameter                   */
   /* views, subsets, sviews           */
   if ((views % subsets) != 0) {
-    fprintf(stdout,"  Number of views %d should be multiple of subsets %d \n",views, subsets);
+    LOG_INFO("  Number of views %d should be multiple of subsets %d \n",views, subsets);
     return 0;
   }
   sviews = views / subsets;
@@ -376,19 +313,19 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
 
 
   if (verbose & 0x0001) {
-    fprintf(stdout, "  Additional parameters \n");
-    fprintf(stdout, "  ----------------------\n");
-    fprintf(stdout, "  Number of subsets and sviews  : %d , %d \n",subsets, sviews);
-    fprintf(stdout, "  Measured projections (xr*yr)  : %d  x  %d \n",xr_pixels, yr_pixels);
-    fprintf(stdout, "  Number of segments            : %d \n",th_pixels);
-    fprintf(stdout, "  Image size (X*Y*Z)            : %d  x  %d x %d \n",x_pixels, y_pixels, z_pixels);
-    //		fprintf(stdout, "  Xr offset                     : %d \n", xr_off);
-    //		fprintf(stdout, "  Yr offset                     : %d \n", yr_off);
-    fprintf(stdout, "  Maximum ring difference       : %d \n", maxdel);
-    fprintf(stdout, "  Miminum group [segment]       : %d [%d]\n",groupmin, th_min);
-    fprintf(stdout, "  Maximum group [segment]       : %d [%d]\n",groupmax, th_pixels);
-    fprintf(stdout, "  Reconstructed FOV radius      : %f mm (%f %%) \n", rfov,rel_fov);
-    fprintf(stdout, "  Final FOV radius              : %f mm \n",ffov);
+    LOG_INFO( "  Additional parameters \n");
+    LOG_INFO( "  ----------------------\n");
+    LOG_INFO( "  Number of subsets and sviews  : %d , %d \n",subsets, sviews);
+    LOG_INFO( "  Measured projections (xr*yr)  : %d  x  %d \n",xr_pixels, yr_pixels);
+    LOG_INFO( "  Number of segments            : %d \n",th_pixels);
+    LOG_INFO( "  Image size (X*Y*Z)            : %d  x  %d x %d \n",x_pixels, y_pixels, z_pixels);
+    //		LOG_INFO( "  Xr offset                     : %d \n", xr_off);
+    //		LOG_INFO( "  Yr offset                     : %d \n", yr_off);
+    LOG_INFO( "  Maximum ring difference       : %d \n", maxdel);
+    LOG_INFO( "  Miminum group [segment]       : %d [%d]\n",groupmin, th_min);
+    LOG_INFO( "  Maximum group [segment]       : %d [%d]\n",groupmax, th_pixels);
+    LOG_INFO( "  Reconstructed FOV radius      : %f mm (%f %%) \n", rfov,rel_fov);
+    LOG_INFO( "  Final FOV radius              : %f mm \n",ffov);
   }
 
   /* frequently used arrays and constants  */
@@ -429,13 +366,13 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
         cylflag=0;
       }
     }
-    //	fprintf(stdout," Mask boundaries at line y %d\t%d\t%d\n",y,cylwiny[y][0],cylwiny[y][1]);
+    //	LOG_INFO(" Mask boundaries at line y %d\t%d\t%d\n",y,cylwiny[y][0],cylwiny[y][1]);
   }
   x = 0;
   y = 0;
   v = 0;
   z = 0;
-  fprintf(stdout,"  Pixels in rfov [%d]\n",i);
+  LOG_INFO("  Pixels in rfov [%d]\n",i);
   i = i/nthreads;
   if(i<0) i = 0;
 
@@ -508,7 +445,7 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
     cos_theta[2 * group - 1] = (2.0f * ring_radius) / tmp_flt;
     sin_theta[2 * group] = -sin_theta[2 * group - 1];
     cos_theta[2 * group] = cos_theta[2 * group - 1];
-    if (verbose & 0x0001) fprintf(stdout,"  cos_theta[%d] = %f %2.20lf %2.20lf\n", group,cos_theta[2 * group - 1],-sin_theta[2 ]/cos_theta[2 ]*group,-sin_theta[2 * group]/cos_theta[2 * group]);
+    LOG_DEBUG("  cos_theta[%d] = %f %2.20lf %2.20lf\n", group,cos_theta[2 * group - 1],-sin_theta[2 ]/cos_theta[2 ]*group,-sin_theta[2 * group]/cos_theta[2 * group]);
     /* LX: end of each axial groups has a theta which is different from the mean of that group */
     for (z = 0; z < ZShift; z++) {
       zmin = span * group - (span - 1) / 2;
@@ -544,10 +481,10 @@ int dependencies(int nprojs,int  nviews,int  verbose) {
   }
 
   if (verbose & 0x0001) {
-    fprintf(stdout,"  Total number of planes %d \n",segmentsize);
-    fprintf(stdout,"  Range and sixel_offset for each theta (group) \n");
+    LOG_INFO("  Total number of planes %d \n",segmentsize);
+    LOG_INFO("  Range and sixel_offset for each theta (group) \n");
     for (group = th_min; group < th_pixels; group++)
-      fprintf(stdout,"  yr_bottom[%d] = %d; yr_top[%d] = %d offset[%d] = %d \n", group, yr_bottom[group], group, yr_top[group], group,seg_offset[group]);
+      LOG_INFO("  yr_bottom[%d] = %d; yr_top[%d] = %d offset[%d] = %d \n", group, yr_bottom[group], group, yr_top[group], group,seg_offset[group]);
   }
 
   sin_psi[0] = 0.0;
@@ -1531,7 +1468,7 @@ int forward_proj3d_thread1(float ***ima,float ** prj,int view,int numthread,floa
 */
 int proj_atten_view(float ***image, float *prj,int view, int verbose)
 {
-  fprintf(stdout, "proj_atten_view:TBD\n");
+  LOG_INFO( "proj_atten_view:TBD\n");
   exit(1);
 }
 

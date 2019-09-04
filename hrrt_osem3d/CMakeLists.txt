@@ -6,6 +6,8 @@ add_library (hrrt_osem3d
 			scanner_model.cpp  simd_operation.cpp  write_image_header.cpp write_ecat_image.cpp interfile_reader.cpp)
 
 target_include_directories (hrrt_osem3d PUBLIC ${CMAKE_SOURCE_DIR}  ${CMAKE_CURRENT_SOURCE_DIR})
+# target_compile_options(hrrt_osem3d INTERFACE CXX_STANDARD 14)
 install(TARGETS hrrt_osem3d
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    # PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)

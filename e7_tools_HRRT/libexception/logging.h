@@ -10,13 +10,10 @@
     \date 2004/09/15 check for SyngoCancel before every message
  */
 
-#ifndef _LOGGING_H
-#define _LOGGING_H
+#pragma once
 
 #include <sys/types.h>
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <unistd.h>
-#endif
 #include <fstream>
 #include <string>
 #include <ctime>
@@ -66,9 +63,6 @@ class Logging
     static const unsigned short int LOG_SCREEN=2;         /*!< log to screen */
     template <typename T>
      Logging *arg(T);                          // fill argument into log string
-#ifdef WIN32
-    Logging *arg(GUID);                            // fill GUID into log string
-#endif
     static void close();                                      // close log file
     static Logging *flog();                // get pointer to instance of object
                                                                // open log file
@@ -80,10 +74,3 @@ class Logging
     Logging *logMsg(const std::string, const unsigned short int);// log message
     unsigned short int maxLoggingLevel() const;// request maximum logging level
  };
-
-#ifndef _LOGGING_CPP
-#define _LOGGING_TMPL_CPP
-#include "logging.cpp"
-#endif
-
-#endif

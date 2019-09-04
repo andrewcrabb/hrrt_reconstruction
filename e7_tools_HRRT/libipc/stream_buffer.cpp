@@ -15,16 +15,9 @@
  */
 
 #include <iostream>
-#ifndef __MACOSX__
 #include <malloc.h>
-#endif
-#ifndef _STREAM_BUFFER_CPP
-#define _STREAM_BUFFER_CPP
 #include "stream_buffer.h"
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include "exception.h"
-#endif
 
 #ifndef _STREAM_BUFFER_TMPL_CPP
 /*- constants ---------------------------------------------------------------*/

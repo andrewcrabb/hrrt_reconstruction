@@ -14,13 +14,14 @@ set (LIB_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/e7_tools_HRRT/libconvert
 	)
 
-add_executable (compute_norm compute_norm.cpp gantryinfo.cpp matrix.cpp self_norm.cpp det_to_ve.cpp 
+add_executable (compute_norm compute_norm.cpp gantryinfo.cpp self_norm.cpp det_to_ve.cpp 
 	gapfill.cpp plot.cpp  sino_to_crys.cpp dwell_sino.cpp global_tmpl.cpp polyfit.cpp fit_dwell.cpp make_norm.cpp polyfitw.cpp)
 
-target_link_libraries (compute_norm LINK_PUBLIC )
+target_link_libraries (compute_norm LINK_PUBLIC math_matrix)
 
 # add_definitions(-D GSMOOTH)
 target_include_directories (compute_norm PUBLIC ${LIB_INCLUDE_DIRS})
 install(TARGETS compute_norm
     RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    # PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)

@@ -56,7 +56,7 @@
 #include <string.h>
 #include <time.h>
 #include <sys/stat.h>
-#include <ecatx/matrix.h>
+#include <ecatx/ecat_matrix.hpp>
 #include <string>
 #include <dirent.h>
 #include <unistd.h>
@@ -126,17 +126,17 @@ int run_system_command( char *prog, char *args ) {
   if ((ptr=getenv("HOME")) != NULL) {
     sprintf(ma_pattern_name, "%s/.ma_pattern.dat", ptr);
     if (!access(ma_pattern_name, R_OK)) {
-      fprintf(stderr, "*** ma_pattern file exists: '%s'\n", ma_pattern_name);      
+      LOG_ERROR("*** ma_pattern file exists: '%s'\n", ma_pattern_name);      
       if (remove(ma_pattern_name) != 0) {
-        fprintf(stderr, "*** ERROR: Removing ma_pattern file: '%s'\n", ma_pattern_name);
+        LOG_ERROR("*** ERROR: Removing ma_pattern file: '%s'\n", ma_pattern_name);
       } else {
-        fprintf(stderr, "*** Removed ma_pattern file OK: '%s'\n", ma_pattern_name);
+        LOG_ERROR("*** Removed ma_pattern file OK: '%s'\n", ma_pattern_name);
       }
     } else {
-      fprintf(stderr, "*** ma_pattern file '%s' does not exist\n", ma_pattern_name);
+      LOG_ERROR("*** ma_pattern file '%s' does not exist\n", ma_pattern_name);
     }
   } else {
-    fprintf(stderr, "*** Could not determine HOME envt var: Cannot remove ma_pattern.dat file\n");
+    LOG_ERROR("*** Could not determine HOME envt var: Cannot remove ma_pattern.dat file\n");
   }
   fflush(stderr);
        
@@ -399,15 +399,15 @@ int main(int argc, char **argv)
 
   // ahc test required parameters.
   if (!strlen(program_path)) {
-    fprintf(stderr, "Error: Missing required parameter 'p' (program path)\n");
+    LOG_ERROR("Error: Missing required parameter 'p' (program path)\n");
     usage(argv[0]);
   }
   if (!strlen(prog_gnuplot)) {
-    fprintf(stderr, "Error: Missing required parameter 'z' (FQ path of gnuplot program)\n");
+    LOG_ERROR("Error: Missing required parameter 'z' (FQ path of gnuplot program)\n");
     usage(argv[0]);
   }
   if (!strlen(rebinner_lut_file)) {
-    fprintf(stderr, "Error: Missing required parameter 'b' (FQ path of hrrt_rebinner lut file)\n");
+    LOG_ERROR("Error: Missing required parameter 'b' (FQ path of hrrt_rebinner lut file)\n");
     usage(argv[0]);
   }
 
@@ -440,11 +440,11 @@ int main(int argc, char **argv)
   // Realign only option for ECAT files
   if (*ext == 'v') {
     // ahc no
-    MatrixFile *mf;
-    MatrixData *matdata;
-    Image_subheader *imh;
-    MatDirNode *node;
-    if ((mf=matrix_open(em_file, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE))==NULL){
+    ecat_matrix::MatrixFile *mf;
+    ecat_matrix::MatrixData *matdata;
+    ecat_matrix::Image_subheader *imh;
+    ecat_matrix::MatDirNode *node;
+    if ((mf=matrix_open(em_file, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE))==NULL){
       fprintf(log_fp,"Error opening file %s\n", em_file);
       return 1;
     }
@@ -458,11 +458,11 @@ int main(int argc, char **argv)
     frame_info.resize(num_frames);
     node = mf->dirlist->first;
     for (frame=0; frame<num_frames && node!=NULL; frame++) {
-      if ((matdata = matrix_read(mf, node->matnum, MAT_SUB_HEADER)) == NULL) {
+      if ((matdata = matrix_read(mf, node->matnum, MatrixData::DataType::MAT_SUB_HEADER)) == NULL) {
         fprintf(log_fp,"Error reading frame %d header\n", frame);
         return 1;
       }
-      imh = (Image_subheader*)matdata->shptr;
+      imh = (ecat_matrix::Image_subheader*)matdata->shptr;
       frame_info[frame].start_time = imh->frame_start_time/1000;
       frame_info[frame].duration = imh->frame_duration/1000;
       frame_info[frame].randoms = imh->random_rate*frame_info[frame].duration;

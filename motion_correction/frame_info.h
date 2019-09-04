@@ -2,8 +2,7 @@
   Author: Merence Sibomana
 Creation date: 14-feb-2010
 */
-#ifndef frame_info_h
-#define frame_info_h
+# pragma once
 
 #include <ctype.h>
 #include <stdio.h>
@@ -11,9 +10,6 @@ Creation date: 14-feb-2010
 #include <string.h>
 #include <vector>
 
-#ifndef WIN32
-typedef signed long long __int64;
-#endif
 
 #define MIN_FRAME_DURATION 30  // Default alignement start frame len in sec
 #define DEF_REF_FRAME_DURATION 300 // Default reference frame len in sec
@@ -260,6 +256,3 @@ static unsigned vicra_get_info(const char *vicra_file, FILE *log_fp)
   fclose(fp);
   return vicra_info.em.size();
 }
-
-
-#endif

@@ -27,12 +27,7 @@ Copyright (C) CPS Innovations 2002-2003-2004 All Rights Reserved.
 //#include	"Cluster.h"
 //#include    "hrrt_osem3d.h"
 #include	"write_image_header.h"
-#ifdef WIN32
-#define strnicmp _strnicmp
-#define		DIR_SEPARATOR '\\'
-#else
 #define		DIR_SEPARATOR '/'
-#endif
 
 #define		LINESIZE 1024
 #define		IN_DIR_SEPARATOR '/'
@@ -80,12 +75,10 @@ int write_image_header(ImageHeaderInfo *info, int psf_flag,
 	char	ImgHeaderName[_MAX_PATH];
 	char	*p=NULL;
 
-#ifdef IS__linux__
 	#define _MAX_DRIVE 0
 	#define _MAX_DIR 256
 	#define _MAX_FNAME 256
 	#define _MAX_EXT 256
-#endif
 
 	char drive[_MAX_DRIVE];
 	char dir[_MAX_DIR];
@@ -94,9 +87,6 @@ int write_image_header(ImageHeaderInfo *info, int psf_flag,
 
 	//split output image file name into component parts
 
-#ifdef WIN32
-	_splitpath( info->imagefile, drive, dir, ImageName, ext );
-#else   
 	// !sv we actually only need to separate ImageName and ext for the following code
 	// this is a dirty hack
 	char *lastslash = strrchr ( info->imagefile,  '/' );
@@ -114,7 +104,7 @@ int write_image_header(ImageHeaderInfo *info, int psf_flag,
 	else {
 	  strcpy ( ext, "" );
 	}
-#endif
+
 	//Check image file name, create header name
 	if( strlen(info->imagefile) == 0 ) {
 		printf("Error! WriteImageHeader: Null File Name\n");
@@ -281,13 +271,9 @@ int write_image_header(ImageHeaderInfo *info, int psf_flag,
 			while( fgets(line,LINESIZE,f_in) != NULL ){
 
 				//ignore anything we've already written
-#ifdef WIN32
-				if(!strnicmp(line,"!INTERFILE", 10     )) continue;
-#else // !sv
 				if(!strncmp(line,"!INTERFILE", 10     )) continue;
 				if(!strncmp(line,"!Interfile", 10     )) continue;
 				if(!strncmp(line,"!interfile", 10     )) continue;
-#endif
 
 				if( strstr(line,"name of data file"    )) continue;
 				if( strstr(line,"data format"          )) continue;

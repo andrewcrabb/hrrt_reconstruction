@@ -214,6 +214,9 @@ extern "C" {
 }
 #endif
 
+#include "hrrt_osem_utils.hpp"
+
+
 // Lapack (http://www.netlib.org/lapack)
 // Define 'cimg_use_lapack' to enable LAPACK support in CImg.
 #ifdef cimg_use_lapack
@@ -1822,8 +1825,8 @@ namespace cimg_library {
   if (cimg::exception_mode()>=1) { \
     if (cimg::exception_mode()>=2 && disp_flag) { \
       try { cimg::dialog(etype,message,"Abort"); } \
-      catch (CImgException&) { std::fprintf(stderr,"\n# %s :\n%s\n\n",etype,message); } \
-    } else std::fprintf(stderr,"\n# %s :\n%s\n\n",etype,message); \
+      catch (CImgException&) { LOG_ERROR("\n# %s :\n%s\n\n",etype,message); } \
+    } else LOG_ERROR("\n# %s :\n%s\n\n",etype,message); \
   } \
   if (cimg::exception_mode()>=3) cimg_library::cimg::info(); \
 
@@ -1886,7 +1889,7 @@ namespace cimg_library {
           ...; // Here, do what you want.
         }
         catch (CImgInstanceException &e) {
-          std::fprintf(stderr,"CImg Library Error : %s",e.message);  // Display your own error message
+          LOG_ERROR("CImg Library Error : %s",e.message);  // Display your own error message
           ...                                                        // Do what you want now.
         }
       }
@@ -2602,7 +2605,6 @@ namespace cimg_library {
     const unsigned int keyPADDIV     = 87U;
 #endif
 
-    const double valuePI = 3.14159265358979323846;   //!< Definition of the mathematical constant PI
 
     // Definition of a 7x11 font, used to return a default font for drawing text.
     const unsigned int font7x11[7*11*256/32] = {
@@ -4318,7 +4320,7 @@ namespace cimg_library {
 #ifdef cimg_strict_warnings
         throw CImgWarningException(message);
 #else
-        std::fprintf(stderr,"\n<CImg Warning> %s\n",message);
+        LOG_ERROR("\n<CImg Warning> %s\n",message);
 #endif
       }
     }
@@ -5057,11 +5059,11 @@ namespace cimg_library {
       }
       if (!name && visu) {
         if (usage) {
-          std::fprintf(stderr,"\n %s%s%s",cimg::t_red,cimg::basename(argv[0]),cimg::t_normal);
-          std::fprintf(stderr," : %s",usage);
-          std::fprintf(stderr," (%s, %s)\n\n",__DATE__,__TIME__);
+          LOG_ERROR("\n %s%s%s",cimg::t_red,cimg::basename(argv[0]),cimg::t_normal);
+          LOG_ERROR(" : %s",usage);
+          LOG_ERROR(" (%s, %s)\n\n",__DATE__,__TIME__);
         }
-        if (defaut) std::fprintf(stderr,"%s\n",defaut);
+        if (defaut) LOG_ERROR("%s\n",defaut);
       }
       if (name) {
         if (argc>0) {
@@ -5069,7 +5071,7 @@ namespace cimg_library {
           while (k<argc && cimg::strcmp(argv[k],name)) ++k;
           res = (k++==argc?defaut:(k==argc?argv[--k]:argv[k]));
         } else res = defaut;
-        if (visu && usage) std::fprintf(stderr,"    %s%-8s%s = %-12s : %s%s%s\n",
+        if (visu && usage) LOG_ERROR("    %s%-8s%s = %-12s : %s%s%s\n",
                                         cimg::t_bold,name,cimg::t_normal,res?res:"0",cimg::t_purple,usage,cimg::t_normal);
       }
       return res;
@@ -5335,15 +5337,15 @@ namespace cimg_library {
     **/
     inline void info() {
       char tmp[1024] = { 0 };
-      std::fprintf(stderr,"\n %sCImg Library %d.%d.%d%s, compiled %s ( %s ) with the following flags :\n\n",
+      LOG_ERROR("\n %sCImg Library %d.%d.%d%s, compiled %s ( %s ) with the following flags :\n\n",
                    cimg::t_red,cimg_version/100,(cimg_version%100)/10,cimg_version%10,cimg::t_normal,__DATE__,__TIME__);
 
-      std::fprintf(stderr,"  > CPU endianness :         %s%s Endian%s\n",
+      LOG_ERROR("  > CPU endianness :         %s%s Endian%s\n",
                    cimg::t_bold,
                    cimg::endian()?"Big":"Little",
                    cimg::t_normal);
 
-      std::fprintf(stderr,"  > Operating System :       %s%-13s%s %s('cimg_OS'=%d)%s\n",
+      LOG_ERROR("  > Operating System :       %s%-13s%s %s('cimg_OS'=%d)%s\n",
                    cimg::t_bold,
                    cimg_OS==1?"Unix":(cimg_OS==2?"Windows":"Unknow"),
                    cimg::t_normal,cimg::t_purple,
@@ -5351,11 +5353,11 @@ namespace cimg_library {
                    cimg::t_normal);
 
 #ifdef cimg_use_visualcpp6
-      std::fprintf(stderr,"  > Using Visual C++ 6.0 :       %s%-13s%s %s('cimg_use_visualcpp6' defined)%s\n",
+      LOG_ERROR("  > Using Visual C++ 6.0 :       %s%-13s%s %s('cimg_use_visualcpp6' defined)%s\n",
                    cimg::t_bold,"Yes",cimg::t_normal,cimg::t_purple,cimg::t_normal);
 #endif
 
-      std::fprintf(stderr,"  > Display type :           %s%-13s%s %s('cimg_display_type'=%d)%s\n",
+      LOG_ERROR("  > Display type :           %s%-13s%s %s('cimg_display_type'=%d)%s\n",
                    cimg::t_bold,
                    cimg_display_type==0?"No display":
                    (cimg_display_type==1?"X11":
@@ -5365,7 +5367,7 @@ namespace cimg_library {
                    cimg_display_type,
                    cimg::t_normal);
 
-      std::fprintf(stderr,"  > Color terminal :         %s%-13s%s %s('cimg_color_terminal' %s)%s\n",
+      LOG_ERROR("  > Color terminal :         %s%-13s%s %s('cimg_color_terminal' %s)%s\n",
                    cimg::t_bold,
 #ifdef cimg_color_terminal
                    "Yes",cimg::t_normal,cimg::t_purple,"defined",
@@ -5374,7 +5376,7 @@ namespace cimg_library {
 #endif
                    cimg::t_normal);
 
-      std::fprintf(stderr,"  > Debug messages :         %s%-13s%s %s('cimg_debug'=%d)%s\n",
+      LOG_ERROR("  > Debug messages :         %s%-13s%s %s('cimg_debug'=%d)%s\n",
                    cimg::t_bold,
                    cimg_debug==0?"No":(cimg_debug==1 || cimg_debug==2?"Yes":(cimg_debug==3?"Yes+":"Unknown")),
                    cimg::t_normal,cimg::t_purple,
@@ -5382,7 +5384,7 @@ namespace cimg_library {
                    cimg::t_normal);
 
 #if cimg_display_type==1
-      std::fprintf(stderr,"  > Using XShm for X11 :     %s%-13s%s %s('cimg_use_xshm' %s)%s\n",
+      LOG_ERROR("  > Using XShm for X11 :     %s%-13s%s %s('cimg_use_xshm' %s)%s\n",
                    cimg::t_bold,
 #ifdef cimg_use_xshm
                    "Yes",cimg::t_normal,cimg::t_purple,"defined",
@@ -5391,7 +5393,7 @@ namespace cimg_library {
 #endif
                    cimg::t_normal);
 
-      std::fprintf(stderr,"  > Using XRand for X11 :    %s%-13s%s %s('cimg_use_xrandr' %s)%s\n",
+      LOG_ERROR("  > Using XRand for X11 :    %s%-13s%s %s('cimg_use_xrandr' %s)%s\n",
                    cimg::t_bold,
 #ifdef cimg_use_xrandr
                    "Yes",cimg::t_normal,cimg::t_purple,"defined",
@@ -5400,7 +5402,7 @@ namespace cimg_library {
 #endif
                    cimg::t_normal);
 #endif
-      std::fprintf(stderr,"  > Using OpenMP :           %s%-13s%s %s('cimg_use_openmp' %s)%s\n",
+      LOG_ERROR("  > Using OpenMP :           %s%-13s%s %s('cimg_use_openmp' %s)%s\n",
                    cimg::t_bold,
 #ifdef cimg_use_openmp
                    "Yes",cimg::t_normal,cimg::t_purple,"defined",
@@ -5408,7 +5410,7 @@ namespace cimg_library {
                    "No",cimg::t_normal,cimg::t_purple,"undefined",
 #endif
                    cimg::t_normal);
-      std::fprintf(stderr,"  > Using PNG library :      %s%-13s%s %s('cimg_use_png' %s)%s\n",
+      LOG_ERROR("  > Using PNG library :      %s%-13s%s %s('cimg_use_png' %s)%s\n",
                    cimg::t_bold,
 #ifdef cimg_use_png
                    "Yes",cimg::t_normal,cimg::t_purple,"defined",
@@ -5416,7 +5418,7 @@ namespace cimg_library {
                    "No",cimg::t_normal,cimg::t_purple,"undefined",
 #endif
                    cimg::t_normal);
-      std::fprintf(stderr,"  > Using JPEG library :     %s%-13s%s %s('cimg_use_jpeg' %s)%s\n",
+      LOG_ERROR("  > Using JPEG library :     %s%-13s%s %s('cimg_use_jpeg' %s)%s\n",
                    cimg::t_bold,
 #ifdef cimg_use_jpeg
                    "Yes",cimg::t_normal,cimg::t_purple,"defined",
@@ -5425,7 +5427,7 @@ namespace cimg_library {
 #endif
                    cimg::t_normal);
 
-      std::fprintf(stderr,"  > Using TIFF library :     %s%-13s%s %s('cimg_use_tiff' %s)%s\n",
+      LOG_ERROR("  > Using TIFF library :     %s%-13s%s %s('cimg_use_tiff' %s)%s\n",
                    cimg::t_bold,
 #ifdef cimg_use_tiff
                    "Yes",cimg::t_normal,cimg::t_purple,"defined",
@@ -5434,7 +5436,7 @@ namespace cimg_library {
 #endif
                    cimg::t_normal);
 
-      std::fprintf(stderr,"  > Using Magick++ library : %s%-13s%s %s('cimg_use_magick' %s)%s\n",
+      LOG_ERROR("  > Using Magick++ library : %s%-13s%s %s('cimg_use_magick' %s)%s\n",
                    cimg::t_bold,
 #ifdef cimg_use_magick
                    "Yes",cimg::t_normal,cimg::t_purple,"defined",
@@ -5443,7 +5445,7 @@ namespace cimg_library {
 #endif
                    cimg::t_normal);
 
-      std::fprintf(stderr,"  > Using FFTW3 library :    %s%-13s%s %s('cimg_use_fftw3' %s)%s\n",
+      LOG_ERROR("  > Using FFTW3 library :    %s%-13s%s %s('cimg_use_fftw3' %s)%s\n",
                    cimg::t_bold,
 #ifdef cimg_use_fftw3
                    "Yes",cimg::t_normal,cimg::t_purple,"defined",
@@ -5452,7 +5454,7 @@ namespace cimg_library {
 #endif
                    cimg::t_normal);
 
-      std::fprintf(stderr,"  > Using LAPACK library :   %s%-13s%s %s('cimg_use_lapack' %s)%s\n",
+      LOG_ERROR("  > Using LAPACK library :   %s%-13s%s %s('cimg_use_lapack' %s)%s\n",
                    cimg::t_bold,
 #ifdef cimg_use_lapack
                    "Yes",cimg::t_normal,cimg::t_purple,"defined",
@@ -5462,7 +5464,7 @@ namespace cimg_library {
                    cimg::t_normal);
 
       std::sprintf(tmp,"\"%.1020s\"",cimg::imagemagick_path());
-      std::fprintf(stderr,"  > Path of ImageMagick :    %s%-13s%s %s('cimg_imagemagick_path'%s)%s\n",
+      LOG_ERROR("  > Path of ImageMagick :    %s%-13s%s %s('cimg_imagemagick_path'%s)%s\n",
                    cimg::t_bold,
                    tmp,
                    cimg::t_normal,
@@ -5474,7 +5476,7 @@ namespace cimg_library {
                    cimg::t_normal);
 
       std::sprintf(tmp,"\"%.1020s\"",cimg::graphicsmagick_path());
-      std::fprintf(stderr,"  > Path of GraphicsMagick : %s%-13s%s %s('cimg_graphicsmagick_path'%s)%s\n",
+      LOG_ERROR("  > Path of GraphicsMagick : %s%-13s%s %s('cimg_graphicsmagick_path'%s)%s\n",
                    cimg::t_bold,
                    tmp,
                    cimg::t_normal,
@@ -5486,7 +5488,7 @@ namespace cimg_library {
                    cimg::t_normal);
 
       std::sprintf(tmp,"\"%.1020s\"",cimg::medcon_path());
-      std::fprintf(stderr,"  > Path of 'medcon' :       %s%-13s%s %s('cimg_medcon_path'%s)%s\n",
+      LOG_ERROR("  > Path of 'medcon' :       %s%-13s%s %s('cimg_medcon_path'%s)%s\n",
                    cimg::t_bold,
                    tmp,
                    cimg::t_normal,
@@ -5498,7 +5500,7 @@ namespace cimg_library {
                    cimg::t_normal);
 
       std::sprintf(tmp,"\"%.1020s\"",cimg::temporary_path());
-      std::fprintf(stderr,"  > Temporary path :         %s%-13s%s %s('cimg_temporary_path'%s)%s\n",
+      LOG_ERROR("  > Temporary path :         %s%-13s%s %s('cimg_temporary_path'%s)%s\n",
                    cimg::t_bold,
                    tmp,
                    cimg::t_normal,
@@ -5509,7 +5511,7 @@ namespace cimg_library {
 #endif
                    cimg::t_normal);
 
-      std::fprintf(stderr,"\n");
+      LOG_ERROR("\n");
     }
 
 #ifdef cimg_use_lapack
@@ -10803,7 +10805,7 @@ namespace cimg_library {
        \par example:
        \code
        CImg<> img(100,100,1,3);
-       if (img.size()==100*100*3) std::fprintf(stderr,"This statement is true");
+       if (img.size()==100*100*3) LOG_ERROR("This statement is true");
        \endcode
        \sa dimx(), dimy(), dimz(), dimv()
     **/
@@ -12058,28 +12060,28 @@ namespace cimg_library {
       if (print_flag>=0) {
         const unsigned long msiz = size()*sizeof(T);
         const unsigned int mdisp = msiz<8*1024?0:(msiz<8*1024*1024?1:2);
-        std::fprintf(stderr,"%-8s(this=%p): { size=(%u,%u,%u,%u) [%lu %s], data=(%s*)%p (%s)",
+        LOG_ERROR("%-8s(this=%p): { size=(%u,%u,%u,%u) [%lu %s], data=(%s*)%p (%s)",
                      title?title:"CImg",(void*)this,
                      width,height,depth,dim,
                      mdisp==0?msiz:(mdisp==1?(msiz>>10):(msiz>>20)),
                      mdisp==0?"b":(mdisp==1?"Kb":"Mb"),
                      pixel_type(),(void*)data,is_shared?"shared":"not shared");
-        if (is_empty()) { std::fprintf(stderr,", [Undefined pixel data] }\n"); return *this; }
+        if (is_empty()) { LOG_ERROR(", [Undefined pixel data] }\n"); return *this; }
         if (print_flag>=1) {
           st = get_stats();
           int xm, ym, zm, vm, xM, yM, zM, vM;
           contains(data[(int)st(4)],xm,ym,zm,vm);
           contains(data[(int)st(5)],xM,yM,zM,vM);
-          std::fprintf(stderr,", min=%g, mean=%g [std=%g], max=%g, pmin=(%d,%d,%d,%d), pmax=(%d,%d,%d,%d)",
+          LOG_ERROR(", min=%g, mean=%g [std=%g], max=%g, pmin=(%d,%d,%d,%d), pmax=(%d,%d,%d,%d)",
                        st[0],st[2],std::sqrt(st[3]),st[1],xm,ym,zm,vm,xM,yM,zM,vM);
         }
         if (print_flag>=2 || size()<=16) {
-          std::fprintf(stderr," }\n%s = [ ",title?title:"data");
+          LOG_ERROR(" }\n%s = [ ",title?title:"data");
           cimg_forXYZV(*this,x,y,z,k) {
-            std::fprintf(stderr,cimg::type<T>::format(),cimg::type<T>::format((*this)(x,y,z,k)));
-            std::fprintf(stderr,"%s",((x+1)*(y+1)*(z+1)*(k+1)==(int)size()?" ]\n":(((x+1)%width==0)?" ; ":" ")));
+            LOG_ERROR(cimg::type<T>::format(),cimg::type<T>::format((*this)(x,y,z,k)));
+            LOG_ERROR("%s",((x+1)*(y+1)*(z+1)*(k+1)==(int)size()?" ]\n":(((x+1)%width==0)?" ; ":" ")));
           }
-        } else std::fprintf(stderr," }\n");
+        } else LOG_ERROR(" }\n");
       }
       return *this;
     }
@@ -13423,7 +13425,7 @@ namespace cimg_library {
     CImg<T> get_rotate(const float angle, const unsigned int cond=3) const {
       if (is_empty()) return CImg<T>();
       CImg<T> dest;
-      const float nangle = cimg::mod(angle,360.0f), rad = (float)((nangle*cimg::valuePI)/180.0),
+      const float nangle = cimg::mod(angle,360.0f), rad = (float)((nangle*M_PI)/180.0),
         ca=(float)std::cos(rad), sa=(float)std::sin(rad);
       if (cond!=1 && cimg::mod(nangle,90.0f)==0) { // optimized version for orthogonal angles
         const int wm1 = dimx()-1, hm1 = dimy()-1;
@@ -13500,7 +13502,7 @@ namespace cimg_library {
     CImg<T> get_rotate(const float angle, const float cx, const float cy, const float zoom=1, const unsigned int cond=3) const {
       if (is_empty()) return CImg<T>();
       CImg<T> dest(width,height,depth,dim);
-      const float nangle = cimg::mod(angle,360.0f), rad = (float)((nangle*cimg::valuePI)/180.0),
+      const float nangle = cimg::mod(angle,360.0f), rad = (float)((nangle*M_PI)/180.0),
         ca=(float)std::cos(rad)/zoom, sa=(float)std::sin(rad)/zoom;
       if (cond!=1 && zoom==1 && cimg::mod(nangle,90.0f)==0) { // optimized version for orthogonal angles
         const int iangle = (int)nangle/90;
@@ -15744,7 +15746,7 @@ namespace cimg_library {
             nG = (G<0?0:(G>255?255:G))/255.0f,
             nB = (B<0?0:(B>255?255:B))/255.0f,
             m = cimg::min(nR,nG,nB),
-            theta = std::acos(0.5f*((nR-nG)+(nR-nB))/std::sqrt(std::pow(nR-nG,2)+(nR-nB)*(nG-nB)))*180/cimg::valuePI,
+            theta = std::acos(0.5f*((nR-nG)+(nR-nB))/std::sqrt(std::pow(nR-nG,2)+(nR-nB)*(nG-nB)))*180/M_PI,
             sum = nR + nG + nB;
           float H = 0, S = 0, I = 0;
           if (theta>0) H = (nB<=nG)?theta:360-theta;
@@ -15777,17 +15779,17 @@ namespace cimg_library {
           float R = 0, G = 0, B = 0, a = I*(1-S);
           if (H<120) {
             B = a;
-            R = I*(1+S*std::cos(H*cimg::valuePI/180)/std::cos((60-H)*cimg::valuePI/180));
+            R = I*(1+S*std::cos(H*M_PI/180)/std::cos((60-H)*M_PI/180));
             G = 3*I-(R+B);
           } else if (H<240) {
             H-=120;
             R = a;
-            G = I*(1+S*std::cos(H*cimg::valuePI/180)/std::cos((60-H)*cimg::valuePI/180));
+            G = I*(1+S*std::cos(H*M_PI/180)/std::cos((60-H)*M_PI/180));
             B = 3*I-(R+G);
           } else {
             H-=240;
             G = a;
-            B = I*(1+S*std::cos(H*cimg::valuePI/180)/std::cos((60-H)*cimg::valuePI/180));
+            B = I*(1+S*std::cos(H*M_PI/180)/std::cos((60-H)*M_PI/180));
             R = 3*I-(G+B);
           }
           R*=255; G*=255; B*=255;
@@ -17428,7 +17430,7 @@ namespace cimg_library {
                           const float opacity=1.0f, const unsigned int pattern=~0U) {
       if (!is_empty()) {
         const float u = (float)(x0-x1), v = (float)(y0-y1), sq = u*u+v*v,
-          deg = (float)(angle*cimg::valuePI/180), ang = (sq>0)?(float)std::atan2(v,u):0.0f,
+          deg = (float)(angle*M_PI/180), ang = (sq>0)?(float)std::atan2(v,u):0.0f,
           l = (length>=0)?length:-length*(float)std::sqrt(sq)/100;
         if (sq>0) {
           const double cl = std::cos(ang-deg), sl = std::sin(ang-deg), cr = std::cos(ang+deg), sr = std::sin(ang+deg);
@@ -21605,13 +21607,13 @@ namespace cimg_library {
           // 3D version of the algorithm
           for (float phi=(180%(int)da)/2.0f; phi<=180; phi+=da) {
             const float
-              phir = (float)(phi*cimg::valuePI/180),
+              phir = (float)(phi*M_PI/180),
               datmp = (float)(da/std::cos(phir)),
               da2 = datmp<1?360.0f:datmp;
 
             for (float theta=0; theta<360; (theta+=da2),++N) {
               const float
-                thetar = (float)(theta*cimg::valuePI/180),
+                thetar = (float)(theta*M_PI/180),
                 vx = (float)(std::cos(thetar)*std::cos(phir)),
                 vy = (float)(std::sin(thetar)*std::cos(phir)),
                 vz = (float)std::sin(phir);
@@ -21768,7 +21770,7 @@ namespace cimg_library {
             // 2D version of the algorithm
             for (float theta=(360%(int)da)/2.0f; theta<360; (theta+=da),++N) {
               const float
-                thetar = (float)(theta*cimg::valuePI/180),
+                thetar = (float)(theta*M_PI/180),
                 vx = (float)(std::cos(thetar)),
                 vy = (float)(std::sin(thetar));
               const t
@@ -29280,7 +29282,7 @@ namespace cimg_library {
           const unsigned int delta2 = (delta>>1);
           for (unsigned int i=0; i<N; i+=delta) {
             float wr = 1, wi = 0;
-            const float angle = (float)((invert?+1:-1)*2*cimg::valuePI/delta),
+            const float angle = (float)((invert?+1:-1)*2*M_PI/delta),
                         ca = (float)std::cos(angle),
                         sa = (float)std::sin(angle);
             for (unsigned int k=0; k<delta2; ++k) {
@@ -29318,7 +29320,7 @@ namespace cimg_library {
           const unsigned int delta2 = (delta>>1);
           for (unsigned int i=0; i<N; i+=delta) {
             float wr = 1, wi = 0;
-            const float angle = (float)((invert?+1:-1)*2*cimg::valuePI/delta),
+            const float angle = (float)((invert?+1:-1)*2*M_PI/delta),
                         ca = (float)std::cos(angle), sa = (float)std::sin(angle);
             for (unsigned int k=0; k<delta2; ++k) {
               const unsigned int j = i + k, nj = j + delta2;
@@ -29355,7 +29357,7 @@ namespace cimg_library {
           const unsigned int delta2 = (delta>>1);
           for (unsigned int i=0; i<N; i+=delta) {
             float wr = 1, wi = 0;
-            const float angle = (float)((invert?+1:-1)*2*cimg::valuePI/delta),
+            const float angle = (float)((invert?+1:-1)*2*M_PI/delta),
                         ca = (float)std::cos(angle), sa = (float)std::sin(angle);
             for (unsigned int k=0; k<delta2; ++k) {
               const unsigned int j = i + k, nj = j + delta2;
@@ -29461,7 +29463,7 @@ namespace cimg_library {
     const CImgList<T>& print(const char* title=0, const int print_flag=1) const {
       if (print_flag>=0) {
         char tmp[1024];
-        std::fprintf(stderr,"%-8s(this=%p) : { size=%u, data=%p }\n",title?title:"CImgList",
+        LOG_ERROR("%-8s(this=%p) : { size=%u, data=%p }\n",title?title:"CImgList",
                      (void*)this,size,(void*)data);
         switch (print_flag) {
         case 1: {
@@ -29470,7 +29472,7 @@ namespace cimg_library {
               std::sprintf(tmp,"%s[%d]",title?title:"CImgList",l);
               data[l].print(tmp,print_flag);
           } else {
-            if (l==4) std::fprintf(stderr,"...\n");
+            if (l==4) LOG_ERROR("...\n");
           }
         } break;
         default: {
@@ -30924,7 +30926,7 @@ namespace cimg {
       if (!disp) selected = -1;
       return selected;
 #else
-      std::fprintf(stderr,"<%s>\n\n%s\n\n",title,msg);
+      LOG_ERROR("<%s>\n\n%s\n\n",title,msg);
       return -1+0*(int)(button1_txt-button2_txt+button3_txt-button4_txt+button5_txt-button6_txt+logo.width+(int)centering);
 #endif
   }

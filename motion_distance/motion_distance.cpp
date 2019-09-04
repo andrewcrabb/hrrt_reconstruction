@@ -10,7 +10,7 @@
 // #include <AIR/AIR.h>
 // Now include directly from AIR src dir, path from CMake file
 #include "AIR.h"
-#include <ecatx/matrix.h>
+#include <ecatx/ecat_matrix.hpp>
 #include <ecatx/matpkg.h>
 #include <unistd.h>
 
@@ -22,7 +22,7 @@ static float vicra2hrrt[16] = {
 
 static void usage(const char *pgm)
 {
-  fprintf(stderr, "%s Build %s %s \n", pgm, __DATE__, __TIME__);
+  LOG_ERROR("%s Build %s %s \n", pgm, __DATE__, __TIME__);
   fprintf(stderr,
     "usage: %s [-t transformer | -a air_file | -q qw,qx,qy,qz,tx,ty,tz] | -M minc_file\n", pgm);
   fprintf(stderr,
@@ -65,9 +65,9 @@ int  main(int argc, char **argv)
 	unsigned char *ldata=NULL;  // label data;
   struct AIR_Air16 air_16;
   char reslice_file[FILENAME_MAX];
-  MatrixFile *mptr=NULL;
-  MatrixData *matrix=NULL;
-  Image_subheader *imh=NULL;
+  ecat_matrix::MatrixFile *mptr=NULL;
+  ecat_matrix::MatrixData *matrix=NULL;
+  ecat_matrix::Image_subheader *imh=NULL;
   int matnum=0, frame_start_time=0;
   int i,j;
   FILE *fp=NULL;
@@ -121,11 +121,11 @@ int  main(int argc, char **argv)
   {
     AIR_read_air16(air_file, &air_16);
     matspec(air_16.r_file, reslice_file, &matnum);
-    if ((mptr=matrix_open(reslice_file,MAT_READ_ONLY, MAT_UNKNOWN_FTYPE)) != NULL)
+    if ((mptr=matrix_open(reslice_file,ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE)) != NULL)
     {
-      if ((matrix=matrix_read( mptr, matnum, MAT_SUB_HEADER)) != NULL)
+      if ((matrix=matrix_read( mptr, matnum, MatrixData::DataType::MAT_SUB_HEADER)) != NULL)
       {
-        imh = (Image_subheader*)matrix->shptr;
+        imh = (ecat_matrix::Image_subheader*)matrix->shptr;
         frame_start_time = imh->frame_start_time/1000;
         free_matrix_data(matrix);
       }
@@ -240,7 +240,7 @@ int  main(int argc, char **argv)
 		dz = (x2[2]-x1[2])*c_size;
 		d = sqrt(dx*dx + dy*dy + dz*dz);
 	}
-  if (verbose) fprintf(stderr, "Motion point (%g,%g,%g) vector (%4.3g,%4.3g,%4.3g) amplitude %4.3g mm\n",
+  if (verbose) LOG_ERROR("Motion point (%g,%g,%g) vector (%4.3g,%4.3g,%4.3g) amplitude %4.3g mm\n",
     x1[0], x1[1], x1[2], dx, dy, dz, d);
   printf("%d %4.3g %4.3g %4.3g %4.3g \n", frame_start_time, dx, dy, dz, d);
   if (verbose) printf("done\n");

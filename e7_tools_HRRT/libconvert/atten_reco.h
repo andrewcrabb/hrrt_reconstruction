@@ -9,8 +9,7 @@
     \date 2004/10/01 use memory controller object
  */
 
-#ifndef _ATTEN_RECO_H
-#define _ATTEN_RECO_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -81,4 +80,3 @@ class AttenReco
                      const unsigned short int) const;
  };
 
-#endif

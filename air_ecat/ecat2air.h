@@ -1,5 +1,4 @@
-#ifndef ecat2air_h
-#define ecat2air_h
+#pragma once
 
 /* created on 30-apr-1996 by Merence Sibomana <Sibomana@topo.ucl.ac.be>
  *
@@ -28,7 +27,7 @@
 // #include <AIR/AIR.h>
 #include "AIR.h"
 
-#include <ecatx/matrix.h>
+#include <ecatx/ecat_matrix.hpp>
 
 #define AIR_ECAT 
 #if defined(__cplusplus)
@@ -43,7 +42,7 @@ int air2ecat(AIR_Pixels ***pixels, struct AIR_Key_info *stats,
 float ecat_AIR_open_header(const char *, /*@out@*/ struct AIR_Fptrs *, /*@out@*/ struct AIR_Key_info *, int *);
 AIR_Pixels ecat_AIR_map_value(const char *filename, long int value, AIR_Error *errcode);
 void ecat_AIR_close_header(struct AIR_Fptrs *);
-void matrix_flip(MatrixData *matrix,int x_flip, int y_flip, int z_flip);
+void matrix_flip(ecat_matrix::MatrixData *matrix,int x_flip, int y_flip, int z_flip);
 struct AIR_Air16 *xmldecode_air16(const char *filename);
 int xmlencode_air16(const char *outfile, int permission, double **e, int zooming,
                  struct AIR_Air16 *air);
@@ -72,4 +71,3 @@ AIR_Error ecat_AIR_load_probr(const char *specs, const AIR_Boolean decompressabl
 #define AIR_close_header ecat_AIR_close_header
 #define AIR_load_probr ecat_AIR_load_probr
 
-#endif /* ecat_air_h */

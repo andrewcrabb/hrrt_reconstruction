@@ -13,15 +13,10 @@
 #include	<string.h>
 #include <time.h>
 
-#include	<ecatx/matrix.h>
+#include	<ecatx/ecat_matrix.hpp>
 #include	"interfile_reader.h"
 #include	"write_image_header.h"
-#ifdef WIN32
-#define strnicmp _strnicmp
-#define		DIR_SEPARATOR '\\'
-#else
 #define		DIR_SEPARATOR '/'
-#endif
 
 #define		LINESIZE 1024
 #define		IN_DIR_SEPARATOR '/'
@@ -38,32 +33,32 @@ static const char *fname(const char *path)
   return pos;
 }
 
-static int write_image(MatrixFile *fp, int frame, Image_subheader *imh, 
+static int write_image(ecat_matrix::MatrixFile *fp, int frame, ecat_matrix::Image_subheader *imh, 
                        float ***image, unsigned char *mask, int recon_type)
 {
   int i, j, nvoxels;
   float minval, maxval, scalef;
-  MatrixData *matrix=NULL;
+  ecat_matrix::MatrixData *matrix=NULL;
   float *fdata=image[0][0];
   short *sdata=NULL, smax=32766;  // not 32767 to avoid rounding problems
   int matnum=0, nblks = 0;
 
-  matrix = (MatrixData*)calloc(1,sizeof(MatrixData));
+  matrix = (ecat_matrix::MatrixData*)calloc(1,sizeof(ecat_matrix::MatrixData));
   matrix->xdim = imh->x_dimension;	
   matrix->ydim = imh->y_dimension;
   matrix->zdim = imh->z_dimension;
   matrix->pixel_size = imh->x_pixel_size;
   matrix->y_size = imh->y_pixel_size;
   matrix->z_size = imh->z_pixel_size;
-  imh->data_type = matrix->data_type = SunShort;
+  imh->data_type = matrix->data_type = MatrixData::DataType::SunShort;
   matrix->data_max = imh->image_max*matrix->scale_factor;
   matrix->data_min = imh->image_min*matrix->scale_factor;
   matrix->data_size = matrix->xdim*matrix->ydim*matrix->zdim*sizeof(short);
-  nblks = (matrix->data_size + MatBLKSIZE-1)/MatBLKSIZE;
-  matrix->data_ptr = (void *)calloc(nblks, MatBLKSIZE);
+  nblks = (matrix->data_size + ecat_matrix::MatBLKSIZE-1)/ecat_matrix::MatBLKSIZE;
+  matrix->data_ptr = (void *)calloc(nblks, ecat_matrix::MatBLKSIZE);
   minval = maxval = fdata[0];
   nvoxels = matrix->xdim*matrix->xdim*matrix->zdim;
-  matnum=mat_numcod(frame+1, 1, 1, 0, 0);
+  matnum=ecat_matrix::mat_numcod(frame+1, 1, 1, 0, 0);
   if (mask != NULL)
     {  // Use mask to find image extrema and zero hot or cold pixels
 
@@ -134,8 +129,8 @@ static int write_image(MatrixFile *fp, int frame, Image_subheader *imh,
   matrix->data_max = imh->image_max*scalef;
   matrix->data_min = imh->image_min*scalef;
   printf("frame %d: image_min,image_max = %d,%d, scale factor=%g\n",frame+1,imh->image_min,imh->image_max,scalef);
-  matrix->shptr = (void *)calloc(sizeof(Image_subheader),1);
-  memcpy(matrix->shptr, imh, sizeof(Image_subheader));
+  matrix->shptr = (void *)calloc(sizeof(ecat_matrix::Image_subheader),1);
+  memcpy(matrix->shptr, imh, sizeof(ecat_matrix::Image_subheader));
   return matrix_write(fp,matnum,matrix);
 }
 
@@ -188,9 +183,9 @@ int write_ecat_image(float ***image, char * filename, int frame,
 {
   float	eps = 0.001f;
   FILE	*f_in=NULL;
-  MatrixFile *f_out=NULL;
-  Main_header mh;
-  Image_subheader imh;
+  ecat_matrix::MatrixFile *f_out=NULL;
+  ecat_matrix::Main_header mh;
+  ecat_matrix::Image_subheader imh;
   char	sinoHeaderName[_MAX_PATH];
   int		sinoHeaderExists;
   char	*p=NULL;
@@ -262,10 +257,10 @@ int write_ecat_image(float ***image, char * filename, int frame,
     switch(interfile_load(sinoHeaderName,&ifh))
       {
       case IFH_FILE_INVALID:                /* Not starting with '!INTERFILE' */
-        fprintf(stderr, "%s: is not a valid interfile header\n",sinoHeaderName);
+        LOG_ERROR("%s: is not a valid interfile header\n",sinoHeaderName);
         break;
       case IFH_FILE_OPEN_ERROR:        /* interfile header cold not be opened */
-        fprintf(stderr, "%s: Can't open file\n",sinoHeaderName);
+        LOG_ERROR("%s: Can't open file\n",sinoHeaderName);
         break;
       default: //file loaded
         ifh_ok = 1;
@@ -322,13 +317,13 @@ int write_ecat_image(float ***image, char * filename, int frame,
   printf("Create or Open Main Header \n");
   if (frame==0) {
   	printf("Create Main Header %s\n", filename);
-    if ((f_out=matrix_create(filename, MAT_CREATE_NEW_FILE, &mh)) == NULL) {
+    if ((f_out=matrix_create(filename, ecat_matrix::MatrixFileAccessMode::CREATE_NEW_FILE, &mh)) == NULL) {
       fprintf(stderr,"ERROR: cannot create '%s'\n", filename);
       return 0;
     }
   } else {
 	printf("Open Main Header %s\n", filename);
-    if ((f_out=matrix_create(filename, MAT_OPEN_EXISTING, &mh)) == NULL) {
+    if ((f_out=matrix_create(filename, ecat_matrix::MatrixFileAccessMode::OPEN_EXISTING, &mh)) == NULL) {
       fprintf(stderr,"ERROR: cannot open '%s'\n", filename);
       return 0;
     }

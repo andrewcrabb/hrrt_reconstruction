@@ -1,15 +1,9 @@
-#ifndef _PB_TV_3D_H
-#define _PB_TV_3D_H
+#pragma once
 
 #include "PB_3D.h"
 #include "TV_3D.h"
 
-#ifdef WIN32
-class __declspec(dllexport) PB_TV_3D:public PB_3D
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 class PB_TV_3D:public PB_3D
-#endif
  { private:
     TV_3D Reg;
     float der_U(const int, const float * const) const;
@@ -17,5 +11,3 @@ class PB_TV_3D:public PB_3D
    public:
     PB_TV_3D(const int, const int, const int, const int, const float);
  };
-
-#endif

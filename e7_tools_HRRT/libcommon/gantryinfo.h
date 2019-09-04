@@ -17,8 +17,7 @@
 
 ---------------------------------------------------------------------*/
 
-#ifndef cps_gantry_info
-#define cps_gantry_info
+#pragma once
 
 #include <string>
 //
@@ -72,4 +71,3 @@ namespace HRRT
 		static int transCrystals();
 	};
 }
-#endif

@@ -17,9 +17,7 @@
 
 ---------------------------------------------------------------------*/
 
-#ifndef cps_gantry_info
-#define cps_gantry_info
-
+#pragma once
 #include <string>
 //
 // Static class to access configuration file GMXXX.ini
@@ -40,4 +38,3 @@ namespace cps
 		static int get(const char *format, int index, float &value);		// get float value from array
 	};
 }
-#endif

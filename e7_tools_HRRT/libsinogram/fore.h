@@ -10,8 +10,7 @@
     \date 2005/02/25 use vectors and memory controller
  */
 
-#ifndef _FORE_H
-#define _FORE_H
+#pragma once
 
 #include <vector>
 #include "fore_fft.h"
@@ -84,4 +83,3 @@ class FORE
                    const unsigned short int);
  };
 
-#endif

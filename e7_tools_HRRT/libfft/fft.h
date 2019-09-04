@@ -12,8 +12,7 @@
     \date 2005/01/23 added Doxygen style comments
  */
 
-#ifndef _FFT_H
-#define _FFT_H
+#pragma once
 
 #ifdef __ALTIVEC__
 #include "vecLib/vecLib.h"
@@ -226,4 +225,3 @@ class FFT
     void rFFT_FFT_1D(float * const, float * const) const;
  };
 
-#endif

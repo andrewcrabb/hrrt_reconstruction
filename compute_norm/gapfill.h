@@ -17,9 +17,7 @@
 
 -----------------------------------------------------------------------------*/
 
-#ifndef _GAPFILL_H
-#define _GAPFILL_H
-
+#pragma once
 /*- class definitions -------------------------------------------------------*/
 
 class GapFill  
@@ -38,6 +36,4 @@ class GapFill
     void calcGapFill(const float * const, float * const) const;
     void calcRandomsSmooth(float * const) const;
  };
-
-#endif
 

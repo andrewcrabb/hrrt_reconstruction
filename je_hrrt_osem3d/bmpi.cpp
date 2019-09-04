@@ -102,15 +102,11 @@ void RecvQ()
 	int rc=0;
 
 	if(curr_qnum<0){
-		printf("SYNCQERROR It should not be happened curr_qnum is negative!!!!!!!!!!!!\n");
-		exit(1);
+		LOG_EXIT("SYNCQERROR It should not be happened curr_qnum is negative!!!!!!!!!!!!\n");
 	}
-//	printf("recvqnum=%d\n",curr_qnum);
 	rc=recv(prenodesock,(char *) &syncq[write_qnum],sizeof(int),0);
 	if(rc==SOCKET_ERROR){
-		printf("socketerror recvq %d\n",WSAGetLastError());
-//		Sleep(100);
-//		exit(1);
+		printf("socketerror recvq {}",WSAGetLastError());
 	}
 	curr_qnum++;
 	write_qnum++;
@@ -144,7 +140,8 @@ int recvfromq()
 	unsigned int id;
 
 	Wait_thread(synchandle);
-	if(curr_qnum<=0) printf("Error Recvfromq : curr_qnum is less or equal to zero %d\n",curr_qnum);
+	if(curr_qnum<=0)
+		LOG_ERROR(" Recvfromq : curr_qnum is less or equal to zero {}",curr_qnum);
 	ret=syncq[read_qnum];
 	syncq[read_qnum]=-5;
 	read_qnum++;
@@ -192,17 +189,16 @@ void SendTCP(SOCKET s,char *buf,int num)
 		if(i>0){
 			bytesRecv-=i;
 			bytesSent+=i;
-		//	if(i!=8192) printf("send not 8192 %d\n",i);
 		} else {
 			error=WSAGetLastError();
-			printf("SendTCP Error %d\n",error);
+			LOG_ERROR("SendTCP Error {}",error);
 			Sleep(1);
-			if(error==10054) exit(1);
+			if(error==10054) 
+				LOG_EXIT("Error");
 		}
 		brecv=(bytesRecv<optval)?bytesRecv:optval;
 		if(bytesRecv<=0)break;
 	}
-//	printf("send done %d\n",bytesSent);
 }
 
 void RecvTCP(SOCKET s,char *buf,int num)
@@ -221,12 +217,12 @@ void RecvTCP(SOCKET s,char *buf,int num)
 		if(i>0){
 			bytesRecv-=i;
 			bytesSent+=i;
-	//		if(i!=8192) printf("recv not 8192 %d\n",i);
 		} else {
 			error=WSAGetLastError();
-			printf("RecvTCP Error %d\n",error);
+			LOG_ERROR("RecvTCP Error {}",error);
 			Sleep(1);
-			if(error==10054) exit(1);
+			if(error==10054) 
+				LOG_EXIT("Error");
 //			if(WSAGetLastError()==10054) break;
 		}
 		brecv=(bytesRecv<optval)?bytesRecv:optval;
@@ -276,7 +272,6 @@ void RecvTCPoper(SOCKET s,char *buf,int num,int type,int typesize,int oper)
 	else if(type==BMPI_TYPE_INT) type_int=(int *) buf;
 	else if(type==BMPI_TYPE_M128) type_m128=(__m128 *) buf;
 	
-//	printf("recv %d\n",bytesRecvLeft);
 
 	recv_left=0;
 	for(;;){
@@ -293,7 +288,6 @@ void RecvTCPoper(SOCKET s,char *buf,int num,int type,int typesize,int oper)
 					for(i=0;i<recv_element;i++,curr_element++){
 						type_m128[curr_element]=_mm_add_ps(type_m128[i],buffer_type_m128[i]);
 					} 
-				//	printf("m128 recv %d\t%d\t%d\t%d\n",recv_element,curr_element,curr_element*typesize,num);
 				} else	if(oper==BMPI_MUL){
 					for(i=0;i<recv_element;i++,curr_element++){
 						type_m128[curr_element]=_mm_mul_ps(type_m128[i],buffer_type_m128[i]);
@@ -380,22 +374,18 @@ void RecvTCPoper(SOCKET s,char *buf,int num,int type,int typesize,int oper)
 					} 
 				}
 			} 
-	//		if(i!=8192) printf("recv not 8192 %d\n",i);
 		} else {
 			error=WSAGetLastError();
-			printf("RecvTCP Error %d\n",error);
+			LOG_ERROR("RecvTCP Error {}",error);
 			Sleep(1);
-			if(error==10054) exit(1);
-//			if(WSAGetLastError()==10054) break;
+			if(error==10054)
+				LOG_EXIT("Error");
 		}
-	//	printf("recv %d\n",bytesRecvLeft);
 
 		brecv=(bytesRecvLeft<optval)?bytesRecvLeft:optval;
 		if(bytesRecvLeft<=0)break;
 	}
-//	printf("recv done\n",num);
 	_mm_free(buffer);
-//	free(buffer);
 }
 
 void RecvSendTCPoper(COMMSTRUCT *arg)
@@ -464,12 +454,9 @@ void RecvSendTCPoper(COMMSTRUCT *arg)
 		type_m128=(__m128 *) arg->recvbuf;
 		typesize=16;
 	}
-//	printf("recv %d\n",bytesRecvLeft);
 
 	recv_left=0;
-//	printf("typesize oper %d\t%d\t%d\n",typesize,oper,type);
 	for(;;){
-//		printf("before recv %d\n",bytesRecv);
 		if(oper==BMPI_NONE) i= recv( arg->srecv, &(arg->recvbuf[bytesRecv]),brecv,0 );
 		else i= recv( arg->srecv, &buffer[recv_left],brecv,0 );
 		if(i>0){
@@ -499,7 +486,6 @@ void RecvSendTCPoper(COMMSTRUCT *arg)
 			}else	if(type==BMPI_TYPE_FLOAT){
 				
 				if(oper==BMPI_ADD){
-		//			printf("%d\t%d\t%d\n",bsent,bytesRecv,bytesSent);
 					for(i=0;i<recv_element;i++,curr_element++){
 						type_float[curr_element]+=buffer_type_float[i];
 					} 
@@ -571,17 +557,14 @@ void RecvSendTCPoper(COMMSTRUCT *arg)
 					} 
 				} 
 			} else {
-		//		printf("type none %d %d %d\n",bytesSent,bytesRecv,num);	
 			} 
-//		if(i!=8192) printf("recv not 8192 %d\n",i);
 		} else {
 			error=WSAGetLastError();
-			printf("RecvSendTCP Recv1 Error %d\t%d\n",bytesRecv,error);
+			LOG_ERROR("RecvSendTCP Recv1 Error {} {}",bytesRecv,error);
 			Sleep(1);
-			if(error==10054) exit(1);
-//			if(WSAGetLastError()==10054) break;
+			if(error==10054)
+				LOG_EXIT("Error");
 		}
-	//	printf("recv %d\n",bytesRecvLeft);
 
 		brecv=(bytesRecvLeft<optval)?bytesRecvLeft:optval;
 		if(bytesRecvLeft<=0)break;
@@ -589,40 +572,37 @@ void RecvSendTCPoper(COMMSTRUCT *arg)
 		if(bsent<optval) continue;
 		
 		i=send(arg->ssend,&(arg->recvbuf[bytesSent]),bsent,0);
-	//	printf("%d bytes sent \n",i);
 		if(i>0){
 			bytesSentLeft-=i;
 			bytesSent+=i;
 		} else {
 			error=WSAGetLastError();
-			printf("RecvSendTCP Send1 Error %d\t%d\t%d\n",bytesSent,num,error);
+			printf("RecvSendTCP Send1 Error {} {} {}",bytesSent,num,error);
 			Sleep(1);
-			if(error==10054) exit(1);
+			if(error==10054)
+				LOG_EXIT("Error");
 		}
 	}
 	bsent=(bytesSentLeft<optval)?bytesSentLeft:optval;
 	if(bytesSentLeft>0){
-//		printf("left bytes recvsend %d\t%d\n",bytesSentLeft,bsent);
 		for(;;){
 			i= send(arg->ssend, &(arg->recvbuf[bytesSent]),bsent,0 );
 			if(i>0){
 				bytesSentLeft-=i;
 				bytesSent+=i;
-				//	if(i!=8192) printf("send not 8192 %d\n",i);
 			} else {
 				error=WSAGetLastError();
-				printf("RecvSendTCP Send2 Error %d\t%d\t%d\t%d\t%d\n",error,bytesSent,bytesSentLeft,bsent,i);
+				LOG_INFO("RecvSendTCP Send2 Error {} {} {} {} {} ",error,bytesSent,bytesSentLeft,bsent,i);
 				Sleep(1000);
-				if(error==10054) exit(1);
-				exit(1);
+				if(error==10054)
+					LOG_EXIT("Error");
+				LOG_EXIT("Error");
 			}
 			bsent=(bytesSentLeft<optval)?bytesSentLeft:optval;
 			if(bytesSentLeft<=0)break;
 		}
 	}
-//	printf("recv done\n",num);
 	_mm_free(buffer);
-//	free(buffer);
 }
 
 void SetTCPWindow(SOCKET s,int val)
@@ -630,11 +610,11 @@ void SetTCPWindow(SOCKET s,int val)
 	int rc;
 	rc=setsockopt(s,SOL_SOCKET,SO_SNDBUF,(char *)&val,sizeof(val));
 	if(rc!=0){
-		printf("snd Error setsock %d\n",WSAGetLastError());
+		LOG_ERROR("snd Error setsock {}",WSAGetLastError());
 	}
 	rc=setsockopt(s,SOL_SOCKET,SO_RCVBUF,(char *)&val,sizeof(val));
 	if(rc!=0){
-		printf("rec Error setsock %d\n",WSAGetLastError());
+		LOG_ERROR("rec Error setsock {}",WSAGetLastError());
 	}
 	val=1;
 	setsockopt(s,IPPROTO_TCP,TCP_NODELAY, (char *)&val, sizeof(val));
@@ -773,8 +753,8 @@ void Init_winsock()
     WSADATA wsaData;
 	int iResult = WSAStartup( MAKEWORD(2,2), &wsaData );
 	if ( iResult != NO_ERROR ){
-		printf("Error at WSAStartup()\n");
-		exit(1);
+		LOG_ERROR(" at WSAStartup()\n");
+		LOG_EXIT("Error");
 	}
 }
 
@@ -786,7 +766,7 @@ int CreateSocket(int node,int num)
 	for(i=0;i<num;i++){
 		sd[node][i] = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
 		if ( sd[node][i] == INVALID_SOCKET ) {
-			printf( "Error at socket(): %ld\n", WSAGetLastError() );
+			LOG_ERROR( "Error at socket(): {}", WSAGetLastError() );
 			WSACleanup();
 			return 0;
 		}
@@ -798,7 +778,7 @@ int	CreateSocket(SOCKET *sock)
 {
 	*sock= socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
 	if ( *sock == INVALID_SOCKET ) {
-		printf( "Error at socket(): %ld\n", WSAGetLastError() );
+		LOG_ERROR("at socket(): {}", WSAGetLastError() );
 		WSACleanup();
 		return 0;
 	}
@@ -812,7 +792,7 @@ int CreateSocketBindListen(SOCKET *sock,int port)
 	i=0;
 	*sock=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
 	if(*sock==INVALID_SOCKET){
-		printf( "Error at socket(): %ld\n", WSAGetLastError() );
+		LOG_ERROR("at socket(): {}", WSAGetLastError() );
 		WSACleanup();
 		return 0;
 	}
@@ -820,12 +800,12 @@ int CreateSocketBindListen(SOCKET *sock,int port)
 	service.sin_addr.s_addr = 0;//inet_addr(ip);
 	service.sin_port = htons(port);
 	if ( bind( *sock, (SOCKADDR*) &service, sizeof(service) ) == SOCKET_ERROR ) {
-		printf( "bind() failed. %d\n", WSAGetLastError() );
+		LOG_ERROR( "bind() failed. {}", WSAGetLastError() );
 		closesocket(*sock);
 		return 0;
 	}
 	if ( listen( *sock, MAXNIC*totalnode ) == SOCKET_ERROR ){
-		printf( "Error listening on socket.\n");
+		LOG_ERROR("listening on socket.\n");
 		return 0;
 	}
 
@@ -853,19 +833,16 @@ int ConnectToHostByMaxNIC(int destnode,int port)
 
 	gethostname(str,100);
 	thisHost = gethostbyname(str);
-	//printf("name = %s\n",str);
 	for(numofnic=0;;numofnic++){
 		pinAddr=((in_addr *)thisHost->h_addr_list[numofnic]);
 		if(pinAddr==NULL) break;
-		printf("ip address %s %x\n",inet_ntoa(*pinAddr),inet_addr(inet_ntoa(*pinAddr)));
+		LOG_INFO("ip address {} {}",inet_ntoa(*pinAddr),inet_addr(inet_ntoa(*pinAddr)));
 		ipaddrlocal[numofnic]=inet_addr(inet_ntoa(*pinAddr));
 	}
-//	printf("numofnic =%d\n",numofnic);
 	thisHost=gethostbyname(nodename[destnode]);
 	for(numconn=0;;numconn++){
 		pinAddr=((in_addr *)thisHost->h_addr_list[numconn]);
 		if(pinAddr==NULL) break;
-//		printf("ip address %s %x\n",inet_ntoa(*pinAddr),inet_addr(inet_ntoa(*pinAddr)));
 		ipaddrhost[numconn]=inet_addr(inet_ntoa(*pinAddr));
 	}
 
@@ -876,7 +853,6 @@ int ConnectToHostByMaxNIC(int destnode,int port)
 				ipaddrhostcandidate[numpossconn]=ipaddrhost[j];
 				numpossconn++;
 			} else {
-//				printf("%d\t%d\t%x\t%x\n",i,j,ipaddrlocal[i],ipaddrhost[j]);
 			}
 		}
 	}
@@ -890,8 +866,8 @@ int ConnectToHostByMaxNIC(int destnode,int port)
 		service.sin_addr.s_addr = ipaddrhostcandidate[j];
 	    service.sin_port = htons( port);
 		if (connect( sock[0], (SOCKADDR*) &service, sizeof(service) ) == SOCKET_ERROR) {
-			printf( "Failed to connect. %d %x %d\n",i,ipaddrhostcandidate[0],j);
-			printf("error %d\n",WSAGetLastError());
+			LOG_ERROR( "Failed to connect. {} {} {}",i,ipaddrhostcandidate[0],j);
+			LOG_ERROR("error {}",WSAGetLastError());
 		} else {
 			SetTCPWindow(sock[0],optval);
 			break;
@@ -900,13 +876,13 @@ int ConnectToHostByMaxNIC(int destnode,int port)
 	tmp2=4;
 	rc=getsockopt(sock[0],SOL_SOCKET,SO_SNDBUF,(char *)&tmp,&tmp2);
 	if(tmp!=optval){
-		printf("Error value %d\t%d\t%d\t%d\n",tmp,optval,rc,WSAGetLastError());
+		LOG_ERROR(" value {} {}",tmp,optval,rc,WSAGetLastError());
 	}
 
 	numpossconn=numpossconn-i;
-//	printf("connect 1 %d %d\n",i,numpossconn);
+//	LOG_ERROR("connect 1 {} {}",i,numpossconn);
 	if(numpossconn==0) {
-		printf("Error total num of connections %d\n",j);	
+		LOG_ERROR(" total num of connections {}",j);	
 		return 0;
 	} else {
 		send(sock[0],(char *) &mynode,sizeof(mynode),0);
@@ -922,38 +898,31 @@ int ConnectToHostByMaxNIC(int destnode,int port)
 	for(i=1;i<numpossconn;i++){
 		service.sin_addr.s_addr = ipaddrhostcandidate[j];
 		if (connect( sock[j], (SOCKADDR*) &service, sizeof(service) ) == SOCKET_ERROR) {
-			printf( "Failed to connect. %d %x %d\n",i,ipaddrhostcandidate[j],j);
+			LOG_ERROR( "Failed to connect. {} %x {}",i,ipaddrhostcandidate[j],j);
 			tmp=CHANGECONNECTNUM;
 			send(sock[0],(char *)&tmp,sizeof(tmp),0);
 		} else {
 			send(sock[j],(char *) &mynode,sizeof(mynode),0);
 			recv(sock[j],(char *) &tmp,sizeof(tmp),0);
 			if(tmp==ACCEPTOK){
-//				printf("accept ok %d/%d %d\n",j,i,numpossconn);
 				send(sock[0],(char *)&tmp,sizeof(tmp),0);
 				SetTCPWindow(sock[j],optval);
 				rc=getsockopt(sock[j],SOL_SOCKET,SO_SNDBUF,(char *)&tmp,&tmp2);
 				if(tmp!=optval){
-					printf("Error value %d\t%d\t%d\t%d\n",tmp,optval,rc,WSAGetLastError());
+					LOG_ERROR(" value {} {}",tmp,optval,rc,WSAGetLastError());
 				}
 				j++;
 			}
 			else if(tmp==ABORTACCEPT){
-				printf("error connection nic %d/%d\n",i,numpossconn);
+				LOG_ERROR("connection nic {}/{}",i,numpossconn);
 				closesocket(sock[j]);
 				return 0;
 			}
 		}
 	}
 	numchannel[destnode]=j;
-//	for(i=numchannel[destnode];i<MAXNIC;i++){
-//		if(closesocket(sd[destnode][i])==SOCKET_ERROR){
-//			printf("Erorr closing socket %d\t%d\t%d\n",destnode,i,WSAGetLastError());
-//			;
-//		}
-//	}
 
-	printf("total num of connections %d\n",j);
+	LOG_INFO("total num of connections {}",j);
 	return 1;
 }
 
@@ -972,16 +941,14 @@ int ConnectToHostByOneNIC(SOCKET *sock,int destnode,int port)
 	pinAddr=((in_addr *)thisHost->h_addr_list[0]);
 	ipaddrhost=inet_addr(inet_ntoa(*pinAddr));
 
-	//printf("hostname %s\t%s\t%d\n",nodename[destnode],inet_ntoa(*pinAddr),destnode);
-
 	j=0;
 
     service.sin_family = AF_INET;
 	service.sin_addr.s_addr = ipaddrhost;
     service.sin_port = htons( port);
 	if (connect( *sock, (SOCKADDR*) &service, sizeof(service) ) == SOCKET_ERROR) {
-		printf( "Failed to One connect (node: %d). %x\n",destnode,ipaddrhost);
-		printf("error %d\n",WSAGetLastError());
+		LOG_ERROR(" to One connect (node: {}). {}",destnode,ipaddrhost);
+		LOG_ERROR("{}",WSAGetLastError());
 	} else {
 		SetTCPWindow(*sock,optval);
 //		break;
@@ -1014,12 +981,10 @@ int AcceptFromClientbyOneNIC(SOCKET *sock,SOCKET listensock,int srcnode)
 {
 	int tmp;
 
-//	printf("waiting accpet from node for syncport %d\n",srcnode);
 	*sock=accept(listensock,NULL,NULL);
 	recv(*sock,(char *) &tmp,sizeof(tmp),0);
-//	printf("node from %d\n",tmp);
 	if(tmp!=srcnode){
-//		printf("error syncport accpet : it is supposed to be node %d, but it is came from node %d\n",srcnode,tmp);
+//		LOG_ERROR("syncport accpet : it is supposed to be node %d, but it is came from node {}",srcnode,tmp);
 		tmp=ABORTACCEPT;
 		send(*sock,(char *) &tmp,sizeof(tmp),0);
 		closesocket(*sock);
@@ -1028,7 +993,6 @@ int AcceptFromClientbyOneNIC(SOCKET *sock,SOCKET listensock,int srcnode)
 		tmp=ACCEPTOK;
 		send(*sock,(char *) &tmp,sizeof(tmp),0);
 		SetTCPWindow(*sock,optval);
-//		printf("accept ok for syncport node %d\n",srcnode);
 	}
 	return 1;
 }
@@ -1038,12 +1002,10 @@ FUNCPTR AcceptWrap(void *arg)
 	AcceptArg *parg=(AcceptArg *) arg;
 	int tmp;
 
-//	printf("waiting accpet from node %d for nic %d\n",parg->node,parg->nic);
 	*(parg->asock)=accept(parg->lsock,NULL,NULL);
 	recv(*(parg->asock),(char *) &tmp,sizeof(tmp),0);
-//	printf("node from %d\n",tmp);
 	if(tmp!=parg->node){
-	//	printf("error accpet nic %d : it is supposed to be node %d, but it is came from node %d\n",parg->nic,parg->node,tmp);
+	//	LOG_ERROR("accpet nic {} : it is supposed to be node %d, but it is came from node {}",parg->nic,parg->node,tmp);
 		tmp=ABORTACCEPT;
 		send(*(parg->asock),(char *) &tmp,sizeof(tmp),0);
 		closesocket(*(parg->asock));
@@ -1052,7 +1014,6 @@ FUNCPTR AcceptWrap(void *arg)
 		tmp=ACCEPTOK;
 		send(*(parg->asock),(char *) &tmp,sizeof(tmp),0);
 		SetTCPWindow(*(parg->asock),optval);
-	//	printf("accept ok for nic %d\n",parg->nic);
 	}
 	return 1;
 }
@@ -1089,7 +1050,6 @@ int AcceptFromClient(SOCKET listensock,int node)
 	recv(asocket[0],(char *)&numposscon,sizeof(numposscon),0);
 	numchannel[node]=1;
 
-//	printf("numposscon %d\n",numposscon);
 	quitflag=0;
 	
 
@@ -1117,7 +1077,6 @@ int AcceptFromClient(SOCKET listensock,int node)
 			}
 		}
 	}
-//	printf("*numchannel =%d\t%d\n",*numchannel2,numchannel[node]);
 
 	return 1;
 }
@@ -1132,21 +1091,21 @@ void BMPI_Sync2()
 	if(mynode==0) {
 		i=send(sd[1][0],(char *) &i,sizeof(i),0);
 		if(i<=0) {
-			printf("send sync error %d %d\n",i,WSAGetLastError());
+			printf("send sync error {} {}",i,WSAGetLastError());
 		}
 		i=recv(sd[totalnode-1][0],(char *) &i,sizeof(i),0);
 		if(i<=0) {
-			printf("recv sync error %d %d\n",i,WSAGetLastError());
+			printf("recv sync error {} {}",i,WSAGetLastError());
 		}
 	} else {
 		i=recv(sd[mynode-1][0],(char *) &i,sizeof(i),0);
 		if(i<=0) {
-			printf("recv sync error %d %d\n",i,WSAGetLastError());
+			printf("recv sync error {} {}",i,WSAGetLastError());
 		}
 		if(mynode!=totalnode-1) i=send(sd[mynode+1][0],(char *) &i,sizeof(i),0);
 		else i=send(sd[0][0],(char *) &i,sizeof(i),0);
 		if(i<=0) {
-			printf("send sync error %d %d\n",i,WSAGetLastError());
+			printf("send sync error {} {}",i,WSAGetLastError());
 		}
 	}
 	c2=clock();
@@ -1163,27 +1122,27 @@ void BMPI_Sync3()
 	if(mynode==0) {
 		i=send(nextnodesock,(char *) &mynode,sizeof(i),0);
 		if(i<=0) {
-			printf("send sync error %d %d\n",i,WSAGetLastError());
+			printf("send sync error {} {}",i,WSAGetLastError());
 		}
 		i=recvfromq();
 		if(i!=(mynode-1+totalnode)%totalnode) {
-			printf("recv sync error %d %d\n",i,mynode);
+			printf("recv sync error {} {}",i,mynode);
 		}
 		i=send(nextnodesock,(char *) &mynode,sizeof(i),0);
 		i=recvfromq();
 	} else {
 //		i=recv(prenodesock,(char *) &i,sizeof(i),0);
 		i=recvfromq();
-	//	printf("it is from  node %d\n",i);
+	//	printf("it is from  node {}",i);
 		if(i!=(mynode-1+totalnode)%totalnode) {
-			printf("recv sync error %d %d\n",i,mynode);
+			printf("recv sync error {} {}",i,mynode);
 		}
 	//	printf("before sending to nextnode\n");
 		i=send(nextnodesock,(char *) &mynode,sizeof(i),0);
 //		Sleep(100);
 	//	printf("after sending to nextnode\n");
 		if(i<=0) {
-			printf("send sync error %d %d\n",i,WSAGetLastError());
+			printf("send sync error {} {}",i,WSAGetLastError());
 		}
 		i=recvfromq();
 		i=send(nextnodesock,(char *) &mynode,sizeof(i),0);
@@ -1202,20 +1161,20 @@ void BMPI_Sync()
 	if(mynode==0) {
 		i=send(nextnodesock,(char *) &i,sizeof(i),0);
 		if(i<=0) {
-			printf("send sync error %d %d\n",i,WSAGetLastError());
+			printf("send sync error {} {}",i,WSAGetLastError());
 		}
 		i=recv(prenodesock,(char *) &i,sizeof(i),0);
 		if(i<=0) {
-			printf("recv sync error %d %d\n",i,WSAGetLastError());
+			printf("recv sync error {} {}",i,WSAGetLastError());
 		}
 	} else {
 		i=recv(prenodesock,(char *) &i,sizeof(i),0);
 		if(i<=0) {
-			printf("recv sync error %d %d\n",i,WSAGetLastError());
+			printf("recv sync error {} {}",i,WSAGetLastError());
 		}
 		i=send(nextnodesock,(char *) &i,sizeof(i),0);
 		if(i<=0) {
-			printf("send sync error %d %d\n",i,WSAGetLastError());
+			printf("send sync error {} {}",i,WSAGetLastError());
 		}
 	}
 	c2=clock();
@@ -1243,8 +1202,8 @@ void GenerateSyncSocket()
 		AcceptFromClientbyOneNIC(&prenodesock,listensock,mynode-1);
 		ConnectToHostByOneNIC(&nextnodesock,0,SYNCPORT);
 	} else {
-		printf("Error mynode %d\t%d\n",mynode,totalnode);
-		exit(1);
+		LOG_ERROR(" mynode {} {}",mynode,totalnode);
+		LOG_EXIT("Error");
 	}
 
 	closesocket(listensock);
@@ -1263,21 +1222,21 @@ void BMPI_Init(int argc,char **argv)
 	int arg;
 
 	FILE *fp=fopen(configfile,"rt");
-	if(fp==NULL) printf("error reading file %s\n",configfile);
+	if(fp==NULL) LOG_ERROR("reading file {}",configfile);
 	fscanf(fp,"%d",&i);
 	totalnode=i;
 	nodename=(char **) calloc(totalnode,sizeof(char *));
 	for(i=0;i<totalnode;i++){
 		nodename[i]=(char *) calloc(100,sizeof(char));
 		fscanf(fp,"%s",nodename[i]);
-		printf("nodename %d %s\n",i,nodename[i]);
+		LOG_INFO("nodename {} {}",i,nodename[i]);
 	}
 	fclose(fp);
 //	atexit(cleanup);
 	Init_winsock();
 
 	gethostname(str,100);
-	printf("str %s\n",str);
+	LOG_INFO("str {}",str);
 
 	for(i=0;i<totalnode;i++){
 		if(!strcmp(str,nodename[i])) break;
@@ -1293,7 +1252,7 @@ void BMPI_Init(int argc,char **argv)
 	} else {
 		nextnode=mynode+1;
 	}
-	printf("mynode %d\n",mynode);
+	LOG_INFO("mynode {}",mynode);
 
 
 	lastnode=totalnode-1;
@@ -1305,18 +1264,18 @@ void BMPI_Init(int argc,char **argv)
 	CreateSocketBindListen(&listensock,DATAPORT);
 
 	for(node=0;node<mynode;node++){
-		printf("accept from %d %d\n",node,mynode);
+		LOG_INFO("accept from {} {}",node,mynode);
 		AcceptFromClient(listensock,node);
 	}
 	
 	if(mynode!=0) recv(prenodesock,(char *)&i,sizeof(i),0);
 
 	for(node=mynode+1;node<totalnode;node++){
-		printf("connect to %d %d %s\n",node,mynode,nodename[node]);
+		printf("connect to {} {} {}",node,mynode,nodename[node]);
 		ConnectToHostByMaxNIC(node,DATAPORT);
 	}
 //	if(mynode==0) Sleep(1500);
-	printf("i=%d\n",i);
+	LOG_INFO("i={}",i);
 	if(mynode!=totalnode-1) send(nextnodesock,(char *)&i,sizeof(i),0);
 	closesocket(listensock);
 
@@ -1329,14 +1288,12 @@ void BMPI_Init(int argc,char **argv)
 			tmp=0;
 			rc=getsockopt(sd[node][i],SOL_SOCKET,SO_SNDBUF,(char *)&tmp,&tmp2);
 			if(tmp!=optval || rc<0){
-				printf("Error value %d\t%d\t%d\t%d\n",tmp,optval,rc,WSAGetLastError());
+				LOG_ERROR(" value {} {}",tmp,optval,rc,WSAGetLastError());
 			}
 		}
 	}
 //	Sleep(500);
-	printf("*******************************************\n");
 	START_THREAD(synchandle,RecvSyncQ,arg,id);
-	printf("*******************************************\n");
 	BMPI_Sync3();
 	BMPI_Sync3();
 	BMPI_Sync3();
@@ -1346,7 +1303,7 @@ void BMPI_Init(int argc,char **argv)
 	BMPI_Sync3();
 	BMPI_Sync3();
 //	Sleep(1000);
-//	exit(1);
+//	LOG_EXIT("Error");
 }
 
 
@@ -1358,7 +1315,7 @@ void BMPI_Isend(char *buffer,int size,int dest)
 	if(dest==mynode) return;
 	if(dest>=totalnode) return;
 
-//	printf("currsendhandle %d\n",currsendhandle);
+//	printf("currsendhandle {}",currsendhandle);
 	sendcs[currsendhandle].sendbuf=buffer;
 	sendcs[currsendhandle].n=size;
 	sendcs[currsendhandle].nsockdest=numchannel[dest];
@@ -1368,7 +1325,7 @@ void BMPI_Isend(char *buffer,int size,int dest)
 	START_THREAD(sendhandles[currsendhandle],SendWrap,sendcs[currsendhandle],id);
 
 	currsendhandle++;
-//	printf("currsendhandle %d\n",currsendhandle);
+//	printf("currsendhandle {}",currsendhandle);
 
 	return;
 }
@@ -1394,7 +1351,6 @@ void BMPI_Irecv(char *buffer,int size,int src)
 
 	if(src==mynode) return;
 	if(src>=totalnode) return;
-//	printf("currrecvhandle %d\n",currrecvhandle);
 
 	recvcs[currrecvhandle].recvbuf=buffer;
 	recvcs[currrecvhandle].sendbuf=NULL;
@@ -1407,7 +1363,6 @@ void BMPI_Irecv(char *buffer,int size,int src)
 	START_THREAD(recvhandles[currrecvhandle],RecvWrap,recvcs[currrecvhandle],id);
 
 	currrecvhandle++;
-//	printf("currrecvhandle %d\n",currrecvhandle);
 
 	return;
 
@@ -1442,7 +1397,6 @@ void BMPI_Irecv(char *buffer,int size,int src,int type,int oper)
 
 	if(src==mynode) return;
 	if(src>=totalnode) return;
-//	printf("currrecvhandle %d\n",currrecvhandle);
 
 	recvcs[currrecvhandle].recvbuf=(char *) buffer;
 	recvcs[currrecvhandle].nsocksrc=numchannel[src];
@@ -1465,7 +1419,6 @@ void BMPI_Irecv(char *buffer,int size,int src,int type,int oper)
 	START_THREAD(recvhandles[currrecvhandle],RecvWrap,recvcs[currrecvhandle],id);
 
 	currrecvhandle++;
-//	printf("currrecvhandle %d\n",currrecvhandle);
 
 	return;
 
@@ -1503,7 +1456,6 @@ void BMPI_Irecvsend(char *recvbuffer,int size,int src,int dest,int type,int oper
 
 	if(src==mynode) return;
 	if(src>=totalnode) return;
-//	printf("currrecvhandle %d\n",currrecvhandle);
 
 	recvcs[currrecvhandle].recvbuf=(char *) recvbuffer;	
 	recvcs[currrecvhandle].sendbuf=NULL;
@@ -1521,7 +1473,6 @@ void BMPI_Irecvsend(char *recvbuffer,int size,int src,int dest,int type,int oper
 	else if(type==BMPI_TYPE_DOUBLE) typesize=8;
 	else if(type==BMPI_TYPE_M128) typesize=16;
 
-	//printf("typesize=%d\n",typesize);
 	recvcs[currrecvhandle].n=size*typesize;
 	recvcs[currrecvhandle].oper=oper;
 	recvcs[currrecvhandle].type=type;
@@ -1530,7 +1481,6 @@ void BMPI_Irecvsend(char *recvbuffer,int size,int src,int dest,int type,int oper
 	START_THREAD(recvhandles[currrecvhandle],RecvSendWrap,recvcs[currrecvhandle],id);
 
 	currrecvhandle++;
-//	printf("currrecvhandle %d\n",currrecvhandle);
 
 	return;
 }
@@ -1568,7 +1518,6 @@ void BMPI_Wait()
 	currsendhandle=0;
 	c2=clock();
 
-//	printf("wait time=%f\n",(c2-c1+0.0)/CLOCKS_PER_SEC);
 }
 
 void BMPI_WaitAllRecv()

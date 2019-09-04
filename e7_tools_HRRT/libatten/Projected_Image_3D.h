@@ -13,17 +13,11 @@
 
 *****************************************************************************/
 
-#ifndef _PROJECTED_IMAGE_3D
-#define _PROJECTED_IMAGE_3D
+#pragma once
 
 #include <cstdlib>
 
-#ifdef WIN32
-class __declspec(dllexport) Projected_Image_3D
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 class Projected_Image_3D
-#endif
  { protected:
                                                                // Basic members
     int msize,
@@ -77,4 +71,3 @@ class Projected_Image_3D
     void read_proj(const float * const) const;
  };
 
-#endif

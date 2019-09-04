@@ -17,8 +17,8 @@
 
   ---------------------------------------------------------------------*/
 
-#include "gantryinfo.h"
-#include "histogram_mp.h"
+#include "gantryinfo.hpp"
+#include "histogram_mp.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,10 +41,9 @@ static int current_model = -1;
  * where XXX is the model_number.
  * Returns the table size on success fails, otherwise set the state to fail (-1) and returns -1.
  */
-int GantryInfo::load(int model_number)
-{
+int GantryInfo::load(int model_number) {
   char filename[FILENAME_MAX] = "";
-  char msg[1000];
+  // char msg[1000];
   char line[LINE_SIZE];
   const char *gmini_dir=NULL;
   FILE *fp=NULL;

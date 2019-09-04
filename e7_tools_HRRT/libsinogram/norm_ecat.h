@@ -6,8 +6,7 @@
     \date 2005/02/08 added Doxygen style comments
  */
 
-#ifndef _NORM_ECAT
-#define _NORM_ECAT
+#pragma once
 
 #include <vector>
 
@@ -69,4 +68,3 @@ class NormECAT
      unsigned short int calcNorm(const unsigned short int) const;
  };
 
-#endif

@@ -9,12 +9,11 @@
 
 */
 
-#ifndef cal_sen_h
-#define cal_sen_h
+# pragma once
+
 #include <stdio.h>
 extern int max_iterations;
 extern float min_rmse;
 
 extern int cal_sen(float *in_fan_sum, float *out_cry_eff, FILE *log_fp);
 //  cal_sen computes iteratively crystal efficiencies from fan sums 
-#endif

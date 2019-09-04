@@ -18,9 +18,7 @@ Daemon.
 
 -----------------------------------------------------------------------------*/
 
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <sys/utsname.h>
-#endif
 #include "red_client.h"
 #include "comm_socket.h"
 #include "logging.h"
@@ -45,21 +43,11 @@ void RED_execute(const std::string hostname, const std::string filename,
 
    try
    { std::string name;
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      { struct utsname un;
                                                   // get name of local computer
        uname(&un);
        name=std::string(un.nodename);
      }
-#endif
-#ifdef WIN32
-     { DWORD size=MAX_COMPUTERNAME_LENGTH+1;
-       char name_char[MAX_COMPUTERNAME_LENGTH+1];
-                                                  // get name of local computer
-       GetComputerName(name_char, &size);
-       name=std::string(name_char);
-     }
-#endif
                                                  // establish connection to RED
      rbuffer=new StreamBuffer(500);
      wbuffer=new StreamBuffer(500);
@@ -102,21 +90,11 @@ void RED_install(const std::string hostname, const std::string filename,
      unsigned long int filesize;
      std::string::size_type p;
                                                   // get name of local computer
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      { struct utsname un;
 
        uname(&un);
        name=std::string(un.nodename);
      }
-#endif
-#ifdef WIN32
-     { DWORD size=MAX_COMPUTERNAME_LENGTH+1;
-       char name_char[MAX_COMPUTERNAME_LENGTH+1];
-
-       GetComputerName(name_char, &size);
-       name=std::string(name_char);
-     }
-#endif
                                                  // establish connection to RED
      rbuffer=new StreamBuffer(10000);
      wbuffer=new StreamBuffer(10000);
@@ -172,21 +150,11 @@ bool RED_ping(const std::string hostname)
    { unsigned short int result;
      std::string name;
                                                   // get name of local computer
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
      { struct utsname un;
 
        uname(&un);
        name=std::string(un.nodename);
      }
-#endif
-#ifdef WIN32
-     { DWORD size=MAX_COMPUTERNAME_LENGTH+1;
-       char name_char[MAX_COMPUTERNAME_LENGTH+1];
-
-       GetComputerName(name_char, &size);
-       name=std::string(name_char);
-     }
-#endif
                                                  // establish connection to RED
      rbuffer=new StreamBuffer(200);
      wbuffer=new StreamBuffer(200);
@@ -236,21 +204,11 @@ void RED_terminate(const std::string hostname)
    { unsigned short int result;
      std::string name;
                                                   // get name of local computer
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-     { struct utsname un;
+      struct utsname un;
 
        uname(&un);
        name=std::string(un.nodename);
-     }
-#endif
-#ifdef WIN32
-     { DWORD size=MAX_COMPUTERNAME_LENGTH+1;
-       char name_char[MAX_COMPUTERNAME_LENGTH+1];
 
-       GetComputerName(name_char, &size);
-       name=std::string(name_char);
-     }
-#endif
                                                  // establish connection to RED
      rbuffer=new StreamBuffer(200);
      wbuffer=new StreamBuffer(200);

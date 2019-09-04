@@ -61,11 +61,7 @@ int main(int argc, char **argv)
   const char *log_file = "motion_correct_pp.log";
   const char *units = "Bq/ml";
   char line[80];
-#ifdef WIN32
-  const char *calib_dir = "C:\\CPS\\calibration_files";
-#else
   const char *calib_dir = NULL;
-#endif
   char *em_dyn_file=NULL, *ext=NULL;
   char em_prefix[FILENAME_MAX], fname[FILENAME_MAX];
   char plt_fname[FILENAME_MAX];
@@ -168,13 +164,8 @@ int main(int argc, char **argv)
 
   if (user_time_constant <= 0.0f) user_time_constant = deadtime_constant;
  // hrrt_osem3d_v1.2_x64 -t %em%.dyn -n %no% -X 128 -o %em%_na.v -W 0 -I 4 -S 8 -N -L osem3d.log
-#ifdef WIN32
-  sprintf(cmd_line,"if2e7 -v -e %g -u Bq/ml -S %s %s_frame%d.i", 
-    user_time_constant, calib_dir, em_prefix, ref_frame-1);
-#else // multithread bug on linux, use 1 thread 
   sprintf(cmd_line,"if2e7 -v -e %g %em%_frame%d.i", 
     user_time_constant, em_prefix, ref_fame);
-#endif
   sprintf(fname,"%s.v",em_prefix);
   if (access(fname,R_OK) == 0 && overwrite==0) {
     fprintf(log_fp,"Reusing existing %s\n",fname);

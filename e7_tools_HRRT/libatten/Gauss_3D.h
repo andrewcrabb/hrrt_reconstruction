@@ -1,12 +1,6 @@
-#ifndef _GAUSS_3D_H
-#define _GAUSS_3D_H
+#pragma once
 
-#ifdef WIN32
-class __declspec(dllexport) Gauss_3D
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 class Gauss_3D
-#endif
  { private:
     int size,
         size_z,
@@ -21,5 +15,3 @@ class Gauss_3D
     float der_der_U(const int, const float * const) const;
     float term_U(const int, const float * const) const;
  };
-
-#endif

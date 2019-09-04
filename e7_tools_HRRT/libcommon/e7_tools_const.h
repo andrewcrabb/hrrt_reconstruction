@@ -4,8 +4,7 @@
     \date 2003/11/17 initial version
  */
 
-#ifndef _CONST_H
-#define _CONST_H
+#pragma once
 
 /*- constants ---------------------------------------------------------------*/
 
@@ -13,25 +12,6 @@
                                                          /*! revision number */
 const unsigned long int revnum=27501; // 275.01 major.minor
 
-#ifdef M_PI
-#undef M_PI
-#endif
-#ifdef M_PI_2
-#undef M_PI_2
-#endif
-
-#ifdef XEON_HYPERTHREADING_BUG
-                                 /*! offset between stacks of different threads
-                                     This is a multiple of CACHE_LINE_SIZE and
-                                     larger than the stack used by a thread. */
-const unsigned long int STACK_OFFSET=1024;
-           /*! size of a cache line on Pentium 4 and Xeon CPUs is 64 Byte; each
-               read fetches a cache sector consisting of two adjacent lines */
-const unsigned short int CACHE_LINE_SIZE=128;
-#endif
-
-const double M_PI=3.1415926535897932384626433832795029;       /*!< \f$\pi\f$ */
-                                                     /*! \f$\frac{\pi}{2}\f$ */
 const double M_PI_2=1.5707963267948966192313216916397514;
 
 const signed short int CLOCKWISE=1;      /*!< clockwise rotation of detector */
@@ -72,6 +52,3 @@ const unsigned long int CORR_untilted=0x4000;
 const unsigned long int CORR_XYSmoothing=0x8000;
                               /*! corrections flag: smoothing in z-direction */
 const unsigned long int CORR_ZSmoothing=0x10000;
-
-#endif
-

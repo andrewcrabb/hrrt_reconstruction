@@ -9,16 +9,11 @@
     logging object.
  */
 
+#pragma once
+
 #include <iostream>
 #include <sstream>
-#ifndef _EXCEPTION_CPP
-#define _EXCEPTION_CPP
 #include "exception.h"
-#endif
-#ifdef WIN32
-#include "ErrorEventSupport.h"
-#include <atlstr.h>
-#endif
 #include "logging.h"
 
 /*- methods -----------------------------------------------------------------*/
@@ -69,22 +64,6 @@ Exception Exception::arg(T param)
  }
 
 #ifndef _EXCEPTION_TMPL_CPP
-#ifdef WIN32
-/*---------------------------------------------------------------------------*/
-/*! \brief Fill GUID into error message.
-    \param[in] param   GUID to fill into error message
-    \return pointer to error object
-
-    Fill GUID into error message.
- */
-/*---------------------------------------------------------------------------*/
-Exception Exception::arg(GUID param)
- { OLECHAR gstr[128];
-
-   ::StringFromGUID2(param, gstr, 128);
-   return(arg(std::string((LPCTSTR)CString(gstr))));
- }
-#endif
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Request error code.

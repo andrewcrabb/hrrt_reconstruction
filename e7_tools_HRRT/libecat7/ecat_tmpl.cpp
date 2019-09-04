@@ -243,7 +243,7 @@ T *loaddata(std::ifstream * const file, const  unsigned long int matrix_size,
 
      data=new T[matrix_size];                                 // create dataset
                        // DataChanger is used to read data system independently
-     dc=new DataChanger(E7_RECLEN, false, true);
+     dc = new DataChanger(E7_RECLEN);
      for (bp=data,
           i=0; i < matrix_records; i++)
       { dc->ResetBufferPtr();
@@ -427,7 +427,7 @@ void savedata(std::ofstream * const file, T * const data,
      end=matrix_size/vsize;                         // number of records needed
      if ((matrix_size % vsize) != 0) end++;
                        // DataChanger is used to read data system independently
-     dc=new DataChanger(E7_RECLEN, false, true);
+     dc = new DataChanger(E7_RECLEN);
      for (bp=data,
           i=0; i < end; i++)                                   // write records
       { dc->ResetBufferPtr();

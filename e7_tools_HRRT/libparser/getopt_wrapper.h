@@ -5,9 +5,7 @@
     \date 2004/05/24 added Doxygen style comments
  */
 
-#ifndef _GETOPT_WRAPPER_H
-#define _GETOPT_WRAPPER_H
+#pragma once
 
 #include <getopt.h>
 
-#endif

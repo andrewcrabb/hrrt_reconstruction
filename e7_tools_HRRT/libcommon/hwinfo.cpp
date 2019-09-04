@@ -11,20 +11,6 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#ifdef __MACOSX__
-#include <mach/mach_init.h>
-#include <mach/mach_host.h>
-#include <mach-o/arch.h>
-#endif
-#if defined(__linux__) || defined(__SOLARIS__)
-/* #include <sys/sysinfo.h> */
-#endif
-#ifdef WIN32
-#include "exception.h"
-#include "registry.h"
-#include "str_tmpl.h"
-#include "win_registry.h"
-#endif
 #include "logging.h"
 
 /*---------------------------------------------------------------------------*/
@@ -53,9 +39,6 @@ unsigned short int logicalCPUs()
      num_log_cpus=hinfo.avail_cpus;
    }
 #endif
-#ifdef __SOLARIS__
-   num_log_cpus=1;
-#endif
 #ifdef __linux__
    std::ifstream *file=NULL;
 
@@ -80,16 +63,6 @@ unsigned short int logicalCPUs()
                         }
       throw;
     }
-#endif
-#ifdef WIN32
-   if (getenv("SINGLE_THREADED_RECON") != NULL) num_log_cpus=1;
-    else { char *env;
-
-           if ((env=getenv("NUMBER_OF_PROCESSORS")) != NULL)
-            num_log_cpus=atoi(env);
-            else num_log_cpus=1;
-           if (num_log_cpus < 1) num_log_cpus=1;
-         }
 #endif
    return(num_log_cpus);
  }
@@ -120,55 +93,9 @@ unsigned short int logicalCPUs()
 /*---------------------------------------------------------------------------*/
 void printHWInfo(const unsigned short int loglevel)
  {
-#ifndef __SOLARIS__
    std::string cpu_name="unknown";
    unsigned short int i=0;
    unsigned long int mbyte=0;
-#endif
-#ifdef __MACOSX__
-   { mach_msg_type_number_t count=HOST_VM_INFO_COUNT;
-     host_basic_info hinfo;
-     const NXArchInfo *ai;
-
-     host_info(mach_host_self(), HOST_BASIC_INFO, (host_info_t)&hinfo, &count);
-     mbyte=hinfo.memory_size/(1024*1024);
-     i=hinfo.avail_cpus;
-     ai=NXGetArchInfoFromCpuType(hinfo.cpu_type, hinfo.cpu_subtype);
-     cpu_name=std::string(ai->description);
-   }
-#endif
-#ifdef WIN32
-   RegistryAccess *ra=NULL;
-   std::string str;
-
-   try
-   { Logging::flog()->loggingOn(false);
-     for (i=0; i < 16; i++)
-      { ra=new RegistryAccess(cpukey+"\\"+toString(i), false);
-        ra->getKeyValue("ProcessorNameString", &str);
-        if (i == 0) cpu_name=str;
-        delete ra;
-        ra=NULL;
-      }
-   }
-   catch (const Exception)
-    { MEMORYSTATUS lp;
-
-      Logging::flog()->loggingOn(true);
-      while (cpu_name.at(0) == ' ') cpu_name.erase(0, 1);
-      if (ra != NULL) delete ra;
-      GlobalMemoryStatus(&lp);
-      mbyte=lp.dwTotalPhys/(1024*1024);
-    }
-   if (getenv("SINGLE_THREADED_RECON") != NULL) i=1;
-    else { char *env;
-
-           if ((env=getenv("NUMBER_OF_PROCESSORS")) != NULL) i=atoi(env);
-            else i=1;
-           if (i < 1) i=1;
-         }
-#endif
-#if defined(__linux__) && defined(__INTEL_COMPILER)
    std::ifstream *file=NULL;
 
    file=new std::ifstream("/proc/cpuinfo");
@@ -201,11 +128,10 @@ void printHWInfo(const unsigned short int loglevel)
    sse2=((edx & 0x04000000) > 0);
    mmx=((edx & 0x00800000) > 0);
    log_per_cpu=(ebx & 0xFF0000) >> 16;
-#endif
-#ifndef __SOLARIS__
+
    Logging::flog()->logMsg("#1 (#2x)    memory: #3 MByte", loglevel)->
     arg(cpu_name)->arg(i)->arg(mbyte);
-#endif
+
 #if defined(__linux__) && defined(__INTEL_COMPILER)
 
    if (mmx || sse || sse2)
@@ -345,32 +271,17 @@ void printHWInfo(const unsigned short int loglevel)
           break;
          case 0x70:
           s="Trace cache: 12 K-";
-#ifdef WIN32
-          s+=(char)230;
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
           s+="µ";
-#endif
           s+="op, 8-way set associative";
           break;
          case 0x71:
           s="Trace cache: 16 K-";
-#ifdef WIN32
-          s+=(char)230;
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
           s+="µ";
-#endif
           s+="op, 8-way set associative";
           break;
          case 0x72:
           s="Trace cache: 32 K-";
-#ifdef WIN32
-          s+=(char)230;
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
           s+="µ";
-#endif
           s+="op, 8-way set associative";
           break;
          case 0x79:

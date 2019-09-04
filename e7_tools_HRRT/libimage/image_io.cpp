@@ -28,12 +28,9 @@
 #include <limits>
 #include "image_io.h"
 #include "e7_tools_const.h"
-#ifdef WIN32
-#include "global_tmpl.h"
-#endif
 #include "e7_common.h"
 #include "ecat7.h"
-#include "ecat7_image.h"
+#include "ecat7_image.hpp"
 #include "fastmath.h"
 #include "gm.h"
 #include "logging.h"
@@ -619,8 +616,8 @@ void ImageIO::loadECAT7(const std::string name,
    matrix_bed=e7->Dir_bed(mnr);
    bedpos.assign(1, bedPosition(e7, mnr));
    e7->LoadData(mnr);
-   vXYSamples=e7->Image_x_dimension(mnr);
-   vZSamples=e7->Image_z_dimension(mnr);
+   vXYSamples=e7->Image_x_dim(mnr);
+   vZSamples=e7->Image_z_dim(mnr);
    vDeltaXY=e7->Image_x_pixel_size(mnr)*10.0f;
    vDeltaZ=e7->Image_z_pixel_size(mnr)*10.0f;
    if (e7->Image_filter_code(mnr) == E7_FILTER_CODE_Gaussian)
@@ -680,7 +677,7 @@ void ImageIO::loadECAT7(const std::string name,
               (unsigned long int)ZSamples();
    float *ptr;
 
-   ptr=(float *)e7->MatrixData(mnr);
+   ptr=(float *)e7->getecat_matrix::MatrixData(mnr);
                                       // move image data into memory controller
    data_idx.resize(1);
    MemCtrl::mc()->putFloat(&ptr, image_size, &data_idx[0], name, loglevel);
@@ -1314,7 +1311,7 @@ void ImageIO::saveECAT7(const std::string filename,
                         const unsigned short int bed,
                         const unsigned short int loglevel)
  { signed short int *simage=NULL;
-   float *fptr=NULL;
+   float *float_ptr=NULL;
    Wholebody *wb=NULL;
 
    try
@@ -1400,20 +1397,17 @@ void ImageIO::saveECAT7(const std::string filename,
                 ((ECAT7_IMAGE *)e7->Matrix(0))->ScaleMatrix(
                                                     e7->Image_scale_factor(0));
                                                    // calculate wholebody image
-                if (!feet_first) topos=e7->Main_init_bed_position()*10.0f+
-                                      (float)e7->Image_z_dimension(0)*
-                                      e7->Image_z_pixel_size(0)*10.0f;
-                 else topos=e7->Main_init_bed_position()*10.0f-
-                            (float)e7->Image_z_dimension(0)*
-                            e7->Image_z_pixel_size(0)*10.0f;
+                float offset = (float)e7->Image_z_dim(0) * e7->Image_z_pixel_size(0) * 10.0f;
+                offset = (feet_first) ? -1.0f * offset : offset;
+                topos = e7->Main_init_bed_position() * 10.0f + offset;
                 Logging::flog()->logMsg("existing image: pos=#1mm to #2mm, #3 "
                                         "planes", loglevel+1)->
                  arg(e7->Main_init_bed_position()*10.0f)->arg(topos)->
-                 arg(e7->Image_z_dimension(0));
-                wb=new Wholebody((float *)e7->MatrixData(0),
-                                 e7->Image_x_dimension(0),
-                                 e7->Image_y_dimension(0),
-                                 e7->Image_z_dimension(0),
+                 arg(e7->Image_z_dim(0));
+                wb=new Wholebody((float *)e7->getecat_matrix::MatrixData(0),
+                                 e7->Image_x_dim(0),
+                                 e7->Image_y_dim(0),
+                                 e7->Image_z_dim(0),
                                  e7->Image_z_pixel_size(0)*10.0f, fbedpos);
                 e7->DataDeleted(0);
                 if (feet_first) topos=bedpos[bed]+(float)ZSamples()*DeltaZ();
@@ -1425,26 +1419,26 @@ void ImageIO::saveECAT7(const std::string filename,
                            ZSamples(), bedpos[bed], feet_first, bed_moves_in,
                            loglevel+1);
                 MemCtrl::mc()->put(data_idx[bed]);
-                fptr=wb->getWholebody(&depth);
+                float_ptr=wb->getWholebody(&depth);
                        // convert image data from float to signed short integer
-                simage=Float2Short(fptr, (unsigned long int)XYSamples()*
+                simage=Float2Short(float_ptr, (unsigned long int)XYSamples()*
                                          (unsigned long int)XYSamples()*
                                          (unsigned long int)depth, &min_value,
                                    &max_value, &factor);
-                delete[] fptr;
-                fptr=NULL;
+                delete[] float_ptr;
+                float_ptr=NULL;
                 delete wb;
                 wb=NULL;
                 if ((feet_first == bed_moves_in) != GM::gm()->isPETCT())
                  e7->Main_init_bed_position((bedpos[bed]+flip_offset)/10.0f);
                 e7->Main_num_planes(depth);
                 e7->Main_num_bed_pos(0);
-                e7->Image_z_dimension(depth, 0);
+                e7->Image_z_dim(depth, 0);
                 e7->Image_scale_factor(factor, 0);
                 e7->Image_image_min(min_value, 0);
                 e7->Image_image_max(max_value, 0);
                 e7->Image_data_type(E7_DATA_TYPE_SunShort, 0);
-                e7->MatrixData(simage, E7_DATATYPE_SHORT, 0);
+                e7->getecat_matrix::MatrixData(simage, E7_DATATYPE_SHORT, 0);
                 e7->SaveFile(filename);                     // save file header
                 e7->AppendMatrix(0);                            // append image
                 e7->DeleteData(0);
@@ -1464,9 +1458,9 @@ void ImageIO::saveECAT7(const std::string filename,
                                                       // create image subheader
      e7->Image_data_type(E7_DATA_TYPE_SunShort, bn);
      e7->Image_num_dimensions(3, bn);
-     e7->Image_x_dimension(XYSamples(), bn);
-     e7->Image_y_dimension(XYSamples(), bn);
-     e7->Image_z_dimension(ZSamples(), bn);
+     e7->Image_x_dim(XYSamples(), bn);
+     e7->Image_y_dim(XYSamples(), bn);
+     e7->Image_z_dim(ZSamples(), bn);
      e7->Image_x_offset(0.0f, bn);
      e7->Image_y_offset(0.0f, bn);
      e7->Image_z_offset(0.0f, bn);
@@ -1555,14 +1549,14 @@ void ImageIO::saveECAT7(const std::string filename,
        e7->Image_scale_factor(factor, bn);
        e7->Image_image_min(min_value, bn);
        e7->Image_image_max(max_value, bn);
-       e7->MatrixData(simage, E7_DATATYPE_SHORT, bn);
+       e7->getecat_matrix::MatrixData(simage, E7_DATATYPE_SHORT, bn);
      }
      e7->AppendMatrix(bn);                             // append matrix to file
      e7->DeleteData(bn);
    }
    catch (...)
     { if (simage != NULL) delete[] simage;
-      if (fptr != NULL) delete[] fptr;
+      if (float_ptr != NULL) delete[] float_ptr;
       if (wb != NULL) delete wb;
       throw;
     }
@@ -1685,7 +1679,7 @@ void ImageIO::saveInterfile(const std::string filename,
                             const unsigned short int bed,
                             const unsigned short int loglevel)
  { signed short int *simage=NULL;
-   float *fptr=NULL;
+   float *float_ptr=NULL;
    Wholebody *wb=NULL;
    RawIO <float> *rio=NULL;
    Interfile::tdataset ds;
@@ -1872,11 +1866,11 @@ void ImageIO::saveInterfile(const std::string filename,
                 fbedpos=inf->Sub_start_horizontal_bed_position(&unit)-
                         flip_offset;
                                                     // load existing image data
-                fptr=new float[datasize];
+                float_ptr=new float[datasize];
                 rio=new RawIO <float>(filename_noext+
                                       Interfile::INTERFILE_IDATA_EXTENSION,
                                       false, false);
-                rio->read(fptr, datasize);
+                rio->read(float_ptr, datasize);
                 delete rio;
                 rio=NULL;
                                                    // calculate wholebody image
@@ -1891,11 +1885,11 @@ void ImageIO::saveInterfile(const std::string filename,
                                         "planes", loglevel+1)->
                  arg(inf->Sub_start_horizontal_bed_position(&unit))->
                  arg(topos)->arg(inf->Sub_matrix_size(2));
-                wb=new Wholebody(fptr, inf->Sub_matrix_size(0),
+                wb=new Wholebody(float_ptr, inf->Sub_matrix_size(0),
                                  inf->Sub_matrix_size(1),
                                  inf->Sub_matrix_size(2),
                                  inf->Sub_scale_factor(2, &unit), fbedpos);
-                fptr=NULL;
+                float_ptr=NULL;
                 if (!feet_first) topos=bedpos[bed]-(float)ZSamples()*DeltaZ();
                  else topos=bedpos[bed]-(float)ZSamples()*DeltaZ();
                 Logging::flog()->logMsg("add bed at pos #1mm to #2mm, #3 "
@@ -1905,7 +1899,7 @@ void ImageIO::saveInterfile(const std::string filename,
                            ZSamples(), bedpos[bed], feet_first, bed_moves_in,
                            loglevel+1);
                 MemCtrl::mc()->put(data_idx[bed]);
-                fptr=wb->getWholebody(&depth);
+                float_ptr=wb->getWholebody(&depth);
                 delete wb;
                 wb=NULL;
                 if (!bed_moves_in)
@@ -1931,11 +1925,11 @@ void ImageIO::saveInterfile(const std::string filename,
                 rio=new RawIO <float>(filename_noext+
                                       Interfile::INTERFILE_IDATA_EXTENSION,
                                       true, false);
-                rio->write(fptr, datasize);
+                rio->write(float_ptr, datasize);
                 delete rio;
                 rio=NULL;
-                delete[] fptr;
-                fptr=NULL;
+                delete[] float_ptr;
+                float_ptr=NULL;
                 return;
               }
                                                      // create multi-frame file
@@ -2133,7 +2127,7 @@ void ImageIO::saveInterfile(const std::string filename,
    }
    catch (...)
     { if (simage != NULL) delete[] simage;
-      if (fptr != NULL) delete[] fptr;
+      if (float_ptr != NULL) delete[] float_ptr;
       if (wb != NULL) delete wb;
       if (rio != NULL) delete rio;
       if (ds.headerfile != NULL) delete ds.headerfile;

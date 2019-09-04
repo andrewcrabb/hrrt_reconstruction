@@ -15,13 +15,11 @@
    * Creation date: 31-JAN-2010
 */
 
-#ifndef WIN32
 #define _REENTRANT
 #define _POSIX_SOURCE
 #define _P __P
 #include <pthread.h>
 #include <pmmintrin.h>
-#endif
 
 #include <stdio.h>
 #include <malloc.h>
@@ -33,17 +31,6 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#ifdef WIN32
-#include <windows.h>
-#include <process.h>
-#include <io.h>
-#define stat _stat
-#define access _access
-#define fileno _fileno
-#define R_OK 4
-#define		DIR_SEPARATOR '\\'
-#define FILEPTR FILE*
-#else
 #include <pthread.h>
 #include <pmmintrin.h>
 #include <sys/sysinfo.h>
@@ -52,7 +39,6 @@
 // O_DIRECT defined here because not found otherwise CM + MS
 #define O_DIRECT         040000 /* direct disk access hint */	
 #define		DIR_SEPARATOR '/'
-#endif
 
 #include <ecatx/scanner_model.h>
 #include "hrrt_osem3d.h"
@@ -61,6 +47,8 @@
 #include "simd_operation.h"
 #include "mm_malloc.h"
 #include "write_image_header.h"
+#include "my_spdlog.hpp"
+#include "hrrt_osem_utils.hpp"
 
 
 #define NHEADS 8
@@ -188,12 +176,7 @@ float image_max = 1.E4;			/* could be a parameter */
 
 int **vieworder;
 
-#ifdef WIN32
-File_structure fstruct[16];
-HANDLE threads[16];
-#else
 pthread_t threads[16]; // !sv
-#endif
 
 int back_proj3d_thread1(float ** prj,float *** ima,int view,int numthread,float ***imagebuf,float ***prjbuf);
 int forward_proj3d_thread1(float ***ima,float ** prj,int view,int numthread,float ***imagebuf,float ***prjbuf);	
@@ -213,60 +196,7 @@ static void usage() {
 	fprintf (stdout,"  -v  verbose_level [none = 0]\n");
 	exit(1);
 }
-#ifdef WIN32
-#define FOPEN_ERROR NULL
-FILEPTR file_open(char *fn,char *mode){
-	return fopen(fn,mode);
-}
-#else
 #define FOPEN_ERROR -1
-int file_open(char *fn,char *mode){
-	int ret;
-	if(mode[0]=='r' && mode[1]=='b'){
-		ret= open(fn,O_RDONLY|O_DIRECT); //|O_DIRECT);
-		return ret;
-	}
-}
-#endif
-
-#ifdef WIN32
-void file_close(FILEPTR fp){
-	fclose(fp);
-}
-#else
-void file_close(int fp){
-	close(fp);
-}
-#endif
-
-void LogMessage( char *fmt, ... )
-{
-	//variable argument list
-	int nc = 0;	va_list args;
-	char printout[_MAX_PATH];
-	
-	//log entry
-	FILE *log_fp=NULL; 
-  time_t ltime;
-	char LogEntry[_MAX_PATH];
-
-	//format the incoming string + args
-	va_start(args, fmt);
-	nc = vsprintf(printout, fmt, args);
-	va_end(args);
-
-	//prepend the time and date
-	time(&ltime);			strcpy(LogEntry,ctime(&ltime));
-	LogEntry[24] = '\t';	strcpy(&LogEntry[25],printout);
-
-	//make the log entry
-  if (log_file != NULL) log_fp = fopen(log_file,"a+");
-  if(log_fp != NULL) {
-	  fprintf(log_fp,"%s",LogEntry);
-	  fclose(log_fp);
-  }
-  else fprintf(stdout,"%s",LogEntry);
-}
 
 FUNCPTR pt_back_proj3d_thread1(void *ptarg) 
 {
@@ -320,8 +250,8 @@ void allocation_memory() {
 		}
 	}
 
-	if( imageprj3 == NULL ) crash1 ("  Error in allocation memory for imageprj3 !\n");
-	else if (verbose & 0x0040) fprintf(stdout,"  Allocate imageprj3      : %d kbytes \n", 
+	if( imageprj3 == NULL ) LOG_EXIT("  Error in allocation memory for imageprj3 !\n");
+	else LOG_DEBUG("  Allocate imageprj3      : %d kbytes \n", 
     views/2*segmentsize*2*xr_pixels/256);
 
   if (chFlag)
@@ -333,8 +263,8 @@ void allocation_memory() {
         delayedprj3[i][j]=(float *) _mm_malloc(xr_pixels*sizeof(float),16);
       }
     }
-    if( delayedprj3 == NULL ) crash1 ("  Error in allocation memory for delayedprj3 !\n");
-    else if (verbose & 0x0040) fprintf(stdout,"  Allocate delayedprj3      : %d kbytes \n",
+    if( delayedprj3 == NULL ) LOG_EXIT("  Error in allocation memory for delayedprj3 !\n");
+    else LOG_DEBUG("  Allocate delayedprj3      : %d kbytes \n",
       views/2*segmentsize*2*xr_pixels/256);
   }
 
@@ -506,10 +436,10 @@ void alloc_thread_buf()
 	for(i=0;i<nthreads;i++){
 		imagexyzf_thread[i]= (float ***) alloc_imagexyzf_thread();
 //		imagexyzf_thread[i]=matrix3dm128(0,x_pixels-1,0,y_pixels-1,0,z_pixels_simd*4);
-	if( imagexyzf_thread[i] == NULL ) crash1("  Error allocating thread recon buffer !\n");
+	if( imagexyzf_thread[i] == NULL ) LOG_EXIT("  Error allocating thread recon buffer !\n");
 		prjxyf_thread[i]=(float ***) alloc_prjxyf_thread();
 //		prjxyf_thread[i]=(float ***) matrix3dm128(0,xr_pixels,0,th_pixels/2,0,yr_pixels);
-		if( prjxyf_thread[i] == NULL ) crash1("  Error allocating thread recon buffer2 !\n");
+		if( prjxyf_thread[i] == NULL ) LOG_EXIT("  Error allocating thread recon buffer2 !\n");
 	}
 }
 void free_prjxyf_thread(float ***prj)
@@ -535,7 +465,7 @@ void free_imagexyzf_thread2(float ***image)
 			if(image[x][y]!=NULL) _mm_free(image[x][y]);
 		}
 	}
-	LogMessage("free done\n");
+	LOG_INFO("free done\n");
 	x=x_pixels/2;
 	for(y=0;y<y_pixels;y++){
 		if(image[x][y]!=NULL) _mm_free(image[x][y]);
@@ -585,28 +515,28 @@ void free_thread_buf()
 void alloc_imagexyzf()
 {
 	imagexyzf =(float ***) matrix3dm128(0,x_pixels-1,0,y_pixels-1,0,z_pixels_simd-1);//test
-	if( imagexyzf == NULL ) crash1("  Memory allocation failure for imagexyzf !\n");
-	else if (verbose & 0x0040) fprintf(stdout,"  Allocate imagexyzf       : %d kbytes \n", imagesize/256);  
+	if( imagexyzf == NULL ) LOG_EXIT("  Memory allocation failure for imagexyzf !\n");
+	else LOG_DEBUG("  Allocate imagexyzf       : %d kbytes \n", imagesize/256);  
 	memset(&imagexyzf[0][0][0],0,x_pixels*y_pixels*z_pixels_simd*sizeof(__m128));
 }
 
 void alloc_prjxyf()
 {
 	prjxyf=(float ***) matrix3dm128(0,xr_pixels,0,th_pixels/2,0,yr_pixels-1);
-	if( prjxyf == NULL ) crash1("  Memory allocation failure for prjxyf !\n");
-	else if (verbose & 0x0040) fprintf(stdout,"  Allocate prjxyf       : %d kbytes \n", xr_pixels*(th_pixels/2+1)*yr_pixels*16/1024);    
+	if( prjxyf == NULL ) LOG_EXIT("  Memory allocation failure for prjxyf !\n");
+	else LOG_DEBUG("  Allocate prjxyf       : %d kbytes \n", xr_pixels*(th_pixels/2+1)*yr_pixels*16/1024);    
 }
 
 void free_imagexyzf()
 {
 	free_matrix3dm128(imagexyzf, 0,x_pixels-1, 0,y_pixels-1, 0,z_pixels_simd-1);
-	if (verbose & 0x0040) fprintf(stdout,"  Free imagexyzf             : %d kbytes \n", imagesize/256);
+	LOG_DEBUG("  Free imagexyzf             : %d kbytes \n", imagesize/256);
 }
 
 void free_prjxyf()
 {
 	free_matrix3dm128(prjxyf,0,xr_pixels,0,th_pixels/2,0,yr_pixels-1);
-	if (verbose & 0x0040) fprintf(stdout,"  Free prjxyf             : %d kbytes \n", xr_pixels*(th_pixels/2+1)*yr_pixels*16/1024);
+	LOG_DEBUG("  Free prjxyf             : %d kbytes \n", xr_pixels*(th_pixels/2+1)*yr_pixels*16/1024);
 }
 typedef struct {
 	int nthreads;
@@ -703,7 +633,7 @@ void GetParameter(int argc,char **argv)
 		switch (c) {
 			 case 'T' :
 				 if (sscanf(optarg,"%d",&osem3dpar->nthreads) != 1)
-					 crash2("error decoding -T %s\n",optarg);
+					 LOG_EXIT("error decoding -T %s\n",optarg);
 				 break;
 			 case 'p' :
 				 osem3dpar->prompt_file = optarg;
@@ -733,7 +663,7 @@ void GetParameter(int argc,char **argv)
          if (log_mode==0 || log_mode>(LOG_TO_CONSOLE|LOG_TO_FILE))
            log_mode = LOG_TO_FILE; // default
          if ((log_fp=fopen(log_file,"wt")) == NULL)
-           crash2("error creating log file %s\n",log_file);
+           LOG_EXIT("error creating log file %s\n",log_file);
          fclose(log_fp);
 			 break;
 			 case 's':
@@ -741,26 +671,26 @@ void GetParameter(int argc,char **argv)
 				 break;
 			 case 'g' :
 				 if (sscanf(optarg,"%d,%d",&osem3dpar->max_g,&osem3dpar->min_g) < 1)        
-					 crash2("error decoding -g %s\n",optarg);
+					 LOG_EXIT("error decoding -g %s\n",optarg);
 				 break;
 			 case 'v':
 				 if (sscanf(optarg,"%d",&osem3dpar->verbose) != 1)
-					 crash2("error decoding -v %s\n",optarg);
+					 LOG_EXIT("error decoding -v %s\n",optarg);
 				 break;
 			 case 'm' :
 				 if (sscanf(optarg,"%d,%d",&osem3dpar->span,&osem3dpar->maxdel) != 2)
-					 crash2("error decoding -m %s\n",optarg);
+					 LOG_EXIT("error decoding -m %s\n",optarg);
 				 break;
 			 case 'M':
 				 if (sscanf(optarg,"%d",&osem3dpar->iModel) != 1)
-					 crash2("error decoding -M %s\n",optarg);
+					 LOG_EXIT("error decoding -M %s\n",optarg);
 				 if(osem3dpar->iModel==0) {
 					 i++;
 					 osem3dpar->imodeldefname=argv[i];
 				 }
 				 break;
 			 default:
-         LogMessage("\n*****Unknown option '%c' *********\n\n", c);
+         LOG_INFO("\n*****Unknown option '%c' *********\n\n", c);
 				 usage();
 		}  
 	}/* end of while  */
@@ -773,19 +703,19 @@ void CheckParameterAndPrint()
 	if (in_img_file==NULL || out_scan3D_file==NULL) usage();
   if(true_file==NULL && (prompt_file==NULL || delayed_file==NULL)) usage();
   if (norm_file==NULL) usage();
-  LogMessage("  Input image          : %s\n",in_img_file);
+  LOG_INFO("  Input image          : %s\n",in_img_file);
 	if (true_file!=NULL) 
-    LogMessage("  Input true scan      : %s\n",true_file);
+    LOG_INFO("  Input true scan      : %s\n",true_file);
 	else {
-		LogMessage("  Input prompt scan    : %s\n",prompt_file);
-		LogMessage("  Input delayed scan   : %s\n",delayed_file);
+		LOG_INFO("  Input prompt scan    : %s\n",prompt_file);
+		LOG_INFO("  Input delayed scan   : %s\n",delayed_file);
 	}
-  LogMessage("  Normalization        : %s\n",norm_file);
+  LOG_INFO("  Normalization        : %s\n",norm_file);
   if (atten_file != NULL)
-    LogMessage("  Attenuation          : %s\n",atten_file);
+    LOG_INFO("  Attenuation          : %s\n",atten_file);
   if (scat_scan_file!=NULL)
-    LogMessage("  Input scatter scan   : %s\n",scat_scan_file);
-  LogMessage("  Output corrected 3D scan: %s\n",out_scan3D_file);
+    LOG_INFO("  Input scatter scan   : %s\n",scat_scan_file);
+  LOG_INFO("  Output corrected 3D scan: %s\n",out_scan3D_file);
 }
 
 void GetScannerParameter()
@@ -793,15 +723,14 @@ void GetScannerParameter()
 	FILE *tmpfp;
 
   if(iModel!=0){
-    LogMessage("Model %d \n", iModel);
+    LOG_INFO("Model %d \n", iModel);
 		model_info    = scanner_model(iModel);     /* assumed code for HRRT */
 	} else {
-    LogMessage("Model %s \n", imodeldefname);	
+    LOG_INFO("Model %s \n", imodeldefname);	
     model_info=(ScannerModel *) malloc(sizeof(ScannerModel));
 		tmpfp=fopen(imodeldefname,"rt");
 		if(tmpfp==NULL){
-			fprintf(stderr,"Error open %s, iModel=0, please try again with right scanner definition file\n",imodeldefname);
-			exit(1);
+			LOG_EXIT("Error open %s, iModel=0, please try again with right scanner definition file\n",imodeldefname);
 		}
 
 		fscanf(tmpfp,"%s",imodeldefname);
@@ -849,31 +778,31 @@ void GetScannerParameter()
 
 	/* print relevant parameters */
 	if (verbose & 0x0001) {
-		fprintf(stdout,"  Reconstruction using %1d thread(s)\n", nthreads);
-		fprintf(stdout,"  Scanner parameters\n");
-		fprintf(stdout,"  -------------------\n");
-		fprintf(stdout,"  Number of rings in scanner %d\n",rings);
-		fprintf(stdout,"  Number of 2D slices %d\n",z_pixels);
-		fprintf(stdout,"  Ring radius %f mm\n",ring_radius);
-		fprintf(stdout,"  Ring spacing %f mm\n",ring_spacing);
-		fprintf(stdout,"  FOV diameter %f mm\n",fov);
-		fprintf(stdout,"  3D Scan parameters\n");
-		fprintf(stdout,"  ------------------\n");
-		fprintf(stdout,"  Original number of radial elements %d\n",radial_pixels);
-		fprintf(stdout,"  Original number of angular elements %d\n",views);
-		fprintf(stdout,"  Default number of radial elements %d\n",def_elements);
-		fprintf(stdout,"  Default number of angular elements %d\n",def_angles);
-		fprintf(stdout,"  Sampling distance %f mm\n",sino_sampling);
-		fprintf(stdout,"  Maximum Ring Difference = %d  Span = %d Maximum Group = %d\n",maxdel,span,groupmax);
+		LOG_INFO,"  Reconstruction using %1d thread(s)\n", nthreads);
+		LOG_INFO,"  Scanner parameters\n");
+		LOG_INFO,"  -------------------\n");
+		LOG_INFO,"  Number of rings in scanner %d\n",rings);
+		LOG_INFO,"  Number of 2D slices %d\n",z_pixels);
+		LOG_INFO,"  Ring radius %f mm\n",ring_radius);
+		LOG_INFO,"  Ring spacing %f mm\n",ring_spacing);
+		LOG_INFO,"  FOV diameter %f mm\n",fov);
+		LOG_INFO,"  3D Scan parameters\n");
+		LOG_INFO,"  ------------------\n");
+		LOG_INFO,"  Original number of radial elements %d\n",radial_pixels);
+		LOG_INFO,"  Original number of angular elements %d\n",views);
+		LOG_INFO,"  Default number of radial elements %d\n",def_elements);
+		LOG_INFO,"  Default number of angular elements %d\n",def_angles);
+		LOG_INFO,"  Sampling distance %f mm\n",sino_sampling);
+		LOG_INFO,"  Maximum Ring Difference = %d  Span = %d Maximum Group = %d\n",maxdel,span,groupmax);
 	}
 	/* update variables according to requested parameters */
 	if (max_g >=0) {
 		groupmax = max_g;
-		if(verbose) fprintf(stdout,"  New maximum group %d\n",groupmax);
+		if(verbose) LOG_INFO,"  New maximum group %d\n",groupmax);
 	} 
 	if (min_g >=0) {
 		groupmin = min_g;
-		if(verbose) fprintf(stdout,"  New minimum group %d\n",groupmin);
+		if(verbose) LOG_INFO,"  New minimum group %d\n",groupmin);
 	}
 }
 
@@ -881,36 +810,36 @@ void CheckFileValidate()
 {
   if (true_file!=NULL) {            
 		tsinofp = file_open(true_file,"rb");
-		if(tsinofp == FOPEN_ERROR) crash2("  Error: cannot open input true sinogram file %s\n",true_file);
+		if(tsinofp == FOPEN_ERROR) LOG_EXIT("  Error: cannot open input true sinogram file %s\n",true_file);
 	} 
 	else {            
 		psinofp = file_open(prompt_file,"rb");
-		if(psinofp == FOPEN_ERROR) LogMessage("  Error: cannot open input prompt sinogram file '%s'\n",prompt_file);
-		if(psinofp == FOPEN_ERROR) crash2("  Error: cannot open input prompt sinogram file %s\n",prompt_file);
+		if(psinofp == FOPEN_ERROR) LOG_INFO("  Error: cannot open input prompt sinogram file '%s'\n",prompt_file);
+		if(psinofp == FOPEN_ERROR) LOG_EXIT("  Error: cannot open input prompt sinogram file %s\n",prompt_file);
 		dsinofp = file_open(delayed_file,"rb");
-		if(dsinofp == FOPEN_ERROR) LogMessage("  Error: cannot open input delayed sinogram file %s\n",delayed_file);
-		if(dsinofp == FOPEN_ERROR) crash2("  Error: cannot open input delayed sinogram file %s\n",delayed_file);
+		if(dsinofp == FOPEN_ERROR) LOG_INFO("  Error: cannot open input delayed sinogram file %s\n",delayed_file);
+		if(dsinofp == FOPEN_ERROR) LOG_EXIT("  Error: cannot open input delayed sinogram file %s\n",delayed_file);
 	}
 
   normfp = file_open(norm_file,"rb");
-  if(normfp == FOPEN_ERROR) LogMessage("  Error: cannot open normalization file %s\n",norm_file);
-  if(normfp == FOPEN_ERROR) crash2("  Error: cannot open normalization file %s\n",norm_file);
+  if(normfp == FOPEN_ERROR) LOG_INFO("  Error: cannot open normalization file %s\n",norm_file);
+  if(normfp == FOPEN_ERROR) LOG_EXIT("  Error: cannot open normalization file %s\n",norm_file);
 
   if (atten_file != NULL) {            
 		attenfp = file_open(atten_file,"rb");
-		if(attenfp == FOPEN_ERROR) LogMessage("  Error: cannot open attenuation file %s\n",atten_file);    /* attenfp could be null */
-		if(attenfp == FOPEN_ERROR) crash2("  Error: cannot open attenuation file %s\n",atten_file);    /* attenfp could be null */
+		if(attenfp == FOPEN_ERROR) LOG_INFO("  Error: cannot open attenuation file %s\n",atten_file);    /* attenfp could be null */
+		if(attenfp == FOPEN_ERROR) LOG_EXIT("  Error: cannot open attenuation file %s\n",atten_file);    /* attenfp could be null */
 	}
 
 	if(scat_scan_file!=NULL) {            
 		ssinofp = file_open(scat_scan_file,"rb");
-		if(ssinofp == FOPEN_ERROR) LogMessage("  Error: cannot open input scatter sinogram file %s\n",scat_scan_file);
-		if(ssinofp == FOPEN_ERROR) crash2("  Error: cannot open input scatter sinogram file %s\n",scat_scan_file);
+		if(ssinofp == FOPEN_ERROR) LOG_INFO("  Error: cannot open input scatter sinogram file %s\n",scat_scan_file);
+		if(ssinofp == FOPEN_ERROR) LOG_EXIT("  Error: cannot open input scatter sinogram file %s\n",scat_scan_file);
 	}
 
   /* check initial image file existence */
   if (access(in_img_file,R_OK) != 0)
-    crash2("  Main(): error initial image file %s not found\n", in_img_file );
+    LOG_EXIT("  Main(): error initial image file %s not found\n", in_img_file );
 }
 
 void Output_CorrectedScan()
@@ -934,43 +863,43 @@ void Output_CorrectedScan()
   if ((stmp=(short*)calloc(npixels, sizeof(short))) == NULL ||
     (emp=(float*)calloc(npixels, sizeof(float))) == NULL ||
     (emc=(float*)calloc(npixels, sizeof(float))) == NULL)
-    crash1("  Main(): memory allocation failure for true 2D sinogram !\n");
+    LOG_EXIT("  Main(): memory allocation failure for true 2D sinogram !\n");
   if (tsinofp == NULL)
   {
     if ((ra=(float*)calloc(npixels, sizeof(float))) == NULL)
-      crash1("  Main(): memory allocation failure for smoothed randoms 2D sinogram !\n");
+      LOG_EXIT("  Main(): memory allocation failure for smoothed randoms 2D sinogram !\n");
   }
   if ((no=(float*)calloc(npixels, sizeof(float))) == NULL)
-    crash1("  Main(): memory allocation failure for norm 2D sinogram !\n");
+    LOG_EXIT("  Main(): memory allocation failure for norm 2D sinogram !\n");
   if (attenfp != NULL)
   {
     if ((at=(float*)calloc(npixels, sizeof(float))) == NULL)
-    crash1("  Main(): memory allocation failure for atten 2D sinogram !\n");
+    LOG_EXIT("  Main(): memory allocation failure for atten 2D sinogram !\n");
   }
   if (ssinofp != NULL)
   {
     if ((sc=(float*)calloc(npixels, sizeof(float))) == NULL)
-    crash1("  Main(): memory allocation failure for scatter 2D sinogram !\n");
+    LOG_EXIT("  Main(): memory allocation failure for scatter 2D sinogram !\n");
   }
   if (s2DFlag) { // pre-load unscaled scatter and scale factors
     sc2d = (float*)calloc(npixels*z_pixels, sizeof(float));
     scale_factors = (float*)calloc(segmentsize, sizeof(float));
     if (sc2d==NULL || scale_factors==NULL) 
-      crash1("  Output_CorrectedScan: memory allocation error!\n ");
+      LOG_EXIT("  Output_CorrectedScan: memory allocation error!\n ");
     if( fread(sc2d, sizeof(float), npixels*z_pixels, ssinofp) != 
       npixels*z_pixels)  
-      crash1("  Output_CorrectedScan: error reading unscaled 2D scatter!\n");
+      LOG_EXIT("  Output_CorrectedScan: error reading unscaled 2D scatter!\n");
     if (fread(scale_factors, sizeof(float), segmentsize, ssinofp) != segmentsize)
-      crash1("  Prepare_osem3dw0: error reading scatter scale factors!\n");
+      LOG_EXIT("  Prepare_osem3dw0: error reading scatter scale factors!\n");
   }
 
   image = (float ***) matrix3dm128(0,x_pixels-1, 0,y_pixels-1, 0,z_pixels_simd-1);  
-  if( image == NULL ) crash1("  Main(): matrix3dm128 error! memory allocation failure for image !\n");
-  else if (verbose & 0x0008) fprintf(stdout,"  Allocate initial image : %d kbytes \n", imagesize/256);
+  if( image == NULL ) LOG_EXIT("  Main(): matrix3dm128 error! memory allocation failure for image !\n");
+  else LOG_DEBUG("  Allocate initial image : %d kbytes \n", imagesize/256);
   if ((tmpfp=fopen(in_img_file,"rb"))==NULL) 
-				crash2("  Main(): error in read_flat_image() when reading the initial image from %s \n", in_img_file );
+				LOG_EXIT("  Main(): error in read_flat_image() when reading the initial image from %s \n", in_img_file );
   if ((ptr2d=matrixfloat(0,x_pixels-1,0,y_pixels-1)) == NULL)
-    crash1("  Main(): matrixfloat error! memory allocation failure for image !\n");
+    LOG_EXIT("  Main(): matrixfloat error! memory allocation failure for image !\n");
   for(z=0;z<z_pixels;z++){
     fread(&ptr2d[0][0],x_pixels*y_pixels,sizeof(float),tmpfp);
     for(x=0;x<x_pixels;x++){
@@ -1001,19 +930,19 @@ void Output_CorrectedScan()
   {
     printf("  Progress %d %d %%\r",v,(int)((v+0.0)/views*2.0*100));
     if( !forward_proj3d2(image, estimate, v,nthreads,imagexyzf,prjxyf))
-      crash1("  Main(): error occurs in forward_proj3d!\n");
+      LOG_EXIT("  Main(): error occurs in forward_proj3d!\n");
     for(yr2=0;yr2<segmentsize*2;yr2++) 
       memcpy(imageprj[v][yr2],estimate[yr2],xr_pixels*sizeof(float));
   }
 
 	time(&t2);
-	fprintf(stdout,"  Osem3d forward projection done in %d sec\n",t2-t1);
+	LOG_INFO,"  Osem3d forward projection done in %d sec\n",t2-t1);
 	tmpfp=fopen(out_scan3D_file,"wb");
 
 	// 	write line by line in sinogram mode 
 	yr2=0;
   if ((ptr2d=matrixfloat(0,x_pixels-1,0,y_pixels-1)) == NULL)
-    crash1("  Main(): matrixfloat error! memory allocation failure for image !\n");
+    LOG_EXIT("  Main(): matrixfloat error! memory allocation failure for image !\n");
   plane=0;
 	for(theta=0;theta<th_pixels;theta++)
   {
@@ -1029,17 +958,17 @@ void Output_CorrectedScan()
         if (tsinofp != NULL)
         { // Read true sinogram plane and convert to float
           if (fread( stmp, npixels*sizeof(short), 1, tsinofp) != 1 )
-          crash1("   True sinogram read error\n");
+          LOG_EXIT("   True sinogram read error\n");
           for (i=0; i<npixels; i++) emc[i] = (float)stmp[i];
         } 
         else
         {  // Read prompt sinogram and substract smoothed randoms
           if (fread(stmp, npixels*sizeof(short), 1, psinofp) != 1 )
-            crash1("   Prompt sinogram read error at plane\n");
+            LOG_EXIT("   Prompt sinogram read error at plane\n");
           if (!chFlag)
           { // read smoothed random from file
             if (fread(ra, npixels*sizeof(float), 1, dsinofp) != 1 )
-              crash1("   random smoothed read error at plane\n");
+              LOG_EXIT("   random smoothed read error at plane\n");
           }
           else
           { // copy smoothed randoms from memory
@@ -1051,7 +980,7 @@ void Output_CorrectedScan()
         }
          // Read norm and normalize trues
         if (fread(no, npixels*sizeof(float), 1, normfp) != 1 )
-          crash1("   normalization read error at plane\n");
+          LOG_EXIT("   normalization read error at plane\n");
         for (i=0; i<npixels; i++) emc[i] *= no[i];
          if (ssinofp != NULL)
         { // Read scatter sinogram plane and convert normalized trues
@@ -1063,7 +992,7 @@ void Output_CorrectedScan()
           else
           {
             if (fread( sc, npixels*sizeof(float), 1, ssinofp) != 1 )
-              crash1("   Scatter sinogram read error at plane\n");
+              LOG_EXIT("   Scatter sinogram read error at plane\n");
           }
           for (i=0; i<npixels; i++) emc[i] -= sc[i];
         } 
@@ -1071,7 +1000,7 @@ void Output_CorrectedScan()
          if (attenfp != NULL)
          { // Read atten sinogram plane and convert scatter-corrected trues
            if (fread( at, npixels*sizeof(float), 1, attenfp) != 1 )
-           crash1("   Attenuation sinogram read error\n");
+           LOG_EXIT("   Attenuation sinogram read error\n");
            for (i=0; i<npixels; i++) emc[i] *= at[i];
          } 
       }
@@ -1079,15 +1008,15 @@ void Output_CorrectedScan()
       {
         // Read pre-corrected true sinogram plane
         if (fread( emc, npixels*sizeof(float), 1, tsinofp) != 1 )
-          crash1("   pre-corrected true sinogram read error\n");
+          LOG_EXIT("   pre-corrected true sinogram read error\n");
          // Read norm and replace gaps (norm=0) by image projection to fill the gaps
         if (fread(no, npixels*sizeof(float), 1, normfp) != 1 )
-          crash1("   normalization read error at plane\n");
+          LOG_EXIT("   normalization read error at plane\n");
       }  
       for (i=0; i<npixels; i++)
         if (no[i]< eps) emc[i] = emp[i];
       if (fwrite(emc, npixels*sizeof(float), 1, tmpfp) != 1 )
-         crash1("  Corrected sinogram write error\n");
+         LOG_EXIT("  Corrected sinogram write error\n");
         
        printf("   plane %d done\r", yr2);
      }  // end yr
@@ -1112,33 +1041,6 @@ void Output_CorrectedScan()
   printf("\ndone\n");
 }
 
-void GetSystemInformation()
-{
-#ifdef WIN32 
-	SYSTEM_INFO siSysInfo;
-#else
-	struct sysinfo sinfo;
-#endif
-	LogMessage(" Hardware information: \n");  
-#ifdef WIN32
-	GetSystemInfo(&siSysInfo); 
-	LogMessage("  OEM ID: %u\n", siSysInfo.dwOemId);
-	LogMessage("  Number of processors: %u\n", siSysInfo.dwNumberOfProcessors); 
-	LogMessage("  Page size: %u\n", siSysInfo.dwPageSize); 
-	LogMessage("  Processor type: %u\n", siSysInfo.dwProcessorType); 
-	LogMessage("  Minimum application address: %lx\n", 
-		siSysInfo.lpMinimumApplicationAddress); 
-	LogMessage("  Maximum application address: %lx\n", 
-		siSysInfo.lpMaximumApplicationAddress); 
-	if(nthreads==0) nthreads=siSysInfo.dwNumberOfProcessors;
-#else
-	sysinfo(&sinfo);
-	printf("  Total RAM: %u\n", sinfo.totalram); 
-	printf("  Free RAM: %u\n", sinfo.freeram);
-	// To get n_processors we need to get the result of this command "grep processor /proc/cpuinfo | wc -l"
-	if(nthreads==0) nthreads=2; // for now
-#endif
-}
 
 int main(int argc, char* argv[])
 {
@@ -1155,7 +1057,7 @@ int main(int argc, char* argv[])
 	GetParameter(argc,argv);
 
 	PutParameter();
-  LogMessage("CheckParameterAndPrint \n");
+  LOG_INFO("CheckParameterAndPrint \n");
 	CheckParameterAndPrint();
 
   CheckFileValidate();
@@ -1163,7 +1065,7 @@ int main(int argc, char* argv[])
 	GetScannerParameter();
 
 	/* calculate depended variables and some frequently used arrays and constants  - see HRRT_osem3d_sbrt.c */
-	if( !dependencies(nprojs, nviews, verbose) ) crash1("  Main(): Error occur in dependencies() !");
+	if( !dependencies(nprojs, nviews, verbose) ) LOG_EXIT("  Main(): Error occur in dependencies() !");
   if (ssinofp != (FILEPTR)0) {
     int segmentsize_9 = 2209;
     /* Get scatter file format : 3D or unscaled 2D and scale factors*/
@@ -1172,13 +1074,12 @@ int main(int argc, char* argv[])
         s2DFlag = true;
       } else {
         if (st.st_size != (xr_pixels*views*segmentsize)*sizeof(float)) {
-          fprintf(stdout,"%s: invalid file size %d, expected %d\n", scat_scan_file,
-            st.st_size, (xr_pixels*views*segmentsize)*sizeof(float));
-          exit(1);
+          LOG_EXIT("{}: invalid file size {}, expected {}", scat_scan_file,            st.st_size, (xr_pixels*views*segmentsize)*sizeof(float));
+
         }
       }
     }
-    else crash2("%s: Error getting file size\n", scat_scan_file);
+    else LOG_EXIT("{}: Error getting file size\n", scat_scan_file);
   }
 
   /* Get smoothed  file format : 3D or .ch file*/
@@ -1189,24 +1090,24 @@ int main(int argc, char* argv[])
         // ch format: compute smooth randoms
         // compute smoothed randoms into file
         if (!get_scan_duration(prompt_file))
-          crash2("Error: scan duration not found in sinogram %s header\n",prompt_file);
+          LOG_EXIT("Error: scan duration not found in sinogram %s header\n",prompt_file);
         chFlag = true;                // inline random in prepare_osem3dw3
-       LogMessage("Inline  randoms from %s, scan duration %g\n", 
+       LOG_INFO("Inline  randoms from %s, scan duration %g\n", 
           delayed_file, scan_duration);
       } else {
         if (st.st_size != (xr_pixels*views*segmentsize)*sizeof(float)) {
-        fprintf(stdout,"%s: invalid file size %d, expected %d\n", delayed_file,
+        LOG_INFO,"{}: invalid file size %d, expected %d\n", delayed_file,
           st.st_size, (xr_pixels*views*segmentsize)*sizeof(float));
         exit(1);
         }
       }
-    }  else crash2("%s: Error getting file size\n", delayed_file);
+    }  else LOG_EXIT("{}: Error getting file size\n", delayed_file);
   }
 
   allocation_memory();
 
   if (chFlag)
-       gen_delays(0, NULL, 2, scan_duration, delayedprj3, dsinofp, NULL,span, maxdel);
+       gen_delays(2, scan_duration, delayedprj3, dsinofp, NULL,span, maxdel);
 
   Output_CorrectedScan();
 	return 0;

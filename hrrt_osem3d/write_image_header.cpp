@@ -27,12 +27,6 @@ Copyright (C) CPS Innovations 2002-2003-2004 All Rights Reserved.
 //#include	"Cluster.h"
 //#include    "hrrt_osem3d.h"
 #include	"write_image_header.h"
-#ifdef WIN32
-#define strnicmp _strnicmp
-#define		DIR_SEPARATOR '\\'
-#else
-#define		DIR_SEPARATOR '/'
-#endif
 
 #define		LINESIZE 1024
 #define		IN_DIR_SEPARATOR '/'
@@ -80,12 +74,10 @@ int write_image_header(ImageHeaderInfo *info, int psf_flag,
 	char	ImgHeaderName[_MAX_PATH];
 	char	*p=NULL;
 
-#ifdef IS__linux__
 	#define _MAX_DRIVE 0
 	#define _MAX_DIR 256
 	#define _MAX_FNAME 256
 	#define _MAX_EXT 256
-#endif
 
 	char drive[_MAX_DRIVE];
 	char dir[_MAX_DIR];
@@ -94,9 +86,6 @@ int write_image_header(ImageHeaderInfo *info, int psf_flag,
 
 	//split output image file name into component parts
 
-#ifdef WIN32
-	_splitpath( info->imagefile, drive, dir, ImageName, ext );
-#else   
 	// !sv we actually only need to separate ImageName and ext for the following code
 	// this is a dirty hack
 	char *lastslash = strrchr ( info->imagefile,  '/' );
@@ -114,23 +103,23 @@ int write_image_header(ImageHeaderInfo *info, int psf_flag,
 	else {
 	  strcpy ( ext, "" );
 	}
-#endif
+
 	//Check image file name, create header name
 	if( strlen(info->imagefile) == 0 ) {
-		printf("Error! WriteImageHeader: Null File Name\n");
+		LOG_ERROR("WriteImageHeader: Null File Name\n");
 		return -1;
 	}
-	else printf("WriteImageHeader: image '%s'\n",info->imagefile);
+	else LOG_INFO("WriteImageHeader: image '%s'\n",info->imagefile);
 
 	sprintf( ImgHeaderName, "%s.hdr",info->imagefile );
 
 	//Check image file
 	if((f_in = fopen(info->imagefile,"rb")) == NULL ){
-		printf("WriteImageHeader: No such image file '%s'\n",info->imagefile);
+		LOG_INFO("WriteImageHeader: No such image file '%s'\n",info->imagefile);
 		return -1;
 	}
 	else {
-		printf("WriteImageHeader: Image file '%s' found!\n",info->imagefile);
+		LOG_INFO("WriteImageHeader: Image file '%s' found!\n",info->imagefile);
 		fclose(f_in);
 		f_in = NULL;
 	}
@@ -142,7 +131,7 @@ int write_image_header(ImageHeaderInfo *info, int psf_flag,
 		  ||	info->nx<=0			|| info->ny<=0		|| info->nz<=0
 		  ||	info->dx<=eps		|| info->dy<=eps	|| info->dz<=eps )
 	  {
-		  printf("WriteImageHeader: Parameter out of whack.\n");
+		  LOG_INFO("WriteImageHeader: Parameter out of whack.\n");
 		  return -1;
 	  }
   }
@@ -153,13 +142,13 @@ int write_image_header(ImageHeaderInfo *info, int psf_flag,
 
 	if( strlen( info->truefile ) > 0 ){
 		sprintf(sinoHeaderName, "%s.hdr",info->truefile  );
-		printf("WriteImageHeader: true sinoHeaderName is %s\n",sinoHeaderName);
+		LOG_INFO("WriteImageHeader: true sinoHeaderName is %s\n",sinoHeaderName);
 		sinoHeaderExists++;
 	}
 	else
 		if( strlen( info->promptfile ) > 0 ){
 			sprintf(sinoHeaderName, "%s.hdr",info->promptfile  );
-			printf("WriteImageHeader: prompt sinoHeaderName is %s\n",sinoHeaderName);
+			LOG_INFO("WriteImageHeader: prompt sinoHeaderName is %s\n",sinoHeaderName);
 			sinoHeaderExists++;
 		}
 
@@ -175,16 +164,16 @@ int write_image_header(ImageHeaderInfo *info, int psf_flag,
 		//open image header
 
 		if((f_out=fopen(ImgHeaderName,"wt")) == NULL){
-			printf("WriteImageHeader: Cannot open image header file '%s'\n",ImgHeaderName);
+			LOG_INFO("WriteImageHeader: Cannot open image header file '%s'\n",ImgHeaderName);
 			return -4;
 		} 
 		else {
-			printf("WriteImageHeader: File '%s' open ok!\n",ImgHeaderName);
+			LOG_INFO("WriteImageHeader: File '%s' open ok!\n",ImgHeaderName);
 		}
 
 		if( sinoHeaderExists ){
 			if((f_in = fopen(sinoHeaderName,"r")) == NULL){
-				printf("WriteImageHeader: Cannot open sino header file '%s'\n",sinoHeaderName);
+				LOG_INFO("WriteImageHeader: Cannot open sino header file '%s'\n",sinoHeaderName);
 			}
 		}
 
@@ -281,13 +270,9 @@ int write_image_header(ImageHeaderInfo *info, int psf_flag,
 			while( fgets(line,LINESIZE,f_in) != NULL ){
 
 				//ignore anything we've already written
-#ifdef WIN32
-				if(!strnicmp(line,"!INTERFILE", 10     )) continue;
-#else // !sv
 				if(!strncmp(line,"!INTERFILE", 10     )) continue;
 				if(!strncmp(line,"!Interfile", 10     )) continue;
 				if(!strncmp(line,"!interfile", 10     )) continue;
-#endif
 
 				if( strstr(line,"name of data file"    )) continue;
 				if( strstr(line,"data format"          )) continue;

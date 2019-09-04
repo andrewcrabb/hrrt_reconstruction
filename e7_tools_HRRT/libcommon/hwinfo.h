@@ -5,12 +5,10 @@
     \date 2004/06/02 added Doxygen style comments
  */
 
-#ifndef _HWINFO_H
-#define _HWINFO_H
+#pragma once
 
 /*- exported functions ------------------------------------------------------*/
 
 unsigned short int logicalCPUs();             // request number of logical CPUs
 void printHWInfo(const unsigned short int);       // print hardware information
 
-#endif

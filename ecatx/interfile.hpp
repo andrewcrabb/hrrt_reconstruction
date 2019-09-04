@@ -30,9 +30,11 @@
  */
 #pragma once
 
-#include "matrix.hpp"
+#include "ecat_matrix.hpp"
 
-typedef enum {
+namespace interfile {
+
+enum class Key {
 	VERSION_OF_KEYS,
 	IMAGE_MODALITY,
 	ORIGINAL_INSTITUTION,
@@ -71,9 +73,7 @@ typedef enum {
 	LABEL,
 	MAXIMUM_PIXEL_COUNT,
 	TOTAL_COUNTS,
-/*
- My Extensions
-*/
+	 // My Extensions
 	QUANTIFICATION_UNITS,	/* scale_factor units; eg 10e-3 counts/seconds */
 	COLORTAB,
 	DISPLAY_RANGE,
@@ -87,20 +87,17 @@ typedef enum {
 	ATLAS_ORIGIN_2,
 	ATLAS_ORIGIN_3,
 	TRANSFORMER,
-/*
- Sinograms Support
-*/
+ // Sinograms Support
 	NUM_Z_ELEMENTS,   /* 3D Elements number of planes (array)
 					      Number of grous = 2*(#num_z_elements)-1 */
 	STORAGE_ORDER,
 	IMAGE_RELATIVE_START_TIME,
 	TOTAL_PROMPTS,
 	TOTAL_RANDOMS,
+	// END_OF_INTERFILE
+};
 
-	END_OF_INTERFILE
-} InterfileKeys;
-
-typedef enum {
+enum class TypeOfData {
 	STATIC,
 	DYNAMIC,
 	GATED,
@@ -108,38 +105,35 @@ typedef enum {
 	CURVE,
 	ROI,
 	OTHER,
-/* My Externsion */
+    // My Externsion
 	MULTIBED,
 	CLICHE			/* with a fixed colormap */
-}	TypeOfData;
+};
 
-typedef enum {
+enum class NumberFormat {
 	UNSIGNED_INTEGER,
 	SIGNED_INTEGER,
 	SHORT_FLOAT,
 	LONG_FLOAT,
 /* My Extension */
 	COLOR_PIXEL
-} NumberFormat;
+};
 
-typedef struct _InterfileItem {
-	int key;
-	// char* value;
+struct InterfileItem {
+	Key key;
 	std::string value;
-} InterfileItem;
+};
 
+extern std::vector <InterfileItem> used_keys;
 
-// extern "C" {
-int interfile_write_volume(MatrixFile* mptr, char *image_name,char *header_name, unsigned char* data_matrix, int size);
+int interfile_write_volume(ecat_matrix::MatrixFile* mptr, char *image_name ,char *header_name, unsigned char* data_matrix, int size);
 char *is_interfile(const char*);
-int interfile_open(MatrixFile*);
-MatrixData *interfile_read_slice(FILE*, char** ifh, MatrixData*, int slice,	int u_flag);
-int interfile_read(MatrixFile *mptr,int matnum, MatrixData  *data, int dtype);
-MatrixData *interfile_read_scan(MatrixFile *mptr,int matnum, int dtype, int segment);
+int interfile_open(ecat_matrix::MatrixFile*);
+MatrixData *interfile_read_slice(std::fstream const &fptr, char** ifh, MatrixData*, int slice,	int u_flag);
+int interfile_read(ecat_matrix::MatrixFile *mptr,int matnum, MatrixData  *data, MatrixData::DataType_64 dtype);
+MatrixData *interfile_read_scan(ecat_matrix::MatrixFile *t_mptr,int matnum, int dtype, int segment);
 int free_interfile_header(char** ifh);
-void flip_x(void *line, int data_type, int xdim);
-void flip_y(void *plane, int data_type, int xdim, int ydim);
-// }
+void flip_x(void *line, MatrixData::DataType data_type, int xdim);
+void flip_y(void *plane, MatrixData::DataType data_type, int xdim, int ydim);
 
-// extern "C" InterfileItem used_keys[];
-// std::vector <InterfileItem> used_keys;
+}  // namespace interfile

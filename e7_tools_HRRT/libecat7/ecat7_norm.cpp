@@ -121,7 +121,7 @@ void ECAT7_NORM::LoadHeader(std::ifstream * const file)
    try
    { unsigned short int i;
                       // DataChanger is used to read data system independently
-     dc=new DataChanger(E7_RECLEN, false, true);
+     dc = new DataChanger(E7_RECLEN);
      dc->LoadBuffer(file);                             // load data into buffer
                                                    // retrieve data from buffer
      dc->Value(&nh.data_type);
@@ -165,56 +165,49 @@ void ECAT7_NORM::PrintHeader(std::list <std::string> * const sl,
 
    sl->push_back("************** Norm-Matrix ("+toString(num, 2)+
                  ") **************");
-   s=" data_type:                      "+toString(nh.data_type)+" (";
-   switch (nh.data_type)
-    { case E7_DATA_TYPE_UnknownMatDataType:
-       s+="UnknownMatDataType";
-       break;
-      case E7_DATA_TYPE_ByteData:
-       s+="ByteData";
-       break;
-      case E7_DATA_TYPE_VAX_Ix2:
-       s+="VAX_Ix2";
-       break;
-      case E7_DATA_TYPE_VAX_Ix4:
-       s+="VAX_Ix4";
-       break;
-      case E7_DATA_TYPE_VAX_Rx4:
-       s+="VAX_Rx4";
-       break;
-      case E7_DATA_TYPE_IeeeFloat:
-       s+="IeeeFloat";
-       break;
-      case E7_DATA_TYPE_SunShort:
-       s+="SunShort";
-       break;
-      case E7_DATA_TYPE_SunLong:
-       s+="SunLong";
-       break;
-      default:
-       s+="unknown";
-       break;
-    }
-   sl->push_back(s+")");
-   sl->push_back(" num_dimensions:                 "+
-                 toString(nh.num_dimensions));
-   sl->push_back(" num_r_elements:                 "+
-                 toString(nh.num_r_elements));
-   sl->push_back(" num_angles:                     "+toString(nh.num_angles));
-   sl->push_back(" num_z_elements:                 "+
-                 toString(nh.num_z_elements));
-   sl->push_back(" ring_difference:                "+
-                 toString(nh.ring_difference));
-   sl->push_back(" scale_factor:                   "+
-                 toString(nh.scale_factor));
-   sl->push_back(" norm_min:                       "+toString(nh.norm_min));
-   sl->push_back(" norm_max:                       "+toString(nh.norm_max));
-   sl->push_back(" fov_source_width:               "+
-                 toString(nh.fov_source_width)+" cm");
-   sl->push_back(" norm quality factor:            "+
-                 toString(nh.norm_quality_factor));
-   sl->push_back(" norm quality factor code:       "+
-                 toString(nh.norm_quality_factor_code));
+   // s=" data_type:                      "+toString(nh.data_type)+" (";
+   // switch (nh.data_type)
+   //  { case E7_DATA_TYPE_UnknownMatDataType:
+   //     s+="UnknownMatDataType";
+   //     break;
+   //    case E7_DATA_TYPE_ByteData:
+   //     s+="ByteData";
+   //     break;
+   //    case E7_DATA_TYPE_VAX_Ix2:
+   //     s+="VAX_Ix2";
+   //     break;
+   //    case E7_DATA_TYPE_VAX_Ix4:
+   //     s+="VAX_Ix4";
+   //     break;
+   //    case E7_DATA_TYPE_VAX_Rx4:
+   //     s+="VAX_Rx4";
+   //     break;
+   //    case E7_DATA_TYPE_IeeeFloat:
+   //     s+="IeeeFloat";
+   //     break;
+   //    case E7_DATA_TYPE_SunShort:
+   //     s+="SunShort";
+   //     break;
+   //    case E7_DATA_TYPE_SunLong:
+   //     s+="SunLong";
+   //     break;
+   //    default:
+   //     s+="unknown";
+   //     break;
+   //  }
+   // sl->push_back(s+")");
+     sl->push_back(print_header_data_type(nh.data_type));
+   sl->push_back(" num_dimensions:                 " + toString(nh.num_dimensions));
+   sl->push_back(" num_r_elements:                 " + toString(nh.num_r_elements));
+   sl->push_back(" num_angles:                     " + toString(nh.num_angles));
+   sl->push_back(" num_z_elements:                 " + toString(nh.num_z_elements));
+   sl->push_back(" ring_difference:                " + toString(nh.ring_difference));
+   sl->push_back(" scale_factor:                   " + toString(nh.scale_factor));
+   sl->push_back(" norm_min:                       " + toString(nh.norm_min));
+   sl->push_back(" norm_max:                       " + toString(nh.norm_max));
+   sl->push_back(" fov_source_width:               " + toString(nh.fov_source_width)+" cm");
+   sl->push_back(" norm quality factor:            " + toString(nh.norm_quality_factor));
+   sl->push_back(" norm quality factor code:       " + toString(nh.norm_quality_factor_code));
    s=" storage order:                  "+toString(nh.storage_order)+" (";
    switch (nh.storage_order)
     { case E7_STORAGE_ORDER_RTZD:  s+="r, theta, z, d"; break;
@@ -253,7 +246,7 @@ void ECAT7_NORM::SaveHeader(std::ofstream * const file) const
    try
    { unsigned short int i;
                       // DataChanger is used to store data system independently
-     dc=new DataChanger(E7_RECLEN, false, true);
+     dc = new DataChanger(E7_RECLEN);
                                                        // fill data into buffer
      dc->Value(nh.data_type);
      dc->Value(nh.num_dimensions);

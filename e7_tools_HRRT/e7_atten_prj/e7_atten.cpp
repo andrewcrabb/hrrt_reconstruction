@@ -18,12 +18,7 @@
 #include <limits>
 #include <vector>
 #include <iostream>
-#if defined(__linux__) || defined(__SOLARIS__)
-#include <new>
-#endif
-#ifdef WIN32
-#include <new.h>
-#endif
+
 #include "convert.h"
 #include "e7_common.h"
 #include "exception.h"
@@ -88,16 +83,13 @@ void calculate3DAttenuation(Parser::tparam * const v)
     { unsigned short int num_log_cpus, subsets, number_of_matrices, i;
       std::string str, mu;
       std::vector <unsigned short int> matrices;
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
+
       char c[2];
 
       c[1]=0;
       c[0]=(char)181;
       mu=std::string(c);
-#endif
-#ifdef WIN32
-      mu='u';
-#endif
+
       num_log_cpus=logicalCPUs();
       // load 2d blank sinogram
       Logging::flog()->logMsg("loading the 2d blank sinogram #1", 0)->
@@ -108,9 +100,9 @@ void calculate3DAttenuation(Parser::tparam * const v)
       /*
         PMB
       */
-#ifdef __linux__
+
       float hrrt_tx_scatter_a, hrrt_tx_scatter_b;
-#endif
+
       if (v->txscatter[0] != 0.0f) hrrt_tx_scatter_a = v->txscatter[0];
       if (v->txscatter[1] != 0.0f) hrrt_tx_scatter_b = v->txscatter[1];
       if (v->txblr != 0.0f) hrrt_blank_factor = v->txblr;
@@ -435,21 +427,15 @@ void calculate3DAttenuation(Parser::tparam * const v)
   Check semantics of command line parameters.
 */
 /*---------------------------------------------------------------------------*/
-bool validate(Parser::tparam * const v)
-{ std::string mu;
+bool validate(Parser::tparam * const v) { 
+  std::string mu;
   bool ret=true;
-  {
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
     char c[2];
 
     c[1]=0;
     c[0]=(char)181;
     mu=std::string(c);
-#endif
-#ifdef WIN32
-    mu='u';
-#endif
-  }
+
   if (v->segmentation_params_set && (v->umap_reco_model == 1))
     { std::cerr << "-p: segmentation only with reconstruction methods '20',"
         "'21','30','31','40' and '41'.\n";
@@ -778,23 +764,18 @@ int main(int argc, char **argv)
   Parser *cpar = NULL;
   StopWatch sw;
 
-#if __linux__
   if ( getenv( "GMINI" ) == NULL )
     {
       printf( "Environment variable 'GMINI' not set\n" ) ;
       exit( EXIT_FAILURE ) ;
     }
-#endif
 
   try
    
     {                                     // set new handler for "out of memory"
-#ifdef WIN32
-      _set_new_handler(OutOfMemory);
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
+
       std::set_new_handler(OutOfMemory);
-#endif
+
       // initialize parser
       cpar=new Parser("e7_atten",
                       "calculate a 2d or 3d acf from transmission and blank",

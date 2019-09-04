@@ -6,8 +6,7 @@
     \date 2005/01/20 added Doxygen style comments
  */
 
-#ifndef _FILTER_H
-#define _FILTER_H
+#pragma once
 
 #include <vector>
 #include "fft.h"
@@ -88,4 +87,3 @@ class Filter
     void calcFilter(float * const, const unsigned short int) const;
  };
 
-#endif

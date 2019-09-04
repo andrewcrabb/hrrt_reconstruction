@@ -6,16 +6,6 @@
 #include <stdio.h>
 #include <sys/malloc.h>
 
-static unsigned int ewtypes[16] = {3,3,1,0,3,3,2,2,3,3,3,3,3,3,3,3};
-int nmpairs = 20;
-static int mpairs[][2]={{-1,-1},{0,2},{0,3},{0,4},{0,5},{0,6},
-                               {1,3},{1,4},{1,5},{1,6},{1,7},
-                                     {2,4},{2,5},{2,6},{2,7},
-                                           {3,5},{3,6},{3,7},
-                                                 {4,6},{4,7},
-                                                       {5,7}};
-
-
 static int ev_count=0;
 static unsigned *buf=NULL;
 static int bufsize = 512*1024;  // acquisition buffers are 4MB size
@@ -67,7 +57,7 @@ static void l64_timetag_order(FILE *fp, FILE *outputfp)
 			//fflush(stdout);
 
 			/* Note that ewtypes is defined above */
-			type = ewtypes[(((ew2&0xc0000000)>>30)|((ew1&0xc0000000)>>28))];
+			type = GeometryInfo::EWTYPES[(((ew2&0xc0000000)>>30)|((ew1&0xc0000000)>>28))];
 			
 			//printf("type:%d ",type);
 			//fflush(stdout);
@@ -135,21 +125,9 @@ static void l64_timetag_order(FILE *fp, FILE *outputfp)
 
 				     }
 				   prev_time = current_time;
-
-				   //printf("\n%x ", ew2);
-				   //printf(" %x ", ew1);
-				   //if (current_time % 1000 == 0) {
-				   
-				   //if (current_time % 1000 == 0){
-				   //if (current_time < 10 ){
-				  
-				   //}
-				   //}
-				   //if (line_count++ == 10) { printf("\n"); line_count=0; }
-			   }
-			   else if ((tag & 0xE0000000) == 0xA0000000)// block singles
-			   {
-					block = (tag & 0x1ff80000) >> 19;
+			   }  else if ((tag & 0xE0000000) == 0xA0000000) {
+			   // block singles
+			   					block = (tag & 0x1ff80000) >> 19;
 					bsingles = tag & 0x0007ffff;
 				    total_singles += bsingles;
 			   }
@@ -159,14 +137,9 @@ static void l64_timetag_order(FILE *fp, FILE *outputfp)
 			{ // event
 				// type==0 for Prompt, type==1 for Delayed
 			   mp = ((ew1&0x00070000)>>16) | ((ew2&0x00070000)>>13); // module pair [1,20]
-			   //if (current_time<10){
-			   //  printf("mp:%d", mp);
-			   //}
-			   
-			   if (mp >=1 && mp<= nmpairs)
-			   {
-				   ahead = mpairs[mp][0];	//[0,7]
-				   bhead = mpairs[mp][1];	//[0,7]
+			   if (mp >=1 && mp<= GeometryInfo::NMPAIRS) {
+				   ahead = GeometryInfo::MPAIRS[mp][0];	//[0,7]
+				   bhead = GeometryInfo::MPAIRS[mp][1];	//[0,7]
 				   ax = (ew1&0xff);			//[0,71]
 				   ay = ((ew1&0xff00)>>8);	//[0,103]
 				   bx = (ew2&0xff);			//[0,71]

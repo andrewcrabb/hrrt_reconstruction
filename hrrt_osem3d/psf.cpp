@@ -6,15 +6,12 @@ Modification history:
   08-MAY-2008: modified to compile with microsoft visual studio (M. Sibomana) 
 */
 #include <stdio.h>
-#ifdef WIN32
-#include <process.h>
-#endif
 #include <math.h>
 #include "hrrt_osem3d.h"
+#include "my_spdlog.hpp"
+#include "hrrt_osem_utils.hpp"
 
-#ifdef IS__linux__
 #define _alloca alloca
-#endif
 
 typedef struct {
 	ConvolArg *x,*y,*z;
@@ -74,7 +71,7 @@ int make1d_psf_filter(Psf1D *psf)
 
 void init_psf1D(float blur_fwhm1,float blur_fwhm2,float blur_ratio,Psf1D *psf)
 {
-	if(make1d_psf_filter(psf)==-1) crash1("Psf Init Error \n");
+	if(make1d_psf_filter(psf)==-1) LOG_EXIT("Psf Init Error \n");
 }
 
 
@@ -157,11 +154,7 @@ int blur_image(float ***image, int nthreads, Psf1D *psfx, Psf1D *psfy, Psf1D *ps
 
 int blur_image(float ***image, int nthreads, Psf1D *psfx, Psf1D *psfy, Psf1D *psfz)
 {
-#ifdef IS_WIN32
-    HANDLE threads[MAXTHREADS];
-#else
     pthread_t threads[MAXTHREADS];
-#endif
     ConvolArg convolarg[MAXTHREADS];
 
    int x,y,z;
@@ -169,70 +162,6 @@ int blur_image(float ***image, int nthreads, Psf1D *psfx, Psf1D *psfy, Psf1D *ps
    int thr;
    unsigned threadID;	
    int i;
-   // X convolve 
-   //convolx(image,thr,0,z_size,psfx);
-//   start=0;
-//   step = z_pixels/nthreads;
-//   end = step;
-//   for (thr = 0; thr < nthreads; thr++) {
-//     if(thr==nthreads-1) end=z_pixels;
-//     convolarg[thr].ima   = (float ***)image;
-//     convolarg[thr].thr   = thr;
-//     convolarg[thr].start = start;
-//     convolarg[thr].end = end;
-//     convolarg[thr].psf = (Psf1D *)psfx; 
-////     printf(" thread %d , start %d, end %d\n",thr,start,end);
-//     start += step;
-//     end += step;
-//     #ifdef IS_WIN32
-//     threads[thr] = (HANDLE)_beginthreadex( NULL, 0, &pt_convolx, &convolarg[thr], 0, &threadID );
-//     #else
-//     pthread_create(&threads[thr],NULL,pt_convolx, &convolarg[thr]);
-//     #endif
-//   } // All threads started...now we wait for them to complete
-//   for (thr = 0; thr < nthreads; thr++) Wait_thread(threads[thr]);
-//   // Y convolve 
-//   //convoly(image,thr,0,z_size,psfy);
-//   start=0;
-//   step = z_pixels/nthreads;
-//   end = step;
-//   for (thr = 0; thr < nthreads; thr++) {
-//     if(thr==nthreads-1) end=z_pixels;
-//     convolarg[thr].ima   = (float ***)image;
-//     convolarg[thr].thr   = thr;
-//     convolarg[thr].start = start;
-//     convolarg[thr].end = end;
-//     convolarg[thr].psf = (Psf1D *) psfy; 
-//     start += step;
-//     end += step;
-//     #ifdef IS_WIN32
-//     threads[thr] = (HANDLE)_beginthreadex( NULL, 0, &pt_convoly, &convolarg[thr], 0, &threadID );
-//     #else
-//     pthread_create(&threads[thr],NULL,pt_convoly, &convolarg[thr]);
-//     #endif
-//   } // All threads started...now we wait for them to complete
-//   for (thr = 0; thr < nthreads; thr++) Wait_thread(threads[thr]);
-//   // Z convolve 
-//   // convolz(image,thr,0,y_size,psfz);
-//   start=0;
-//   step = y_pixels/nthreads;
-//   end = step;
-//   for (thr = 0; thr < nthreads; thr++) {
-//     if(thr==nthreads-1) end=y_pixels;
-//     convolarg[thr].ima   = (float ***)image;
-//     convolarg[thr].thr   = thr;
-//     convolarg[thr].start = start;
-//     convolarg[thr].end = end;
-//     convolarg[thr].psf = (Psf1D *) psfz; 
-//     start += step;
-//     end += step;
-//     #ifdef IS_WIN32
-//     threads[thr] = (HANDLE)_beginthreadex( NULL, 0, &pt_convolz, &convolarg[thr], 0, &threadID );
-//     #else
-//     pthread_create(&threads[thr],NULL,pt_convolz, &convolarg[thr]);
-//     #endif
-//   } // All threads started...now we wait for them to complete
-//   for (thr = 0; thr < nthreads; thr++) Wait_thread(threads[thr]);
    return 0;
 }
 

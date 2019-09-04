@@ -16,7 +16,7 @@
 // Current AIR 5.3.0 is 2011, so set -I in CMake to AIR src dir.
 // #include <AIR/AIR.h>
 #include <AIR.h>
-#include <ecatx/matrix.h>
+#include <ecatx/ecat_matrix.hpp>
 #include <unistd.h>
 
 #define MAX_SEG 45
@@ -26,7 +26,7 @@ static int float_flag=0;
 static float bin_size=1.21875f, plane_sep=1.21875f, radius=234.5f;
 static int xdim=256, ydim=256,zdim=207;
 static float pixel_size=1.21875f, z_pixel_size=1.21875f;
-static int nsegs=15, nviews=288, nprojs=256, rd=67, span=9;
+static int nsegs=15, nviews=288, nprojs=256, rd=GeometryInfo::MAX_RINGDIFF, span=9;
 
 static int seg_offset[MAX_SEG], seg_planes[MAX_SEG];
 template<class T>
@@ -47,7 +47,7 @@ static void init_seg_info()
 	size_t data_size = st.st_size;
 	if (data_size== (size_t)(nprojs*nviews*nplanes_3*sizeof(T))) span = 3;
 	else if (data_size == (size_t)(nprojs*nviews*nplanes_9*sizeof(T))) span = 9;
-  else crash("unkown file size: not span 9 or span 3\n");
+  else LOG_EXIT("unkown file size: not span 9 or span 3\n");
   nsegs = (2*rd+1)/span;
   seg_offset[0] = 0; seg_planes[0] = nplns0;
   for (int iseg=1; iseg<nsegs; iseg += 2) {
@@ -58,7 +58,7 @@ static void init_seg_info()
   } 
 }
 
-template <class T>
+template <typename T>
 static int read_segment(FILE *fp, T ***sino, int nplanes)
 {
   for (int plane=0; plane<nplanes; plane++)
@@ -163,32 +163,32 @@ int  main(int argc, char **argv)
   {
     init_seg_info<float>();
     fsino = matrix3d(0,nviews-1, 0, seg_planes[0]-1, 0,nprojs-1);
-    if (fsino==NULL) crash("memory allocation failure for 2D sinogram\n");
+    if (fsino==NULL) LOG_EXIT("memory allocation failure for 2D sinogram\n");
     if ((fsino2 = (float****)calloc(nsegs, sizeof(float***))) == NULL)
-       crash("memory allocation failure for 3D sinogram\n");
+       LOG_EXIT("memory allocation failure for 3D sinogram\n");
     for (iseg=0; iseg<nsegs; iseg++) {
       fsino2[iseg] = matrix3d(0,nviews-1, 0,seg_planes[iseg]-1, 0,nprojs-1);
       if (fsino2[iseg]==NULL) 
-        crash("memory allocation failure for 3D sinogram, segment %d\n", iseg);
+        LOG_EXIT("memory allocation failure for 3D sinogram, segment %d\n", iseg);
     }
   }
   else
   {
     init_seg_info<short>();
     sino = matrix3dshort(0,nviews-1, 0, seg_planes[0]-1, 0,nprojs-1);
-    if (sino==NULL) crash("memory allocation failure for 2D sinogram\n");
+    if (sino==NULL) LOG_EXIT("memory allocation failure for 2D sinogram\n");
     if ((sino2 = (short****)calloc(nsegs, sizeof(short***))) == NULL)
-       crash("mmory allocation failure for 3D sinogram\n");
+       LOG_EXIT("mmory allocation failure for 3D sinogram\n");
     for (iseg=0; iseg<nsegs; iseg++) {
       sino2[iseg] = matrix3dshort(0,nviews-1, 0,seg_planes[iseg]-1, 0,nprojs-1);
       if (sino2[iseg]==NULL) 
-        crash("memory allocation failure for 3D sinogram, segment %d\n", iseg);
+        LOG_EXIT("memory allocation failure for 3D sinogram, segment %d\n", iseg);
     }
   }
   if ((fpi = fopen(in_file, "rb")) == NULL)
-    crash("error opening input file %s\n", in_file);
+    LOG_EXIT("error opening input file %s\n", in_file);
   if ((fpo = fopen(out_file, "wb")) == NULL)
-    crash("error opening output file %s\n", out_file);
+    LOG_EXIT("error opening output file %s\n", out_file);
 //  for (iseg=0; iseg<nsegs; iseg++)
   for (iseg=0; iseg<1; iseg++)
   {

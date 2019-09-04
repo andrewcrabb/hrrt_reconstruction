@@ -87,13 +87,11 @@ if(qc) then plot,eff,xstyle=1,background=white,color=black
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
+#include "my_spdlog.hpp"
 
-int make_norm(const float *sino, float *norm, const float *dwell,
-					   SinoIndex *sino_index, float *eff)
-{
+int make_norm(const float *sino, float *norm, const float *dwell, SinoIndex *sino_index, float *eff) {
 	int i=0,j=0, npixels=nviews*nelems;
 
-	//
 	// Apply rebinning dwell correction: use only central FOV 
 	// width is 1 buckect diamond (144 bins)
 	for (int view=0; view<nviews; view++)
@@ -104,9 +102,7 @@ int make_norm(const float *sino, float *norm, const float *dwell,
 		for (int elem=56; elem<=(nelems-56); elem++)
 			pnorm[elem] = psino[elem]*pdwell[elem];
 	}
-	//
 	// Get the crystal sensitivities
-	//
 	double sum=0.0, sum1=0.0, sum2=0.0;
 	int npairs=0, *idx=NULL;
 	float *wts=NULL;
@@ -124,9 +120,8 @@ int make_norm(const float *sino, float *norm, const float *dwell,
 		eff[i] = (float)(sum1/sum2);
 		sum += eff[i];
 	}
-	//
+
 	// normalize eff vector to crys_per_ring
-	//
 	float fact = (float)(crys_per_ring/sum);
 	float min_eff = eff[0]*fact;
 	for (i=0; i<crys_per_ring; i++)
@@ -135,16 +130,14 @@ int make_norm(const float *sino, float *norm, const float *dwell,
 		if (eff[i] < min_eff) min_eff = eff[i];
 	}
 	if (min_eff < 0.25) 
-		printf("make_norm: some efficiencies are lower than 0.25 are set to 0.\n");
+		LOG_INFO("make_norm: some efficiencies are lower than 0.25 are set to 0.\n");
 	for (i=0; i<crys_per_ring; i++)
 	{
 		if (eff[i]<0.25f) eff[i] = 0.0f;
 		else eff[i] = (float)(1/sqrt(eff[i]));
 	}
 	
-	//
 	// Then apply them to the dwell to make a normalization.
-	//
 	memcpy(norm, dwell, nviews*nelems*sizeof(float));
 	unsigned char *mask = (unsigned char*)calloc(nviews*nelems, sizeof(unsigned char));
 	for (i=0; i<crys_per_ring; i++)

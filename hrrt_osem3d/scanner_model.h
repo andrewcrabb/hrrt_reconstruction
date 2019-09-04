@@ -1,5 +1,4 @@
-#ifndef ScannerModel_h
-#define ScannerModel_h
+# pragma once
 
 typedef struct _ScannerModel {
 	const char *number;  		/* model number as an ascii string */
@@ -22,4 +21,3 @@ extern ScannerModel *scanner_model(int);
 extern ScannerModel *scanner_model(int);
 #endif	/* __STDC__ */
 
-#endif /* ScannerModel_h */

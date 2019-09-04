@@ -6,26 +6,10 @@
 #include <stdio.h>
 #include <sys/malloc.h>
 
-static unsigned int ewtypes[16] = {3,3,1,0,3,3,2,2,3,3,3,3,3,3,3,3};
-int nmpairs = 20;
-static int mpairs[][2]={{-1,-1},{0,2},{0,3},{0,4},{0,5},{0,6},
-                               {1,3},{1,4},{1,5},{1,6},{1,7},
-                                     {2,4},{2,5},{2,6},{2,7},
-                                           {3,5},{3,6},{3,7},
-                                                 {4,6},{4,7},
-                                                       {5,7}};
-
-
 static int ev_count=0;
 static unsigned *buf=NULL;
 static int bufsize = 512*1024;  // acquisition buffers are 4MB size
 int allow_write=1;
-//static void print32_binary(int number) /* input in 32 bits */
-//{
-// int i=1;
-// while (i<=4)
-//   {
-//     printf(
 
 // http://goo.gl/KzIrWK
 #ifdef __APPLE__
@@ -44,34 +28,22 @@ static void l64_timetag_order(FILE *fp, FILE *outputfp)
 	int block=0, bsingles=0;
 	int ev_count=0;
 	double pos_in_buffer;
-	int i=0;
 	int mp=0; // module pair [1,20]
 	int doia,ahead,ax,ay,doib,bhead,bx,by;		// LOR identification
 	int line_count = 0;
 	int prompts=0;
-	int number_of_errors=0;
 
 	buf=(unsigned*)calloc(bufsize, 2*sizeof(unsigned));
-	while ((count=fread(buf, sizeof(unsigned),2*bufsize, fp)) > 0)
-	{
-	  i=0; number_of_errors=0;
-		while (i+1<count)
-		{
+	while ((count=fread(buf, sizeof(unsigned),2*bufsize, fp)) > 0) {
+	  int i=0; 
+	  int number_of_errors=0;
+		while (i + 1 < count) {
 			ew1 = buf[i];
 			ew2 = buf[i+1];
 			outputew1 = buf[i];
 			outputew2 = buf[i+1];
 
-			//printf("\new1:%x ", ew1);
-			//printf(" ew2:%x ", ew2);
-			//fflush(stdout);
-
-			/* Note that ewtypes is defined above */
-			type = ewtypes[(((ew2&0xc0000000)>>30)|((ew1&0xc0000000)>>28))];
-			
-			//printf("type:%d ",type);
-			//fflush(stdout);
-			
+			type = GeometryInfo::EWTYPES[(((ew2&0xc0000000)>>30)|((ew1&0xc0000000)>>28))];
 			if (type == 3)
 			{ // sync
 			  //if (current_time<10)
@@ -163,10 +135,10 @@ static void l64_timetag_order(FILE *fp, FILE *outputfp)
 			   //  printf("mp:%d", mp);
 			   //}
 			   
-			   if (mp >=1 && mp<= nmpairs)
+			   if (mp >=1 && mp<= GeometryInfo::NMPAIRS)
 			   {
-				   ahead = mpairs[mp][0];	//[0,7]
-				   bhead = mpairs[mp][1];	//[0,7]
+				   ahead = GeometryInfo::MPAIRS[mp][0];	//[0,7]
+				   bhead = GeometryInfo::MPAIRS[mp][1];	//[0,7]
 				   ax = (ew1&0xff);			//[0,71]
 				   ay = ((ew1&0xff00)>>8);	//[0,103]
 				   bx = (ew2&0xff);			//[0,71]

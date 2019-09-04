@@ -54,9 +54,9 @@ pro self_norm,sino
 #include <malloc.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "my_spdlog.hpp"
 
-int self_norm(float *vsino, int nplns)
-{
+int self_norm(float *vsino, int nplns) {
 	int ret=1;
 	int npixels = nelems*nviews;
 	float *dwell = (float*)calloc(npixels, sizeof(float));
@@ -73,7 +73,7 @@ int self_norm(float *vsino, int nplns)
 	sino_to_crys(sino_index);
 	for (int pln=0; pln<nplns; pln++, psino += npixels)
 	{
-		if (qc_flag) printf("Self-normalizing plane %d\n",pln+1);
+		if (qc_flag) LOG_INFO("Self-normalizing plane %d\n",pln+1);
 		if (make_norm(psino, norm, dwell, sino_index, eff+crys_per_ring*pln))
 		{
 			for (int i=0; i<npixels; i++) psino[i] *= norm[i];

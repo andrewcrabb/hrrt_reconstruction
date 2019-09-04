@@ -8,12 +8,7 @@
  */
 
 #include <fcntl.h>
-#if defined(__linux__) || defined(__SOLARIS__)
 #include <unistd.h>
-#endif
-#ifdef __SOLARIS__
-#include <semaphore.h>
-#endif
 #include "semaphore_al.h"
 
 /*- methods -----------------------------------------------------------------*/
@@ -27,12 +22,7 @@
 /*---------------------------------------------------------------------------*/
 Semaphore::Semaphore(unsigned short int value)
  {
-#if defined(__linux__) || defined(__MACOSX__) || defined(__SOLARIS__)
    sem_init(&sem, 0, value);
-#endif
-#ifdef WIN32
-   sem=CreateSemaphore(NULL, value, 9999, NULL);
-#endif
  }
 
 /*---------------------------------------------------------------------------*/
@@ -43,12 +33,7 @@ Semaphore::Semaphore(unsigned short int value)
 /*---------------------------------------------------------------------------*/
 Semaphore::~Semaphore()
  {
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    sem_destroy(&sem);
-#endif
-#ifdef WIN32
-   CloseHandle(sem);
-#endif
  }
 
 /*---------------------------------------------------------------------------*/
@@ -58,14 +43,12 @@ Semaphore::~Semaphore()
     Request value of semaphore.
  */
 /*---------------------------------------------------------------------------*/
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 unsigned short int Semaphore::getValue()
  { int value;
 
    sem_getvalue(&sem, &value);
    return((unsigned short int)value);
  }
-#endif
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Signal semaphore.
@@ -75,12 +58,7 @@ unsigned short int Semaphore::getValue()
 /*---------------------------------------------------------------------------*/
 void Semaphore::signal()
  {
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    sem_post(&sem);
-#endif
-#ifdef WIN32
-   ReleaseSemaphore(sem, 1, NULL);
-#endif
  }
 
 /*---------------------------------------------------------------------------*/
@@ -93,12 +71,8 @@ void Semaphore::signal()
 /*---------------------------------------------------------------------------*/
 bool Semaphore::tryWait()
  {
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
+
    return(sem_trywait(&sem) == 0);
-#endif
-#ifdef WIN32
-   return(WaitForSingleObject(sem, 0) != WAIT_TIMEOUT);
-#endif
  }
 
 /*---------------------------------------------------------------------------*/
@@ -109,10 +83,5 @@ bool Semaphore::tryWait()
 /*---------------------------------------------------------------------------*/
 void Semaphore::wait()
  {
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    sem_wait(&sem);
-#endif
-#ifdef WIN32
-   WaitForSingleObject(sem, INFINITE);
-#endif
  }

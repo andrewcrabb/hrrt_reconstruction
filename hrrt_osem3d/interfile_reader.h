@@ -4,14 +4,10 @@
     \author Merence Sibomana (sibomana@gmail.com)
     \date 2008/03/07 initial version
  */
-#ifndef _INTERFILE_READER_H_
-#define _INTERFILE_READER_H_
+#pragma once
 
 #include <sys/types.h>
 
-#ifdef WIN32
-#define FILENAME_SIZE _MAX_PATH
-#endif
 #define RETURN_MSG_SIZE 256
 #define ERROR_MSG_SIZE 300
 
@@ -21,30 +17,23 @@
 #define IFH_FILE_OPEN_ERROR 1002        /*!< Error opening specified filename */
 #define IFH_FILE_INVALID 1003            /*!< file not valid Interfile header */
 
-typedef 
-struct _IFH_TAble 
-  {
+typedef
+struct _IFH_TAble{
     char *filename;
     char **tags;
     char **data;
-    size_t size; 
-  }
+    size_t size;
+}
 IFH_Table;
 
-#if defined(__cplusplus)
 extern "C" {
-#endif
-        /*! Load filename in the table */
-int interfile_load(char* in_filename, IFH_Table *out_table);
+    /*! Load filename in the table */
+    int interfile_load(char* in_filename, IFH_Table *out_table);
 
-        /*! Find the value corresponding to a tag */
-int interfile_find(IFH_Table *in_table,  const char *in_tag, char *out_str, int in_str_len);
+    /*! Find the value corresponding to a tag */
+    int interfile_find(IFH_Table *in_table,  const char *in_tag, char *out_str, int in_str_len);
 
-        /*! free table memory allocated by interfile_load */
-int interfile_clear(IFH_Table *in_table);
+    /*! free table memory allocated by interfile_load */
+    int interfile_clear(IFH_Table *in_table);
 
-#if defined(__cplusplus)
 }
-#endif
-
-#endif

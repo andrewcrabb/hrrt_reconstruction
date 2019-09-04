@@ -238,7 +238,7 @@ void ECAT7_DIRECTORY::LoadDirBlock(std::ifstream * const file,
    file->seekg((dir_rec-1)*E7_RECLEN);
    try
    {                   // DataChanger is used to read data system independently
-     dc=new DataChanger(E7_RECLEN, false, true);
+     dc = new DataChanger(E7_RECLEN);
      dc->LoadBuffer(file);                             // load data into buffer
                                                    // retrieve data from buffer
      dc->Value(&dir_list->num_avail_entries);
@@ -378,7 +378,7 @@ void ECAT7_DIRECTORY::SaveDirBlock(std::ofstream * const file,
    file->seekp((dir_rec-1)*E7_RECLEN);
    try
    {                  // DataChanger is used to store data system independently
-     dc=new DataChanger(E7_RECLEN, false, true);
+     dc = new DataChanger(E7_RECLEN);
                                                        // fill data into buffer
      dc->Value(dir_list->num_avail_entries);
      dc->Value(dir_list->next_dir_rec);

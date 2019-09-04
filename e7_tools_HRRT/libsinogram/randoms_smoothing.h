@@ -6,8 +6,7 @@
     \date 2004/09/13 added Doxygen style comments
  */
 
-#ifndef _RANDOMS_SMOOTHING_H
-#define _RANDOMS_SMOOTHING_H
+#pragma once
 
 #include <vector>
 #include "e7_tools_const.h"
@@ -129,4 +128,3 @@ class RandomsSmoothing
 /*             End Mu         */
  };
 
-#endif

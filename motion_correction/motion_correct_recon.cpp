@@ -57,7 +57,7 @@
 #include <string.h>
 #include <time.h>
 #include <sys/stat.h>
-#include <ecatx/matrix.h>
+#include <ecatx/ecat_matrix.hpp>
 #include <string>
 #include <dirent.h>
 #include <unistd.h>
@@ -72,7 +72,7 @@
 
 #include "frame_info.h"
 #include "qmatrix.h"
-#include "hrrt_util.h"
+#include "hrrt_util.hpp"
 
 // ahc
 #include <iostream>
@@ -281,7 +281,7 @@ static void update_frame_info(FILE *log_fp)
     mat_free(mv);
     mat_free(ms);
   } else {
-    fprintf(log_fp,"Frame_info and vicra_info sizes not match = %d,%d\n", fi,vi);
+    LOG_INFO("Frame_info and vicra_info sizes not match = %d,%d\n", fi,vi);
   }
 }
 int main(int argc, char **argv)
@@ -397,7 +397,6 @@ int main(int argc, char **argv)
       printf("Invalid LBER value : %s\n", optarg);
       usage(argv[0]);
     }
-    printf("\n lber values is: %g \n", lber); fflush(stdout);
     break;
     case 'K': //Need to make changes later
     normfac_img = optarg;   
@@ -467,15 +466,15 @@ if (strcasecmp(ext,".v") && strcasecmp(ext,".dyn")) {
 
   // ahc test required parameters.
 if (!strlen(program_path)) {
-  fprintf(stderr, "Error: Missing required parameter 'p' (program path)\n");
+  LOG_ERROR("Error: Missing required parameter 'p' (program path)\n");
   usage(argv[0]);
 }
 if (!strlen(prog_gnuplot)) {
-  fprintf(stderr, "Error: Missing required parameter 'z' (FQ path of gnuplot program)\n");
+  LOG_ERROR("Error: Missing required parameter 'z' (FQ path of gnuplot program)\n");
   usage(argv[0]);
 }
 if (!strlen(rebinner_lut_file)) {
-  fprintf(stderr, "Error: Missing required parameter 'b' (FQ path of hrrt_rebinner lut file)\n");
+  LOG_ERROR("Error: Missing required parameter 'b' (FQ path of hrrt_rebinner lut file)\n");
   usage(argv[0]);
 }
 
@@ -503,10 +502,10 @@ if ((log_fp=fopen(log_file,"wt")) == NULL) {
 }
 if (vicra_file) {
   if (vicra_calibration(vicra2scanner, log_fp)) {
-    fprintf(log_fp,"using %s file for coordinates alignment\n", vicra2scanner);
+    LOG_INFO("using %s file for coordinates alignment\n", vicra2scanner);
     fflush(log_fp);
   } else {
-    fprintf(log_fp,"Error loading %s file for coordinates alignment\n", vicra2scanner);
+    LOG_INFO("Error loading %s file for coordinates alignment\n", vicra2scanner);
     fflush(log_fp);
     return 1;
   }
@@ -518,12 +517,12 @@ ext=strrchr(em_prefix,'.');
 *ext++ = '\0';
   // Realign only option for ECAT files
 if (*ext == 'v') {
-  MatrixFile *mf;
-  MatrixData *matdata;
-  Image_subheader *imh;
-  MatDirNode *node;
-  if ((mf=matrix_open(em_file, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE))==NULL){
-    fprintf(log_fp,"Error opening file %s\n", em_file);
+  ecat_matrix::MatrixFile *mf;
+  ecat_matrix::MatrixData *matdata;
+  ecat_matrix::Image_subheader *imh;
+  ecat_matrix::MatDirNode *node;
+  if ((mf=matrix_open(em_file, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE))==NULL){
+    LOG_INFO("Error opening file %s\n", em_file);
     return 1;
   }
   num_frames = mf->dirlist->nmats;
@@ -536,11 +535,11 @@ if (*ext == 'v') {
   frame_info.resize(num_frames);
   node = mf->dirlist->first;
   for (frame=0; frame<num_frames && node!=NULL; frame++) {
-    if ((matdata = matrix_read(mf, node->matnum, MAT_SUB_HEADER)) == NULL) {
-      fprintf(log_fp,"Error reading frame %d header\n", frame);
+    if ((matdata = matrix_read(mf, node->matnum, MatrixData::DataType::MAT_SUB_HEADER)) == NULL) {
+      LOG_INFO("Error reading frame %d header\n", frame);
       return 1;
     }
-    imh = (Image_subheader*)matdata->shptr;
+    imh = (ecat_matrix::Image_subheader*)matdata->shptr;
     frame_info[frame].start_time = imh->frame_start_time/1000;
     frame_info[frame].duration = imh->frame_duration/1000;
     frame_info[frame].randoms = imh->random_rate*frame_info[frame].duration;
@@ -564,7 +563,7 @@ if (*ext == 'v') {
       end_frame = num_frames-1;
     } else {
       if (ref_frame<0) {
-        fprintf(log_fp,"Use -r to specify reference, reference frame not found\n");
+        LOG_INFO("Use -r to specify reference, reference frame not found\n");
         exit(1);
       }
       if (end_frame<0)
@@ -576,7 +575,7 @@ if (*ext == 'v') {
           frame_info[frame].em_align_flag = 0;
       }
       frame_info[ref_frame].em_align_flag = 0;
-      fprintf(log_fp, "ref_frame %d\n", ref_frame);
+      LOG_INFO( "ref_frame %d\n", ref_frame);
     }  // if/else vicra_file
     goto ecat_ready;
   }  // if ext = 'v'.
@@ -590,13 +589,13 @@ if (*ext == 'v') {
   if (mu_file != NULL) {
     strcpy(mu_prefix,mu_file);
     if ((ext=strstr(mu_prefix,".i")) == NULL) {
-      fprintf(log_fp, "Invalid mu_file %s\n", mu_file);
+      LOG_INFO( "Invalid mu_file %s\n", mu_file);
       return 1;
     }
   }
   *ext = '\0';
   if ((fp=fopen(em_file,"rt")) == NULL) {
-    fprintf(log_fp,"Error opening file %s\n", em_file);
+    LOG_INFO("Error opening file %s\n", em_file);
     return 1;
   }
   // dyn file line 0 holds frame count.
@@ -623,7 +622,7 @@ if (*ext == 'v') {
     end_frame = num_frames-1;
   } else {
     if (ref_frame<0) {
-      fprintf(log_fp,"Use -r to specify reference, reference frame not found\n");
+      LOG_INFO("Use -r to specify reference, reference frame not found\n");
       exit(1);
     }
     if (end_frame<0)
@@ -649,15 +648,14 @@ if (*ext == 'v') {
     // printf("\n");
   }
   
-  printf("\n start_frame: %d, end_frame:%d, ref_frame:%d \n", start_frame, end_frame, ref_frame);
-  fflush(stdout);
-  exit;
+  LOG_INFO("start_frame: {}, end_frame: {}, ref_frame: {}", start_frame, end_frame, ref_frame);
+
   //Create log and qc dirs if not existing
   strcpy(em_dir,em_prefix);
   if ((ext=strrchr(em_dir,DIR_SEPARATOR)) != NULL) {
     *ext++ = '\0';
     sprintf(cmd_line, "cd %s", em_dir);
-    fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
+    LOG_INFO("%s\n",cmd_line); fflush(log_fp);
     if (exec) chdir(em_dir);
     strcpy(em_prefix, ext); // em_prefix without full path
   }
@@ -673,7 +671,7 @@ if (*ext == 'v') {
   fflush(log_fp);
   sprintf(fname,"%s_3D_ATX.v",em_prefix);
   if (access(fname,R_OK) == 0 && overwrite==0) {
-    fprintf(log_fp,"Reusing point 1: existing %s\n",fname);
+    LOG_INFO("Reusing point 1: existing %s\n",fname);
   } else { // Not reusing 3D_ATX.v
     if (strlen(em_na) == 0)
       sprintf(em_na,"%s", em_prefix);
@@ -683,14 +681,14 @@ if (*ext == 'v') {
       // Create individual frame mu-maps
       for (frame=0; frame<num_frames; frame++) {
         if (!frame_info[frame].tx_align_flag) {
-          fprintf(log_fp,"Using original %s\n",mu_file);
+          LOG_INFO("Using original %s\n",mu_file);
           fflush(log_fp);
           continue; 
         }
         // Not reference frame: Create resliced mu file.
         sprintf(mu_rsl, "%s_fr%d.i", mu_prefix,frame);
         if (access(mu_rsl,R_OK) == 0 && overwrite==0) {
-          fprintf(log_fp,"Reusing point 2: existing %s\n",mu_rsl); fflush(log_fp);
+          LOG_INFO("Reusing point 2: existing %s\n",mu_rsl); fflush(log_fp);
         } else { 
           if (vicra_file && frame_info[frame].tx_align_flag) {
             /*
@@ -726,7 +724,7 @@ if (*ext == 'v') {
                       mu_prefix, frame, mu_rsl, mu_file);
               */
             }
-            // fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
+            // LOG_INFO("%s\n",cmd_line); fflush(log_fp);
             printf("\nFrame: %d \n ", frame); fflush(stdout);
             printf("%s %s\n", program_name, cmd_line); fflush(stdout);
             if (run_system_command(program_name, cmd_line, log_fp)) {
@@ -751,7 +749,7 @@ if (*ext == 'v') {
         }
 
         if (access(at_rsl,R_OK) == 0 && overwrite==0) {
-          fprintf(log_fp,"Reusing point 3: existing %s\n",at_rsl);
+          LOG_INFO("Reusing point 3: existing %s\n",at_rsl);
         } else { 
           sprintf(program_name, "%s/%s", program_path, prog_e7_fwd);
           sprintf(cmd_line, "--model 328 -u %s -w %d --oa %s --span 9 "
@@ -765,7 +763,7 @@ if (*ext == 'v') {
         // Compute scatter
         sprintf(fname, "%s_frame%d_sc_ATX.s ", em_prefix,frame);
         if (access(fname,R_OK) == 0 && overwrite==0) {
-          fprintf(log_fp,"Reusing point 4: existing %s\n",fname);
+          LOG_INFO("Reusing point 4: existing %s\n",fname);
         } else {
           sprintf(program_name, "%s/%s", program_path, prog_e7_sino);
           sprintf(cmd_line, "-e %s_frame%d.tr.s -u %s  -w %d "
@@ -783,15 +781,15 @@ if (*ext == 'v') {
           }
 
           sprintf(cmd_line,"cd %s; %s %s/scatter_qc_00.plt", em_dir, prog_gnuplot, em_dir);
-          fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
+          LOG_INFO("%s\n",cmd_line); fflush(log_fp);
           if (exec)
             system(cmd_line);
           sprintf(cmd_line,"rename %s/scatter_qc_00.ps %s/%s_frame%d_sc_qc.ps ", em_dir, em_dir, em_prefix, frame);          
-          fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
+          LOG_INFO("%s\n",cmd_line); fflush(log_fp);
           if (exec)
             system(cmd_line);
           sprintf(cmd_line, "cd %s", em_dir);
-          fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
+          LOG_INFO("%s\n",cmd_line); fflush(log_fp);
           if (exec)
             chdir(em_dir);
         } // end scatter
@@ -799,7 +797,7 @@ if (*ext == 'v') {
       
       sprintf(fname, "%s_frame%d_3D_ATX.i ", em_prefix,frame);
       if (access(fname,R_OK) == 0 && overwrite==0) {
-        fprintf(log_fp,"Reusing point 5: existing %s\n",fname);
+        LOG_INFO("Reusing point 5: existing %s\n",fname);
         fflush(log_fp);
       } else {
         // host reconstruction
@@ -838,7 +836,7 @@ if (*ext == 'v') {
   if (!vicra_file) {
     sprintf(fname,"%s_%dmm.v",im_prefix,default_smoothing);
     if (access(fname,R_OK) == 0 && overwrite==0) {
-      fprintf(log_fp,"Reusing point 6: existing %s\n",fname); fflush(log_fp);
+      LOG_INFO("Reusing point 6: existing %s\n",fname); fflush(log_fp);
     } else {
       if (brand_new_final_align) {
         // ahc no
@@ -863,7 +861,7 @@ if (*ext == 'v') {
     sprintf(fname,"%s_rsl.v", im_prefix);
   }
   if (access(fname,R_OK) == 0 && overwrite==0) {
-    fprintf(log_fp,"Reusing point 7: existing %s\n",fname);
+    LOG_INFO("Reusing point 7: existing %s\n",fname);
   }  else   {
     for (frame=0; frame<num_frames; frame++)      {
       int frame1=frame+1;                  // ECAT 1-N counting
@@ -894,7 +892,7 @@ if (*ext == 'v') {
           sprintf(program_name, "%s/%s", program_path, prog_alignlinear);
           sprintf(cmd_line,"%s_%dmm.v,%d,1,1 %s_%dmm.v,%d,1,1 %s_fr%d.air -m 6 -t1 %d -t2 %d",
             im_prefix, default_smoothing, ref_frame+1, im_prefix, default_smoothing, frame1, im_prefix, frame, thr, thr);
-          fprintf(log_fp,"%s\n",cmd_line);
+          LOG_INFO("%s\n",cmd_line);
           fflush(log_fp);
         } else {
           // ahc yes
@@ -920,7 +918,7 @@ if (*ext == 'v') {
   if (!vicra_file) {
     sprintf(fname,"%s_motion_qc.dat", em_prefix);
     if ((fp=fopen(fname,"wt")) == NULL) {
-      fprintf(log_fp,"Error opening file %s\n", fname);
+      LOG_INFO("Error opening file %s\n", fname);
       return 1;
     }
 
@@ -928,7 +926,7 @@ if (*ext == 'v') {
       int x0 = frame_info[frame].start_time;
       int x1 = x0+frame_info[frame].duration-1;
       if (frame_info[frame].em_align_flag == 0) {
-        fprintf(log_fp,"reference frame %d\n",frame);  fflush(log_fp);
+        LOG_INFO("reference frame %d\n",frame);  fflush(log_fp);
         fprintf(fp,"%d %d 0 0 0 0\n",x0,x0);
         fprintf(fp,"%d %d 0 0 0 0\n",x1,x0);
         continue;
@@ -937,7 +935,7 @@ if (*ext == 'v') {
       sprintf(cmd_line,"%s/%s -a %s_fr%d.air",
         program_path, prog_motion_distance,
         im_prefix, frame);
-      fprintf(log_fp,"%s\n",cmd_line);  fflush(log_fp);
+      LOG_INFO("%s\n",cmd_line);  fflush(log_fp);
       if (exec) {
         if ((pp = popen(cmd_line,"r")) != NULL) {
           fgets(line, sizeof(line),pp);
@@ -945,7 +943,7 @@ if (*ext == 'v') {
           fprintf(fp,"%d %s",x1, line);
           pclose(pp);
         } else {
-          fprintf(log_fp,"Error opening pipe %s\n", cmd_line);
+          LOG_INFO("Error opening pipe %s\n", cmd_line);
           return 1;
         }
       }
@@ -967,7 +965,7 @@ if (*ext == 'v') {
       fclose(fp);
     }
     sprintf(cmd_line,"cd %s; %s %s", em_dir, prog_gnuplot, plt_fname);
-    fprintf(log_fp,"%s\n",cmd_line);
+    LOG_INFO("%s\n",cmd_line);
     fflush(log_fp);
     if (exec)
       system(cmd_line);
@@ -976,7 +974,7 @@ if (*ext == 'v') {
     sprintf(program_name, "%s/%s", program_path, prog_maf_join);
     sprintf(cmd_line,"%s -o %s_rsl.v -M %s",
       fname, im_prefix, vicra_file);
-    /* fprintf(log_fp,"%s\n",cmd_line); fflush(log_fp);
+    /* LOG_INFO("%s\n",cmd_line); fflush(log_fp);
        if (exec)
        system(cmd_line); */
     if (run_system_command(program_name, cmd_line, log_fp)) {

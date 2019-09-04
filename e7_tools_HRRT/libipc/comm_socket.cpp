@@ -19,27 +19,16 @@
  */
 
 #include <cstdio>
-#ifdef WIN32
-#include <process.h>
-#endif
-#if defined(__linux__) || defined(__MACOSX__)
 #include <cstdlib>
 #include <sys/wait.h>
-#endif
-#if defined(__SOLARIS__) || defined(__MACOSX__)
 #include <unistd.h>
-#endif
-#ifndef _COMM_SOCKET_CPP
-#define _COMM_SOCKET_CPP
 #include "comm_socket.h"
-#endif
 #include "exception.h"
 #include "str_tmpl.h"
 #include "swap_tmpl.h"
 
 /*- methods -----------------------------------------------------------------*/
 
-#ifndef _COMM_SOCKET_TMPL_CPP
 /*---------------------------------------------------------------------------*/
 /*! \brief Create socket (server side).
     \param[in] server_ip     IP number of computer at server side
@@ -75,20 +64,6 @@ CommSocket::CommSocket(const std::string server_ip,
      so=new Socket(&portnumber);          // create TCP/IP socket (server side)
      if (startup)                                     // start client process ?
       { std::string params;
-#ifdef WIN32
-        STARTUPINFO si;
-
-        ZeroMemory(&si, sizeof(si));
-        si.cb=sizeof(si);
-        ZeroMemory(&pi, sizeof(pi));
-            // start client with server IP number and port number as parameters
-        params=server_ip+" "+toString(portNumber())+" "+paramstr;
-        if (!CreateProcess(client_name.c_str(), (char *)params.c_str(), NULL,
-                           NULL, false, 0, NULL, NULL, &si, &pi))
-         throw Exception(REC_CANT_START_PROCESS,
-                   "Server can't start client process '#1'.").arg(client_name);
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
         child_pid=fork();
         if (child_pid == 0)
          { params=client_name+" "+server_ip+" "+toString(portNumber())+" "+
@@ -96,7 +71,6 @@ CommSocket::CommSocket(const std::string server_ip,
            system(params.c_str());
            exit(127);
          }
-#endif
         process_started=true;
       }
                                        // wait until client connects or timeout
@@ -213,18 +187,12 @@ CommSocket::CommSocket(const std::string hostname,
 CommSocket::~CommSocket()
  {                                              // wait until client terminates
    if (process_started)
-#ifdef WIN32
-    WaitForSingleObject(pi.hProcess, INFINITE);
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
     { int status;
 
       waitpid(child_pid, &status, 0);
     }
-#endif
    if (so != NULL) delete so;
  }
-#endif
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Write data to socket buffer.

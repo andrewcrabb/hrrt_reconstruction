@@ -4,8 +4,7 @@
     \date 2003/11/17 initial version
  */
 
-#ifndef _WIN_REGISTRY_H
-#define _WIN_REGISTRY_H
+#pragma once
 
 #include <string>
 #include <windows.h>
@@ -27,5 +26,3 @@ class RegistryAccess
     void setKeyValue(const std::string, const std::string);
     void setKeyValue(const std::string, const unsigned long int);
  };
-
-#endif

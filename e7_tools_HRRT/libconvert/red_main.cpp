@@ -19,12 +19,6 @@ event loop.
 -----------------------------------------------------------------------------*/
 
 #include <iostream>
-#if defined(__linux__) || defined(__SOLARIS__)
-#include <new>
-#endif
-#ifdef WIN32
-#include <new.h>
-#endif
 #include "exception.h"
 #include "logging.h"
 #include "red.h"
@@ -33,12 +27,7 @@ event loop.
 /*---------------------------------------------------------------------------*/
 /* OutOfMemory: Error-handler for new command                                */
 /*---------------------------------------------------------------------------*/
-#ifdef WIN32
-int OutOfMemory(size_t)
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 void OutOfMemory()
-#endif
  { throw Exception(REC_RS_OUT_OF_MEMORY,
                    "Memory exhausted in reco_server.exe process.");
  }
@@ -52,12 +41,7 @@ int main(int argc, char **argv)
  { Red *red=NULL;
 
    std::ios::sync_with_stdio(false);
-#ifdef WIN32
-   _set_new_handler(OutOfMemory);
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
    std::set_new_handler(OutOfMemory);
-#endif
    if (argc == 2)
     if (strcmp(argv[1], "-v") == 0) { timestamp("reco_server.cpp", "2003");
                                       return(EXIT_SUCCESS);

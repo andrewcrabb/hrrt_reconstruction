@@ -5,8 +5,8 @@
   12-May-09: Use same code for linux and WIN32
   09-DEC-2009: Restore -X 128 option (MS)
 */
-#ifndef file_io_processor_h
-#define file_io_processor_h
+# pragma once
+
 #include "compile.h"
 /* for all sinogram file except for true & prompt */
 #define FILEPTR FILE*
@@ -31,6 +31,3 @@ int    read_norm(float ***norm,char * filename,int isubset,int verbose);
 
 /* 2006.02.14 : dsaint31 : not modified yet.... */
 int write_flat_3dscan(float ***scan,char *filename,int theta,int verbose);
-
-#endif
-

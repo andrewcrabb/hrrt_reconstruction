@@ -9,14 +9,10 @@
     \date 2005/01/15 added double datatype
  */
 
-#ifndef _RAW_IO_H
-#define _RAW_IO_H
+#pragma once
 
 #include <cstdio>
 #include <string>
-#ifdef XEON_HYPERTHREADING_BUG
-#include "e7_tools_const.h"
-#endif
 #include "semaphore_al.h"
 #include "thread_wrapper.h"
 #include "types.h"
@@ -97,10 +93,3 @@ template <typename T> class RawIO
     void *executeThread_ReadFileOffs(void *);
     void *executeThread_WriteFile(void *);
  };
-
-#ifndef _RAW_IO_CPP
-#define _RAW_IO_TMPL_CPP
-#include "raw_io.cpp"
-#endif
-
-#endif

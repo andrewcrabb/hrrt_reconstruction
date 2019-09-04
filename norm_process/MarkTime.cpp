@@ -81,22 +81,14 @@ struct Mark *MarkTime(const char *MarkText)
 	static double TimeBase = 0.0;
 	static struct Mark *Current;
 
-#ifdef __linux__
 	struct timeval	tnow ;
-#else
-	struct _timeb	tnow;
-#endif
 	double TimeNow;
 
 	struct Mark *M;
 
 	// get current time
 
-#ifdef __linux__
 	gettimeofday( &tnow , NULL ) ; TimeNow = ( (double) tnow.tv_sec + ( (double) tnow.tv_usec / 1000000.0 ) );
-#else
-	_ftime(&tnow); TimeNow = ( (double) tnow.time + ( (double) tnow.millitm / 1000.0 ) );
-#endif
 	// get new mark, record text label
 
 	M		 = NewMark();

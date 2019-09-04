@@ -6,8 +6,7 @@
     \date 2004/09/28 relaxed comparison of gantry models when number known
  */
 
-#ifndef _GM_H
-#define _GM_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -150,9 +149,3 @@ class GM
     unsigned short int uld() const;
  };
 
-#ifndef _GM_CPP
-#define _GM_TMPL_CPP
-#include "gm.cpp"
-#endif
-
-#endif

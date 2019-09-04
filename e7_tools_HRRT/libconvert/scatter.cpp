@@ -32,7 +32,7 @@
 #include "gm.h"
 #include "image_filter.h"
 #include "logging.h"
-#include "matrix.h"
+#include "hrrt_common/math_matrix.hpp"
 #include "mem_ctrl.h"
 #include "osem3d.h"
 #include "rebin_sinogram.h"

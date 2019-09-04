@@ -1,5 +1,4 @@
-#ifndef _TX_PB_GM_3D_H
-#define _TX_PB_GM_3D_H
+#pragma once
 
 #include "GM_3D.h"
 #include "Tx_PB_3D.h"
@@ -14,9 +13,3 @@ template <typename T> class Tx_PB_GM_3D:public Tx_PB_3D <T>
     Tx_PB_GM_3D(const int, const int, const int, const int, const float,
                 const float);
  };
-
-#ifndef _TX_PB_GM_3D_CPP
-#include "Tx_PB_GM_3D.cpp"
-#endif
-
-#endif

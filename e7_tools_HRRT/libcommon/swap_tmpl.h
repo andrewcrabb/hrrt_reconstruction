@@ -6,8 +6,7 @@
     \date 2004/05/18 added Doxygen style comments
  */
 
-#ifndef _SWAP_TMPL_H
-#define _SWAP_TMPL_H
+#pragma once
 
 /*- exported functions ------------------------------------------------------*/
 
@@ -15,10 +14,3 @@
 bool BigEndianMachine(void);
 
 template <typename T> void Swap(T *);                              // swap data
-
-#ifndef _SWAP_TMPL_CPP
-#define _SWAP_TMPL2_CPP
-#include "swap_tmpl.cpp"
-#endif
-
-#endif

@@ -28,10 +28,6 @@
 #include "exception.h"
 #include "str_tmpl.h"
 
-#ifdef WIN32
-#undef max                        // some comedian in Seattle has defined max()
-#undef min                        // and min()
-#endif
 
 /*- methods -----------------------------------------------------------------*/
 
@@ -256,9 +252,9 @@ KV::KV(const std::string _key, const std::string _unit, std::string value,
          break;
         case KV::SEPTA:                            // key has septa state value
          std::transform(value.begin(), value.end(), value.begin(), tolower);
-         if (value == "none") v.septa=NOSEPTA;
-          else if (value == "extended") v.septa=EXTENDED;
-          else if (value == "retracted") v.septa=RETRACTED;
+         if (value == "none") v.septa=ecat_model::Septa::NOSEPTA;
+          else if (value == "extended") v.septa=ecat_model::Septa::EXTENDED;
+          else if (value == "retracted") v.septa=ecat_model::Septa::RETRACTED;
           else throw Exception(REC_ITF_HEADER_ERROR_SEPTA_FORMAT,
                                "Parsing error in the file '#1'. The value for "
                                "the key '#2' is invalid. Allowed values are "

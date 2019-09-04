@@ -26,8 +26,7 @@
 -----------------------------------------------------------------------------*/
 
 
-#ifndef _RED_CLIENT_H
-#define _RED_CLIENT_H
+#pragma once
 
 #include <string>
 
@@ -40,5 +39,3 @@ extern void RED_install(const std::string, const std::string,
                         const std::string);
 extern bool RED_ping(const std::string);                    // send ping to RED
 extern void RED_terminate(const std::string);                  // terminate RED
-
-#endif

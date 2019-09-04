@@ -1,10 +1,6 @@
-#ifndef Modality_h
-#define Modality_h
+# pragma once
 
 #include <string.h>
-#ifdef WIN32
-#define strncasecmp _strnicmp
-#endif
 typedef enum {UnknownModality=0, CT, MR, NM, PET} ImageModality;
 static ImageModality modality_code(const char *s)
 {
@@ -15,5 +11,3 @@ static ImageModality modality_code(const char *s)
 	if (strncasecmp(s,"PET",3)==0) return PET;
 	return UnknownModality;
 }
-
-#endif

@@ -120,23 +120,10 @@
 #include <limits>
 #include <string>
 #include <cstring>
-#ifdef XEON_HYPERTHREADING_BUG
-#if defined(__linux__) || defined(__SOLARIS__)
-#include <alloca.h>
-#endif
-#ifdef WIN32
-#include <malloc.h>
-#endif
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 #include <unistd.h>
-#endif
 #include "fwdprj3d.h"
 #include "exception.h"
 #include "fastmath.h"
-#ifdef WIN32
-#include "global_tmpl.h"
-#endif
 #include "gm.h"
 #include "logging.h"
 #include "mem_ctrl.h"
@@ -200,14 +187,6 @@ void *executeThread_Fwdproject(void *param)
      tp=(FwdPrj3D::tthread_params *)param;
       // allocate some padding memory on the stack in front of the thread-stack
       // to avoid cache conflicts while accessing local variables
-#ifdef XEON_HYPERTHREADING_BUG
-#if defined(__linux__) || defined(__SOLARIS__)
-     alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#ifdef WIN32
-     _alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#endif
      switch (tp->lut_mode)                                    // LUT mode
             { case 0:
                if (tp->segment == 0)                       // segment 0, no LUT
@@ -294,14 +273,6 @@ void *executeThread_MIPproject(void *param)
      tp=(FwdPrj3D::tthread_params *)param;
       // allocate some padding memory on the stack in front of the thread-stack
       // to avoid cache conflicts while accessing local variables
-#ifdef XEON_HYPERTHREADING_BUG
-#if defined(__linux__) || defined(__SOLARIS__)
-     alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#ifdef WIN32
-     _alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#endif
      if (tp->lut_mode == 2)                                        // use LUT ?
       tp->object->mip_proj_table2(tp->tfp, tp->image, tp->proj, tp->subset,
                                   tp->z_start, tp->z_end);
@@ -339,14 +310,6 @@ void *executeThread_searchFwd(void *param)
      tp=(FwdPrj3D::tthread_params *)param;
       // allocate some padding memory on the stack in front of the thread-stack
       // to avoid cache conflicts while accessing local variables
-#ifdef XEON_HYPERTHREADING_BUG
-#if defined(__linux__) || defined(__SOLARIS__)
-     alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#ifdef WIN32
-     _alloca(tp->thread_number*STACK_OFFSET);
-#endif
-#endif
      tp->object->searchIndicesFwd_oblique(tp->tfp, tp->segment, tp->z_start,
                                           tp->z_end);
      return(NULL);

@@ -23,8 +23,8 @@
     \date 2005/01/04 added progress reporting to sino3D2D()
  */
 
-#ifndef _SINOGRAM_CONVERSION_H
-#define _SINOGRAM_CONVERSION_H
+
+# pragma once
 
 #include <vector>
 #include "sinogram_io.h"
@@ -138,4 +138,3 @@ class SinogramConversion:public SinogramIO
     void untilt(const bool, const unsigned short int);
  };
 
-#endif

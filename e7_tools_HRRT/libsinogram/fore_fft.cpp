@@ -144,7 +144,7 @@ void FORE_FFT::sino_fft_2D(float * const real_data, float * const ft_data,
 
    try
    { unsigned short int i, j;
-     float *real_ptr, *ft_ptr, *fptr;
+     float *real_ptr, *ft_ptr, *float_ptr;
      unsigned long int iptr;
 
      if (forward)
@@ -167,13 +167,13 @@ void FORE_FFT::sino_fft_2D(float * const real_data, float * const ft_data,
         for (iptr=0,
              i=0; i < RhoSamples+2; i+=2,
              iptr+=2*ThetaSamples)
-         for (fptr=ft_data,
+         for (float_ptr=ft_data,
               j=0; j < ThetaSamples; j++,
-              fptr+=RhoSamples+2)
+              float_ptr+=RhoSamples+2)
           { float rv, iv;
 
-            rv=fptr[i];
-            iv=fptr[i+1];
+            rv=float_ptr[i];
+            iv=float_ptr[i+1];
             real[iptr+j]=rv;
             imag[iptr+j]=iv;
                                                     // create conjugate complex
@@ -187,11 +187,11 @@ void FORE_FFT::sino_fft_2D(float * const real_data, float * const ft_data,
         for (iptr=0,
              i=0; i < RhoSamples+2; i+=2,
              iptr+=2*ThetaSamples)
-         for (fptr=ft_data,
+         for (float_ptr=ft_data,
               j=0; j < ThetaSamples+1; j++,
-              fptr+=RhoSamples+2)
-          { fptr[i]=real[iptr+j];
-            fptr[i+1]=imag[iptr+j];
+              float_ptr+=RhoSamples+2)
+          { float_ptr[i]=real[iptr+j];
+            float_ptr[i+1]=imag[iptr+j];
           }
         delete[] imag;
         imag=NULL;
@@ -209,18 +209,18 @@ void FORE_FFT::sino_fft_2D(float * const real_data, float * const ft_data,
               {                                        // copy data into buffer
                 real[iptr]=ft_data[i];
                 imag[iptr]=ft_data[i+1];
-                fptr=&ft_data[ThetaSamples*(RhoSamples+2)+i];
-                real[iptr+ThetaSamples]=fptr[0];
-                imag[iptr+ThetaSamples]=fptr[1];
-                for (fptr=ft_data+RhoSamples+2,
+                float_ptr=&ft_data[ThetaSamples*(RhoSamples+2)+i];
+                real[iptr+ThetaSamples]=float_ptr[0];
+                imag[iptr+ThetaSamples]=float_ptr[1];
+                for (float_ptr=ft_data+RhoSamples+2,
                      j=1; j < ThetaSamples-1; j+=2,
-                     fptr+=2*(RhoSamples+2))
+                     float_ptr+=2*(RhoSamples+2))
                  { float rv1, rv2, iv1, iv2;
 
-                   rv1=fptr[i];
-                   iv1=fptr[i+1];
-                   rv2=fptr[RhoSamples+2+i];
-                   iv2=fptr[RhoSamples+2+i+1];
+                   rv1=float_ptr[i];
+                   iv1=float_ptr[i+1];
+                   rv2=float_ptr[RhoSamples+2+i];
+                   iv2=float_ptr[RhoSamples+2+i+1];
                    real[iptr+j]=rv1;
                    real[iptr+j+1]=rv2;
                    imag[iptr+j]=iv1;
@@ -231,14 +231,14 @@ void FORE_FFT::sino_fft_2D(float * const real_data, float * const ft_data,
                    real[iptr+2*ThetaSamples-j-1]=rv2;
                    imag[iptr+2*ThetaSamples-j-1]=-iv2;
                  }
-                fptr=ft_data+(unsigned long int)(RhoSamples+2)*
+                float_ptr=ft_data+(unsigned long int)(RhoSamples+2)*
                              (unsigned long int)(ThetaSamples-1);
                 { float rv1, rv2, iv1, iv2;
 
-                  rv1=fptr[i];
-                  iv1=fptr[i+1];
-                  rv2=fptr[RhoSamples+2+i];
-                  iv2=fptr[RhoSamples+2+i+1];
+                  rv1=float_ptr[i];
+                  iv1=float_ptr[i+1];
+                  rv2=float_ptr[RhoSamples+2+i];
+                  iv2=float_ptr[RhoSamples+2+i+1];
                   real[iptr+ThetaSamples-1]=rv1;
                   real[iptr+ThetaSamples]=rv2;
                   real[iptr+ThetaSamples+1]=-rv1;
@@ -254,11 +254,11 @@ void FORE_FFT::sino_fft_2D(float * const real_data, float * const ft_data,
              for (iptr=0,
                   i=0; i < RhoSamples+2; i+=2,
                   iptr+=2*ThetaSamples)
-              for (fptr=ft_data,
+              for (float_ptr=ft_data,
                    j=0; j < ThetaSamples; j++,
-                   fptr+=RhoSamples+2)
-               { fptr[i]=real[iptr+j];
-                 fptr[i+1]=imag[iptr+j];
+                   float_ptr+=RhoSamples+2)
+               { float_ptr[i]=real[iptr+j];
+                 float_ptr[i+1]=imag[iptr+j];
                }
              delete[] imag;
              imag=NULL;

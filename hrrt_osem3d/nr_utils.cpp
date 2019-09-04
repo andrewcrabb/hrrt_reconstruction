@@ -1,8 +1,4 @@
 #include "compile.h"
-#ifdef IS_WIN32
-#include <windows.h>
-#else
-#endif
 #include <stdio.h>
 #include "nr_utils.h"
 #include "mm_malloc.h"
@@ -10,12 +6,6 @@
 
 unsigned int memoryused=0;
 
-void nrerror( const char *error_text ) {
-	fprintf(stderr,"run-time error ... \n");
-	fprintf(stderr,"%s\n",error_text);
-	fprintf(stderr,"...exiting ...\n");
-	exit(1);
-}
 
 float	*vector(int nl, int nh)
 {
@@ -23,7 +13,7 @@ float	*vector(int nl, int nh)
 	v = (float *)_mm_malloc( (size_t) ( (nh-nl+1+NR_END)*sizeof(float) ),16 );
 	if( !v ) nrerror("allocation failure in vector() ");
 	memoryused+=(nh-nl)*sizeof(float);
-	////printf("vector memory used %d\n",memoryused/1024);
+	////LOG_INFO("vector memory used %d\n",memoryused/1024);
 	return v-nl+NR_END;
 }
 
@@ -33,7 +23,7 @@ float	***matrix3d(int nrl, int nrh, int ncl, int nch, int ndl, int ndh)
 	int 	i,j,nrow=nrh-nrl+1, ncol=nch-ncl+1, ndep=ndh-ndl+1;
 	float	***t;
 
-	//printf("allocated %d kbytes %d\n",(nrow*ncol*ndep+NR_END)/256,NR_END);
+	//LOG_INFO("allocated %d kbytes %d\n",(nrow*ncol*ndep+NR_END)/256,NR_END);
 	t=(float ***) _mm_malloc((size_t) ( (nrow+NR_END)*sizeof(float**) ) ,16);
 	if( !t ) nrerror("Allocation failure 1 in matrix3d() ");  
 	t += NR_END;
@@ -57,7 +47,7 @@ float	***matrix3d(int nrl, int nrh, int ncl, int nch, int ndl, int ndh)
 	}
 	memoryused+=(nrh-nrl)*(nch-ncl)*(ndh-ndl)*sizeof(float);
 
-	//printf("float 3d memory used %d\n",memoryused/1024);
+	//LOG_INFO("float 3d memory used %d\n",memoryused/1024);
 	return 	t;
 
 }
@@ -80,7 +70,7 @@ float	**matrixfloat( int nrl, int nrh, int ncl, int nch  )
 	for(i=nrl+1; i<=nrh; i++) m[i]=m[i-1]+ncol;
 	memoryused+=(nrh-nrl)*(nch-ncl)*sizeof(float);
 
-	//printf("float 2d memory used %d\n",memoryused/1024);
+	//LOG_INFO("float 2d memory used %d\n",memoryused/1024);
 	return m;
 }
 
@@ -90,7 +80,7 @@ __m128	**matrixm128( int nrl, int nrh, int ncl, int nch  )
 	int 	i, nrow=nrh-nrl+1, ncol=nch-ncl+1;
 	__m128	**m;
 
-	//printf("allocated %d kbytes %d\n",(nrow*ncol+NR_END)/64,NR_END);
+	//LOG_INFO("allocated %d kbytes %d\n",(nrow*ncol+NR_END)/64,NR_END);
 
 	m = (__m128 **) _mm_malloc( (size_t) ( (nrow+NR_END) * sizeof(__m128*)  ),16 );
 	if( !m ) nrerror("Allocation failure 1 in matrix() ");
@@ -104,7 +94,7 @@ __m128	**matrixm128( int nrl, int nrh, int ncl, int nch  )
 
 	for(i=nrl+1; i<=nrh; i++) m[i]=m[i-1]+ncol;
 	memoryused+=(nrh-nrl)*(nch-ncl)*sizeof(__m128);
-	//printf("m128 2d memory used %d\n",memoryused/1024);
+	//LOG_INFO("m128 2d memory used %d\n",memoryused/1024);
 
 	return m;
 }
@@ -128,7 +118,7 @@ short	**matrixshort( int nrl, int nrh, int ncl, int nch  )
 	for(i=nrl+1; i<=nrh; i++) m[i]=m[i-1]+ncol;
 	memoryused+=(nrh-nrl)*(nch-ncl)*sizeof(short);
 
-	//printf("short 2d memory used %d\n",memoryused/1024);
+	//LOG_INFO("short 2d memory used %d\n",memoryused/1024);
 	return m;
 }
 
@@ -150,7 +140,7 @@ float	***matrixfloatptr(int nrl, int nrh, int ncl, int nch, int ndl, int ndh)
 	for(i=nrl+1; i<=nrh; i++) m[i]=m[i-1]+ncol;
 	memoryused+=(nrh-nrl)*(nch-ncl)*sizeof(float);
 
-	//printf("float 2d memory used %d\n",memoryused/1024);
+	//LOG_INFO("float 2d memory used %d\n",memoryused/1024);
 	return m;
 }
 
@@ -159,7 +149,7 @@ char	***matrix3dchar(int nrl, int nrh, int ncl, int nch, int ndl, int ndh)
 	int 	i,j,nrow=nrh-nrl+1, ncol=nch-ncl+1, ndep=ndh-ndl+1;
 	char	***t;
 
-	//printf("allocated %d kbytes %d\n",(nrow*ncol*ndep+NR_END)/256,NR_END);
+	//LOG_INFO("allocated %d kbytes %d\n",(nrow*ncol*ndep+NR_END)/256,NR_END);
 	t=(char ***) _mm_malloc((size_t) ( (nrow+NR_END)*sizeof(char**) ) ,16);
 	if( !t ) nrerror("Allocation failure 1 in matrix3d() ");  
 	t += NR_END;
@@ -183,7 +173,7 @@ char	***matrix3dchar(int nrl, int nrh, int ncl, int nch, int ndl, int ndh)
 	}
 	memoryused+=(nrh-nrl)*(nch-ncl)*(ndh-ndl)*sizeof(char);
 
-	//printf("char 3d memory used %d\n",memoryused/1024);
+	//LOG_INFO("char 3d memory used %d\n",memoryused/1024);
 	return 	t;
 
 }
@@ -192,7 +182,7 @@ unsigned char ***matrix3duchar(int nrl, int nrh, int ncl, int nch, int ndl, int 
 	int 	i,j,nrow=nrh-nrl+1, ncol=nch-ncl+1, ndep=ndh-ndl+1;
 	unsigned char	***t;
 
-	//printf("allocated %d kbytes %d\n",(nrow*ncol*ndep+NR_END)/256,NR_END);
+	//LOG_INFO("allocated %d kbytes %d\n",(nrow*ncol*ndep+NR_END)/256,NR_END);
 	t=(unsigned char ***) _mm_malloc((size_t) ( (nrow+NR_END)*sizeof(unsigned char**) ) ,16);
 	if( !t ) nrerror("Allocation failure 1 in matrix3d() ");  
 	t += NR_END;
@@ -216,7 +206,7 @@ unsigned char ***matrix3duchar(int nrl, int nrh, int ncl, int nch, int ndl, int 
 	}
 	memoryused+=(nrh-nrl)*(nch-ncl)*(ndh-ndl)*sizeof(unsigned char);
 
-	//printf("char 3d memory used %d\n",memoryused/1024);
+	//LOG_INFO("char 3d memory used %d\n",memoryused/1024);
 	return 	t;
 
 }
@@ -226,7 +216,7 @@ short	***matrix3dshort(int nrl, int nrh, int ncl, int nch, int ndl, int ndh)
 	int 	i,j,nrow=nrh-nrl+1, ncol=nch-ncl+1, ndep=ndh-ndl+1;
 	short	***t;
 
-	//printf("allocated %d kbytes\n",nrow*ncol*ndep/256);
+	//LOG_INFO("allocated %d kbytes\n",nrow*ncol*ndep/256);
 	t=(short ***) _mm_malloc((size_t) ( (nrow+NR_END)*sizeof(short**) ) ,16);
 	if( !t ) nrerror("Allocation failure 1 in matrix3d() ");  
 	t += NR_END;
@@ -250,7 +240,7 @@ short	***matrix3dshort(int nrl, int nrh, int ncl, int nch, int ndl, int ndh)
 	}
 	memoryused+=(nrh-nrl)*(nch-ncl)*(ndh-ndl)*sizeof(short);
 
-	//printf("shrot 3d memory used %d\n",memoryused/1024);
+	//LOG_INFO("shrot 3d memory used %d\n",memoryused/1024);
 	return 	t;
 
 }
@@ -260,7 +250,7 @@ __m128	***matrix3dm128(int nrl, int nrh, int ncl, int nch, int ndl, int ndh)
 	int 	i,j,nrow=nrh-nrl+1, ncol=nch-ncl+1, ndep=ndh-ndl+1;
 	__m128	***t;
 
-	//printf("allocated %d kbytes\n",(nrow*ncol*ndep+NR_END)/64);
+	//LOG_INFO("allocated %d kbytes\n",(nrow*ncol*ndep+NR_END)/64);
 
 	t=(__m128 ***) _mm_malloc((size_t) ( (nrow+NR_END)*sizeof(__m128**) ) ,16);
 	if( !t ) nrerror("Allocation failure 1 in matrix3dm128() ");  
@@ -285,7 +275,7 @@ __m128	***matrix3dm128(int nrl, int nrh, int ncl, int nch, int ndl, int ndh)
 	}
 	memoryused+=(nrh-nrl)*(nch-ncl)*(ndh-ndl)*sizeof(__m128);
 
-	//printf("m128 3d memory used %d\n",memoryused/1024);
+	//LOG_INFO("m128 3d memory used %d\n",memoryused/1024);
 	return 	t;
 }
 __m128	***matrix3dm128_check(int nrl, int nrh, int ncl, int nch, int ndl, int ndh)
@@ -293,7 +283,7 @@ __m128	***matrix3dm128_check(int nrl, int nrh, int ncl, int nch, int ndl, int nd
 	int 	i,j,nrow=nrh-nrl+1, ncol=nch-ncl+1, ndep=ndh-ndl+1;
 	__m128	***t;
 
-	//printf("allocated %d kbytes\n",(nrow*ncol*ndep+NR_END)/64);
+	//LOG_INFO("allocated %d kbytes\n",(nrow*ncol*ndep+NR_END)/64);
 
 	t=(__m128 ***) _mm_malloc((size_t) ( (nrow+NR_END)*sizeof(__m128**) ) ,16);
 	if( !t )return NULL;  
@@ -327,7 +317,7 @@ __m128	***matrix3dm128_check(int nrl, int nrh, int ncl, int nch, int ndl, int nd
 	}
 	memoryused+=(nrh-nrl)*(nch-ncl)*(ndh-ndl)*sizeof(__m128);
 
-	//printf("m128 3d memory used %d\n",memoryused/1024);
+	//LOG_INFO("m128 3d memory used %d\n",memoryused/1024);
 	return 	t;
 
 }
@@ -336,7 +326,7 @@ void	free_vector(float *v, int nl, int nh)
 {
 	_mm_free( (FREE_ARG) (v+nl-NR_END) );
 	memoryused-=(nh-nl)*sizeof(float);
-	//printf("vector free memory used %d\n",memoryused/1024);
+	//LOG_INFO("vector free memory used %d\n",memoryused/1024);
 }
 
 void	free_matrix(float **m, int nrl, int nrh, int ncl, int nch)
@@ -344,7 +334,7 @@ void	free_matrix(float **m, int nrl, int nrh, int ncl, int nch)
 	_mm_free( (FREE_ARG) (m[nrl]+ncl-NR_END) );
 	_mm_free( (FREE_ARG) (m+nrl-NR_END) );
 	memoryused-=(nrh-nrl)*(nch-ncl)*sizeof(float);
-	//printf("float 2d free memory used %d\n",memoryused/1024);
+	//LOG_INFO("float 2d free memory used %d\n",memoryused/1024);
 }
 
 void	free_matrixm128(float **ptr, int nrl, int nrh, int ncl, int nch)
@@ -354,7 +344,7 @@ void	free_matrixm128(float **ptr, int nrl, int nrh, int ncl, int nch)
 	_mm_free( (FREE_ARG) (m+nrl-NR_END) );
 
 	memoryused-=(nrh-nrl)*(nch-ncl)*sizeof(__m128);
-	//printf("m128 2d free memory used %d\n",memoryused/1024);
+	//LOG_INFO("m128 2d free memory used %d\n",memoryused/1024);
 }
 
 void	free_matrix3d(float ***t, int nrl, int nrh, int ncl, int nch, int ndl, int ndh)
@@ -363,7 +353,7 @@ void	free_matrix3d(float ***t, int nrl, int nrh, int ncl, int nch, int ndl, int 
 	_mm_free( (FREE_ARG) (t[nrl]+ncl-NR_END) );
 	_mm_free( (FREE_ARG) (t+nrl-NR_END) );
 	memoryused-=(nrh-nrl)*(nch-ncl)*(ndh-ndl)*sizeof(float);
-	//printf("float 3d free memory used %d\n",memoryused/1024);
+	//LOG_INFO("float 3d free memory used %d\n",memoryused/1024);
 
 }
 void	free_matrix3dchar(char ***t, int nrl, int nrh, int ncl, int nch, int ndl, int ndh)
@@ -372,7 +362,7 @@ void	free_matrix3dchar(char ***t, int nrl, int nrh, int ncl, int nch, int ndl, i
 	_mm_free( (FREE_ARG) (t[nrl]+ncl-NR_END) );
 	_mm_free( (FREE_ARG) (t+nrl-NR_END) );
 	memoryused-=(nrh-nrl)*(nch-ncl)*(ndh-ndl)*sizeof(char);
-	//printf("char 3d free memory used %d\n",memoryused/1024);
+	//LOG_INFO("char 3d free memory used %d\n",memoryused/1024);
 
 }
 void	free_matrix3dm128(float ***ptr, int nrl, int nrh, int ncl, int nch, int ndl, int ndh)
@@ -382,7 +372,7 @@ void	free_matrix3dm128(float ***ptr, int nrl, int nrh, int ncl, int nch, int ndl
 	_mm_free( (FREE_ARG) (t[nrl]+ncl-NR_END) );
 	_mm_free( (FREE_ARG) (t+nrl-NR_END) );
 	memoryused-=(nrh-nrl)*(nch-ncl)*(ndh-ndl)*sizeof(__m128);
-	//printf("m128 3d free memory used %d\n",memoryused/1024);
+	//LOG_INFO("m128 3d free memory used %d\n",memoryused/1024);
 }
 void	free_matrix3dshortm128(short ***ptr, int nrl, int nrh, int ncl, int nch, int ndl, int ndh)
 {
@@ -391,7 +381,7 @@ void	free_matrix3dshortm128(short ***ptr, int nrl, int nrh, int ncl, int nch, in
 	_mm_free( (FREE_ARG) (t[nrl]+ncl-NR_END) );
 	_mm_free( (FREE_ARG) (t+nrl-NR_END) );
 	memoryused-=(nrh-nrl)*(nch-ncl)*(ndh-ndl)*sizeof(__m128);
-	//printf("m128 3d free memory used %d\n",memoryused/1024);
+	//LOG_INFO("m128 3d free memory used %d\n",memoryused/1024);
 }
 void	free_matrix3dshort(short ***ptr, int nrl, int nrh, int ncl, int nch, int ndl, int ndh)
 {
@@ -400,7 +390,7 @@ void	free_matrix3dshort(short ***ptr, int nrl, int nrh, int ncl, int nch, int nd
 	_mm_free( (FREE_ARG) (t[nrl]+ncl-NR_END) );
 	_mm_free( (FREE_ARG) (t+nrl-NR_END) );
 	memoryused-=(nrh-nrl)*(nch-ncl)*(ndh-ndl)*sizeof(short);
-	//printf("m128 3d free memory used %d\n",memoryused/1024);
+	//LOG_INFO("m128 3d free memory used %d\n",memoryused/1024);
 }
 
 short int  **matrix_i( int nrl, int nrh, int ncl, int nch  )
@@ -421,7 +411,7 @@ short int  **matrix_i( int nrl, int nrh, int ncl, int nch  )
 	for(i=nrl+1; i<=nrh; i++) m[i]=m[i-1]+ncol;
 
 	memoryused+=(nrh-nrl)*(nch-ncl)*sizeof(short int);
-	//printf("short int 2d memory used %d %d %d %d %d\n",memoryused/1024,nrl,nrh,ncl,nch);
+	//LOG_INFO("short int 2d memory used %d %d %d %d %d\n",memoryused/1024,nrl,nrh,ncl,nch);
 	return m;
 }
 
@@ -430,5 +420,5 @@ void	free_matrix_i(short int **m, int nrl, int nrh, int ncl, int nch)
 	_mm_free( (FREE_ARG) (m[nrl]+ncl-NR_END) );
 	_mm_free( (FREE_ARG) (m+nrl-NR_END) );
 	memoryused-=(nrh-nrl)*(nch-ncl)*sizeof(short int);
-	//printf("short free memory used %d\n",memoryused/1024);
+	//LOG_INFO("short free memory used %d\n",memoryused/1024);
 }

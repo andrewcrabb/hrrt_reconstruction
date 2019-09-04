@@ -25,7 +25,7 @@ For commercial use, please contact zcho@gachon.ac.kr or isslhong@kpu.ac.kr
 #include "hrrt_osem3d.h"
 #include "nr_utils.h"
 /* Rebin original sinogram to reconstruction size */
-template <class T> 
+template <typename T> 
 void sino_rebin(T *tmp_buf, T *out_buf, int planes, int norm_flag)
 {
   T *src=NULL, *dst=NULL;
@@ -73,7 +73,7 @@ void sino_rebin(T *tmp_buf, T *out_buf, int planes, int norm_flag)
   }
 }
 
-template <class T> 
+template <typename T> 
 void sino_rebin_float(T *tmp_buf, float *out_buf, int planes)
 {
   T *src=NULL;
@@ -125,9 +125,9 @@ int read_flat_float_proj_ori_theta(FILE *fp, float *prj,int theta, float def_val
   file_plane_size = views*xr_pixels*rebin;
   nplanes = yr_top[theta]-yr_bottom[theta]+1;
 
-	//    if (verbose & 0x0010) fprintf(stdout," Read flat float projection at theta = %d\t offset = %d\n",theta,offset);
+	//    if (verbose & 0x0010) LOG_INFO(" Read flat float projection at theta = %d\t offset = %d\n",theta,offset);
 	if( (fseek(fp,offset,SEEK_SET)) != 0) {
-		fprintf(stderr,"  Read flat float projection: fseek problem \n");
+		LOG_ERROR("  Read flat float projection: fseek problem \n");
 		return 0;
 	}
   if (rebin == 1) { // no rebinning
@@ -142,11 +142,11 @@ int read_flat_float_proj_ori_theta(FILE *fp, float *prj,int theta, float def_val
     unsigned char *mask=NULL, *mask_r=NULL;
     if (norm_flag) 
       if ((mask = (unsigned char*)calloc(file_plane_size, sizeof(unsigned char))) == NULL) {
-        fprintf(stderr,"  Read flat float projection: memory allocation failure \n");
+        LOG_ERROR("  Read flat float projection: memory allocation failure \n");
         return 0;
       }
     if ((buf=(float*)calloc(file_plane_size, sizeof(float))) == NULL) {
-      fprintf(stderr,"  Read flat float projection: memory allocation failure \n");
+      LOG_ERROR("  Read flat float projection: memory allocation failure \n");
       return 0;
     }
     for (plane=0;plane<nplanes;plane++) {
@@ -163,7 +163,7 @@ int read_flat_float_proj_ori_theta(FILE *fp, float *prj,int theta, float def_val
     free(buf);
     if (norm_flag) {
       if ((mask_r = (unsigned char*)calloc(views*xr_pixels, sizeof(unsigned char))) == NULL) {
-        fprintf(stderr,"  Read flat float projection: memory allocation failure \n");
+        LOG_ERROR("  Read flat float projection: memory allocation failure \n");
         return 0;
       }
       sino_rebin(mask, mask_r, 1, 0);
@@ -193,7 +193,7 @@ int read_flat_short_proj_ori_to_float_array_theta(FILE *fp, float *prj,int theta
 	//ds_size = views*xr_pixels*sizeof(short);
 	ds_size=views*v_rebin*xr_pixels*x_rebin*(yr_top[theta]-yr_bottom[theta]+1);
   if ((ds_tmp = (short*)malloc(ds_size*sizeof(short)))==NULL) {
-    fprintf(stderr,"  Read flat short projection: memory allocation failure \n");
+    LOG_ERROR("  Read flat short projection: memory allocation failure \n");
     return 0;
   }
 	if(theta%2==1) theta++;
@@ -201,10 +201,10 @@ int read_flat_short_proj_ori_to_float_array_theta(FILE *fp, float *prj,int theta
 	else if(theta%2==0) theta--;
 	offset = (seg_offset[theta])*sizeof(short)*x_rebin*v_rebin;
 
-	//    if (verbose & 0x0010) fprintf(stdout," Read short projection 2 float at theta = %d\t offset =%d\n",theta,offset);
+	//    if (verbose & 0x0010) LOG_INFO(" Read short projection 2 float at theta = %d\t offset =%d\n",theta,offset);
 
 	if( (fseek(fp,offset,SEEK_SET)) != 0) {
-		fprintf(stderr,"  Read flat short projection 2 float: fseek problem \n");
+		LOG_ERROR("  Read flat short projection 2 float: fseek problem \n");
 		return 0;
 	}
 	curptr=0;
@@ -233,10 +233,9 @@ int read_flat_short_proj_ori_to_short_array_theta(FILE *fp, short *prj,int theta
 	else if(theta==0) theta=0;
 	else if(theta%2==0) theta--;
 	offset = (seg_offset[theta])*sizeof(short)*x_rebin*v_rebin;
-	//    if (verbose & 0x0010) fprintf(stdout," Read short projection 2 short at theta = %d\t offset = %d\n",theta,offset);
+	//    if (verbose & 0x0010) LOG_INFO(" Read short projection 2 short at theta = %d\t offset = %d\n",theta,offset);
 	if( (fseek(fp,offset,SEEK_SET)) != 0) {
-		fprintf(stdout,"  Read flat short projection 2 short: fseek problem \n");
-		exit(1);
+		LOG_EXIT("  Read flat short projection 2 short: fseek problem \n");
 	}
 	curptr=0;
   if (x_rebin*v_rebin == 1) {
@@ -246,7 +245,7 @@ int read_flat_short_proj_ori_to_short_array_theta(FILE *fp, short *prj,int theta
     int count=xr_pixels*x_rebin*views*v_rebin;
     short *buf = (short*)calloc(count, sizeof(short));
     if (buf==NULL) {
-      fprintf(stderr,"  Read flat short projection: memory allocation failure \n");
+      LOG_ERROR("  Read flat short projection: memory allocation failure \n");
       return 0;
     }
     for(i=0;i<yr_top[theta]-yr_bottom[theta]+1;i++) {
@@ -278,7 +277,7 @@ int read_flat_int_proj_ori_to_float_array_theta(FILE *fp, float *prj,int theta)
 
 	offset = (seg_offset[theta])*sizeof(int)*x_rebin*v_rebin;
 	if( (fseek(fp,offset,SEEK_SET)) != 0) {
-		fprintf(stdout,"  Read Flat float Projection: fseek problem \n");
+		LOG_INFO("  Read Flat float Projection: fseek problem \n");
 		return 0;
 	}
 	printf("short %d\t%d\n",theta,offset);
@@ -307,7 +306,7 @@ int write_flat_image(float ***image,char * filename,int index,int verbose ){
 	offset = index * x_pixels*y_pixels*(z_pixels);
 
 	//if(verbose & 0x0010) 
-		fprintf(stdout,"  ... writing flat image at index %d (offset %d)\n", index, offset );
+		LOG_INFO("  ... writing flat image at index %d (offset %d)\n", index, offset );
 
 	if( index==0 ) 
 		f = fopen(filename,"wb"); 
@@ -315,7 +314,7 @@ int write_flat_image(float ***image,char * filename,int index,int verbose ){
 		f = fopen(filename,"ab+");
 
 	if( f==NULL ) { 
-		fprintf(stderr,"  write_flat_image(): can't open file %s \n", filename);  
+		LOG_ERROR("  write_flat_image(): can't open file %s \n", filename);  
 		return 0; 
 	}
 
@@ -325,7 +324,7 @@ int write_flat_image(float ***image,char * filename,int index,int verbose ){
   plane = &image[0][0][0];
   for (z=0, plane = &image[0][0][0] ; z<z_pixels; z++, plane += count)
     if( fwrite(plane, sizeof(float), count, f) != count ) {
-      fprintf(stderr,"  write_flat_image(): write error %d bytes\n", count*sizeof(float));
+      LOG_ERROR("  write_flat_image(): write error %d bytes\n", count*sizeof(float));
       fclose(f);
       return  0;  
     }
@@ -338,18 +337,18 @@ int    read_flat_image(float ***image,char * filename,int index,int verbose)
 	FILE    *f;
 	int    offset;
 	offset = index * x_pixels*y_pixels*(z_pixels);
-	if(verbose & 0x0010) fprintf(stdout,"  ... reading flat image at index %d (offset %d) \n", index, offset );
+	if(verbose & 0x0010) LOG_INFO("  ... reading flat image at index %d (offset %d) \n", index, offset );
 
 	f = fopen(filename,"rb");
-	if(f == NULL) { fprintf(stdout,"  read_flat_image(): can't open file %s !\n",filename ); return 0; }
+	if(f == NULL) { LOG_INFO("  read_flat_image(): can't open file %s !\n",filename ); return 0; }
 
 	if( fseek( f,  offset*sizeof(float),  SEEK_SET ) !=0 ) {    
-		fprintf(stderr,"  read_flat_image(): fseek error at index=%d \n", index)  ;
+		LOG_ERROR("  read_flat_image(): fseek error at index=%d \n", index)  ;
 		fclose(f);
 		return 0;
 	}
 	if( fread( &image[0][0][0],sizeof(float), x_pixels*y_pixels*(z_pixels), f) != 1 ){
-		fprintf(stderr,"  read_flat_image(): write error at  index=%d \n",  index );
+		LOG_ERROR("  read_flat_image(): write error at  index=%d \n",  index );
 		fclose(f);
 		return  0;    
 	}
@@ -367,17 +366,17 @@ int    write_norm(float ***norm,char *filename,int isubset,int verbose ) {
 
 	//	data are now aligned with multiple 4 pixels in z (e.g. 207-> 208 ; 153->156)
 	offset =  isubset * x_pixels*y_pixels*(z_pixels_simd*4);
-	if (verbose & 0x0010) fprintf(stdout,"  ... writing norm subset %d at offset %d \n", isubset, offset*4 );
+	if (verbose & 0x0010) LOG_INFO("  ... writing norm subset %d at offset %d \n", isubset, offset*4 );
 	if( isubset==0 ) 
 		f = fopen(filename,"wb"); 
 	else 
 		f = fopen(filename,"ab+");
 	if( f==NULL ) { 
-		fprintf(stderr,"  write_norm(): can't open file %s \n", filename);  return 0; 
+		LOG_ERROR("  write_norm(): can't open file %s \n", filename);  return 0; 
 	}
 	for(i=0;i<x_pixels;i++){
 		if( fwrite( &norm[i][0][0],sizeof(float)*(z_pixels_simd)*4,y_pixels, f) != y_pixels){
-			fprintf(stderr,"  write_norm(): write error at  isubset=%d  \n",  isubset );
+			LOG_ERROR("  write_norm(): write error at  isubset=%d  \n",  isubset );
 			fclose(f);
 			return  0;    
 		}
@@ -404,21 +403,21 @@ int    read_norm(float ***norm,char * filename,int isubset,int verbose) {
 	int curptr;
 
 	offset = isubset * x_pixels*y_pixels*(z_pixels_simd*4);
-	if(verbose & 0x0010) fprintf(stdout,"  ... reading norm for subset %d at offset %d \n", isubset, offset );
+	if(verbose & 0x0010) LOG_INFO("  ... reading norm for subset %d at offset %d \n", isubset, offset );
 	f = fopen(filename,"rb");
 	if( f == NULL ) { 
-		fprintf(stdout,"  read_norm(): can't open file %s !\n",filename ); 
+		LOG_INFO("  read_norm(): can't open file %s !\n",filename ); 
 		return 0; 
 	}
 	if( fseek( f,  offset*sizeof(float),  SEEK_SET ) !=0 ) {    
-		fprintf(stdout,"  read_norm(): fseek error at isubset=%d \n", isubset)  ;
+		LOG_INFO("  read_norm(): fseek error at isubset=%d \n", isubset)  ;
 		fclose(f);
 		return 0;
 	}
 	curptr=0;
 	for(i=0;i<x_pixels;i++){
 		if( fread( &norm[i][0][0],sizeof(float)*(z_pixels_simd)*4,y_pixels, f) != y_pixels ){    
-			fprintf(stdout,"  read_norm(): read error at  isubset=%d \n",  isubset );
+			LOG_INFO("  read_norm(): read error at  isubset=%d \n",  isubset );
 			fclose(f);
 			return  0;    
 		}
@@ -431,18 +430,18 @@ int write_flat_3dscan(float ***scan,char *filename,int theta,int verbose) {
 
 	FILE     *f;
 	int yr,v;
-	if(verbose & 0x0010) fprintf(stdout,"  Writing flat 3D scan for theta = %d \n",theta);
+	if(verbose & 0x0010) LOG_INFO("  Writing flat 3D scan for theta = %d \n",theta);
 	if( theta == 0 ) 
 		f = fopen(filename,"wb"); 
 	else 
 		f = fopen(filename,"ab+");
-	if( f==NULL ) { fprintf(stdout,"  write_flat_3d_scan(): can't open file %s \n", filename);  return 0; }
+	if( f==NULL ) { LOG_INFO("  write_flat_3d_scan(): can't open file %s \n", filename);  return 0; }
 
 	/* write line by line in sinogram mode from data stored in view mode */
 	for( yr=yr_bottom[theta]; yr<=yr_top[theta]; yr++ ){
 		for( v=0; v<sviews; v++ ) {
 			if( fwrite( &scan[v][yr][0], radial_pixels*sizeof(float), 1, f) != 1 )
-			{ fprintf(stdout,"  write_flat_3dscan(): write error at plane %d view %d \n", yr,v); fclose(f); return  0;}
+			{ LOG_INFO("  write_flat_3dscan(): write error at plane %d view %d \n", yr,v); fclose(f); return  0;}
 		}
 	}
 	fclose(f);
@@ -454,6 +453,6 @@ int write_flat_3dscan(float ***scan,char *filename,int theta,int verbose) {
 */
 int read_atten_image(FILE *fp, float ***image, unsigned input_type)
 {
-  fprintf(stdout, "read_atten_image:TBD\n");
+  LOG_INFO( "read_atten_image:TBD\n");
   exit(1);
 }

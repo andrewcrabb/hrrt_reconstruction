@@ -11,21 +11,15 @@
 #include "ecat2air.h"
 #include <unistd.h>
 #include <ecatx/matpkg.h>
-#ifndef min
-#define min(a,b) ((a)<(b) ? (a) : (b))
-#endif
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
 static void usage(const char *pgm) {
   printf("\n%s Build %s %s\n",pgm,__DATE__,__TIME__);
-  fprintf(stderr, "usage: %s -s standard_file -r reslice_file -i air_file | -t yaw(z_rot),pitch(x_rot),roll(y_rot),tx,ty,tz"
+  LOG_ERROR("usage: %s -s standard_file -r reslice_file -i air_file | -t yaw(z_rot),pitch(x_rot),roll(y_rot),tx,ty,tz"
     " -o air_file [-N]\n", pgm);
-	fprintf(stderr, "        Transformer can be specified with -i existing .air file or -t with rotation and translation\n");
-	fprintf(stderr, "       -N when transformer was generated in neurological convention (SPM95)\n");
-	fprintf(stderr, "        translations are expressed in mm\n");
-	fprintf(stderr, "        rotations are expressed in degrees\n");
-	fprintf(stderr, "        transformer data are provided by ecat_alignlinear\n");
+	LOG_ERROR("        Transformer can be specified with -i existing .air file or -t with rotation and translation\n");
+	LOG_ERROR("       -N when transformer was generated in neurological convention (SPM95)\n");
+	LOG_ERROR("        translations are expressed in mm\n");
+	LOG_ERROR("        rotations are expressed in degrees\n");
+	LOG_ERROR("        transformer data are provided by ecat_alignlinear\n");
 	exit(1);
 }
 
@@ -37,8 +31,8 @@ main(int argc, char **argv)
 	int c, convention=0;
 	char out_air_file[256], fname[256], *in_air_file=NULL;
 	int matnum=0, ret=0;
-	MatrixFile *mptr;
-	MatrixData *matrix;
+	ecat_matrix::MatrixFile *mptr;
+	ecat_matrix::MatrixData *matrix;
 	float pixel_size;
 	float tx,ty,tz,rx,ry,rz, tflag=0;
 	double par[6];	/*pitch,roll,yaw,p,q,r*/
@@ -65,21 +59,21 @@ main(int argc, char **argv)
 			break;
 		case 's' :
 			if (strlen(optarg) > 127) {
-				fprintf(stderr,"%s : filename too long\n",optarg);
+				LOG_EXIT("filename too long\n",optarg);
 				exit(1);
 			}
 			strcpy(air1.s_file,optarg);
 			break;
 		case 'r':
 			if (strlen(optarg) > 127) {
-				fprintf(stderr,"%s : filename too long %s\n",argv[0],optarg);
+				LOG_EXIT("filename too long %s\n",argv[0],optarg);
 				exit(1);
 			}
 			strcpy(air1.r_file,optarg);
 			break;
 		case 'o' :
 			if (strlen(optarg) > 127) {
-				fprintf(stderr,"%s : filename too long %s\n",argv[0],optarg);
+				LOG_EXIT("filename too long %s\n",argv[0],optarg);
 				exit(1);
 			}
 			strcpy(out_air_file,optarg);
@@ -87,7 +81,7 @@ main(int argc, char **argv)
 		case 't' :
 			if (sscanf(optarg,"%g,%g,%g,%g,%g,%g",&rz,&rx,&ry,&tx,&ty,&tz)!=6)
 			{
-				fprintf(stderr,"%s : invalid transformer %s\n",argv[0],optarg);
+				LOG_EXIT("invalid transformer %s\n",argv[0],optarg);
 				exit(1);
 			}
 			tflag++;
@@ -97,12 +91,12 @@ main(int argc, char **argv)
 	if (out_air_file[0]==0 || air1.s_file[0]==0 || air1.r_file[0]==0 ) usage(argv[0]);
   if (!tflag && !in_air_file) usage(argv[0]);
 	ret = matspec(air1.s_file,fname,&matnum);
-	mptr = matrix_open(fname, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
-	if (mptr==NULL) crash("%s : can't open %s\n",argv[0],air1.s_file);
+	mptr = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
+	if (mptr==NULL) LOG_EXIT("can't open %s\n",argv[0],air1.s_file);
 	if (ret == 0)	/* no matrix specified, use first */
 			matnum = mptr->dirlist->first->matnum;
-	matrix = matrix_read(mptr,matnum,MAT_SUB_HEADER);
-	if (matrix == NULL) crash("%s : can't read image header\n",argv[0]);
+	matrix = matrix_read(mptr,matnum,MatrixData::DataType::MAT_SUB_HEADER);
+	if (matrix == NULL) LOG_EXIT("can't read image header\n",argv[0]);
 	sprintf(air1.comment,"make_air -t %g,%g,%g,%g,%g,%g",rz,rx,ry,tx,ty,tz);
 	if (convention==1) {
 		strcat(air1.comment, " -N");
@@ -121,12 +115,12 @@ main(int argc, char **argv)
 	matrix_close(mptr);
 	matnum = 0;
 	ret = matspec(air1.r_file,fname,&matnum);
-	mptr = matrix_open(fname, MAT_READ_ONLY, MAT_UNKNOWN_FTYPE);
-	if (mptr==NULL) crash("%s : can't open %s\n",argv[0],air1.r_file);
+	mptr = matrix_open(fname, ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE);
+	if (mptr==NULL) LOG_EXIT("can't open %s\n",argv[0],air1.r_file);
 	if (ret == 0)	/* no matrix specified, use first */
 			matnum = mptr->dirlist->first->matnum;
-	matrix = matrix_read(mptr,matnum,MAT_SUB_HEADER);
-	if (matrix == NULL) crash("%s : can't read image header\n",argv[0]);
+	matrix = matrix_read(mptr,matnum,MatrixData::DataType::MAT_SUB_HEADER);
+	if (matrix == NULL) LOG_EXIT("can't read image header\n",argv[0]);
 	if (matrix->zdim == 1)					/* volume stored slice per matrix */
 		matrix->zdim = mptr->mhptr->num_planes;
   air1.r.x_dim = matrix->xdim;

@@ -9,12 +9,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include "interfile_reader.h"
 
-#ifdef WIN32
-#define strcasecmp _stricmp
-#define strdup _strdup
-#endif
 
 #define MAX_LINE_LENGTH 1024
 #define MAX_TABLE_SIZE 2048

@@ -12,14 +12,10 @@
     \date 2005/02/12 integrate error group in fireCOMEvent()
  */
 
-#ifndef _E7_COMMON_H
-#define _E7_COMMON_H
+#pragma once
 
 #include <string>
 #include <vector>
-#ifdef WIN32
-#include "atlbase.h"
-#endif
 #include "ecat7.h"
 #include "semaphore_al.h"
 #include "types.h"
@@ -44,10 +40,6 @@ std::vector <std::vector<unsigned short int> > calcRingNumbers(
                                                      const unsigned short int);
                                         // check filename extension and cut-off
 bool checkExtension(std::string * const, const std::string);
-#ifdef WIN32
-void deleteDirectory(std::string);        // delete directory including content
-void deleteFiles(std::string);                                  // delete files
-#endif
 bool FileExist(const std::string);                    // check if a file exists
                                 // find a matrix number to a given bed position
 unsigned short int findMNR(const std::string, const bool, const float,
@@ -63,22 +55,9 @@ bool isECAT7file(const std::string);               // is file in ECAT7 format ?
 bool isInterfile(const std::string);           // is file in Interfile format ?
                                         // get the number of matrices in a file
 unsigned short int numberOfMatrices(const std::string);
-#ifdef WIN32
-int OutOfMemory(size_t);                     // error handler for "new" command
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
-void OutOfMemory();                          // error handler for "new" command
-#endif
 bool PathExist(const std::string);                         // does path exist ?
 std::string secStr(float);              // convert seconds into hh:mm:ss string
                   // convert internal segment number into normal segment number
 std::string segStr(const unsigned short int);
-#ifdef WIN32
-BSTR string2BSTR(std::string);              // convert COM BSTR into STL string
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
 std::string string2BSTR(std::string);       // convert COM BSTR into STL string
-#endif
 std::string stripPath(std::string);                // remove path from filename
-
-#endif

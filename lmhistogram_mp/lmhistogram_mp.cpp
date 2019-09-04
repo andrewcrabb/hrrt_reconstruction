@@ -1,4 +1,4 @@
-// lmhistogram.cpp : Defines the entry point for the console application.
+// lmhistogram.cpp : Defines the entry point for the g_logger application.
 /*
     ------------------------------------------------
 
@@ -43,641 +43,525 @@
     2/6/13
     Made hrrt_rebinner.lut a required cmd line arg 'r'.
     Removed call to hrrt_rebinner_lut_path in LM_Rebinner_mp.cpp::init_rebinner()
+    8/23/18
+    Add Boost::ProgramOptions for cmd line arg parsing - remove home-made Flags.cpp
 */
 
-#include "Flags.h"
-#include "Header.h"
-#include "dtc.h"
+// #include "Flags.hpp"
+#include <unistd.h>
+#include <iostream>
+#include <fstream>
+#include <algorithm>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
-#include "LM_Rebinner_mp.h"
-#include "histogram_mp.h"
-#include "LM_Reader_mp.h"
-#include "convert_span9.h"
+#include <regex>
+
+#include "CHeader.hpp"
+#include "dtc.hpp"
+#include "LM_Rebinner_mp.hpp"
+#include "histogram_mp.hpp"
+#include "LM_Reader_mp.hpp"
+#include "convert_span9.hpp"
+#include "hrrt_util.hpp"
+
 #include <gen_delays_lib/lor_sinogram_map.h>
+#include <gen_delays_lib/gen_delays_lib.hpp>
 #include <gen_delays_lib/segment_info.h>
 #include <gen_delays_lib/geometry_info.h>
 
-// ahc
-#include <unistd.h>
-#include <iostream>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/regex.hpp>
+#include <boost/xpressive/xpressive.hpp>
+
+#include "my_spdlog.hpp"
+// #include "spdlog/spdlog.h"
+// #include "spdlog/sinks/stdout_color_sinks.h" //support for stdout logging
+// #include "spdlog/sinks/basic_file_sink.h" // support for basic file logging
+// #include "spdlog/sinks/rotating_file_sink.h" // support for rotating file logging
+
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 
 #define DEFAULT_LLD 400 // assume a value of 400 if not specified in listmode header
-#define RW_MODE "wb+"
-#ifdef WIN32
-#include <io.h>
-#include <process.h>
-#define strcasecmp _stricmp
-#define strdup _strdup
-#define access _access
-#endif
-static const char *pgm_id = "V2.1 ";  // Revision changed from 2.0 to 2.1 for LR and P39 support
+constexpr char RW_MODE[] = "wb+";
+constexpr char pgm_id[] = "V2.1 ";  // Revision changed from 2.0 to 2.1 for LR and P39 support
+constexpr int MAX_FRAMES  = 256;
+constexpr int MAX_THREADS =  4;
 
-#define MAX_FRAMES 256
-#define MAX_THREADS 4
+namespace bt = boost::posix_time;
+namespace bg = boost::gregorian;
+namespace po = boost::program_options;
+namespace bf = boost::filesystem;
+namespace bx = boost::xpressive;
 
-int nsinos[] = {
-    207, // span 0 (specific to transmission)
-    104, // span 1 (direct planes only)
-    0,   // span 2 (invalid)
-    6367,// span 3
-    0,   // span 4 (invalid)
-    3873,// span 5
-    0,   // span 6 (invalid)
-    2927,// span 7
-    0,   // span 8 (invalid)
-    2209,// span 9
+// Functions
+bool is_short(void);
+
+constexpr std::array<int, 10> NUM_SINOS {
+  207, // span 0 (specific to transmission)
+  104, // span 1 (direct planes only)
+  0,   // span 2 (invalid)
+  6367,// span 3
+  0,   // span 4 (invalid)
+  3873,// span 5
+  0,   // span 6 (invalid)
+  2927,// span 7
+  0,   // span 8 (invalid)
+  2209,// span 9
 };
 
-int LR_nsinos[] = {
-    103, // span 0 (specific to transmission)
-    103, // span 1 (direct planes only)
-    0,   // span 2 (invalid)
-    0,  // span 3
-    0,   // span 4 (invalid)
-    1041,// span 5
-    0,   // span 6 (invalid)
-    773,// span 7
-    0,   // span 8 (invalid)
-    0,// span 9
+constexpr std::array<int, 10> LR_NSINOS {
+  103, // span 0 (specific to transmission)
+  103, // span 1 (direct planes only)
+  0,   // span 2 (invalid)
+  0,  // span 3
+  0,   // span 4 (invalid)
+  1041,// span 5
+  0,   // span 6 (invalid)
+  773,// span 7
+  0,   // span 8 (invalid)
+  0,// span 9
 };
 
-int P39_nsinos[] = {
-    239, // span 0 (specific to transmission)
-    0, // span 1 (direct planes only)
-    0,   // span 2 (invalid)
-    0,// span 3
-    0,   // span 4 (invalid)
-    0,// span 5
-    0,   // span 6 (invalid)
-    3935,// span 7
-    0,   // span 8 (invalid)
-    0,// span 9
+constexpr std::array<int, 10> P39_NSINOS {
+  239, // span 0 (specific to transmission)
+  0, // span 1 (direct planes only)
+  0,   // span 2 (invalid)
+  0,// span 3
+  0,   // span 4 (invalid)
+  0,// span 5
+  0,   // span 6 (invalid)
+  3935,// span 7
+  0,   // span 8 (invalid)
+  0,// span 9
 };
-static int p39_nsegs = 25;
-static const char *p39_seg_table = "{239,231,231,217,217,203,203,189,189,175,175,161,161,147,147,133,133,119,119,105,105,91,91,77,77}";
 
-static char in_fname[FILENAME_MAX];  // input listmode file name
-static char in_fname_hdr[FILENAME_MAX]; // input listmode header file name
-static char out_fname[FILENAME_MAX];  // output sinogram file basename
-static char outfname_hc[FILENAME_MAX]; // output Head Curve file name
-static char outfname_sino[FILENAME_MAX]; //current frame sinogram file name
-static char outfname_hdr[FILENAME_MAX]; //current frame sinogram header file name
-static char outfname_ra[FILENAME_MAX]; //current frame sinogram randoms file name
-static char outfname_pr[FILENAME_MAX]; //current frame sinogram prompts file name
-static char outfname_tr[FILENAME_MAX]; //current frame sinogram Trues file name
-static char outfname_p39_em[FILENAME_MAX]; //current frame sinogram emission file name
-static char outfname_p39_tx[FILENAME_MAX]; //current frame sinogram transmission file name
-static char fname_p39_mhdr[FILENAME_MAX]; // input listmode main header file name
-static char *outfname_mock = NULL; //Mock sinogram file name for transmission only
+enum ELEM_SIZE {
+  ELEM_SIZE_BYTE = 1,
+  ELEM_SIZE_SHORT = 2
+};
 
-static FILE *out_hc = NULL;             // Head Curve output File Pointer
-static FILE *out = NULL;    // output trues or prompts sinogram File Pointer
-static FILE  *out2 = NULL;              // output randoms sinogram File Pointer
-static FILE  *out3 = NULL;              // output Trues sinogram File Pointer for separate prompts and randoms mode
+bf::path g_fname_l64;     // input listmode file name
+bf::path g_fname_l64_hdr; // input listmode header file name
+bf::path g_out_fname;    // output sinogram file basename
+bf::path g_out_fname_hc; // output Head Curve file name
+bf::path g_out_fname_sino; //current frame sinogram file name
+bf::path g_out_fname_hdr;  //current frame sinogram header file name
+bf::path g_out_fname_ra;   //current frame sinogram randoms file name
+bf::path g_out_fname_pr;   //current frame sinogram prompts file name
+bf::path g_out_fname_tr;   //current frame sinogram Trues file name
+// ahc: hrrt_rebinner.lut is now a required cmd line arg
+// bf::path g_lut_file;
 
-static int duration[MAX_FRAMES], skip[MAX_FRAMES]; // Frames duration and optional skip
-static int dose_delay = 0;          // elapsed time between dose assay time and scan start time
+std::string g_logfile;
+
+
+// static int p39_nsegs = 25;
+// static int MODEL_HRRT = 328;
+// static const char *p39_seg_table = "{239,231,231,217,217,203,203,189,189,175,175,161,161,147,147,133,133,119,119,105,105,91,91,77,77}";
+
+std::string g_outfname_mock; //Mock sinogram file name for transmission only
+std::ofstream g_out_hc;             // Head Curve output File Pointer
+std::ofstream g_out_true_prompt_sino;    // output trues or prompts sinogram File Pointer
+std::ofstream g_out_ran_sino;   // output randoms sinogram File Pointer
+std::ofstream g_out_true_sino;  // output Trues sinogram for separate prompts and randoms mode
+
+std::vector<int> g_frames_duration;    // Frames duration
+std::vector<int> g_skip;               // Frames optional skip
+
+static int g_dose_delay = 0;          // elapsed time between dose assay time and scan start time
 static int relative_start = 0;       // Current frame start time
-static int prev_duration = 0;        // Previous sinogram duration (when -add option)
+static int g_prev_duration = 0;        // Previous sinogram duration (when -add option)
 static long scan_duration = 0;          // P39 TX duration is total time scan duration
 
 // Parameters which default may be overrided in lmhistogram.ini
-static int span = 9;                // Default span=9 for l64 if not specified in header
-static size_t elem_size = 2;        // sinogram elem size: 1 for byte, 2 for short (default)
-static int num_sino, sinogram_size;  // number of sinogram and size
-static int compression = 0;         // 0=no compression (default), 1=ER (Efficient Representation)
+// These variables were defined here but now in gen_delays_lib.hpp
+// static int g_span = 9;                // Default span=9 for l64 if not specified in header
+static int g_elem_size = ELEM_SIZE_SHORT;        // sinogram elem size: 1 for byte, 2 for short (default)
+static int g_num_sino, g_sinogram_size;  // number of sinogram and size
+// static int compression = 0;         // 0=no compression (default), 1=ER (Efficient Representation)
 static int output_ra = 0;           // output randoms
 
-static int span_override = 0;       // Flag set span when span specified at command line
-static int nframes = 0;             // Number of frames
-static int scan = 0;                // scan option , default=no
-static int split = 0;               // split option, default=no
-static int out_l32 = 0;             // Output 32-bit listmode (output file extension .l32)
-static int out_l64 = 0;             // Output 64-bit listmode (output file extension .l64)
+static bool g_span_override = false;       // Flag set span when span specified at command line
+bool g_do_scan = false;                // scan option , default=no
+// static int out_l32 = 0;             // Output 32-bit listmode (output file extension .l32)
+// static int out_l64 = 0;             // Output 64-bit listmode (output file extension .l64)
 
-static char  *prev_sino = 0;        // 1: add to existing normalization scan
-static char *log_fname = NULL;          // log file
-static FILE *log_fp = NULL;         // log file ptr
-static float decay_rate = 0.0;      // Default no decay correction in seconds
-static int LLD = DEFAULT_LLD;
+std::string g_prev_sino;        // 1: add to existing normalization scan
+static float g_decay_rate = 0.0;      // Default no decay correction in seconds
+static int g_lld = DEFAULT_LLD;
 
-// ahc: hrrt_rebinner.lut is now a required cmd line arg
-static char *lut_file = NULL;
+// These globals are declared extern in gen_delays_lib/gen_delays_lib.hpp
+// Default values for globals that may be overridden by command line arguments
+int g_num_elems = GeometryInfo::NUM_ELEMS;   // elements/projections
+int g_num_views = GeometryInfo::NUM_VIEWS;
+int g_span = 9;
+int g_max_ringdiff = GeometryInfo::MAX_RINGDIFF;
 
-//Crystals and Ring dimensions in cm
-#define PITCH 0.24375f
-#define RDIAM 46.9f
-#define LTHICK 1.0f
+float g_pitch = 0.0f;
+float g_diam  = 0.0f;
+float g_thick = 0.0f;
+float g_tau   = 6.0e-9f;
+float g_ftime = 1.0f;
 
 
-#define BLK_SIZE 8      // Number of crystals per block
-
-const char *sw_version = "HRRT_U 1.1";
-char sw_build_id[80];
-
-void lmhistogram_usage(char *pgm_name)
-{
-    cout << pgm_name << " " << pgm_id << " Build: " << sw_build_id << endl << endl;
-    cout << "Usage : " << pgm_name << " fname.l32|fname.l64 " << endl;
-    cout << "    -o file              - output sinogram or 32-bit listmode file depending on file extension" << endl;
-    cout << "    -span X              - span size - valid values: 0(TX), 1,3,5,7,9" << endl;
-    cout << "                         - emission default span is 9" << endl;
-    //  cout << "    -T       - Transmission mode" << endl;
-    cout << "    -P                   - prompts only" << endl;
-    cout << "    -PR                  - separate prompts and randoms" << endl;
-    //  cout << "    -byte      - 8-bit sinogram bins"  << endl;
-    cout << "    -d duration[,skip]   - frame duration in seconds, optionaly skip in specified seconds" << endl;
-    cout << "    -d duration[*repeat] - frame duration in seconds, optionaly repeat specified duration" << endl;
-    cout << "    -scan                - scans file for prompts and randoms and prints headcurve to console" << endl;
-    cout << "    -count N             - stop after N events" << endl;
-    cout << "    -start N             - start histogramming when trues/sec is higher than N" << endl;
-    cout << "    -v                   - verbose mode: print warning messages" << endl;
-    cout << "    -q                   - quiet mode: don't print time messages" << endl;
-    cout << "    -add file            - Add to existing sinogram file" << endl;
-    cout << "    -mock mock_file      - Output shifted mock sinogram file (transmission only)" << endl;
-    cout << "    -ra                  - Output randoms sinogram file (emission only)" << endl;
-    cout << "    -l log_file          - append logging to the file or create the file if not existing" << endl;
-    cout << "    -notimetag           - No timetag processing, use timetag count as time" << endl;
-    cout << "    -nodoi               - No DoI processing, back layer events processed as front layer" << endl;
-    cout << "    -L type              -low resolution mode (1:binsize 2mm, nbins=160, span 7, maxrd 38)" << endl;
-    cout << "                                              (2:binsize 2.4375mm, nbins= 128, span 7, maxrd 38)" << endl;
-    cout << "    -model  328|2393|2395 (default=328) " << endl;
-    cout << "    -EB                  - Exclude Border crystals (Included by default)" << endl;
-    // ahc
-    cout << " *  -r <hrrt_rebinner.lut file>: (Required) full path to rebinner.lut file" << endl;
-    cout << endl;
-    cout << "Note:  Multiple -d specifiers indicate dynamic sequencing and will generate multiple" << endl;
-    cout << "       output sinograms and headers" << endl;
-    cout << "       ex: lmhistogram test.l64 -span 9 -d 300*12 -d 600*4" << endl;
-    cout << "       will generate 16 span 9 sinograms:" << endl;
-    cout << "       - 12 of 300seconds (test_frame0.s ... test_frame11.s)" << endl;
-    cout << "       -  4 of 600seconds (test_frame12.s ... test_fram15.s)" << endl;
-}
-
+static string sw_version("HRRT_U 1.1");
 
 /**
  * init_sino:
- * Allocates the sinogram in memory and initializes it with 0 or sinogram loaded from the prev_sino argument.
- * Sets the duration with prev_sino duration value from prev_sino header.
+ * Allocates the sinogram in memory and initializes it with 0 or sinogram loaded from the g_prev_sino argument.
+ * Sets the duration with g_prev_sino duration value from g_prev_sino header.
  * Returns 1 if success and 0 otherwise
  */
-template <class T> int init_sino(T *&sino, char *&delayed, int span, const char *prev_sino, int &duration)
+template <typename T> int init_sino(T *sino, int t_span) {
+  int sinogram_subsize = 0;
+  int r_size = sizeof(T);
 
-{
-    int sinogram_subsize = 0;
-    int r_size = sizeof(T);
-
-    if (check_model(model_number, MODEL_HRRT)) {
-        // HRRT
-    		cout << "XX Using HRRT model" << endl;
-        if (hist_mode != 7) {
-            // emission
-   	    		cout << "XX Using HRRT Emission: hist_mode = " << hist_mode << endl;
-            num_sino = LR_type == 0 ? nsinos[span] : LR_nsinos[span];
-            sinogram_size = m_nprojs * m_nviews * num_sino;
-            if (hist_mode == 1) {
-                // prompts and delayed
-                sinogram_subsize = sinogram_size;
-            }
-        } else {
-            // transmission
-   	    		cout << "XX Using HRRT Transmission, hist_mode = " << hist_mode << endl;
-   	    		num_sino = LR_type == 0 ? nsinos[0] : LR_nsinos[0];
-            sinogram_size = m_nprojs * m_nviews * num_sino;
-            sinogram_subsize = sinogram_size; // mock memory
-        }
-    } else { // P39
-        num_sino = P39_nsinos[span];
-        sinogram_size = m_nprojs * m_nviews * num_sino;
+  LOG_INFO("Using HRRT model");
+  if (g_hist_mode != HISTOGRAM_MODE::TRA) {
+    // emission
+    LOG_DEBUG("Using HRRT Emission: g_hist_mode = {}", g_hist_mode);
+    g_num_sino = (GeometryInfo::lr_type_ == GeometryInfo::LR_Type::LR_0) ? NUM_SINOS[t_span] : LR_NSINOS[t_span];
+    g_sinogram_size = GeometryInfo::nprojs_ * GeometryInfo::nviews_ * g_num_sino;
+    if (g_hist_mode == HISTOGRAM_MODE::PRO_RAN) {
+      // prompts and delayed
+      sinogram_subsize = g_sinogram_size;
     }
+  } else {
+    // transmission
+    LOG_DEBUG("XX Using HRRT Transmission, g_hist_mode = {}", g_hist_mode);
+    g_num_sino = (GeometryInfo::lr_type_ == GeometryInfo::LR_Type::LR_0) ? NUM_SINOS[0] : LR_NSINOS[0];
+    g_sinogram_size = GeometryInfo::nprojs_ * GeometryInfo::nviews_ * g_num_sino;
+    sinogram_subsize = g_sinogram_size; // mock memory
+  }
 
-    if (num_sino == 0) {
-        cout << "Unsupported span : " << span << endl;
-        return 0;
-    }
+  if (g_num_sino == 0) {
+    LOG_ERROR("Unsupported span : {}", t_span);
+    return 0;
+  }
 
-    cout << "number of elements: " << m_nprojs << endl;
-    cout << "number of angles: " << m_nviews << endl;
-    cout << "number of sinograms: " << num_sino << endl;
-    cout << "bits per register: " << r_size * 8 << endl;
-    cout << "sinogram size: " << sinogram_size << endl;
-    cout << "sinogram subsize: " << sinogram_subsize << endl;
-    if (!check_model(model_number, MODEL_HRRT)) {
-        // P39 : always prompt and separate delayed
-        // add transmission sinogram size to prompt sinogram
-        // allocate or clear memory for prompt and TX sinogram
-        int tx_size =  m_nprojs * m_nviews * P39_nsinos[0];
-        cout << " TX sinogram size: " << tx_size << endl;
-        if (sino == NULL) sino = (T *)calloc((sinogram_size + tx_size), r_size);
-        else memset(sino, 0, sinogram_size * r_size); // keep transmission events
-        if (sino == NULL) {
-            cout << "Unable to allocate sinogram memory: " << sinogram_size << " + " << tx_size << endl;
-            return 0;
-        }
-        // allocate or clear memory for delayed sinogram
-        if (delayed == NULL) delayed = (char *)calloc(sinogram_size, 1);
-        else memset(delayed, 0, sinogram_size);
-        if (delayed == NULL) {
-            cout << "Unable to allocate delayed sinogram memory: " << sinogram_size << endl;
-            return 0;
-        }
-    } else {   // HRRT
-        if (sino == NULL)
-            sino = (T *)calloc(sinogram_size + sinogram_subsize, r_size);
-        else
-            memset(sino, 0, (sinogram_size + sinogram_subsize)*r_size);
+  LOG_INFO("number of elements: {}", GeometryInfo::nprojs_);
+  LOG_INFO("number of angles: {}"    , GeometryInfo::nviews_);
+  LOG_INFO("number of sinograms: {}" , g_num_sino);
+  LOG_INFO("bits per register: {}"   , r_size * 8);
+  LOG_INFO("sinogram size: {}"       , g_sinogram_size);
+  LOG_INFO("sinogram subsize: {}"    , sinogram_subsize);
+  if (sino) {
+    // memset(sino, 0, (g_sinogram_size + sinogram_subsize) * r_size);
+    std::fill_n(sino, g_sinogram_size + sinogram_subsize, 0);
+  } else {
+    // sino = (T *)calloc(g_sinogram_size + sinogram_subsize, r_size);
+    sino = new T[g_sinogram_size + sinogram_subsize]();
+  }
+  if (!sino) {
+    LOG_ERROR("Unable to allocate sinogram memory: {}", g_sinogram_size + sinogram_subsize);
+    return 0;
+  }
+  return 1;
+}
 
-        if (!sino) {
-            cout << "Unable to allocate sinogram memory: " << (sinogram_size + sinogram_subsize) * r_size << endl;
-            return 0;
-        }
-    }
+// T is of type short* or char*
 
-    // load previous scan if any
-    if (prev_sino) {
-        CHeader hdr;
-        char hdr_fname[FILENAME_MAX];
-        if (hist_mode != 0) {
-            cout << "Adding to existing sinogram only supported Trues mode" << endl;
-            free(sino);
-            return 0;
-        }
-        sprintf(hdr_fname, "%s.hdr", prev_sino);
-        if (hdr.OpenFile(hdr_fname) < 0) {
-            cout << "Error opening " << hdr_fname << endl;
-            free(sino);
-            return 0;
-        }
-        int ok = hdr.Readint("image duration", &duration);
-        hdr.CloseFile();
-        if (ok != 0) {
-            cout << hdr_fname << ": image duration not found" << endl;
-            free(sino);
-            return 0;
-        }
-        FILE *prev_fp = fopen(prev_sino, "rb");
-        if (prev_fp != NULL) {
-            int count = fread(sino, sinogram_size, r_size, prev_fp);
-            if (count != r_size) {
-                cout << "Error reading " << prev_sino << endl;
-                fclose(prev_fp);
-                free(sino);
-                return 0;
-            }
-            fclose(prev_fp);
-        } else {
-            perror(prev_sino);
-            free(sino);
-            return 0;
-        }
-    }
+template <typename T> int fill_prev_sino(T sino, const std::string &prev_sino) {
+  if (g_hist_mode != HISTOGRAM_MODE::TRU) {
+    LOG_ERROR("Adding to existing sinogram only supported Trues mode");
     return 1;
+  }
+
+  if (prev_sino.length() > 0) {
+    std::ifstream prev_fp;
+    if (hrrt_util::open_istream(prev_fp, prev_sino, std::ios::in | std::ios::binary)) {
+      LOG_ERROR("Could not open prev_sino: {}", prev_sino);
+      return 1;
+    } else {
+      // prev_fp.read(sino, g_sinogram_size * r_size);
+      prev_fp.read((char *)sino, g_sinogram_size * sizeof(T));
+      if (!prev_fp.good()) {
+        LOG_ERROR("Error reading {}", prev_sino);
+        prev_fp.close();
+        return 1;
+      }
+      prev_fp.close();
+    }
+  }
+  return 0;
 }
 
-/**
- * parse_valid:
- * Checks and sets parameters to user specified values
- * Log error and exit when invalid argument is encountered
- */
-void parse_valid(int argc, char **argv)
-{
-    int count, multi_spec[2];
-    char buffer[128], *ext = NULL;
 
-    if (argc == 1) {
-        lmhistogram_usage(argv[0]);
-        exit(0);
-    }
-
-    if (flagval("-o", &argc, argv, buffer)) {
-        strcpy(out_fname, buffer);
-        if ((ext = strrchr(out_fname, '.')) != NULL) {
-            if (strcasecmp(ext + 1, "l32") == 0) out_l32 = 1;
-            else if (strcasecmp(ext + 1, "l64") == 0) out_l64 = 1;
-        }
-    }
-
-    if (flagval("-L", &argc, argv, buffer, true)) {
-        int type = atoi(buffer);
-        switch (type) {
-        case LR_20:
-            LR_type = LR_20;
-            break;
-        case LR_24:
-            LR_type = LR_24;
-            break;
-        default:
-            cout << "*** invalid LR mode ***" << endl << endl;
-            lmhistogram_usage(argv[0]);
-            exit(0);
-        }
-        span = 7;  // default span in LR mode
-        max_rd = 38; // default max_rd  in LR mode
-    }
-
-    if (flagval("-span", &argc, argv, buffer)) {
-        span_override = 1;
-        span = atoi(buffer);
-        if (span < 0 || span > 9 || (span > 0 && (span % 2) == 0)) {
-            cerr << "Invalid span argument: -span " << buffer << endl;
-            exit(0);
-        }
-    }
-
-    if (flagset("-PR", &argc, argv))
-        hist_mode = 1;
-    if (flagset("-ra", &argc, argv))
-        output_ra = 1;
-
-    if (flagset("-P", &argc, argv))
-        hist_mode = 2;
-
-    if (flagval("-model", &argc, argv, buffer)) {
-        model_number = atoi(buffer);
-    }
-    //  if (flagset("-byte",&argc,argv))
-    //      elem_size = 1;
-
-    if (flagset("-scan", &argc, argv))
-        scan = 1;
-
-    //  if (flagset("-split", &argc, argv))
-    //      split = 1;
-
-    if (flagset("-v", &argc, argv))
-        verbose = 1;
-    if (flagset("-q", &argc, argv))
-        quiet = 1;
-    if (flagval("-add", &argc, argv, buffer))
-        prev_sino = strdup(buffer);
-
-    if (flagval("-l", &argc, argv, buffer))
-        log_fname = strdup(buffer);
-
-    if (flagval("-mock", &argc, argv, buffer))
-        outfname_mock = strdup(buffer);
-
-    if (flagset("-notimetag", &argc, argv))
-        timetag_processing = 0;
-
-    if (flagset("-nodoi", &argc, argv))
-        rebinner_method = rebinner_method | NODOI_PROCESSING;  // ignore DOI
-    if (flagset("-EB", &argc, argv))
-        rebinner_method = rebinner_method | IGNORE_BORDER_CRYSTAL;  // exclude Border crystals
-
-    if (flagval("-count", &argc, argv, buffer)) {
-        if ((count = atoi(buffer)) <= 0) {
-            cerr << " Invalid -count " << buffer << " argument: must be positive" << endl;
-            exit(1);
-        }
-        stop_count = count;
-    }
-
-    if (flagval("-start", &argc, argv, buffer)) {
-        if ((count = atoi(buffer)) <= 0) {
-            cerr << " Invalid -start " << buffer << " argument: must be positive" << endl;
-            exit(1);
-        }
-        start_countrate = count;
-    }
-
-    // ahc: hrrt_rebinner.lut is now required arg 'r'
-    if (flagval("-r", &argc, argv, buffer))
-        lut_file = strdup(buffer);
-
-    while (flagval("-d", &argc, argv, buffer)  && nframes < MAX_FRAMES) {
-        if (sscanf(buffer, "%d*%d", &multi_spec[0], &multi_spec[1]) == 2) {
-            // frame_duration*repeat format
-            if (multi_spec[0] > 0) {
-                cout << multi_spec[0] << "sec frame  repeated " << multi_spec[1] << endl;
-                for (count = 0; count < multi_spec[1] && nframes < 256; count++)
-                    duration[nframes++] = multi_spec[0];
-            } else {
-                cerr << "Invalid frame duration argument: -d " << buffer << endl;
-                exit(0);
-            }
-        } else {
-            // frame_duration[,skip] format
-            if (sscanf(buffer, "%d,%d", &duration[nframes], &skip[nframes]) < 1) {
-                cerr << "Invalid frame duration argument: -d " << buffer << endl;
-                exit(0);
-            }
-            nframes++;
-        }
-    }
-
-    //
-    // Validate arguments
-    //
-    if (hist_mode != 0 && prev_sino != NULL) {
-        cerr << "Adding to existing sinogram only supported in Trues mode"  << endl;
-        exit(1);
-    }
-
-    // ahc
-    if (lut_file == NULL) {
-        cerr << "hrrt_rebinner.lut must be specified as argument 'r'" << endl;
-        exit( 1 );
-    }
-
-    if (nframes > 1 && prev_sino != NULL) {
-        cerr << "Adding to existing sinogram only supported multi-frame mode"  << endl;
-        exit(1);
-    }
-    // by default there is at least one frame
-    if (nframes == 0) nframes++;
-
-    // locate the filename to work on
-    if (argc > 1)
-        strcpy(in_fname, argv[1]);
-
-    if (strstr(in_fname, ".l64")) {
-        //      cerr << "ERROR:  Histogrammer only functions with rebinned data" << endl;
-        //      cerr << "Press Enter to continue" << endl;
-        //      getchar();
-        l64_flag = 1;
-    } else if (strstr(in_fname, ".l32") == NULL) {
-        cerr << in_fname << "extension should be .l32 or .l64\n" << endl;
-        exit(1);
-    }
-
-    // set skip to specified countrate
+void on_span(int span) {
+  if (span != 3 && span != 9) {
+    LOG_ERROR("Span must be 3 or 9");
+    exit(1);
+  }
+  g_span_override = true;
+  g_span = span;
 }
 
-// void start_reader_thread()
+// Cmd line param 'out': Create output file path
+
+void on_out(const std::string &outstr) {
+  g_out_fname = bf::path(outstr);
+}
+
+void on_infile(const std::string &instr) {
+  g_fname_l64 = bf::path(instr);
+}
+
+// void on_lut_file(const std::string &lutfile) {
+//   g_lut_file = bf::path(lutfile);
+// }
+
+void on_lrtype(int intval) {
+  GeometryInfo::LR_Type t = GeometryInfo::to_lrtype(intval);
+  GeometryInfo::lr_type_ = t;
+  g_span = 7;
+  g_max_rd = 38;
+}
+
+void on_pr(bool pr) {
+  if (pr)
+    g_hist_mode = HISTOGRAM_MODE::PRO_RAN;
+}
+
+void on_ra(bool ra) {
+  if (ra)
+    output_ra = 1;
+}
+
+void on_p(bool p) {
+  if (p)
+    g_hist_mode = HISTOGRAM_MODE::PRO;
+}
+
+void on_notimetag(bool n) {
+  if (n)
+    timetag_processing = 0;
+}
+
+void on_nodoi(bool n) {
+  if (n)
+    eg_rebinner_method = eg_rebinner_method | NODOI_PROCESSING;  // ignore DOI
+}
+
+void on_eb(bool b) {
+  if (b)
+    eg_rebinner_method = eg_rebinner_method | IGNORE_BORDER_CRYSTAL;  // exclude Border crystals
+}
+
+void assert_positive(int count) {
+  if (count < 0) {
+    LOG_ERROR("Value must be positive");
+    exit(1);
+  }
+}
+
+// Parse duration string and fill in g_skip and g_frames_duration
+
+void parse_duration_string(std::string durat_str) {
+  bx::sregex re_skip = bx::sregex::compile("(?P<skip>[0-9]+)\\,(<?P<dura>[0-9]+)");
+  bx::sregex re_mult = bx::sregex::compile("(?P<dura>[0-9]+)\\*(<?P<mult>[0-9]+)");
+
+  bx::smatch match;
+  if (bx::regex_match(durat_str, match, re_skip)) {
+    // '600,300': push 600 to g_skip and 300 to g_frames_duration
+    g_skip.push_back(boost::lexical_cast<int>(match["skip"]));
+    g_frames_duration.push_back(boost::lexical_cast<int>(match["dura"]));
+  } else if (bx::regex_match(durat_str, match, re_mult)) {
+    // '300*3': push [300, 300, 300] to g_frames_duration
+    std::vector<int> durats(boost::lexical_cast<int>(match["mult"]), boost::lexical_cast<int>(match["dura"]));
+    g_frames_duration.insert(std::end(g_frames_duration), std::begin(durats), std::end(durats));
+  }
+}
+
+int read_framing(CHeader const &hdr) {
+  // Frame duration not specified at command line; Use header
+  // Decode frame duration even when creating l32 file to output CH files
+  if (g_frames_duration.empty()) {
+    string framedef_str;
+    hdr.ReadChar(CHeader::FRAME_DEFINITION, framedef_str);
+    parse_duration_string(framedef_str);
+  }
+  // TODO
+  return 0;
+}
+
+// Parse duration strings
+
+void on_duration(std::vector<std::string> vs) {
+  for (auto& it : vs) {
+    parse_duration_string(it);
+  }
+}
+
+void on_verbosity(int verbosity) {
+  switch (verbosity) {
+  case 0: g_logger->set_level(spdlog::level::off  ); break;
+  case 1: g_logger->set_level(spdlog::level::err  ); break;
+  case 2: g_logger->set_level(spdlog::level::info ); break;
+  case 3: g_logger->set_level(spdlog::level::debug); break;
+  default:
+    LOG_ERROR("Bad log level: {}", verbosity);
+  }
+}
+
+void validate_arguments(void) {
+
+  if (!g_prev_sino.empty()) {
+    std::string errmsg;
+    if (g_hist_mode != HISTOGRAM_MODE::TRU)
+      errmsg = "Adding to existing sinogram only supported in Trues mode";
+    if (g_frames_duration.size() > 1)
+      errmsg = "Adding to existing sinogram only supported multi-frame mode";
+    if (errmsg.length() > 0) {
+      LOG_ERROR(errmsg);
+      exit(1);
+    }
+  }
+}
+
+void parse_boost(int argc, char **argv) {
+  // GeometryInfo::LR_Type lrtype;
+  try {
+    po::options_description desc("Options");
+    desc.add_options()
+    ("help,h", "Show options")
+    ("out,o"        , po::value<std::string>()->notifier(&on_out)                    , "output sinogram, 32 or 64-bit listmode file from file extension")
+    ("infile,i"     , po::value<std::string>()->notifier(&on_infile)                 , "Input file")
+    ("lr_type,L"    , po::value<int>()->notifier(on_lrtype)                      , "low resolution (mode 1/2: binsize 2/2.4375mm, nbins 160/128, span 7, maxrd 38)")
+    // ("lr_type,L"    , po::value<GeometryInfo::LR_Type>(&lrtype)                      , "low resolution (mode 1/2: binsize 2/2.4375mm, nbins 160/128, span 7, maxrd 38)")
+    ("span"         , po::value<int>()->notifier(on_span)                            , "Span size - valid values: 0(TX), 1,3,5,7,9")
+    ("PR"           , po::bool_switch()->notifier(&on_pr)                            , "Separate prompts and randoms")
+    ("ra"           , po::bool_switch()->notifier(&on_ra)                            , "Output randoms sinogram file (emission only)")
+    ("prompts,P"    , po::bool_switch()->notifier(&on_p)                             , "Prompts only")
+    ("notimetag"    , po::bool_switch()->notifier(&on_notimetag)                     , "No timetag processing, use timetag count as time")
+    ("nodoi"        , po::bool_switch()->notifier(&on_nodoi)                         , "No DoI processing, back layer events processed as front layer")
+    ("scan"         , po::bool_switch(&g_do_scan)->default_value(false)                , "Scan file for prompts and randoms, print headcurve to g_logger")
+    ("model"        , po::value<int>(&model_number)->default_value(MODEL_HRRT)       , "Model: 328, 2393, 2395")
+    ("verbosity,V"  , po::value<int>()->notifier(&on_verbosity)                      , "Logging verbosity: 0 off, 1 err, 2 info, 3 debug")
+    ("add"          , po::value<std::string>(&g_prev_sino)                           , "Add to existing sinogram file")
+    ("log,l"        , po::value<std::string>(&g_logfile)                             , "Log file")
+    ("mock"         , po::value<std::string>(&g_outfname_mock)                      , "Output shifted mock sinogram file (transmission only)")
+    ("EB"           , po::bool_switch()->notifier(&on_eb)                            , "Exclude border crystals")
+    ("count"        , po::value<int>(&stop_count_)->notifier(&assert_positive)        , "Stop after N events")
+    ("start"        , po::value<unsigned int>(&start_countrate_)->notifier(&assert_positive)  , "Start histogramming when trues/sec is higher than N")
+    // ("lut_file,r"   , po::value<std::string>()->notifier(&on_lut_file)             , "Full path to rebinner.lut file" )
+    ("duration,d"   , po::value<std::vector<std::string>>()->multitoken()
+     ->composing()
+     ->notifier(&on_duration) , "Frame [duration] or [duration,skip] or [duration*repeat]")
+    ;
+    po::positional_options_description pos_opts;
+    pos_opts.add("infile", 1);
+
+    po::variables_map vm;
+    po::store(
+      po::command_line_parser(argc, argv)
+      .options(desc)
+      .style(
+        po::command_line_style::unix_style
+        | po::command_line_style::allow_long_disguise)
+      .positional(pos_opts)
+      .run(), vm
+    );
+    po::notify(vm);
+    if (vm.count("help"))
+      std::cout << desc << '\n';
+  }
+  catch (const po::error &ex) {
+    std::cerr << ex.what() << std::endl;
+  }
+}
+
 // Create buffers, Open file listmode file
-void start_reader_thread()
-{
-    //
-    // Create container synchronization event and
-    // start reader thread and wait for container ready (half full)
-    //
-    if (l64_flag) {
-        L64EventPacket::frame_duration = (int *)calloc(nframes, sizeof(int));
-        memcpy(L64EventPacket::frame_duration, duration, nframes * sizeof(int));
-        L64EventPacket::frame_skip = (int *)calloc(nframes, sizeof(int));
-        memcpy(L64EventPacket::frame_skip, skip, nframes * sizeof(int));
-        lm64_reader(in_fname);
+void start_reader_thread() {
+  // Create container synchronization event, start reader thread, wait for container ready (half full)
+  // L64EventPacket::frame_duration = (int *)calloc(g_frames_duration.size(), sizeof(int));
+  // memcpy(L64EventPacket::frame_duration, g_frames_duration, g_frames_duration.size() * sizeof(int));
+  // L64EventPacket::frame_skip = (int *)calloc(g_frames_duration.size(), sizeof(int));
+  // mcpy(L64EventPacket::frame_skip, g_frames_duration.size() * sizeof(int));
+  L64EventPacket::frame_duration = g_frames_duration;
+  L64EventPacket::frame_skip = g_skip;
 
-    } else {
-        lm32_reader(in_fname);
-    }
+  lm64_reader(g_fname_l64);
 }
 
-inline void start_rebinner_thread() // Start thread and wait until it is ready
-{
-    int ID1 = 0, ID2 = 1, ID3 = 2, ID4 = 3;
-    int max_try = 30;
-    int ncrystals = NDOIS * NXCRYS * NYCRYS * NHEADS;
-    int head_nblks = (NXCRYS / 8) * (NYCRYS / 8); // 9*13=117
-    p_coinc_map = (unsigned *)calloc(ncrystals, sizeof(unsigned));
-    d_coinc_map = (unsigned *)calloc(ncrystals, sizeof(unsigned));
-    // h_threads[1] = (HANDLE) _beginthread(lm64_rebinner,0, &ID1);
+// Start thread and wait until it is ready
+
+void start_rebinner_thread() {
+  // int ID1 = 0, ID2 = 1, ID3 = 2, ID4 = 3;
+  // int max_try = 30;
+  // int head_nblks = (NXCRYS / 8) * (NYCRYS / 8); // 9*13=117
+  // int ncrystals = NDOIS * NXCRYS * NYCRYS * NHEADS;
+  // g_p_coinc_map = (unsigned *)calloc(GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, sizeof(unsigned));
+  // g_d_coinc_map = (unsigned *)calloc(GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS, sizeof(unsigned));
+  g_p_coinc_map = new unsigned[GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS];
+  g_d_coinc_map = new unsigned[GeometryInfo::NUM_CRYSTALS_X_Y_HEADS_DOIS];
 }
 
+int get_num_cpus() {
+  int num_cpus = 1;
+  const char *s = getenv("NUMBER_OF_PROCESSORS");
+  if (s != nullptr)
+    sscanf(s, "%d", &num_cpus);
+  if (num_cpus > MAX_THREADS)
+    num_cpus = MAX_THREADS; // workaround for dual quadcore bug
 
-inline int get_num_cpus()
-{
-    int num_cpus = 1;
-    const char *s = getenv("NUMBER_OF_PROCESSORS");
-    if (s != NULL) sscanf(s, "%d", &num_cpus);
-    return num_cpus;
-
+  return num_cpus;
 }
 
 /**
- * create_files:
+ * create_histogram_files:
  * Create/Open output files before starting histogramming.
  * Log error and exit if file creation fails
  */
-static void create_files()
-{
-    strcpy(outfname_hdr, outfname_sino);
-    strcat(outfname_hdr, ".hdr");
-    strcpy(outfname_hc, outfname_sino);
-    // Replace extension by "_lm.hc"
-    char *ext = strrchr(outfname_hc, '.');
-    if (ext != NULL) strcpy(ext, "_lm.hc");
-    else strcat(outfname_hc, "_lm.hc");
-    out_hc = fopen(outfname_hc, "w");
-    if (out_hc == NULL) {
-        perror(outfname_hc);
-        exit(1);
-    }
-    if (hist_mode == 1 || hist_mode == 7) {
-        // prompt && ramdoms or transmission
-        int ext_pos = strlen(outfname_sino) - 2; // default is .s
-        char *ext = strrchr(outfname_sino, '.');
-        if (ext != NULL) ext_pos = (int)(ext - outfname_sino);
-        if (hist_mode == 7) {
-            // transmission
-            if (elem_size != 2) {
-                printf("Byte format not supported in transmission mode\n");
-                exit(1);
-            }
-            if ((out = fopen(outfname_sino, RW_MODE)) == NULL) {
-                perror(outfname_sino);
-                exit(1);
-            }
-            if (outfname_mock != NULL) {
-                if ((out2 = fopen(outfname_mock, RW_MODE)) == NULL) {
-                    perror(outfname_mock);
-                    exit(1);
-                }
-            }
-        } else {
-            // Keep original filename for prompts in prompts or prompts+delayed mode
-            // strncpy(outfname_pr,outfname_sino, ext_pos);
-            // strcpy(outfname_pr+ext_pos,".pr.s");
-            strcpy(outfname_pr, outfname_sino);
-            strncpy(outfname_ra, outfname_sino, ext_pos);
-            strcpy(outfname_ra + ext_pos, ".ra.s");
-            if ((out = fopen(outfname_pr, RW_MODE)) == NULL) {
-                perror(outfname_pr);
-                exit(1);
-            }
-            if (output_ra) {
-                if ((out2 = fopen(outfname_ra, RW_MODE)) == NULL) {
-                    perror(outfname_ra);
-                    exit(1);
-                }
-            }
-            if (elem_size == 2) {
-                strncpy(outfname_tr, outfname_sino, ext_pos);
-                strcpy(outfname_tr + ext_pos, ".tr.s");
-                if ((out3 = fopen(outfname_tr, RW_MODE)) == NULL) {
-                    perror(outfname_tr);
-                    exit(1);
-                }
-            }
-        }
-    } else {
-        if ((out = fopen(outfname_sino, RW_MODE)) == NULL) {
-            perror(outfname_sino);
-            exit(1);
-        }
-    }
-    cout << "Output File: " << out_fname << endl;
-    cout << "Output File Header: " << outfname_hdr << endl;
-}
+static void create_histogram_files() {
+  g_out_fname_hdr = make_file_name(FILE_TYPE::SINO_HDR);
+  g_out_fname_hc  = make_file_name(FILE_TYPE::LM_HC);
 
-/**
- * p39_create_files:
- * Create/Open output files before starting histogramming.
- * Log error and exit if file creation fails
- */
-static void p39_create_files()
-{
-    strcpy(outfname_hdr, outfname_sino);
-    strcat(outfname_hdr, ".hdr");
-    strcpy(outfname_hc, outfname_sino);
-    strcpy(outfname_p39_em, outfname_sino);
-    strcpy(outfname_p39_tx, outfname_sino);
-    // Make HC filename
-    char *ext = strrchr(outfname_hc, '.');
-    if (ext != NULL) strcpy(ext, "_lm.hc");
-    else strcat(outfname_hc, "_lm.hc");
-    if ((out_hc = fopen(outfname_hc, "w")) == NULL) {
-        perror(outfname_hc);
-        exit(1);
+  hrrt_util::open_ostream(g_out_hc, g_out_fname_hc);
+
+  if (g_hist_mode == HISTOGRAM_MODE::TRA) {
+    // transmission
+    if (g_elem_size != ELEM_SIZE_SHORT) {
+      LOG_ERROR("Byte format not supported in transmission mode");
+      exit(1);
     }
-    //Make emission sino filename
-    if (nframes == 1) {
-        if ((ext = strrchr(outfname_p39_em, '.')) != NULL) strcpy(ext, "_em.s");
-        else strcat(outfname_p39_em, "_em.s");
+    hrrt_util::open_ostream(g_out_true_prompt_sino, g_out_fname_sino, std::ios::out | std::ios::app | std::ios::binary);
+    if (g_outfname_mock.length() > 0) {
+      hrrt_util::open_ostream(g_out_ran_sino, g_outfname_mock, std::ios::out | std::ios::app | std::ios::binary);
     }
-    // else emission file names have _frameN.s extension
-    if ((out = fopen(outfname_p39_em, RW_MODE)) == NULL) {
-        perror(outfname_p39_em);
-        exit(1);
+  } else if (g_hist_mode == HISTOGRAM_MODE::PRO_RAN) {
+    // Keep original filename for prompts in prompts or prompts+delayed mode
+    g_out_fname_pr = g_out_fname_sino;
+    hrrt_util::open_ostream(g_out_true_prompt_sino, g_out_fname_pr, std::ios::out | std::ios::app | std::ios::binary);
+    g_out_fname_ra = make_file_name(FILE_TYPE::RA_S);
+    hrrt_util::open_ostream(g_out_ran_sino, g_out_fname_ra, std::ios::out | std::ios::app | std::ios::binary);
+    if (g_elem_size == ELEM_SIZE_SHORT) {
+      g_out_fname_tr = make_file_name(FILE_TYPE::TR_S);
+      hrrt_util::open_ostream(g_out_true_sino, g_out_fname_tr, std::ios::out | std::ios::app | std::ios::binary);
     }
-    //Make transmission sino filename
-    if (nframes > 1) {
-        // replace _frameN.s extension by _tx.s extension
-        if ((ext = strstr(outfname_p39_tx, "_frame")) != NULL) strcpy(ext, "_tx.s");
-        else strcat(outfname_p39_tx, "_tx.s");
-    } else {
-        if ((ext = strrchr(outfname_p39_tx, '.')) != NULL) strcpy(ext, "_tx.s");
-        else strcat(outfname_p39_tx, "_tx.s");
-    }
+  } else {
+    hrrt_util::open_ostream(g_out_true_prompt_sino, g_out_fname_sino, std::ios::out | std::ios::app | std::ios::binary);
+
+  }
+  LOG_INFO("Output File: {}", g_out_fname);
+  LOG_INFO("Output File Header: {}", g_out_fname_hdr);
 }
 
 /**
  * close_files:
- * Close output files created by create_files
+ * Close output files created by create_histogram_files
  */
 static void close_files()
 {
-    fclose(out);
-    if (out2 != NULL) fclose(out2);
-    if (out3 != NULL) fclose(out3);
-    fclose(out_hc);
-    out = out2 = out3 = NULL;
-    out_hc = NULL;
+  g_out_true_prompt_sino.close();
+  g_out_ran_sino.close();
+  g_out_true_sino.close();
+  g_out_hc.close();
 }
 
 /**
@@ -687,705 +571,572 @@ static void close_files()
  * Header file name is derived from data file name (data_fname.hdr).
  * Log error and exit when an I/O error is encountered.
  */
-static void write_sino(char *sino, int sino_size, CHeader &hdr, int frame)
-{
-    // create the output header file
-    char *p = NULL;
-    short *ssino = (short *)sino;
-    short *delayed = (short *)(sino + sino_size * elem_size);
-    short *mock = (short *)(sino + sino_size * elem_size);
-    int i = 0, span9_sino_size = m_nprojs * m_nviews * nsinos[9];
+static void write_sino(char *t_sino, int t_sino_size, CHeader &t_hdr, int t_frame) {
+  // create the output header file
+  // char *p = nullptr;
+  short *ssino = (short *)t_sino;
+  short *delayed = (short *)(t_sino + t_sino_size * g_elem_size);
+  short *mock = (short *)(t_sino + t_sino_size * g_elem_size);
+  int span9_sino_size = GeometryInfo::nprojs_ * GeometryInfo::nviews_ * NUM_SINOS[9];
 
-    hdr.WriteTag("image duration", prev_duration + duration[frame]);
-    hdr.WriteTag("image relative start time", relative_start);
-    int decay_time = relative_start + dose_delay;
-    float dcf1 = 1.0f;
-    float dcf2 = 1.0f;
-    if (decay_rate > 0.0) {
-        dcf1 = (float)pow(2.0f, decay_time / decay_rate);
-        //      dcf2 = ((float)log(2.0) * duration[frame]) / (decay_rate * (1.0 - (float)pow(2,-1.0*duration[frame]/decay_rate)));
-        dcf2 = (float)((log(2.0) * duration[frame]) / (decay_rate * (1.0 - pow(2.0f, -1.0f * duration[frame] / decay_rate))));
+  t_hdr.WriteInt(CHeader::IMAGE_DURATION, g_prev_duration + g_frames_duration[t_frame]);
+  t_hdr.WriteInt(CHeader::IMAGE_RELATIVE_START_TIME, relative_start);
+  int decay_time = relative_start + g_dose_delay;
+  float dcf1 = 1.0f;
+  float dcf2 = 1.0f;
+  if (g_decay_rate > 0.0) {
+    dcf1 = (float)pow(2.0f, decay_time / g_decay_rate);
+    //      dcf2 = ((float)log(2.0) * duration[t_frame]) / (g_decay_rate * (1.0 - (float)pow(2,-1.0*duration[t_frame]/g_decay_rate)));
+    dcf2 = (float)((log(2.0) * g_frames_duration[t_frame]) / (g_decay_rate * (1.0 - pow(2.0f, -1.0f * g_frames_duration[t_frame] / g_decay_rate))));
+  }
+  t_hdr.WriteFloat(CHeader::DECAY_CORRECTION_FACTOR, dcf1);
+  t_hdr.WriteFloat(CHeader::DECAY_CORRECTION_FACTOR_2, dcf2);
+  t_hdr.WriteInt(CHeader::FRAME, t_frame);
+  t_hdr.WriteLong(CHeader::TOTAL_PROMPTS, total_prompts());
+  t_hdr.WriteLong(CHeader::TOTAL_RANDOMS, total_randoms());
+  t_hdr.WriteLong(CHeader::TOTAL_NET_TRUES, total_prompts() - total_randoms());
+  int av_singles = 0;
+  for (int block = 0; block < GeometryInfo::NBLOCKS; block++) {
+    std::string tmp1 = fmt::format("block singles {:d}", block);
+    t_hdr.WriteInt(tmp1, singles_rate(block));
+    av_singles += singles_rate(block);
+  }
+  av_singles /= GeometryInfo::NBLOCKS;
+  t_hdr.WriteInt(CHeader::AVERAGE_SINGLES_PER_BLOCK, av_singles);
+  LOG_INFO("g_lld = {}, Average Singles Per Block = ", g_lld, av_singles);
+  t_hdr.WriteFloat(CHeader::DEAD_TIME_CORRECTION_FACTOR, GetDTC(g_lld, av_singles));
+
+  // Write Trues or Prompts sinogram
+  // int count = g_elem_size,
+  int write_error = 0;
+  LOG_INFO("sinogram size: {:d}", t_sino_size);
+  LOG_INFO("element size: {:d}", g_elem_size);
+
+  // Log message and set first data filename
+  switch (g_hist_mode) {
+  case HISTOGRAM_MODE::TRU:
+    // Randoms substractions
+    LOG_INFO("Writing Trues Sinogram: {}", g_out_fname_sino);
+    t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_out_fname_sino);
+    t_hdr.WriteChar(CHeader::SINOGRAM_DATA_TYPE, "true");
+    g_out_true_prompt_sino.write(t_sino, t_sino_size * g_elem_size);
+    break;
+  case HISTOGRAM_MODE::PRO_RAN:
+    // Prompts and delayed: prompts is first
+    LOG_INFO("Writing Prompts Sinogram: {}", g_out_fname_pr);
+    t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_out_fname_pr);
+    t_hdr.WriteChar(CHeader::SINOGRAM_DATA_TYPE, "prompt");
+    t_hdr.WritePath(CHeader::NAME_OF_TRUE_DATA_FILE, g_out_fname_tr);
+    g_out_fname_hdr = fmt::format("{}.hdr", g_out_fname_pr);
+    g_out_true_prompt_sino.write(t_sino, t_sino_size * g_elem_size);
+    break;
+  case HISTOGRAM_MODE::PRO:
+    // Prompts only
+    LOG_INFO("Writing Prompts Sinogram: {}", g_out_fname_sino);
+    t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_out_fname_sino);
+    t_hdr.WriteChar(CHeader::SINOGRAM_DATA_TYPE, "prompt");
+    break;
+  case HISTOGRAM_MODE::TRA:
+    // Transmission
+    LOG_INFO("Writing EC corrected Sinogram: {}", g_out_fname_sino);
+    g_out_fname_hdr = fmt::format("{}.hdr", g_out_fname_sino);
+    t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_out_fname_sino);
+    for (int i = 0; i < t_sino_size; i++) {
+      ssino[i] = ssino[i] - mock[i];
+      if (ssino[i] < 0)
+        ssino[i] = 0;
     }
-    hdr.WriteTag("decay correction factor", dcf1);
-    hdr.WriteTag("decay correction factor2", dcf2);
-    hdr.WriteTag("frame", frame);
-    hdr.WriteTag("Total Prompts", total_prompts());
-    hdr.WriteTag("Total Randoms", total_randoms());
-    hdr.WriteTag("Total Net Trues", total_prompts() - total_randoms());
-    int av_singles = 0;
-    for (int block = 0; block < NBLOCKS; block++) {
-        char tmp1[64];
-        av_singles += singles_rate(block);
-        sprintf(tmp1, "block singles %d", block);
-        hdr.WriteTag(tmp1, singles_rate(block));
+    g_out_true_prompt_sino.write(t_sino, t_sino_size * g_elem_size);
+    if (g_out_true_prompt_sino.good()) {
+      t_hdr.WriteFile(g_out_fname_hdr);
+    } else {
+      LOG_ERROR("Error writing %s\n", g_out_fname_sino);
+      write_error++;
     }
-    av_singles /= NBLOCKS;
-    hdr.WriteTag("average singles per block", av_singles);
-    cout << "LLD = " << LLD << "  Average Singles Per Block = " << av_singles << endl;
-    hdr.WriteTag("Dead time correction factor", GetDTC(LLD, av_singles));
+    break;
+  }
 
-    // Write Trues or Prompts sinogram
-    int count = elem_size, write_error = 0;
-    printf("sinogram size: %d\n", sino_size);
-    printf("element size: %d\n", elem_size);
+  // Write data
+  if (!write_error)
+    t_hdr.WriteFile(g_out_fname_hdr);
 
-    // Log message and set first data filename
-    switch (hist_mode) {
-    case 0: // Randoms substractions
-        printf("Writing Trues Sinogram: %s\n", outfname_sino);
-        hdr.WriteTag("!name of data file", outfname_sino);
-        hdr.WriteTag("sinogram data type", "true");
-        count = fwrite(sino, sino_size, elem_size, out);
-        break;
-    case 1: // Prompts and delayed: prompts is first
-        printf("Writing Prompts Sinogram: %s\n", outfname_pr);
-        hdr.WriteTag("!name of data file", outfname_pr);
-        hdr.WriteTag("sinogram data type", "prompt");
-        hdr.WriteTag("!name of true data file", outfname_tr);
-        sprintf(outfname_hdr, "%s.hdr", outfname_pr);
-        count = fwrite(sino, sino_size, elem_size, out);
-        break;
-    case 2: //Prompts only
-        printf("Writing Prompts Sinogram: %s\n", outfname_sino);
-        hdr.WriteTag("!name of data file", outfname_sino);
-        hdr.WriteTag("sinogram data type", "prompt");
-        break;
-    case 7: // Transmission
-        printf("Writing EC corrected Sinogram: %s\n", outfname_sino);
-        sprintf(outfname_hdr, "%s.hdr", outfname_sino);
-        hdr.WriteTag("!name of data file", outfname_sino);
-        for (int i = 0; i < sino_size; i++) {
-            ssino[i] = ssino[i] - mock[i];
-            if (ssino[i] < 0) ssino[i] = 0;
-        }
-        if (fwrite(sino, sino_size, elem_size, out) == elem_size) {
-            hdr.WriteFile(outfname_hdr);
-        } else {
-            printf("Error writing %s\n", outfname_sino);
-            write_error++;
-        }
-        break;
-    }
+  // Log message and write second data filename
+  if (g_elem_size == ELEM_SIZE_SHORT && write_error == 0)
+    switch (g_hist_mode) {
+    case HISTOGRAM_MODE::PRO_RAN: // Prompts and delayed: trues is second if short type
+      g_out_fname_hdr = fmt::format("{}.hdr", g_out_fname_tr);
+      t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_out_fname_tr);
+      t_hdr.WriteChar(CHeader::SINOGRAM_DATA_TYPE, "true");
+      // convert span3 prompt sinogram to span9 and substract delayed
 
-    // Write data
-    if (count != (int)elem_size) {
-        printf("Error writing file\n");
+      for (int i = 0; i < t_sino_size; i++)
+        ssino[i] =  ssino[i] - delayed[i];
+      if (g_span == 3) {
+        LOG_INFO("Converting true t_sino to span9");
+        convert_span9(ssino, g_max_rd, 104);
+        t_hdr.WriteInt(CHeader::AXIAL_COMPRESSION, 9);
+        t_hdr.WriteInt(CHeader::MATRIX_SIZE_3, NUM_SINOS[9]);
+      }
+      LOG_INFO("Writing Trues Sinogram: {}", g_out_fname_tr);
+      // if (fwrite(ssino, g_span == 3 ? span9_sino_size : t_sino_size, g_elem_size, g_out_true_sino) == g_elem_size) {
+      g_out_true_sino.write(reinterpret_cast<char *>(ssino), g_span == 3 ? span9_sino_size * g_elem_size : t_sino_size * g_elem_size);
+      if (g_out_true_sino.good()) {
+        t_hdr.WriteFile(g_out_fname_hdr);
+      } else {
+        LOG_ERROR("Error writing {}", g_out_fname_tr);
         write_error++;
-    }
-    if (!write_error) hdr.WriteFile(outfname_hdr);
-
-    // Log message and write second data filename
-    if (elem_size == 2 && write_error == 0) switch (hist_mode) {
-        case 1: // Prompts and delayed: trues is second if short type
-            sprintf(outfname_hdr, "%s.hdr", outfname_tr);
-            hdr.WriteTag("!name of data file", outfname_tr);
-            hdr.WriteTag("sinogram data type", "true");
-            // convert span3 prompt sinogram to span9 and substract delayed
-            for (i = 0; i < sino_size; i++) ssino[i] =  ssino[i] - delayed[i];
-            if (span == 3) {
-                printf ("Converting true sino to span9\n");
-                convert_span9(ssino, max_rd, 104);
-                hdr.WriteTag("axial compression", 9);
-                hdr.WriteTag("matrix size [3]", nsinos[9]);
-            }
-            printf("Writing Trues Sinogram: %s\n", outfname_tr);
-            if (fwrite(ssino, span == 3 ? span9_sino_size : sino_size, elem_size, out3) == elem_size) {
-                hdr.WriteFile(outfname_hdr);
-            } else {
-                printf("Error writing %s\n", outfname_tr);
-                write_error++;
-            }
-            // Restore span3 header
-            if (span == 3) {
-                hdr.WriteTag("axial compression", 3);
-                hdr.WriteTag("matrix size [3]", nsinos[3]);
-            }
-            break;
-        case 7: // Transmission: EC corrected is second if short type
-            if (out2 != NULL) {
-                printf("Writing Mock Sinogram: %s\n", outfname_mock);
-                sprintf(outfname_hdr, "%s.hdr", outfname_mock);
-                hdr.WriteTag("!name of data file", outfname_mock);
-                if (fwrite(mock, sino_size, elem_size, out2) == elem_size) {
-                    hdr.WriteFile(outfname_hdr);
-                } else {
-                    printf("Error writing %s\n", outfname_mock);
-                    write_error++;
-                }
-                break;
-            }
-        }
-
-    // Log message and write third data filename
-    if (output_ra && write_error == 0 && hist_mode == 1) {
-        printf("Writing Randoms Sinogram: %s\n", outfname_ra);
-        sprintf(outfname_hdr, "%s.hdr", outfname_ra);
-        hdr.WriteTag("!name of data file", outfname_ra);
-        hdr.WriteTag("sinogram data type", "delayed");
-        count = fwrite(delayed, span9_sino_size, elem_size, out2);
-        if (count == (int)elem_size) {
-            hdr.WriteFile(outfname_hdr);
+      }
+      // Restore span3 header
+      if (g_span == 3) {
+        t_hdr.WriteInt(CHeader::AXIAL_COMPRESSION, 3);
+        t_hdr.WriteInt(CHeader::MATRIX_SIZE_3, NUM_SINOS[3]);
+      }
+      break;
+    case HISTOGRAM_MODE::TRA: // Transmission: EC corrected is second if short type
+      if (g_out_ran_sino.is_open()) {
+        LOG_INFO("Writing Mock Sinogram: {}", g_outfname_mock);
+        g_out_fname_hdr = fmt::format("{}.hdr", g_outfname_mock);
+        t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_outfname_mock);
+        // if (fwrite(mock, t_sino_size, g_elem_size, g_out_ran_sino) == g_elem_size) {
+        g_out_ran_sino.write(reinterpret_cast<char *>(mock), t_sino_size * g_elem_size);
+        if (g_out_ran_sino.good()) {
+          t_hdr.WriteFile(g_out_fname_hdr);
         } else {
-            printf("Error writing %s\n", outfname_ra);
-            write_error++;
+          LOG_ERROR("Error writing {}", g_outfname_mock);
+          write_error++;
         }
+        break;
+      }
+    case HISTOGRAM_MODE::TRU:
+    case HISTOGRAM_MODE::PRO:
+      LOG_ERROR("This case {} ({}) should not be called", g_hist_mode, HISTOGRAM_MP::MODES[g_hist_mode]);
+      break;
     }
-    if (write_error) exit(1);
+
+  // Log message and write third data filename
+  if (output_ra && write_error == 0 && g_hist_mode == HISTOGRAM_MODE::PRO_RAN) {
+    LOG_INFO("Writing Randoms Sinogram: {}", g_out_fname_ra);
+    g_out_fname_hdr = fmt::format("{}.hdr", g_out_fname_ra);
+    t_hdr.WritePath(CHeader::NAME_OF_DATA_FILE, g_out_fname_ra);
+    t_hdr.WriteChar(CHeader::SINOGRAM_DATA_TYPE, "delayed");
+    // count = fwrite(delayed, span9_sino_size, g_elem_size, g_out_ran_sino);
+    // if (count == (int)g_elem_size) {
+    g_out_ran_sino.write(reinterpret_cast<char *>(delayed), span9_sino_size * g_elem_size);
+    if (g_out_ran_sino.good()) {
+      t_hdr.WriteFile(g_out_fname_hdr);
+    } else {
+      LOG_ERROR("Error writing {}", g_out_fname_ra);
+      write_error++;
+    }
+  }
+  if (write_error)
+    exit(1);
+}
+
+// Move this to Header.cpp and remove Boost dependency from this translation unit.
+
+static int get_dose_delay(CHeader const &hdr, int &t) {
+  // bt::ptime assay_time, study_time;
+  std::unique_ptr<DateTime> assay_time, study_time;
+  int ret = 1;
+
+  if (hdr.ReadTime(CHeader::DOSE_ASSAY_TIME, assay_time) == CHeaderError::OK ) {
+    if (hdr.ReadTime(CHeader::STUDY_TIME, study_time)  == CHeaderError::OK ) {
+      ret = *study_time - *assay_time;
+    }
+  }
+  return ret;
+}
+
+int do_lmscan() {
+  // transmission tag processing uses parameters that need to be initialized
+  // reset frame duration otherwise lm_reader splits data into frames and waits
+  // for the frame to be written.
+  // strcpy(g_out_fname_hc, g_fname_l64);
+  // // Replace extension by "_lm.hc"
+  // char *ext = strrchr(g_out_fname_hc, '.');
+  // if (ext != nullptr)
+  //   strcpy(ext, "_lm.hc");
+  // else
+  //   strcat(g_out_fname_hc, "_lm.hc");
+
+  // FILE *outfile_hc = fopen(g_out_fname_hc, "w");
+  // if (outfile_hc == nullptr) {
+  //   LOG_ERROR(g_out_fname_hc);
+  //   exit(1);
+  // }
+  // memset(g_frames_duration, 0, sizeof(g_frames_duration));
+
+  g_out_fname_hc = make_file_name(FILE_TYPE::LM_HC);
+  std::ofstream outfile_hc;
+  hrrt_util::open_ostream(outfile_hc, g_out_fname_hc);
+  g_frames_duration.clear();
+
+  start_reader_thread();
+  lmscan(outfile_hc, &scan_duration);
+  outfile_hc.close();
+  //      for (int index = 0; index < duration; index++)
+  //          cout << hc[index].time << " " << hc[index].randoms_rate << " " << hc[index].trues_rate << " " << hc[index].singles << endl;
+  LOG_INFO("Scan Duration = {:d}", scan_duration);
+  return 0;
+}
+
+bf::path make_file_name(FILE_TYPE file_type) {
+  return make_file_name(file_type, g_fname_l64, -1);
 }
 
 /**
- * p39_write_sino:
- * Write sinogram and header to file.
- * Reuse existing listmode header to create sinogram header.
- * Header file name is derived from data file name (data_fname.hdr).
- * Log error and exit when an I/O error is encountered.
+ * @brief      Makes a file name from the input file g_fname_l64
+ * @param[in]  file_type  The file type
+ * @param[in]  frame_no   Optional frame number, when required
+ * @return     String
  */
-static void p39_write_sino(char *sino,  char *b_delayed, int sino_size,
-                           CHeader &p39_mhdr, int frame)
-{
-    // create the output header file
-    CHeader hdr;
-    char *p = NULL;
-    short *ssino = (short *)sino;
-    char *delayed = sino + sino_size * elem_size; // b_delayed==NULL
-    short *mock = (short *)(sino + sino_size * elem_size);
-    char tmp[64];
-    int bucket, num_buckets = 10;
-    char *data_file = strrchr(outfname_p39_em, '\\');
-    if (data_file == NULL) data_file = outfname_p39_em;
-    else data_file++;
+bf::path make_file_name(FILE_TYPE file_type, bf::path stem, int frame_no) {
+  bf::path file_path;
 
-    hdr.WriteTag("image data byte order", "LITTLEENDIAN");
-    hdr.WriteTag("!PET data type", "emission");
-    hdr.WriteTag("%CPS data type", "sinogram subheader");
-    hdr.WriteTag("!name of data file", data_file);
-    hdr.WriteTag("data format", "sinogram");
-    hdr.WriteTag("number format", "signed integer");
-    hdr.WriteTag("!number of bytes per pixel",  2);
-    hdr.WriteTag("number of dimensions", 3);
-    hdr.WriteTag("matrix size [1]", 320);
-    hdr.WriteTag("matrix size [2]", 256);
-    hdr.WriteTag("matrix size [3]", 239);
-    hdr.WriteTag("scale factor (mm/pixel) [1]", 2.2);
-    hdr.WriteTag("scale factor (degree/pixel) [2]", 1.0);
-    hdr.WriteTag("scale factor (mm/pixel) [3]", 2.208);
-    hdr.WriteTag("start horizontal bed position (mm)", 0.0);
-    hdr.WriteTag("start vertical bed position (mm)", 0.0);
-    hdr.WriteTag("number of scan data types", 2);
-    hdr.WriteTag("scan data type description [1]", "prompts");
-    hdr.WriteTag("data offset in bytes [1]", 0);
-    hdr.WriteTag("scan data type description [2]", "randoms");
-    hdr.WriteTag("data offset in bytes [2]", 644710400);
-    hdr.WriteTag("!image duration (sec)", prev_duration + duration[frame]);
-    hdr.WriteTag("image relative start time (sec)", relative_start);
-    hdr.WriteTag("%axial compression", span);
-    hdr.WriteTag("%maximum ring difference", max_rd);
-    hdr.WriteTag("%number of segments", p39_nsegs);
-    hdr.WriteTag("%segment table", p39_seg_table);
-    int decay_time = relative_start + dose_delay;
-    float dcf1 = 1.0f;
-    float dcf2 = 1.0f;
-    if (decay_rate > 0.0) {
-        dcf1 = (float)pow(2.0f, decay_time / decay_rate);
-        //      dcf2 = ((float)log(2.0) * duration[frame]) / (decay_rate * (1.0 - (float)pow(2,-1.0*duration[frame]/decay_rate)));
-        dcf2 = (float)((log(2.0) * duration[frame]) / (decay_rate * (1.0 - pow(2.0f, -1.0f * duration[frame] / decay_rate))));
-    }
-    //  hdr.WriteTag("decay correction factor",dcf1);
-    //  hdr.WriteTag("decay correction factor2",dcf2);
-    //  hdr.WriteTag("frame",frame);
-    hdr.WriteTag("total prompts", total_prompts());
-    hdr.WriteTag("%total randoms", total_randoms());
-    hdr.WriteTag("%Total Net Trues", total_prompts() - total_randoms());
-    int tot_singles = 0;
-    for (bucket = 0; bucket < num_buckets ; bucket++)
-        tot_singles += singles_rate(bucket);
-    hdr.WriteTag("%total uncorrected singles", tot_singles);
-    hdr.WriteTag("%number of bucket-rings ", num_buckets);
-    for (bucket = 0; bucket < num_buckets ; bucket++) {
-        sprintf(tmp, "%%bucket-ring singles[%d]", bucket + 1);
-        hdr.WriteTag(tmp, singles_rate(bucket));
-    }
-    //  hdr.WriteTag("average singles per block",tot_singles/num_buckets);
-    //  hdr.WriteTag("Dead time correction factor",GetDTC(LLD, tot_singles/num_buckets));
+  switch (file_type) {
+  case FILE_TYPE::FR_S: {
+    // File names with frame number.  Need the braces to scope the local variable.
+    std::string frame_part = fmt::format(HISTOGRAM_MP::FILE_EXTENSIONS[file_type], frame_no);
+    file_path = stem.replace_extension(frame_part);
+    break;
+  }
+  case FILE_TYPE::DYN:
+  case FILE_TYPE::HC:
+  case FILE_TYPE::L64_HDR:
+  case FILE_TYPE::LM_HC:
+  case FILE_TYPE::RA_S:
+  case FILE_TYPE::SINO:
+  case FILE_TYPE::SINO_HDR:
+  case FILE_TYPE::TR_S:
+    // File names without frame number
+    file_path = stem.replace_extension(HISTOGRAM_MP::FILE_EXTENSIONS[file_type]);
+    break;
+  } // switch
 
-    // Write Prompts and Random sinogram
-    int count = elem_size, write_error = 0;
-    printf("sinogram size: %d\n", sino_size);
-    printf("element size: %d\n", elem_size);
-    printf("Writing Prompts Sinogram: %s\n", outfname_p39_em);
-    sprintf(outfname_hdr, "%s.hdr", outfname_p39_em);
-    if ((count = fwrite(sino, sino_size, elem_size, out)) == (int)elem_size) {
-        printf("Converting Random Sinogram from byte to short\n");
-        for (int i = 0; i < sino_size; i++) ssino[i] = b_delayed[i];
-        printf("Writing Random Sinogram\n");
-        count = fwrite(sino, sino_size, elem_size, out);
+  LOG_INFO("make_file_name({}): {}", file_type, file_path.string());
+  return file_path;
+}
+
+void init_logging(void) {
+  if (g_logfile.length() == 0) {
+    g_logfile = fmt::format("{}_lmhistogram.log", hrrt_util::time_string());
+  }
+  // g_logger = spdlog::basic_logger_mt("basic_logger", g_logfile);
+}
+
+int open_l64_hdr_file(CHeader &hdr) {
+  int ret = 0;
+  // CHeader *hdr = new CHeader;
+  g_fname_l64_hdr = make_file_name(FILE_TYPE::L64_HDR);
+  if (hdr.OpenFile(g_fname_l64_hdr) != CHeaderError::OK) {
+    LOG_ERROR("header {} not found", g_fname_l64_hdr.string());
+    ret = 1;
+  }
+  return ret;
+}
+
+int check_input_files(void) {
+  int ret{0};
+  if (! bf::is_regular_file(g_fname_l64)) {
+    LOG_ERROR("{}: File not found", g_fname_l64);
+    ret = 1;
+  }
+  return ret;
+}
+
+int set_tx_source_speed(CHeader const &hdr) {
+  string datatype;
+  // for transmission scans, always override span to 0 (segment 0 only)
+  if (hdr.ReadChar(CHeader::PET_DATA_TYPE, datatype) == CHeaderError::OK) {
+    LOG_INFO("Data Type: {}", datatype);
+    // ahc this was failing because of trailing CR on DOS format hdr file.
+    if (datatype == "transmission") {
+      float axial_velocity = 0.0;
+      g_span = 0;
+      g_hist_mode = HISTOGRAM_MODE::TRA;
+      LOG_INFO("Data Type: {}, g_hist_mode: {}", datatype, g_hist_mode);
+      if (hdr.ReadFloat("axial velocity", axial_velocity) == CHeaderError::OK ) {
+        // tx speed=6msec/crystal for axial velocity=100%
+        g_tx_source_speed = 6.25f / axial_velocity / 100.0f;
+        LOG_INFO("Axial velocity = {}, TX source speed = {}", axial_velocity, g_tx_source_speed);
+      }
     }
-    if (count == (int)elem_size) hdr.WriteFile(outfname_hdr);
-    else printf("Error writing %s\n", outfname_p39_em);
-    p39_mhdr.WriteTag("%number of emission data types", 2);
-    p39_mhdr.WriteTag("%emission data type description[1]", "prompts");
-    p39_mhdr.WriteTag("%emission data type description[2]", "randoms");
-    p39_mhdr.WriteTag("%number of transmission data types", 1);
-    p39_mhdr.WriteTag("%transmission data type description[1]", "corrected prompts");
-    p39_mhdr.WriteTag("%DATA SET DESCRIPTION", "");
-    p39_mhdr.WriteTag("!total number of data sets", 2);
-    sprintf(tmp, "{0000000000,%s.hdr,%s}", data_file, data_file);
-    p39_mhdr.WriteTag("%data set [1]", tmp);
-    data_file = strrchr(outfname_p39_tx, '\\');
-    if (data_file == NULL) data_file = outfname_p39_tx;
-    else data_file++;
-    sprintf(tmp, "{1000000000,%s.hdr,%s}", data_file, data_file);
-    p39_mhdr.WriteTag("%data set [2]", tmp);
-    if (nframes == 1) {
-        // one mhdr for EM&TX
-        strcpy(fname_p39_mhdr, outfname_sino);
+  }
+  return 0;
+}
+
+int set_lld(const CHeader &hdr) {
+  if (hdr.ReadInt("lower level", g_lld) != CHeaderError::OK)
+    g_lld = DEFAULT_LLD;
+  LOG_INFO("g_lld: {}", g_lld);
+  return 0;
+}
+
+int set_histogramming_mode(const CHeader &hdr) {
+  int sino_val;
+  if (hdr.ReadInt("Sinogram Mode", sino_val) == CHeaderError::OK) {
+    HISTOGRAM_MODE sino_mode = static_cast<HISTOGRAM_MODE>(sino_val);
+    LOG_INFO("Using Sinogram Mode from header: {}", sino_mode);
+    if ((sino_mode != HISTOGRAM_MODE::TRU) && (g_prev_sino.length() > 0)) {
+      LOG_ERROR("Adding to existing sinogram only supported in Trues mode");
+      exit(1);
+    }
+    g_hist_mode = sino_mode;
+  }
+  return 0;
+}
+
+int set_isotope_halflife(const CHeader &hdr) {
+  float isotope_halflife = 0.0;
+  hdr.ReadFloat("isotope halflife", isotope_halflife);
+  if (isotope_halflife != 0.0) {
+    g_decay_rate = (float)isotope_halflife;
+  } else {
+    LOG_ERROR("No isotope halflife");
+    exit(1);
+  }
+  return 0;
+}
+
+int set_span(CHeader &hdr) {
+  int axial_comp;
+
+  if (hdr.ReadInt(CHeader::AXIAL_COMPRESSION, axial_comp) == CHeaderError::OK ) {
+    if (!g_span_override && axial_comp > 0)
+      g_span = axial_comp;
+    else
+      hdr.WriteInt(CHeader::AXIAL_COMPRESSION, g_span);
+  }
+  return 0;
+}
+
+// set output filename if an input has not been given
+
+int make_output_filename(void) {
+  if (g_out_fname.string().length() == 0) {
+    g_out_fname = make_file_name(FILE_TYPE::SINO);
+    LOG_INFO("g_out_fname: {}", g_out_fname);
+  }
+  if (g_out_fname.string().length() == 0) {
+    LOG_ERROR("No output file name");
+    exit(1);
+  }
+  return 0;
+}
+
+void do_histogram_frame(CHeader &hdr, const int t_frame_no, int &current_time, std::ofstream &t_outfile_dyn) {
+  char *sinogram = nullptr, *bsino = nullptr, *delayed = nullptr;
+  short *ssino = nullptr;
+
+  LOG_INFO("Frame {}", t_frame_no);
+  // output histogram is filename_frameX.s, histogram header is filename_frameX.s.hdr
+  if (g_frames_duration.size() > 1) {
+    g_out_fname_sino = make_file_name(FILE_TYPE::FR_S, g_fname_l64, t_frame_no);
+    fmt::print(t_outfile_dyn, "{}", g_out_fname_sino.string());
+  } else {
+    g_out_fname_sino = make_file_name(FILE_TYPE::SINO);
+  }
+
+  // Create output files; exit if fail
+  create_histogram_files();
+
+  int init_sino_ok;
+  if (is_short()) {
+    init_sino_ok = init_sino<short>(ssino, g_span);
+    sinogram = (char *)ssino;
+  } else {
+    init_sino_ok = init_sino<char>(bsino, g_span);
+    sinogram = bsino;
+  }
+  if (!init_sino_ok) {
+    delete[](sinogram);
+    exit(1);
+  }
+
+  // load previous scan if any
+  if (g_prev_sino.length() > 0) {
+    // Program parameter 'add'
+    int fill_ok;
+    if (is_short()){
+      fill_ok = fill_prev_sino(ssino, g_prev_sino);
     } else {
-        // one mhdr per frame and one mhdr for TX
-        strcpy(fname_p39_mhdr, outfname_p39_em);
+      fill_ok = fill_prev_sino(bsino, g_prev_sino);
     }
-    char *ext = strrchr(fname_p39_mhdr, '.');
-    if (ext != NULL) strcpy(ext, ".mhdr");
-    else strcat(fname_p39_mhdr, ".mhdr");
-    p39_mhdr.WriteFile(fname_p39_mhdr, 1);
+    if (fill_ok == 1) {
+      LOG_ERROR("fill_prev_sino failed");
+      exit(1);
+    }
+    bf::path prev_sino_path = make_file_name(FILE_TYPE::SINO, g_prev_sino, -1);
+    CHeader prev_sino_hdr;
+    prev_sino_hdr.OpenFile(prev_sino_path);
+    prev_sino_hdr.ReadInt("image duration", g_prev_duration);
+    prev_sino_hdr.CloseFile();
+  }
+
+  // Position input stream to time 0 or requested time
+  LOG_INFO("Histogramming Frame {:d} duration = {:d} seconds", t_frame_no, g_frames_duration[t_frame_no]);
+  if (g_skip[t_frame_no] > 0) {
+    int time_pos = g_skip[t_frame_no];
+    if (current_time > 0)
+      time_pos += current_time;
+    if (!goto_event(g_skip[t_frame_no])) {
+      LOG_ERROR("Unable to locate requested time {:d}", time_pos);
+      exit(1);
+    }
+  } else {
+    // skipping events before coincindence processor time reset.
+    if (current_time < 0)
+      if (!goto_event(0)) {
+        LOG_ERROR("Unable to locate time reset");
+        exit(1);
+      }
+  }
+
+  // Histogram the frame
+  if (g_elem_size == ELEM_SIZE_SHORT) {
+    relative_start = histogram<short>(ssino, delayed, g_sinogram_size, g_frames_duration[t_frame_no], g_out_hc);
+  } else {
+    relative_start = histogram<char>(bsino, delayed, g_sinogram_size, g_frames_duration[t_frame_no], g_out_hc);
+  }
+
+  if (relative_start < 0) {
+    // exit if error encountered, error message logged by histogram routine
+    exit(1);
+  }
+
+  if (g_frames_duration[t_frame_no] <= 0) {
+    // should not happen
+    LOG_ERROR("Invalid t_frame_no duration {:d}", g_frames_duration[t_frame_no]);
+    exit(1);
+  }
+
+  // update current time
+  current_time = relative_start + g_frames_duration[t_frame_no];
+  scan_duration += g_frames_duration[t_frame_no];
+
+  // Write sinogram and header files
+  write_sino(sinogram, g_sinogram_size, hdr, t_frame_no);
+  close_files();
+  if (g_hist_mode != HISTOGRAM_MODE::TRA)
+    write_coin_map(g_out_fname_sino);
+  LOG_INFO("Frame time histogrammed = {:d} sec", g_frames_duration[t_frame_no]);
+  delete[] sinogram;
+}  // do_histogram_frame
+
+void create_hrrt_sinogram_header(CHeader &hdr) {
+  std::string sw_build_id = fmt::format("{:s} {:s}", __DATE__, __TIME__);
+
+  // update the header with sinogram info for HRRT
+  hdr.WriteChar(CHeader::ORIGINATING_SYSTEM      , "HRRT");
+  hdr.WritePath(CHeader::NAME_OF_DATA_FILE       , g_out_fname_sino);
+  hdr.WriteInt(CHeader::NUMBER_OF_DIMENSIONS     , 3);
+  hdr.WriteInt(CHeader::MATRIX_SIZE_1            , GeometryInfo::num_projs(GeometryInfo::lr_type_));
+  hdr.WriteInt(CHeader::MATRIX_SIZE_2            , GeometryInfo::num_views(GeometryInfo::lr_type_));
+  hdr.WriteInt(CHeader::MATRIX_SIZE_3            , GeometryInfo::lr_type_ == GeometryInfo::LR_Type::LR_0 ? NUM_SINOS[g_span] : LR_NSINOS[g_span]);
+  hdr.WriteChar(CHeader::DATA_FORMAT             , "sinogram");
+  hdr.WriteChar(CHeader::NUMBER_FORMAT           , "signed integer");
+  hdr.WriteInt(CHeader::NUMBER_OF_BYTES_PER_PIXEL, (int)g_elem_size);
+  hdr.WriteChar(CHeader::LMHISTOGRAM_VERSION     , sw_version);
+  hdr.WriteChar(CHeader::LMHISTOGRAM_BUILD_ID    , sw_build_id);
+  hdr.WriteChar(CHeader::HISTOGRAMMER_REVISION   , "2.0");
+  hdr.WriteFloat(CHeader::SCALING_FACTOR_1       , 10.0f * GeometryInfo::binsize_); // cm to mm
+  hdr.WriteInt(CHeader::SCALING_FACTOR_2         , 1); // angle
+  hdr.WriteFloat(CHeader::SCALING_FACTOR_3       , 10.0f * GeometryInfo::plane_sep_); // cm to mm
 }
 
-inline int extract_date(const char *str, struct tm &tm)
-{
-    int ret = 0;
-    printf("extract date %s\n", str);
-    if (sscanf(str, "%d:%d:%d", &tm.tm_mday, &tm.tm_mon, &tm.tm_year) == 3) {
-        printf("%d:%d:%d\n", tm.tm_mday, tm.tm_mon, tm.tm_year);
-        // "12:00:00 AM" = unknown date
-        if (tm.tm_year > 1900) {
-            tm.tm_year -= 1900;
-            tm.tm_mon -= 1;
-            ret = 1;
-            tm.tm_isdst = -1; // don't use daylight saving
-        }
-    }
-    return ret;
+// create the .dyn dynamic description file from out_fname if this is a dynamic study
+
+std::ofstream create_outfile_dyn(void) {
+  std::ofstream outfile_dyn;
+  if (g_frames_duration.size() > 1) {
+    const bf::path outfname_dyn = make_file_name(FILE_TYPE::DYN);
+    hrrt_util::open_ostream(outfile_dyn, outfname_dyn);
+    fmt::print(outfile_dyn, "{:d}", g_frames_duration.size());
+  }
+  return outfile_dyn;
 }
 
-inline int extract_time(const char *str, struct tm &tm)
-{
-    int ret = 0;
-    tm.tm_isdst = -1; // don't use daylight saving
-    if (sscanf(str, "%d:%d:%d", &tm.tm_hour, &tm.tm_min, &tm.tm_sec) == 3)
-        ret = 1;
-    return ret;
+void do_find_start_countrate(void) {
+  // Check start countrate and set first frame skip
+  if (start_countrate_ > 0) {
+    int skip_msec = find_start_countrate(g_fname_l64);
+    if (skip_msec > 0) {
+      g_skip[0] = skip_msec / 1000; //msec
+      LOG_INFO("{:d} sec will be skipped to start with start_countrate {}", g_skip[0], start_countrate_);
+    }
+  }
 }
 
-static int get_dose_delay(CHeader &hdr, int &t)
-{
-    struct tm tm;
-    time_t t0, t1;
-    char buf[80];
-    if (hdr.Readchar("dose assay date (dd:mm:yryr)", buf, sizeof(buf)) != 0 || !extract_date(buf, tm))
-        return 0;
-    if (hdr.Readchar("dose assay time (hh:mm:ss)", buf, sizeof(buf)) != 0 || !extract_time(buf, tm))
-        return 0;
-    t0 = mktime(&tm);
-    if (hdr.Readchar("study date (dd:mm:yryr)", buf, sizeof(buf)) != 0 || !extract_date(buf, tm))
-        return 0;
-    if (hdr.Readchar("study time (hh:mm:ss)", buf, sizeof(buf)) != 0 || !extract_time(buf, tm))
-        return 0;
-    t1 = mktime(&tm);
-    if (t1 <= t0) return 0;
-    t = (int)(t1 - t0);
-    return 1;
+// Call init_rebinner, but retain values of g_span and g_max_rd
+
+void do_init_rebinner(CHeader &hdr) {
+  int span_bak = g_span;
+  int rd_bak = g_max_rd;
+  LM_Rebinner::init_rebinner(g_span, g_max_rd);
+  hdr.WriteInt(CHeader::LM_REBINNER_METHOD, (int)eg_rebinner_method);
+  hdr.WriteInt(CHeader::AXIAL_COMPRESSION, g_span);
+  hdr.WriteInt(CHeader::MAXIMUM_RING_DIFFERENCE, g_max_rd);
+  g_span = span_bak;
+  g_max_rd = rd_bak;
 }
 
-// Current time formating
-inline void format_NN(int n, char *out)
-{
-    if (n < 10) sprintf(out, "0%d", n);
-    else sprintf(out, "%d", n);
+void do_histogramming(CHeader &hdr) {
+  make_output_filename();
+  set_lld(hdr);
+  set_histogramming_mode(hdr);
+  set_isotope_halflife(hdr);
+  get_dose_delay(hdr, g_dose_delay);
+  set_span(hdr);
+  create_hrrt_sinogram_header(hdr);
+  do_init_rebinner(hdr);
+  do_find_start_countrate();
+  std::ofstream outfile_dyn = create_outfile_dyn();
+
+  // LOG_INFO("using rebinner LUT {}", LM_Rebinner::rebinner_lut_file);
+  LOG_INFO("Span: {}", g_span);
+  LOG_INFO("Mode: %s", HISTOGRAM_MP::MODES[g_hist_mode]);
+
+  //start reader and rebinner threads
+  start_reader_thread();
+  start_rebinner_thread();        // start lm64_rebinner thread  and wait until ready
+
+  int current_time{ -1};
+  for (unsigned int frame_no = 0; frame_no < g_frames_duration.size(); frame_no++) {  
+    do_histogram_frame(hdr, frame_no, current_time, outfile_dyn);
+  }
+  if (g_frames_duration.size() > 1) {
+    outfile_dyn.close();
+    LOG_INFO("Total time histogrammed = {:d} secs", current_time);
+  }
+  // complete the main data files
+  // free(sinogram);
+  delete[] g_p_coinc_map;
+  delete[] g_d_coinc_map;
 }
 
-static const char *my_current_time()
-{
-    static char time_str[20];
-    time_t now;
-    time(&now);
-    struct tm *ptm = localtime(&now);
-    format_NN((1900 + ptm->tm_year) % 100, time_str);
-    format_NN(ptm->tm_mon + 1, time_str + 2);
-    format_NN(ptm->tm_mday, time_str + 4);
-    format_NN(ptm->tm_hour, time_str + 6);
-    format_NN(ptm->tm_min, time_str + 8);
-    format_NN(ptm->tm_sec, time_str + 10);
-    return time_str;
+bool is_short(void) {
+  return (g_elem_size == ELEM_SIZE_SHORT);
 }
 
-void log_message(const char *msg, int type)
-{
-    FILE *fp = log_fp != NULL ? log_fp : stdout;
-    switch (type) {
-    case 0:
-        fprintf(fp, "%s\tInfo   \t%s\n", my_current_time(), msg);
-        break;
-    case 1:
-        fprintf(fp, "%s\tWarning\t%s\n", my_current_time(), msg);
-        break;
-    case 2:
-        fprintf(fp, "%s\tError  \t%s\n", my_current_time(), msg);
-        break;
-    }
-    if (log_fp != NULL) fflush(log_fp);
-}
+int main(int argc, char *argv[]) {
+  CHeader hdr;
 
+  parse_boost(argc, argv);
+  init_logging();
+  validate_arguments();
+  if (check_input_files())
+    exit(1);
+  if (open_l64_hdr_file(hdr))
+    exit(1);
+  set_tx_source_speed(hdr);
+  read_framing(hdr);
 
-int main(int argc, char *argv[])
-{
-    int frame = 0;
-    int count = 0, multi_spec[2];
-    char *sinogram = NULL, *bsino = NULL, *delayed = NULL;
-    short *ssino = NULL;
-    int current_time = -1;
-    char *cptr = NULL;
-    char datatype[32];
-    CHeader hdr;
-    char msg[FILENAME_MAX];
+  if (g_do_scan) {
+    do_lmscan();
+  } else {
+    do_histogramming(hdr);
+  }
 
-
-    sprintf(sw_build_id, "%s %s", __DATE__, __TIME__);
-    parse_valid(argc, argv);
-
-    // Create log file
-
-    if (log_fname != NULL) log_fp = fopen(log_fname, "a+"); // create or append to log file
-
-    // set input header filename
-    strcpy(in_fname_hdr, in_fname);
-    strcat(in_fname_hdr, ".hdr");
-    sprintf(msg, "%s %s", argv[0], in_fname);
-    log_message(msg);
-    if (access(in_fname, 4) != 0) {
-        sprintf(msg, "%s: File not found", in_fname);
-        log_message(msg, 2);
-        return 1;
-    }
-    if (hdr.OpenFile(in_fname_hdr) == 1) {
-        sprintf(msg, "Using header: [%s]", in_fname_hdr);
-        log_message(msg);
-        hdr.CloseFile();
-    } else {
-        sprintf(msg, "header [%s] not found", in_fname_hdr);
-        log_message(msg);
-    }
-
-    int num_cpus = get_num_cpus();
-    if (num_cpus > MAX_THREADS)
-        num_cpus = MAX_THREADS; // workaround for dual quadcore bug
-
-    //
-    // for transmission scans, always override span to 0 (segment 0 only)
-    if (!hdr.Readchar("!PET data type", datatype, 32)) {
-        cout << "Data Type: '" << datatype << "'" << endl;
-				// ahc this was failing because of trailing CR on DOS format hdr file.
-				//        if (strcasecmp(datatype, "transmission") == 0) {
-				cout << "XXX: " << strstr(datatype, "transmission") << endl;
- 				if (strstr(datatype, "transmission")) {
-            float axial_velocity = 0.0;
-            span = 0;
-            hist_mode = 7;
-            cout << "Data Type: " << datatype << ", hist_mode: " << hist_mode << endl;
-            if (hdr.Readfloat("axial velocity", &axial_velocity) == 0) {
-                // tx speed=6msec/crystal for axial velocity=100%
-                float scale_factor = axial_velocity / 100.0f;
-                tx_source_speed = 6.25f / scale_factor;
-                cout << "Axial velocity =" << axial_velocity << endl;
-                cout << "Transmission source speed=" << tx_source_speed << " msec/crystal" << endl;
-            }
-        }
-    }
-
-    // Decode frame duration even when creating l32 file to output CH files
-    //
-    if (duration[0] == 0) {
-        // Frame duration not specified at command line; Use header
-        char framedef[256];
-        strcpy(framedef, "");
-        hdr.Readchar("Frame definition", framedef, 256);
-        if (strlen(framedef)) {
-            nframes = 0;
-            cout << "Frame definition: [" << framedef << "]" << endl;
-            cptr = strtok(framedef, ", ");
-            while (cptr) {
-                if (sscanf(cptr, "%d*%d", &multi_spec[0], &multi_spec[1]) == 2) {
-                    if (multi_spec[0] > 0) {
-                        cout << multi_spec[0] << "sec frame  repeated " << multi_spec[1] << endl;
-                        for (count = 0; count < multi_spec[1] && nframes < 256; count++)
-                            duration[nframes++] = multi_spec[0];
-                    } else {
-                        cout << in_fname_hdr << ": Invalid frame specification \"" << cptr << "\"" << endl;
-                        break;
-                    }
-                } else {
-                    if (sscanf(cptr, "%d", &count) == 1 && count > 0) duration[nframes++] = count;
-                    else {
-                        cout << in_fname_hdr << ": Invalid frame specification \"" << cptr << "\"" << endl;
-                        break;
-                    }
-                }
-                cptr = strtok(0, ", ");
-            }
-            cout << "number of frames: " << nframes << endl;
-            // if something went wrong during parsing, set proper defaults
-            if (nframes == 0) {
-                nframes++;
-                duration[0] = 0;
-            }
-        } else
-            cout << "Using commandline frame definition" << endl;
-    }
-
-    if (scan) {
-        // transmission tag processing uses parameters that need to be initialized
-        // reset frame duration otherwise lm_reader splits data into frames and waits
-        // for the frame to be written.
-        strcpy(outfname_hc, in_fname);
-        // Replace extension by "_lm.hc"
-        char *ext = strrchr(outfname_hc, '.');
-        if (ext != NULL)
-            strcpy(ext, "_lm.hc");
-        else
-            strcat(outfname_hc, "_lm.hc");
-        FILE *out_hc = fopen(outfname_hc, "w");
-        if (out_hc == NULL) {
-            perror(outfname_hc);
-            exit(1);
-        }
-        memset(duration, 0, sizeof(duration));
-        start_reader_thread();
-        lmscan(out_hc, &scan_duration);
-        fclose(out_hc);
-
-        //      for (int index = 0; index < duration; index++)
-        //          cout << hc[index].time << " " << hc[index].randoms_rate << " " << hc[index].trues_rate << " " << hc[index].singles << endl;
-
-        cout << "Scan Duration = " << scan_duration << endl;
-    } else {
-        int axial_comp;
-        float isotope_halflife = 0.0;
-        // set output filename if an input has not been given
-        if (strlen(out_fname) == 0) {
-            strcpy(out_fname, in_fname);
-            if (cptr = strrchr(out_fname, '.'))
-                * cptr = '\0';
-            strcat(out_fname, ".s");
-        }
-
-        if (hdr.Readint("lower level", &LLD))
-            LLD = DEFAULT_LLD;
-        cout << "LLD: " << LLD << endl;
-
-        // Build the headers
-        int sino_mode = 0;  // by default use net trues
-        if (!hdr.Readint("Sinogram Mode", &sino_mode)) {
-            cout << "Using Sinogram Mode from header: " << sino_mode << endl;
-            if (sino_mode != 0 && prev_sino != NULL) {
-                cout << "Adding to existing sinogram only supported in Trues mode"  << endl;
-                exit(1);
-            }
-            hist_mode = sino_mode;
-        }
-
-        hdr.Readfloat("isotope halflife", &isotope_halflife);
-        if (isotope_halflife != 0.0)
-            decay_rate = (float)isotope_halflife;
-
-        get_dose_delay(hdr, dose_delay);
-        if (!hdr.Readint("axial compression", &axial_comp)) {
-            if (!span_override && axial_comp > 0)
-                span = axial_comp;
-            else
-                hdr.WriteTag("axial compression", span);
-        }
-
-        // update the header with sinogram info for HRRT
-        // BUT not for P39 where the header contains the main header information
-        if (check_model(model_number, MODEL_HRRT)) {
-            hdr.WriteTag("!originating system"      , "HRRT");
-            hdr.WriteTag("!name of data file"       , outfname_sino);
-            hdr.WriteTag("number of dimensions"     , "3");
-            hdr.WriteTag("matrix size [1]"          , num_projs(LR_type));
-            hdr.WriteTag("matrix size [2]"          , num_views(LR_type));
-            hdr.WriteTag("matrix size [3]"          , LR_type == LR_0 ? nsinos[span] : LR_nsinos[span]);
-            hdr.WriteTag("data format"              , "sinogram");
-            hdr.WriteTag("number format"            , "signed integer");
-            hdr.WriteTag("number of bytes per pixel", (int)elem_size);
-            hdr.WriteTag("!lmhistogram version"     , sw_version);
-            hdr.WriteTag("!lmhistogram build ID"    , sw_build_id);
-            hdr.WriteTag("!histogrammer revision"   , "2.0");
-        }
-
-        if (l64_flag && check_model(model_number, MODEL_HRRT)) {
-            int span_bak = span, rd_bak = max_rd;
-            // ahc: lut_file now passed to init_rebinner instead of finding it there.
-            // init_rebinner(span, max_rd);
-            init_rebinner(span, max_rd, lut_file);
-            sprintf(msg, "using rebinner LUT %s", rebinner_lut_file);
-            log_message(msg);
-
-            hdr.WriteTag("!LM rebinner method", (int)rebinner_method);
-            hdr.WriteTag("axial compression", span);
-            hdr.WriteTag("maximum ring difference", max_rd);
-            span = span_bak; max_rd = rd_bak;
-            hdr.WriteTag("scaling factor (mm/pixel) [1]", 10.0f * m_binsize); // cm to mm
-            hdr.WriteTag("scaling factor [2]", 1); // angle
-            hdr.WriteTag("scaling factor (mm/pixel) [3]", 10.0f * m_plane_sep); // cm to mm
-        }
-
-        cout << "Span: " << span << endl;
-
-        static const char *sino_mode_txt[3] = { "Net Trues", "Prompts & Randoms", "prompts only"};
-        if (hist_mode == 7) 
-            cout << "Mode: Transmission" << endl;
-        else 
-            cout << "Mode: " << sino_mode_txt[hist_mode] << endl;
-
-        // remove the '.s' extension if it exists
-        if (out_fname[strlen(out_fname) - 1] == 's')
-            out_fname[strlen(out_fname) - 2] = '\0';
-
-        // create the output filename with full path stripped.
-        char out_fname_stripped[1024];
-        if (cptr = strrchr(out_fname, '\\'))
-            strcpy(out_fname_stripped, (cptr + 1));
-        else
-            strcpy(out_fname_stripped, out_fname);
-
-        // create the .dyn dynamic description file if this is a dynamic study
-        char outfname_dyn[1024];
-        strcpy(outfname_dyn, out_fname);
-        strcat(outfname_dyn, ".dyn");
-
-        if (nframes > 1) {
-            FILE *fp = fopen(outfname_dyn, "w");
-            if (fp) {
-                fprintf(fp, "%d\n", nframes);
-                fclose(fp);
-            }
-        }
-
-        // Check start countrate and set first frame skip
-        if (start_countrate > 0) {
-            int skip_msec = find_start_countrate(in_fname);
-            if (skip_msec > 0) {
-                skip[0] = skip_msec / 1000; //msec
-                sprintf(msg, "%d sec will be skipped to start with %d trues/sec countrate",
-                        skip[0], start_countrate);
-                log_message(msg);
-            }
-        }
-
-        //start reader and rebinner threads
-        start_reader_thread();
-        if (l64_flag)   start_rebinner_thread();        // start lm64_rebinner thread  and wait until ready
-
-        // process each frame
-        frame = 0;
-        while (frame < nframes) {
-            //
-            // output histogram is filename_frameX.s
-            // output histogram header is filename_frameX.s.hdr
-            //
-            if (nframes > 1) {
-                sprintf(outfname_sino, "%s_frame%d.s", out_fname, frame);
-                FILE *fp = fopen(outfname_dyn, "a");
-                if (fp) {
-                    if (check_model(model_number, MODEL_HRRT)) {
-                        // HRRT
-                        fprintf(fp, "%s_frame%d.s\n", out_fname_stripped, frame);
-                    } else {
-                        //P39
-                        fprintf(fp, "%s_frame%d.mhdr\n", out_fname_stripped, frame);
-                    }
-                    fclose(fp);
-                }
-            } else
-                sprintf(outfname_sino, "%s.s", out_fname);
-
-            // Create output files; exit if fail
-            if (check_model(model_number, MODEL_HRRT)) create_files();
-            else p39_create_files();
-
-            if (elem_size == 2) {
-                if (!init_sino<short>(ssino, delayed, span, prev_sino, prev_duration)) exit(1);
-                sinogram = (char *)ssino;
-            } else {
-                if (!init_sino<char>(bsino, delayed, span, prev_sino, prev_duration)) exit(1);
-                sinogram = bsino;
-            }
-
-
-            // Position input stream to time 0 or requested time
-            cout << "Histogramming Frame " << frame << " duration=" << duration[frame] << " seconds " << endl;
-            if (skip[frame] > 0) {
-                int time_pos = skip[frame];
-                if (current_time > 0) time_pos += current_time;
-                if (!goto_event(skip[frame])) {
-                    cout << "Unable to locate requested time " << time_pos << endl;
-                    exit(1);
-                }
-            } else {
-                // skipping events before coincindence processor time reset.
-                if (current_time < 0)
-                    if (!goto_event(0)) {
-                        cout << "Unable to locate time reset" << endl;
-                        exit(1);
-                    }
-            }
-
-            // Histogram the frame
-            if (elem_size == 2) {
-                relative_start = histogram<short>(ssino, delayed, sinogram_size, duration[frame], out_hc);
-            } else {
-                relative_start = histogram<char>(bsino, delayed, sinogram_size, duration[frame], out_hc);
-            }
-
-            if (relative_start < 0) {
-                // exit if error encountered, error message logged by histogram routine
-                exit(1);
-            }
-
-            if (duration[frame] <= 0) {
-                // should not happen
-                printf("Invalid frame duration %d\n", duration[frame]);
-                exit(1);
-            }
-
-            // update current time
-            current_time = relative_start + duration[frame];
-            scan_duration += duration[frame];
-
-            // Write sinogram and header files
-            if (check_model(model_number, MODEL_HRRT))
-                write_sino(sinogram, sinogram_size, hdr, frame);
-            else
-                p39_write_sino(sinogram, delayed, sinogram_size, hdr, frame);
-            close_files();
-            if (l64_flag && hist_mode != 7)
-                write_coin_map(outfname_sino);
-            if (nframes > 1)
-                sprintf(msg, "Frame time histogrammed = %d sec", duration[frame]);
-            else
-                sprintf(msg, "Time histogrammed = %d sec", duration[frame]);
-            log_message(msg);
-            frame++;
-        }
-        if (nframes > 1) {
-            sprintf(msg, "Total time histogrammed = %d secs", current_time);
-            log_message(msg);
-        }
-        // complete the main data files
-        free(sinogram);
-    }
-    if (L64EventPacket::frame_duration != NULL) {
-        free (L64EventPacket::frame_duration);
-        free (L64EventPacket::frame_skip);
-    }
-    clean_segment_info();
-    return 0;
+  return 0;
 }

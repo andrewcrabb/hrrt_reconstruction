@@ -59,7 +59,7 @@ Purpose B usage:
 #include <stdlib.h>
 #include <string.h>
 #include "frame_info.h"
-#include <ecatx/matrix.h>
+#include <ecatx/ecat_matrix.hpp>
 #include <unistd.h>
 #define		DIR_SEPARATOR '/'
 
@@ -67,7 +67,7 @@ Purpose B usage:
 // ahc
 #include <iostream>
 #include <sys/stat.h>
-#include "hrrt_util.h"
+#include "hrrt_util.hpp"
 
 static char cmd_line[2048];
 static int ref_frame=-1, start_frame=-1, end_frame=-1, num_frames=0;
@@ -483,10 +483,10 @@ int main(int argc, char **argv)
   if (argc<2) usage(argv[0]);
   em_file = argv[1];
   mu_file[0] = '\0';
-  fprintf(stderr, "hello 3?\n");   fflush(stderr);
+  LOG_ERROR("hello 3?\n");   fflush(stderr);
   while ((c = getopt (argc-1, argv+1, "n:r:F:x:D:u:a:L:g:T:R:Odtvp:z:l:")) != EOF) {
-  // fprintf(stderr, "hello 3a? argc %d argv %s\n", argc, argv);   fflush(stderr);
-  // fprintf(stderr, "c is %s\n", c);  fflush(stderr);
+  // LOG_ERROR("hello 3a? argc %d argv %s\n", argc, argv);   fflush(stderr);
+  // LOG_ERROR("c is %s\n", c);  fflush(stderr);
     switch (c) {
       case 'd':
       // No delay to look for reference frame, as scan was delayed after injection
@@ -566,19 +566,19 @@ int main(int argc, char **argv)
       break;
     }
   }
-  fprintf(stderr, "hello 4?\n");   fflush(stderr);
+  LOG_ERROR("hello 4?\n");   fflush(stderr);
 
   // Check required arguments present.
   if (!strlen(program_path)) {
-    fprintf(stderr, "Error: Missing required parameter '-p' (program path)\n");
+    LOG_ERROR("Error: Missing required parameter '-p' (program path)\n");
     usage(argv[0]);
   }
   if (!strlen(prog_gnuplot)) {
-    fprintf(stderr, "Error: Missing required parameter '-z' (FQ path of gnuplot)\n");
+    LOG_ERROR("Error: Missing required parameter '-z' (FQ path of gnuplot)\n");
     usage(argv[0]);
   }
   if (!strlen(recon_pgm)) {
-    fprintf(stderr, "Error: Missing required parameter '-x' (FQ path of recon program)\n");
+    LOG_ERROR("Error: Missing required parameter '-x' (FQ path of recon program)\n");
     usage(argv[0]);
   }
   
@@ -610,10 +610,10 @@ int main(int argc, char **argv)
 
   if (strcasecmp(ext,"v") == 0) {
     // ecat reconstructed .v image file
-    MatrixFile *mf=NULL;
-    MatrixData *matdata;
-    Image_subheader *imh;
-    MatDirNode *node;
+    ecat_matrix::MatrixFile *mf=NULL;
+    ecat_matrix::MatrixData *matdata;
+    ecat_matrix::Image_subheader *imh;
+    ecat_matrix::MatDirNode *node;
     int suggested_ref_frame=-1; // first 5min frame
 
     // Create log file in patient dir
@@ -626,7 +626,7 @@ int main(int argc, char **argv)
     strcpy(em_ecat_file, em_file);
 
     // matrix_open defined in matrix_extra.c    
-    if ((mf=matrix_open(em_file,MAT_READ_ONLY,MAT_UNKNOWN_FTYPE)) == NULL) {
+    if ((mf=matrix_open(em_file,ecat_matrix::MatrixFileAccessMode::READ_ONLY,ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE)) == NULL) {
       fprintf(log_fp, "Error opening %s\n", em_file);
       exit(1);
     }
@@ -635,11 +635,11 @@ int main(int argc, char **argv)
     frame_info.resize(num_frames);
 
     for (frame=0; frame<num_frames && node!=NULL; frame++) {
-      if ((matdata = matrix_read(mf, node->matnum, MAT_SUB_HEADER)) == NULL) {
+      if ((matdata = matrix_read(mf, node->matnum, MatrixData::DataType::MAT_SUB_HEADER)) == NULL) {
         fprintf(log_fp,"Error reading frame %d header\n", frame);
         exit(1);
       }
-      imh = (Image_subheader*)matdata->shptr;
+      imh = (ecat_matrix::Image_subheader*)matdata->shptr;
       frame_info[frame].start_time = imh->frame_start_time / 1000;
       frame_info[frame].duration   = imh->frame_duration / 1000;
       frame_info[frame].randoms    = imh->random_rate * frame_info[frame].duration;

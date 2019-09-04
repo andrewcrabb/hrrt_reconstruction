@@ -8,8 +8,6 @@
 
 */
 
-#ifndef inter_h
-#define inter_h
+# pragma once
 extern float inter(float x1, float y1, float x2, float y2, float r,
 			float *xi, float *yi);
-#endif

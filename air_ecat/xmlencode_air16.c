@@ -17,14 +17,8 @@
  * as xwrite_air16 to use machine independent XDR format.
  */
 #include "ecat2air.h"
-#if defined(_WIN32) && !defined(__CYGWIN__)
-#include <io.h>
-#define stat _stat
-#define access _access
-#define F_OK 0
-#else
 #include	<unistd.h>
-#endif
+
 int xmlencode_air16(const char *outfile, int permission, double **e, int zooming,
                  struct AIR_Air16 *air)
 {

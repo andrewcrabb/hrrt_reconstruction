@@ -11,20 +11,10 @@
     emulate these function calls by 64 bit function calls.
  */
 
-#ifndef _FAST_MATH_H
-#define _FAST_MATH_H
+#pragma once
 
-#if defined(__linux__) && defined(__INTEL_COMPILER)
-                            // Intel's math library contains fast trigonometric
-                            // functions with 32 bit precision
-#include <mathimf.h>
-#else
-#if !defined(__linux__) || !defined(__INTEL_COMPILER)
 #include <cmath>
-#endif
 
-                                     // MacOS X and Solaris use GNU C++ instead
-#if defined(__MACOSX__) || defined(__SOLARIS__) || defined(__linux__)
                         // define trigonometric functions with 32 bit precision
                         // based on 64 bit precision functions
 #define acosf(a)    (float)acos((double)a)                   /*!< arc cosine */
@@ -39,7 +29,3 @@
 #define sinf(a)     (float)sin((double)a)                          /*!< sine */
 #define sqrtf(a)    (float)sqrt((double)a)                  /*!< square root */
 #define tanf(a)     (float)tan((float)a)                        /*!< tangent */
-#endif
-#endif
-
-#endif

@@ -1469,17 +1469,17 @@ void SinogramConversion::shuffleTOFdata(const bool shuffle_data,
       resizeIndexVec(s, axes());
      for (unsigned short int axis=0; axis < axes(); axis++)
       { unsigned short int idx;
-        float *fptr;
+        float *float_ptr;
 
         idx=data[0][axis];
-        fptr=MemCtrl::mc()->getFloatRO(idx, loglevel);
+        float_ptr=MemCtrl::mc()->getFloatRO(idx, loglevel);
         for (s=0; s < TOFbins(); s++)
          { float *dptr;
 
            dptr=MemCtrl::mc()->createFloat(axis_size[axis]/TOFbins(),
                                            &data[s][axis], "emis", loglevel);
            for (unsigned long int i=0; i < axis_size[axis]/TOFbins(); i++)
-            dptr[i]=fptr[i*TOFbins()+s];
+            dptr[i]=float_ptr[i*TOFbins()+s];
            MemCtrl::mc()->put(data[s][axis]);
          }
         MemCtrl::mc()->put(idx);

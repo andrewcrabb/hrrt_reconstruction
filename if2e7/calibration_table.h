@@ -4,8 +4,7 @@
     \author Merence Sibomana (sibomana@gmail.com)
     \date 2008/10/06 initial version
  */
-#ifndef CALIBRATION_H                                                                                                                                                                                                
-#define CALIBRATION_H
+# pragma once
 
 #include <sys/types.h>
 #include <time.h>
@@ -19,5 +18,3 @@ const char *calibration_find(int year, int mon, int day,
 
         /*! free table memory allocated by calibration_load */
 int calibration_clear();
-
-#endif

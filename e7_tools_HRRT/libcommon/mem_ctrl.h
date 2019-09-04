@@ -12,8 +12,7 @@
     \date 2005/03/29 log swapping times
  */
 
-#ifndef _MEM_CTRL_H
-#define _MEM_CTRL_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -166,10 +165,3 @@ class MemCtrl
     void setSwappingPath(const std::string);      // change path for swap files
     std::string swappingPath() const;            // request path for swap files
  };
-
-#ifndef _MEM_CTRL_CPP
-#define _MEM_CTRL_TMPL_CPP
-#include "mem_ctrl.cpp"
-#endif
-
-#endif

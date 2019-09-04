@@ -74,7 +74,7 @@ function det_to_cmplx,det,doi
 /* det_to_cmplx C++ implementation :  Merence Sibomana 09/03             */
 /************************************************************************/
 #define SQRT_2 0.707107f
-#define M_PI 3.14159265358979323846
+
 #include <complex>
 #include <vector>
 #include <math.h>

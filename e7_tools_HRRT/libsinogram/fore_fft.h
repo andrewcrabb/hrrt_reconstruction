@@ -6,8 +6,7 @@
     \date 2005/01/20 added Doxygen style comments
  */
 
-#ifndef _FORE_FFT_H
-#define _FORE_FFT_H
+#pragma once
 
 #include "fft.h"
 
@@ -30,4 +29,3 @@ class FORE_FFT
                      const unsigned short int) const;
  };
 
-#endif

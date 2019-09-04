@@ -1,6 +1,6 @@
 /* static char sccsid[] = "@(#)matpkg.h	1.2 UCL-TOPO 99/08/16"; */
-#ifndef matpkg_h_defined
-#define matpkg_h_defined
+# pragma once
+
 #include <math.h>
 
 typedef struct matrix
@@ -46,5 +46,3 @@ void mat_apply(Matrix a, float *x1, float *x2);
 void mat_free(Matrix);
 Vol3d make3d_volume();
 Stack3d make3d_stack();
-
-#endif /* matpkg_h_defined */

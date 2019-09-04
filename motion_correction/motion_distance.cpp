@@ -12,7 +12,7 @@
 // Current AIR 5.3.0 is 2011, so set -I in CMake to AIR src dir.
 // #include <AIR/AIR.h>
 #include <AIR.h>
-#include <ecatx/matrix.h>
+#include <ecatx/ecat_matrix.hpp>
 #include <ecatx/matpkg.h>
 #include <unistd.h>
 
@@ -33,7 +33,7 @@ inline int mat_decode(const char *s, float *f)
 
 static void usage(const char *pgm)
 {
-  fprintf(stderr, "%s Build %s %s \n", pgm, __DATE__, __TIME__);
+  LOG_ERROR("%s Build %s %s \n", pgm, __DATE__, __TIME__);
   fprintf(stderr,
     "usage: %s [-t transf | -a air | -M affine] [-i mu-map -o distance_map]\n", pgm);
   fprintf(stderr,
@@ -66,13 +66,13 @@ static void q2m(float *q, float *t, float *m)
 
 static char line[1024];
 
-static void matrix_float(MatrixData *matrix)
+static void matrix_float(ecat_matrix::MatrixData *matrix)
 {
 	float scalef, *fdata;
 	short *sdata;
   int i, np = matrix->xdim*matrix->ydim*matrix->zdim;
 
-	matrix->data_type = IeeeFloat;
+	matrix->data_type = MatrixData::DataType::IeeeFloat;
 	fdata = (float*)calloc(np,sizeof(float));
 	sdata = (short*)matrix->data_ptr;
 	scalef = matrix->scale_factor;
@@ -94,9 +94,9 @@ void  main(int argc, char **argv)
   char *air_file = NULL, *minc_file=NULL;
   struct AIR_Air16 air_16;
   char reslice_file[FILENAME_MAX];
-  MatrixFile *mptr=NULL;
-  MatrixData *matrix=NULL;
-  Image_subheader *imh=NULL;
+  ecat_matrix::MatrixFile *mptr=NULL;
+  ecat_matrix::MatrixData *matrix=NULL;
+  ecat_matrix::Image_subheader *imh=NULL;
   int matnum=0, frame_start_time=0;
   int i,j,x,y,yrev,z,err_flag=0;
   FILE *fp=NULL;
@@ -138,7 +138,7 @@ void  main(int argc, char **argv)
         //mat_print(tm);
         y_reverse = 1;
       } else {
-        fprintf(stderr, "Invalid -M argument %s\n", optarg);
+        LOG_ERROR("Invalid -M argument %s\n", optarg);
         err_flag++;
       }
       break;
@@ -167,11 +167,11 @@ void  main(int argc, char **argv)
   {
     AIR_read_air16(air_file, &air_16);
     matspec(air_16.r_file, reslice_file, &matnum);
-    if ((mptr=matrix_open(reslice_file,MAT_READ_ONLY, MAT_UNKNOWN_FTYPE)) != NULL)
+    if ((mptr=matrix_open(reslice_file,ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE)) != NULL)
     {
-      if ((matrix=matrix_read( mptr, matnum, MAT_SUB_HEADER)) != NULL)
+      if ((matrix=matrix_read( mptr, matnum, MatrixData::DataType::MAT_SUB_HEADER)) != NULL)
       {
-        imh = (Image_subheader*)matrix->shptr;
+        imh = (ecat_matrix::Image_subheader*)matrix->shptr;
         frame_start_time = imh->frame_start_time/1000;
         free_matrix_data(matrix);
       }
@@ -257,14 +257,14 @@ void  main(int argc, char **argv)
   float dy = (x2[1]-x1[1])*c_size;
   float dz = (x2[2]-x1[2])*c_size;
   float d = sqrt(dx*dx + dy*dy + dz*dz);
-  if (verbose) fprintf(stderr, "Motion point (%g,%g,%g) vector (%4.3g,%4.3g,%4.3g) amplitude %4.3g mm\n",
+  if (verbose) LOG_ERROR("Motion point (%g,%g,%g) vector (%4.3g,%4.3g,%4.3g) amplitude %4.3g mm\n",
     x1[0], x1[1], x1[2], dx, dy, dz, d);
   printf("%d %4.3g %4.3g %4.3g %4.3g \n", frame_start_time, dx, dy, dz, d);
   if (in_file == NULL) {
     if (verbose) printf("done\n");
     exit(0);
   }
-  if ((mptr=matrix_open(in_file,MAT_READ_ONLY, MAT_UNKNOWN_FTYPE)) == NULL) {
+  if ((mptr=matrix_open(in_file,ecat_matrix::MatrixFileAccessMode::READ_ONLY, ecat_matrix::MatrixFileType_64::UNKNOWN_FTYPE)) == NULL) {
     matrix_perror(in_file);
     exit(1);
   }
@@ -278,7 +278,7 @@ void  main(int argc, char **argv)
       matrix->data_max, MAX_MU_VALUE);
     exit(1);
   }
-  if (matrix->data_type != IeeeFloat) matrix_float(matrix);
+  if (matrix->data_type != MatrixData::DataType::IeeeFloat) matrix_float(matrix);
   float *fdata = (float*)matrix->data_ptr;
   int nvoxels = matrix->xdim*matrix->xdim*matrix->zdim;
   //short *dmap = (short*)calloc(nvoxels, sizeof(short));

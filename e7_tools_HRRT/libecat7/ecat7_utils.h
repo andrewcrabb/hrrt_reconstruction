@@ -5,8 +5,7 @@
     \date 2005/01/17 added Doxygen style comments
  */
 
-#ifndef _ECAT7_UTILS_H
-#define _ECAT7_UTILS_H
+#pragma once
 
 /*- exported functions ------------------------------------------------------*/
 
@@ -49,5 +48,3 @@ void utils_View2Volume(void * const, const unsigned short int,
 void utils_Volume2View(void * const, const unsigned short int,
                        const unsigned short int, const unsigned short int,
                        const unsigned short int * const);
-
-#endif

@@ -8,7 +8,7 @@
 #include <gen_delays_lib/lor_sinogram_map.h>
 #include <gen_delays_lib/segment_info.h>
 #include <gen_delays_lib/geometry_info.h>
-#include <gen_delays_lib/gen_delays.h>
+#include <gen_delays_lib/gen_delays_lib.hpp>
 #include "rotation_dwell_sino.h"
 
 #define MAX_LEN 256
@@ -28,12 +28,8 @@ static const char *r_file = "radius.dat";
 static const char *off_file = "offset_amplitude.dat";
 static const char *offd_file = "offset_direction.dat";
 
-#ifdef WIN32
-#define SEPARATOR '\\'
-#else
 #define _MAX_PATH 256
 #define SEPARATOR '/'
-#endif
 
 struct RotationParam
 {

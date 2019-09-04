@@ -6,14 +6,10 @@
     \date 2005/03/17 added bufferDeleted() method
  */
 
-#ifndef _STREAM_BUFFER_H
-#define _STREAM_BUFFER_H
+#pragma once
 
 #include <cstring>
 #include <string>
-#ifdef WIN32
-#include "exception.h"
-#endif
 
 /*- class definitions -------------------------------------------------------*/
 
@@ -52,10 +48,3 @@ class StreamBuffer
     template <typename T>                               // write data to buffer
      void writeData(const T * const , const unsigned long int);
  };
-
-#ifndef _STREAM_BUFFER_CPP
-#define _STREAM_BUFFER_TMPL_CPP
-#include "stream_buffer.cpp"
-#endif
-
-#endif

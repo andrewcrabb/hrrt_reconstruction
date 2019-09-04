@@ -19,14 +19,8 @@
 #include <iostream>
 #include <cstring>
 #include <algorithm>
-#ifndef _REBIN_X_CPP
-#define _REBIN_X_CPP
 #include "rebin_x.h"
-#endif
 #include "fastmath.h"
-#ifdef WIN32
-#include "global_tmpl.h"
-#endif
 #include "vecmath.h"
 
 /*- methods -----------------------------------------------------------------*/

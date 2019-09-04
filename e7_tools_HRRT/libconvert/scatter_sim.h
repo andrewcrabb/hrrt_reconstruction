@@ -6,8 +6,7 @@
     \date 2005/02/08 added Doxygen style comments
  */
 
-#ifndef _SCATTER_SIM_H
-#define _SCATTER_SIM_H
+#pragma once
 
 #include "e7_tools_const.h"
 
@@ -133,10 +132,8 @@ class ScatterSim
                     float * const) const;
                                   // calculate table of detection probabilities
     float *detector_eff(const float, const float) const;
-#ifdef WIN32
                            // approximation of the complementary error function
     float erfc(const float) const;
-#endif
                                            // 3x3x3 median filter for one voxel
     float median3(const float * const, const unsigned short int,
                   const unsigned short int, const unsigned short int) const;
@@ -171,4 +168,3 @@ class ScatterSim
                            unsigned short int, const unsigned short int);
  };
 
-#endif

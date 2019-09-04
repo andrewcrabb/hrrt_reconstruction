@@ -16,19 +16,11 @@
   16-Oct-2009: Changed geometric file windows directory to c:\cps\users_sw
 */
 #include <math.h>
-#ifndef M_PI
-#define M_PI        3.14159265358979323846
-#endif
 #define NUM_ANGLES 70
 #define NUM_DISCRETE_ANGLES 14
 #define LINE_SIZE 80
-#ifdef WIN32
-#define SEPARATOR '\\'
-#define INSTALL_DIR "c:\\cps\\users_sw"
-#else
 #define SEPARATOR '/'
 #define _MAX_PATH 256
-#endif
 #include "get_gs.h"
 #include "gr_ga.h"
 #include <string.h>
@@ -135,9 +127,6 @@ int get_gs(const char *geom_fname, FILE *log_fp)
   */
   if (geom_fname == NULL)
     {	// default geometry file
-#ifdef WIN32
-      sprintf(path,"%s%c%s", INSTALL_DIR, SEPARATOR, default_geom_fname);
-#else
       char *gmini_dir = getenv("GMINI");
       if (gmini_dir == NULL) 
 	{
@@ -147,7 +136,6 @@ int get_gs(const char *geom_fname, FILE *log_fp)
 	{
 	  sprintf(path,"%s%c%s", gmini_dir, SEPARATOR, default_geom_fname);
 	}
-#endif
     } 
   else strcpy(path, geom_fname);
 
@@ -257,15 +245,15 @@ int get_gs(const char *geom_fname, FILE *log_fp)
 	    {
 	      lai =  la[i]==0?1:0;
 	      ii = ha[j]*NLAYERS*NXCRYS*NYCRYS + lai*NXCRYS*NYCRYS + k*NYCRYS;
-	      x1 = m_crystal_xpos[ii];
-	      y1 = m_crystal_ypos[ii];
+	      x1 = GeometryInfo::crystal_xpos_[ii];
+	      y1 = GeometryInfo::crystal_ypos_[ii];
 
 	      for (l=0; l<NXCRYS; l++)
 		{
 		  lbi =  lb[i]==0?1:0;
 		  jj = hb[j]*NLAYERS*NXCRYS*NYCRYS + lbi*NXCRYS*NYCRYS + l*NYCRYS;
-		  x2 = m_crystal_xpos[jj];
-		  y2 = m_crystal_ypos[jj];
+		  x2 = GeometryInfo::crystal_xpos_[jj];
+		  y2 = GeometryInfo::crystal_ypos_[jj];
 
 		  // Crystal a transaxial position
 		  xx1 = cos(primary[ha[j]])*x1 - sin(primary[ha[j]])*y1;
@@ -339,12 +327,12 @@ int get_gs(const char *geom_fname, FILE *log_fp)
 	      jj = hb[j]*NLAYERS*NXCRYS*NYCRYS + lbi*NXCRYS*NYCRYS + k*NYCRYS;
 	      for (l=0; l<NYCRYS; l++)
 		{
-		  z2 = m_crystal_zpos[jj+l];
-		  y2 = m_crystal_ypos[jj+l];
+		  z2 = GeometryInfo::crystal_zpos_[jj+l];
+		  y2 = GeometryInfo::crystal_ypos_[jj+l];
 		  for (m=0; m<NYCRYS; m++)
 		    {
-		      z1 = m_crystal_zpos[ii+m];
-		      y1 = m_crystal_ypos[ii+m];
+		      z1 = GeometryInfo::crystal_zpos_[ii+m];
+		      y1 = GeometryInfo::crystal_ypos_[ii+m];
 		      theta1 = atan((z2-z1)/fabs(y2-y1));
 		      // angle1 = (int)(0.5+fabs(theta1*cvtrad));
 		      angle1 = (int)(fabs(theta1*cvtrad));

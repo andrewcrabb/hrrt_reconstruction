@@ -5,11 +5,7 @@
 //** © CPS Innovations
 
 #include <iostream>
-#if defined(__linux__) && defined(__INTEL_COMPILER)
-#include <mathimf.h>
-#else
 #include <cmath>
-#endif
 #ifndef _GLOBAL_TMPL_CPP
 #define _GLOBAL_TMPL_CPP
 #include "global_tmpl.h"

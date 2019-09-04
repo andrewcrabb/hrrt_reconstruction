@@ -6,8 +6,7 @@
     \date 2005/02/08 added Doxygen style comments
  */
 
-#ifndef _SINO2D_3D_H
-#define _SINO2D_3D_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -92,4 +91,3 @@ class Sino2D_3D
                     const std::string, const unsigned short int);
  };
 
-#endif

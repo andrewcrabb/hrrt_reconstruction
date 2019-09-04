@@ -4,6 +4,7 @@ set (LIB_INCLUDE_DIRS
 	${CMAKE_SOURCE_DIR}/AIR5.3.0/src
 	)
 
+message("CMAKE_SOURCE_DIR is ${CMAKE_SOURCE_DIR}")
 find_library (LIBRPW   NAME RPW    PATHS "${CMAKE_SOURCE_DIR}/AIR5.3.0/src")
 
 # add_definitions(-std=gnu99)
@@ -21,4 +22,5 @@ endforeach(EXECUTABLE)
 
 install(TARGETS motion_qc motion_correct_recon MAF_join sino_transform
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    # PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)

@@ -90,22 +90,6 @@ Progress *Progress::arg(T param)
  }
 
 #ifndef _PROGRESS_TMPL_CPP
-#ifdef WIN32
-/*---------------------------------------------------------------------------*/
-/*! \brief Fill GUID into progress message.
-    \param[in] param   GUID to fill into progress message
-    \return pointer to progress object
-
-    Fill GUID into progress message.
- */
-/*---------------------------------------------------------------------------*/
-Progress *Progress::arg(GUID param)
- { OLECHAR gstr[128];
-
-   ::StringFromGUID2(param, gstr, 128);
-   return(arg(std::string((LPCTSTR)CString(gstr))));
- }
-#endif
 
 /*---------------------------------------------------------------------------*/
 /*! \brief Delete instance of object.
@@ -116,12 +100,7 @@ Progress *Progress::arg(GUID param)
 void Progress::close()
  { if (instance != NULL)
     { instance->sendMsg(0, 0, "end");
-#ifdef WIN32
-      Sleep(1);
-#endif
-#if defined(__linux__) || defined(__SOLARIS__) || defined(__MACOSX__)
       sleep(1);
-#endif
       delete instance;
       instance=NULL;
     }

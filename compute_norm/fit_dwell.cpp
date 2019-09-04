@@ -57,8 +57,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include "my_spdlog.hpp"
 
-#define M_PI 3.14159265358979323846
 
 static  void sino_rebin(float *sino, float *rsino, int nelemsr, int nviewsr)
 {
@@ -237,7 +237,7 @@ static int oplot(const char *filename, double *parms1, double *parms2, int nplns
 	FILE *fp = fopen(filename,"wb");
 	if (fp == NULL) 
 	{
-		fprintf(stderr,"%s : error creating file\n", filename);
+		LOG_EXIT("error creating file\n", filename);
 		return 0;
 	}
 	fprintf(fp,"# %s\n", title);
@@ -262,7 +262,7 @@ float *fit_dwell(short *vsino, int full_nplns)
 	// First we'll compress in the axial direction then take out
 	// the bucket dependent sensitivities.
 	//
-	if (qc_flag) printf("Rebinning sinogram in z direction from %d to %d\n", full_nplns, nplns);
+	if (qc_flag) LOG_INFO("Rebinning sinogram in z direction from %d to %d\n", full_nplns, nplns);
 
 	// IDL: c_sino = rebin(sino,nelems,nviews,nplns)
 	// IDL: wts = total(total(c_sino,1),1)		; rather then weigths (nplns values)
@@ -336,7 +336,7 @@ float *fit_dwell(short *vsino, int full_nplns)
 		if (qc_flag)
 		{
 			fit_sino_dwell(sino, parms, profile+pln*nelemsr, profile_fit+pln*nelemsr);
-			printf("Plane =%d a0 =%g r =%g t=%g phi =%g\n",
+			LOG_INFO("Plane =%d a0 =%g r =%g t=%g phi =%g\n",
 			pln,parms[0], parms[1], parms[2], parms[3]);
 		}
 		else fit_sino_dwell(sino, parms, NULL,NULL);
@@ -457,17 +457,16 @@ float *fit_dwell(short *vsino, int full_nplns)
 	float *dest = ret;
 	if (qc_flag) 
 	{
-		printf("Fitted dwell parameters ..\n");
-		printf("Activity     - Radius - Off amplitude - Off direction\n");
+		LOG_INFO("Fitted dwell parameters ..\n");
+		LOG_INFO("Activity     - Radius - Off amplitude - Off direction\n");
 	}
 
 	for (pln=0; pln<nplns; pln++)
 	{
 		for (j=0; j<4; j++) dest[j] = (float)parms[j];
-		if (qc_flag) 
-		{
+		if (qc_flag) 		{
 			for (int j=0; j<4; j++) printf("%10.4f ", dest[j]);
-			printf("\n");
+
 		}
 		for (i=1; i<axial_comp; i++)
 			memcpy(dest+4*i, dest, 4*sizeof(float));
