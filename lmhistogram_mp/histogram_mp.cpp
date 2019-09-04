@@ -56,15 +56,6 @@
 
 #include "my_spdlog.hpp"
 
-// #if !defined(FMT_HEADER_ONLY)
-// #define FMT_HEADER_ONLY
-// #endif
-
-
-// #define SPDLOG_FMT_EXTERNAL
-// #include "spdlog/spdlog.h"
-// #include "spdlog.h"
-
 namespace bf = boost::filesystem;
 namespace bx = boost::xpressive;
 

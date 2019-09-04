@@ -12,7 +12,7 @@
 #include <memory>
 
 #include <fmt/format.h>
-#include <fmt/ostream.h>
+// #include <fmt/ostream.h>
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/basic_file_sink.h"

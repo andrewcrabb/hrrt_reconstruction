@@ -5,8 +5,6 @@
 #include "hrrt_util.hpp"
 #include "CHeader.hpp"
 
-// #define FMT_HEADER_ONLY
-
 using std::string;
 using std::cout;
 using std::endl;

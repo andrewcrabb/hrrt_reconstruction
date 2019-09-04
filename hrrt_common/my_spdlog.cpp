@@ -51,4 +51,12 @@ void init_logging(std::string progname ) {
   spdlog::register_logger(multi_logger);
 }
 
+  void set_level_debug(void) {
+    g_logger->set_lvel(spdlog::level::debug);
+  }
+
+  void set_level_trace(void) {
+    g_logger->set_lvel(spdlog::level::trace);
+  }
+
 }
